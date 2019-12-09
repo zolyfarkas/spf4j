@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
  * @author zoly
  */
 @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
-final class MemorizedCallable&lt;V&gt; implements Callable&lt;V&gt; {
+public final class MemorizedCallable&lt;V&gt; implements Callable&lt;V&gt; {
 
 <span class="fc" id="L44">    private static final Object NOTHING = new Object();</span>
 
@@ -67,9 +67,28 @@ final class MemorizedCallable&lt;V&gt; implements Callable&lt;V&gt; {
 <span class="fc" id="L67">        return result;</span>
     }
 
+    public V clear() {
+<span class="fc" id="L71">      V result = value;</span>
+<span class="fc" id="L72">      value = (V) NOTHING;</span>
+<span class="fc" id="L73">      return result;</span>
+    }
+
+    public NullAbleOptional&lt;V&gt; getIfMemorized() {
+<span class="nc" id="L77">      V rv = value;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">      if (rv == NOTHING) {</span>
+<span class="nc" id="L79">        return NullAbleOptional.EMPTY;</span>
+      } else {
+<span class="nc" id="L81">        return NullAbleOptional.of(rv);</span>
+      }
+    }
+
+    public void set(final V v) {
+<span class="nc" id="L86">      this.value = v;</span>
+<span class="nc" id="L87">    }</span>
+
     @Override
     public String toString() {
-<span class="nc" id="L72">        return &quot;MemorizedCallable{&quot; + &quot;value=&quot; + value + '}';</span>
+<span class="nc" id="L91">        return &quot;MemorizedCallable{&quot; + &quot;value=&quot; + value + '}';</span>
     }
 
 }

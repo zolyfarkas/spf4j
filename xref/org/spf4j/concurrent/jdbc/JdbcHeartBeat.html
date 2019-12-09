@@ -312,7 +312,7 @@
 <a class="jxr_linenumber" name="L304" href="#L304">304</a>         <strong class="jxr_keyword">long</strong> nanosSincelLastHB = TimeSource.nanoTime() - lrn;
 <a class="jxr_linenumber" name="L305" href="#L305">305</a>         <strong class="jxr_keyword">long</strong> delayNanos = intervalNanos - nanosSincelLastHB;
 <a class="jxr_linenumber" name="L306" href="#L306">306</a>         <strong class="jxr_keyword">if</strong> (delayNanos &lt; (-intervalNanos) * missedHBRatio) {
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a>(<span class="jxr_string">"Missed heartbeat since last one was "</span> + nanosSincelLastHB + <span class="jxr_string">" ns ago"</span>);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a>(<span class="jxr_string">"Missed heartbeat, last one was "</span> + nanosSincelLastHB + <span class="jxr_string">" ns ago"</span>);
 <a class="jxr_linenumber" name="L308" href="#L308">308</a>         }
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>         <strong class="jxr_keyword">if</strong> (delayNanos &lt; 0) {
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>           delayNanos = 0;
@@ -535,7 +535,7 @@
 <a class="jxr_linenumber" name="L527" href="#L527">527</a>         <strong class="jxr_keyword">long</strong> nanosSinceLastBeat = currentTimeNanos - lrn;
 <a class="jxr_linenumber" name="L528" href="#L528">528</a>         <strong class="jxr_keyword">if</strong> (maxMissedNanos &lt; nanosSinceLastBeat) {
 <a class="jxr_linenumber" name="L529" href="#L529">529</a>           <em class="jxr_comment">// Unable to beat at inteval!</em>
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>           <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a> err = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a>(<span class="jxr_string">"System to busy to provide regular heartbeat, last heartbeat "</span>
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>           <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a> err = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a>(<span class="jxr_string">"System too busy to provide regular heartbeat, last heartbeat "</span>
 <a class="jxr_linenumber" name="L531" href="#L531">531</a>                   + nanosSinceLastBeat + <span class="jxr_string">" ns ago"</span>);
 <a class="jxr_linenumber" name="L532" href="#L532">532</a> 
 <a class="jxr_linenumber" name="L533" href="#L533">533</a>           handleError(err);

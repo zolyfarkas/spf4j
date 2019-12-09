@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FilterUtils.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">FilterUtils.java</span></div><h1>FilterUtils.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Predicate;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.calcite.config.Lex;
+import org.apache.calcite.interpreter.Scalar;
+import org.apache.calcite.interpreter.Spf4jDataContext;
+import org.apache.calcite.jdbc.JavaTypeFactoryImpl;
+import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.logical.LogicalFilter;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.schema.SchemaPlus;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.parser.SqlParseException;
+import org.apache.calcite.sql.parser.SqlParser;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.Frameworks;
+import org.apache.calcite.tools.Planner;
+import org.apache.calcite.tools.RelConversionException;
+import org.apache.calcite.tools.ValidationException;
+import org.spf4j.base.CloseableIterator;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public final class FilterUtils {
+
+  private FilterUtils() { }
+
+<span class="fc" id="L54">  private static final SqlParser.Config PARSER_CFG = SqlParser.configBuilder()</span>
+<span class="fc" id="L55">            .setCaseSensitive(true)</span>
+<span class="fc" id="L56">            .setIdentifierMaxLength(255)</span>
+<span class="fc" id="L57">            .setLex(Lex.JAVA).build();</span>
+
+<span class="fc" id="L59">  private static final JavaTypeFactoryImpl JAVA_TYPE_FACTORY = new JavaTypeFactoryImpl();</span>
+
+  public static SqlNode parse(final String expr) throws SqlParseException {
+<span class="nc" id="L62">    SqlParser parser = SqlParser.create(expr, PARSER_CFG);</span>
+<span class="nc" id="L63">    return parser.parseExpression();</span>
+  }
+
+
+  public static Predicate&lt;IndexedRecord&gt; toPredicate(final String sqlExpr,
+          final Schema recSchema) throws SqlParseException,
+    ValidationException, RelConversionException {
+<span class="fc" id="L70">    return toPredicate(sqlExpr, JAVA_TYPE_FACTORY, recSchema);</span>
+  }
+
+  public static Predicate&lt;IndexedRecord&gt; toPredicate(final String sqlExpr,
+          final JavaTypeFactoryImpl javaTypeFactoryImpl,
+          final Schema recSchema) throws SqlParseException,
+          ValidationException, RelConversionException {
+<span class="fc" id="L77">    SchemaPlus schema = Frameworks.createRootSchema(true);</span>
+<span class="fc" id="L78">    schema.add(&quot;r&quot;, new AvroIteratorAsProjectableFilterableTable(recSchema,</span>
+<span class="nc" id="L79">            () -&gt; CloseableIterator.from(Collections.EMPTY_LIST.iterator())));</span>
+<span class="fc" id="L80">    FrameworkConfig config = Frameworks.newConfigBuilder()</span>
+<span class="fc" id="L81">            .parserConfig(PARSER_CFG)</span>
+<span class="fc" id="L82">            .defaultSchema(schema).build();</span>
+
+<span class="fc" id="L84">    Planner planner = Frameworks.getPlanner(config);</span>
+<span class="fc" id="L85">    SqlNode parse = planner.parse(&quot;select * from r where &quot; + sqlExpr);</span>
+<span class="fc" id="L86">    parse = planner.validate(parse);</span>
+<span class="fc" id="L87">    RelNode project = planner.rel(parse).project();</span>
+<span class="fc" id="L88">    List&lt;RexNode&gt; childExps = ((LogicalFilter) project.getInput(0)).getChildExps();</span>
+<span class="fc" id="L89">    RelDataType from = Types.from(javaTypeFactoryImpl, recSchema, new HashMap&lt;Schema, RelDataType&gt;());</span>
+<span class="fc" id="L90">    return toPredicate(childExps, javaTypeFactoryImpl, from);</span>
+  }
+
+  public static Predicate&lt;IndexedRecord&gt; toPredicate(final List&lt;RexNode&gt; filter, final RelDataType rowType) {
+<span class="nc" id="L94">    return toPredicate(filter, JAVA_TYPE_FACTORY, rowType);</span>
+  }
+
+
+  public static Predicate&lt;IndexedRecord&gt; toPredicate(final List&lt;RexNode&gt; filter,
+          final JavaTypeFactoryImpl javaTypeFactoryImpl, final RelDataType rowType) {
+<span class="fc" id="L100">    Scalar scalar = InterpreterUtils.toScalar(filter, javaTypeFactoryImpl, rowType);</span>
+<span class="fc" id="L101">    return new Predicate&lt;IndexedRecord&gt;() {</span>
+
+<span class="fc" id="L103">      private Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl, null));</span>
+      {
+<span class="fc" id="L105">        context.values =  new Object[rowType.getFieldCount()];</span>
+<span class="fc" id="L106">      }</span>
+
+      @Override
+      public synchronized boolean test(final IndexedRecord x) {
+<span class="fc" id="L110">        IndexedRecords.copyRecord(x, context.values);</span>
+<span class="fc" id="L111">        return (Boolean) scalar.execute(context);</span>
+      }
+    };
+  }
+
+  public static Predicate&lt;IndexedRecord&gt; toPredicate(@Nullable final Iterable&lt;String&gt; expr,
+          final Schema recSchema) throws SqlParseException, ValidationException, RelConversionException {
+<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (expr == null) {</span>
+<span class="nc" id="L119">      return (x) -&gt; true;</span>
+    }
+<span class="nc" id="L121">    Iterator&lt;String&gt; it = expr.iterator();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    if (!it.hasNext()) {</span>
+<span class="nc" id="L123">      return (x) -&gt; true;</span>
+    }
+<span class="nc" id="L125">    Predicate&lt;IndexedRecord&gt; result = toPredicate(it.next(), recSchema);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    while (it.hasNext()) {</span>
+<span class="nc" id="L127">      result = result.and(toPredicate(it.next(), recSchema));</span>
+    }
+<span class="nc" id="L129">    return result;</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

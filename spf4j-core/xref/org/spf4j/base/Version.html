@@ -43,68 +43,68 @@
 <a class="jxr_linenumber" name="L35" href="#L35">35</a>  <strong class="jxr_keyword">import</strong> edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 <a class="jxr_linenumber" name="L36" href="#L36">36</a>  <strong class="jxr_keyword">import</strong> java.io.Serializable;
 <a class="jxr_linenumber" name="L37" href="#L37">37</a>  <strong class="jxr_keyword">import</strong> java.util.ArrayList;
-<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.List;
-<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> javax.annotation.ParametersAreNonnullByDefault;
-<a class="jxr_linenumber" name="L40" href="#L40">40</a>  
-<a class="jxr_linenumber" name="L41" href="#L41">41</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment"> *</em>
-<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L45" href="#L45">45</a>  @ParametersAreNonnullByDefault
-<a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Version.html">Version</a> <strong class="jxr_keyword">implements</strong> Comparable&lt;Version&gt;, Serializable {
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">transient</strong> Comparable[] components;
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String image;
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>    <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/base/Version.html">Version</a>(<strong class="jxr_keyword">final</strong> String version) {
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>      <strong class="jxr_keyword">this</strong>((CharSequence) version);
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>    }
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>  
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>    <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/base/Version.html">Version</a>(<strong class="jxr_keyword">final</strong> CharSequence version) {
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      <strong class="jxr_keyword">this</strong>.image = version.toString();
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      parse(version);
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>    }
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> parse(<strong class="jxr_keyword">final</strong> CharSequence version) {
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      List&lt;Comparable&lt;?&gt;&gt; comps = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(4);
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder();
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>      <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0, l = version.length(); i &lt; l; i++) {
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>        <strong class="jxr_keyword">char</strong> c = version.charAt(i);
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>        <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length = sb.length();
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>        <strong class="jxr_keyword">if</strong> (c == '.') {
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>          addPart(sb, comps);
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>          sb.setLength(0);
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>        } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Character.isDigit(c)) {
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>          <strong class="jxr_keyword">if</strong> (length &gt; 0) {
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>            <strong class="jxr_keyword">char</strong> prev = sb.charAt(length - 1);
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>            <strong class="jxr_keyword">if</strong> (!Character.isDigit(prev)) {
-<a class="jxr_linenumber" name="L76" href="#L76">76</a>              comps.add(sb.toString());
-<a class="jxr_linenumber" name="L77" href="#L77">77</a>              sb.setLength(0);
-<a class="jxr_linenumber" name="L78" href="#L78">78</a>            }
-<a class="jxr_linenumber" name="L79" href="#L79">79</a>          }
-<a class="jxr_linenumber" name="L80" href="#L80">80</a>          sb.append(c);
-<a class="jxr_linenumber" name="L81" href="#L81">81</a>        } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L82" href="#L82">82</a>          <strong class="jxr_keyword">if</strong> (length &gt; 0) {
-<a class="jxr_linenumber" name="L83" href="#L83">83</a>            <strong class="jxr_keyword">char</strong> prev = sb.charAt(length - 1);
-<a class="jxr_linenumber" name="L84" href="#L84">84</a>            <strong class="jxr_keyword">if</strong> (Character.isDigit(prev)) {
-<a class="jxr_linenumber" name="L85" href="#L85">85</a>              comps.add(Integer.valueOf(sb.toString()));
-<a class="jxr_linenumber" name="L86" href="#L86">86</a>              sb.setLength(0);
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>            }
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>          }
-<a class="jxr_linenumber" name="L89" href="#L89">89</a>          sb.append(c);
-<a class="jxr_linenumber" name="L90" href="#L90">90</a>        }
-<a class="jxr_linenumber" name="L91" href="#L91">91</a>      }
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">if</strong> (sb.length() &gt; 0) {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>        addPart(sb, comps);
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>      }
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>      components = comps.toArray(<strong class="jxr_keyword">new</strong> Comparable[comps.size()]);
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>    }
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>  
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addPart(<strong class="jxr_keyword">final</strong> StringBuilder sb, <strong class="jxr_keyword">final</strong> List&lt;Comparable&lt;?&gt;&gt; comps) {
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>      <strong class="jxr_keyword">final</strong> String strPart = sb.toString();
+<a class="jxr_linenumber" name="L38" href="#L38">38</a>  <strong class="jxr_keyword">import</strong> java.util.Collection;
+<a class="jxr_linenumber" name="L39" href="#L39">39</a>  <strong class="jxr_keyword">import</strong> java.util.List;
+<a class="jxr_linenumber" name="L40" href="#L40">40</a>  <strong class="jxr_keyword">import</strong> javax.annotation.ParametersAreNonnullByDefault;
+<a class="jxr_linenumber" name="L41" href="#L41">41</a>  
+<a class="jxr_linenumber" name="L42" href="#L42">42</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L43" href="#L43">43</a>  <em class="jxr_javadoccomment"> *</em>
+<a class="jxr_linenumber" name="L44" href="#L44">44</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L45" href="#L45">45</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L46" href="#L46">46</a>  @ParametersAreNonnullByDefault
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Version.html">Version</a> <strong class="jxr_keyword">implements</strong> Comparable&lt;Version&gt;, Serializable {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> serialVersionUID = 1L;
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">transient</strong> Comparable[] components;
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> String image;
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>    <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/base/Version.html">Version</a>(<strong class="jxr_keyword">final</strong> String version) {
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>      <strong class="jxr_keyword">this</strong>((CharSequence) version);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>    }
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>  
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>    <strong class="jxr_keyword">public</strong> <a href="../../../org/spf4j/base/Version.html">Version</a>(<strong class="jxr_keyword">final</strong> CharSequence version) {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">this</strong>.image = version.toString();
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      parse(version);
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>    }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>  
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> parse(<strong class="jxr_keyword">final</strong> CharSequence version) {
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      List&lt;Comparable&lt;?&gt;&gt; comps = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(4);
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      StringBuilder sb = <strong class="jxr_keyword">new</strong> StringBuilder();
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0, l = version.length(); i &lt; l; i++) {
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>        <strong class="jxr_keyword">char</strong> c = version.charAt(i);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>        <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> length = sb.length();
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>        <strong class="jxr_keyword">if</strong> (c == '.') {
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>          addPart(sb.toString(), comps);
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>          sb.setLength(0);
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>        } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Character.isDigit(c)) {
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>          <strong class="jxr_keyword">if</strong> (length &gt; 0) {
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>            <strong class="jxr_keyword">char</strong> prev = sb.charAt(length - 1);
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>            <strong class="jxr_keyword">if</strong> (!Character.isDigit(prev)) {
+<a class="jxr_linenumber" name="L77" href="#L77">77</a>              comps.add(sb.toString());
+<a class="jxr_linenumber" name="L78" href="#L78">78</a>              sb.setLength(0);
+<a class="jxr_linenumber" name="L79" href="#L79">79</a>            }
+<a class="jxr_linenumber" name="L80" href="#L80">80</a>          }
+<a class="jxr_linenumber" name="L81" href="#L81">81</a>          sb.append(c);
+<a class="jxr_linenumber" name="L82" href="#L82">82</a>        } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L83" href="#L83">83</a>          <strong class="jxr_keyword">if</strong> (length &gt; 0) {
+<a class="jxr_linenumber" name="L84" href="#L84">84</a>            <strong class="jxr_keyword">char</strong> prev = sb.charAt(length - 1);
+<a class="jxr_linenumber" name="L85" href="#L85">85</a>            <strong class="jxr_keyword">if</strong> (Character.isDigit(prev)) {
+<a class="jxr_linenumber" name="L86" href="#L86">86</a>              comps.add(Integer.valueOf(sb.toString()));
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>              sb.setLength(0);
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>            }
+<a class="jxr_linenumber" name="L89" href="#L89">89</a>          }
+<a class="jxr_linenumber" name="L90" href="#L90">90</a>          sb.append(c);
+<a class="jxr_linenumber" name="L91" href="#L91">91</a>        }
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      }
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>      <strong class="jxr_keyword">if</strong> (sb.length() &gt; 0) {
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>        addPart(sb.toString(), comps);
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>      }
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      components = comps.toArray(<strong class="jxr_keyword">new</strong> Comparable[comps.size()]);
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>    }
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>  
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addPart(<strong class="jxr_keyword">final</strong> String strPart, <strong class="jxr_keyword">final</strong> Collection&lt;Comparable&lt;?&gt;&gt; comps) {
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>     Integer nr = Ints.tryParse(strPart);
 <a class="jxr_linenumber" name="L101" href="#L101">101</a>     <strong class="jxr_keyword">if</strong> (nr == <strong class="jxr_keyword">null</strong>) {
 <a class="jxr_linenumber" name="L102" href="#L102">102</a>       comps.add(strPart);

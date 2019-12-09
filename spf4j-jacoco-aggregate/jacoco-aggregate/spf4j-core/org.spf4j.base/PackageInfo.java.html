@@ -34,6 +34,7 @@ package org.spf4j.base;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.net.URL;
 import java.security.CodeSource;
 import javax.annotation.Nonnull;
@@ -42,16 +43,17 @@ import javax.annotation.Nullable;
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings(&quot;FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY&quot;) // calling Throwables.writeTo
 public final class PackageInfo  {
 
-<span class="fc" id="L47">  public static final org.spf4j.base.avro.PackageInfo NONE = new org.spf4j.base.avro.PackageInfo(&quot;&quot;, &quot;&quot;);</span>
+<span class="fc" id="L49">  public static final org.spf4j.base.avro.PackageInfo NONE = new org.spf4j.base.avro.PackageInfo(&quot;&quot;, &quot;&quot;);</span>
 
-<span class="fc" id="L49">  private static final LoadingCache&lt;String, org.spf4j.base.avro.PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
-<span class="fc" id="L50">          .weakKeys().weakValues().build(new CacheLoader&lt;String, org.spf4j.base.avro.PackageInfo&gt;() {</span>
+<span class="fc" id="L51">  private static final LoadingCache&lt;String, org.spf4j.base.avro.PackageInfo&gt; CACHE = CacheBuilder.newBuilder()</span>
+<span class="fc" id="L52">          .weakKeys().weakValues().build(new CacheLoader&lt;String, org.spf4j.base.avro.PackageInfo&gt;() {</span>
 
             @Override
             public org.spf4j.base.avro.PackageInfo load(final String key) {
-<span class="fc" id="L54">              return getPackageInfoDirect(key);</span>
+<span class="fc" id="L56">              return getPackageInfoDirect(key);</span>
             }
           });
 
@@ -60,32 +62,41 @@ public final class PackageInfo  {
   }
 
 
+  @SuppressWarnings(&quot;checkstyle:regexp&quot;)
+  public static void errorNoPackageDetail(final String message, final Throwable t) {
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">    if (Boolean.getBoolean(&quot;spf4j.reportPackageDetailIssues&quot;)) {</span>
+<span class="nc" id="L68">      System.err.println(message);</span>
+<span class="nc" id="L69">      Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);</span>
+    }
+<span class="fc" id="L71">  }</span>
+
   @Nonnull
   public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final String className) {
     Class&lt;?&gt; aClass;
     try {
-<span class="fc" id="L67">      aClass = Class.forName(className);</span>
-<span class="fc" id="L68">    } catch (ClassNotFoundException | NoClassDefFoundError ex) { // NoClassDefFoundError if class fails during init.</span>
-<span class="fc" id="L69">      return NONE;</span>
-<span class="fc" id="L70">    }</span>
-<span class="fc" id="L71">    return getPackageInfoDirect(aClass);</span>
+<span class="fc" id="L77">      aClass = Class.forName(className);</span>
+<span class="fc" id="L78">    } catch (Throwable ex) { // NoClassDefFoundError if class fails during init.</span>
+<span class="fc" id="L79">      errorNoPackageDetail(&quot;Error getting package detail for &quot; + className, ex);</span>
+<span class="fc" id="L80">      return NONE;</span>
+<span class="fc" id="L81">    }</span>
+<span class="fc" id="L82">    return getPackageInfoDirect(aClass);</span>
   }
 
   @Nonnull
   public static org.spf4j.base.avro.PackageInfo getPackageInfoDirect(@Nonnull final Class&lt;?&gt; aClass) {
-<span class="fc" id="L76">    URL jarSourceUrl = getJarSourceUrl(aClass);</span>
-<span class="fc" id="L77">    final Package aPackage = aClass.getPackage();</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
-<span class="nc" id="L79">      return NONE;</span>
+<span class="fc" id="L87">    URL jarSourceUrl = getJarSourceUrl(aClass);</span>
+<span class="fc" id="L88">    final Package aPackage = aClass.getPackage();</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (aPackage == null) {</span>
+<span class="nc" id="L90">      return NONE;</span>
     }
-<span class="fc" id="L81">    String version = aPackage.getImplementationVersion();</span>
-<span class="fc bfc" id="L82" title="All 4 branches covered.">    return new org.spf4j.base.avro.PackageInfo(jarSourceUrl == null ? &quot;&quot; : jarSourceUrl.toString(),</span>
+<span class="fc" id="L92">    String version = aPackage.getImplementationVersion();</span>
+<span class="fc bfc" id="L93" title="All 4 branches covered.">    return new org.spf4j.base.avro.PackageInfo(jarSourceUrl == null ? &quot;&quot; : jarSourceUrl.toString(),</span>
             version  == null ? &quot;&quot; : version);
   }
 
   @Nonnull
   public static org.spf4j.base.avro.PackageInfo getPackageInfo(@Nonnull final String className) {
-<span class="fc" id="L88">    return CACHE.getUnchecked(className);</span>
+<span class="fc" id="L99">    return CACHE.getUnchecked(className);</span>
   }
   /**
    * Useful to get the jar URL where a particular class is located.
@@ -95,11 +106,11 @@ public final class PackageInfo  {
    */
   @Nullable
   public static URL getJarSourceUrl(final Class&lt;?&gt; clasz) {
-<span class="fc" id="L98">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
-<span class="fc bfc" id="L99" title="All 2 branches covered.">    if (codeSource == null) {</span>
-<span class="fc" id="L100">      return null;</span>
+<span class="fc" id="L109">    final CodeSource codeSource = clasz.getProtectionDomain().getCodeSource();</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    if (codeSource == null) {</span>
+<span class="fc" id="L111">      return null;</span>
     } else {
-<span class="fc" id="L102">      return codeSource.getLocation();</span>
+<span class="fc" id="L113">      return codeSource.getLocation();</span>
     }
   }
 

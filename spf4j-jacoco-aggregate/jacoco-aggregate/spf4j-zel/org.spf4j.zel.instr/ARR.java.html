@@ -36,31 +36,28 @@ import java.util.concurrent.ExecutionException;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
 @SuppressFBWarnings(&quot;CD_CIRCULAR_DEPENDENCY&quot;)
 public final class ARR extends Instruction {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
+  private final int nr;
 
-    private final int nr;
+<span class="fc" id="L46">  public ARR(final int nr) {</span>
+<span class="fc" id="L47">    this.nr = nr;</span>
+<span class="fc" id="L48">  }</span>
 
-<span class="fc" id="L48">    public ARR(final int nr) {</span>
-<span class="fc" id="L49">        this.nr = nr;</span>
-<span class="fc" id="L50">    }</span>
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+<span class="fc" id="L53">    context.push(context.popSyncStackVals(nr));</span>
+<span class="fc" id="L54">    return 1;</span>
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-<span class="fc" id="L55">        context.push(context.popSyncStackVals(nr));</span>
-<span class="fc" id="L56">        return 1;</span>
-    }
-
-
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L62">        return new Object[] {nr};</span>
-    }
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L59">    return new Object[]{nr};</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

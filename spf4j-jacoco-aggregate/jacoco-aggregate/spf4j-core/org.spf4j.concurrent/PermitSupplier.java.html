@@ -47,6 +47,73 @@ import org.spf4j.base.ExecutionContexts;
 @ParametersAreNonnullByDefault
 public interface PermitSupplier {
 
+<span class="fc" id="L50">  PermitSupplier UNLIMITED = new PermitSupplier() {</span>
+    @Override
+    public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
+<span class="nc" id="L53">      return true;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L58">      return &quot;Unlimited&quot;;</span>
+    }
+
+
+
+  };
+
+<span class="fc" id="L65">  PermitSupplier EMPTY = new PermitSupplier() {</span>
+    @Override
+    public boolean tryAcquire(final int nrPermits, final long deadlineNanos) {
+<span class="nc" id="L68">      return false;</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L73">      return &quot;Empty&quot;;</span>
+    }
+
+  };
+
+  public interface Acquisition {
+
+<span class="nc" id="L80">    Acquisition SUCCESS = new Acquisition() {</span>
+      @Override
+      public boolean isSuccess() {
+<span class="nc" id="L83">        return true;</span>
+      }
+
+      @Override
+      public long permitAvailableEstimateInNanos() {
+<span class="nc" id="L88">        return 0L;</span>
+      }
+    };
+
+    static Acquisition failed(final long nanosUntilAvailable) {
+<span class="nc" id="L93">      return new Acquisition() {</span>
+        @Override
+        public boolean isSuccess() {
+<span class="nc" id="L96">          return false;</span>
+        }
+
+        @Override
+        public long permitAvailableEstimateInNanos() {
+<span class="nc" id="L101">          return nanosUntilAvailable;</span>
+        }
+      };
+    }
+
+    /**
+     * @return true is permit acquisition request successful. false otherwise.
+     */
+    boolean isSuccess();
+
+    /**
+     * @return if acquisition not successful the number of nanos in which permits will be available. -1L if N/A
+     */
+    long permitAvailableEstimateInNanos();
+  }
+
   /**
    * Acquire one permit.
    *
@@ -57,8 +124,8 @@ public interface PermitSupplier {
    */
   default void acquire(final long timeout, final TimeUnit unit)
           throws InterruptedException, TimeoutException {
-<span class="fc" id="L60">    acquire(1, timeout, unit);</span>
-<span class="fc" id="L61">  }</span>
+<span class="fc" id="L127">    acquire(1, timeout, unit);</span>
+<span class="fc" id="L128">  }</span>
 
   /**
    * Acquire a arbitrary number of permits.
@@ -71,10 +138,10 @@ public interface PermitSupplier {
    */
   default void acquire(final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException, TimeoutException {
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (!tryAcquire(nrPermits, timeout, unit)) {</span>
-<span class="nc" id="L75">      throw new TimeoutException(&quot;Cannot acquire timeout after &quot; + timeout + &quot; &quot; + unit);</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">    if (!tryAcquire(nrPermits, timeout, unit)) {</span>
+<span class="nc" id="L142">      throw new TimeoutException(&quot;Cannot acquire timeout after &quot; + timeout + &quot; &quot; + unit);</span>
     }
-<span class="fc" id="L77">  }</span>
+<span class="fc" id="L144">  }</span>
 
   /**
    * try to acquire a permit.
@@ -87,59 +154,93 @@ public interface PermitSupplier {
   @CheckReturnValue
   default boolean tryAcquire(@Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException {
-<span class="fc" id="L90">    return tryAcquire(1, timeout, unit);</span>
+<span class="fc" id="L157">    return tryAcquire(1, timeout, unit);</span>
   }
 
   /**
    * try to acquire a number of permits.
-   * @param nrPermits  number of permits to acquire.
-   * @param timeout  time to wait for permits to become available.
-   * @param unit  units of time.
-   * @return  true if permits acquired, false if timed out.
+   *
+   * @param nrPermits number of permits to acquire.
+   * @param timeout time to wait for permits to become available.
+   * @param unit units of time.
+   * @return true if permits acquired, false if timed out.
    * @throws InterruptedException - operation interrupted.
    */
   @CheckReturnValue
   default boolean tryAcquire(@Nonnegative final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
           throws InterruptedException {
-<span class="fc" id="L104">    return tryAcquire(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));</span>
+<span class="pc bpc" id="L172" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L173">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + ' ' + unit);</span>
+    }
+<span class="fc" id="L175">    return tryAcquire(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));</span>
   }
 
   @CheckReturnValue
   boolean tryAcquire(@Nonnegative int nrPermits, long deadlineNanos) throws InterruptedException;
 
 
+  @CheckReturnValue
+  default Acquisition tryAcquireEx(@Nonnegative final int nrPermits,
+          @Nonnegative final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+<span class="nc bnc" id="L186" title="All 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L187">      throw new IllegalArgumentException(&quot;Invalid timeout &quot; + timeout + ' ' + unit);</span>
+    }
+<span class="nc" id="L189">    return tryAcquireEx(nrPermits, ExecutionContexts.computeDeadline(timeout, unit));</span>
+  }
+
+  @CheckReturnValue
+  default Acquisition tryAcquireEx(@Nonnegative final int nrPermits, final long deadlineNanos)
+          throws InterruptedException {
+<span class="nc" id="L195">    boolean  res = tryAcquire(nrPermits, deadlineNanos);</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    if (res) {</span>
+<span class="nc" id="L197">      return Acquisition.SUCCESS;</span>
+    } else {
+<span class="nc" id="L199">      return Acquisition.failed(-1L);</span>
+    }
+  }
+
+
+  /**
+   * @param nrPermits
+   * @return true if at least one permit is added.
+   */
+  default boolean addPermits(final int nrPermits) {
+<span class="nc" id="L209">    return false;</span>
+  }
+
   default Semaphore toSemaphore() {
-<span class="fc" id="L112">    return new Semaphore() {</span>
+<span class="fc" id="L213">    return new Semaphore() {</span>
       @Override
       public void release(final int nrPermits) {
         // nothing to release.
-<span class="fc" id="L116">      }</span>
+<span class="fc" id="L217">      }</span>
 
       @Override
       public boolean tryAcquire(final int nrPermits, final long timeout, final TimeUnit unit)
               throws InterruptedException {
-<span class="nc" id="L121">        return PermitSupplier.this.tryAcquire(nrPermits, timeout, unit);</span>
+<span class="nc" id="L222">        return PermitSupplier.this.tryAcquire(nrPermits, timeout, unit);</span>
       }
 
       @Override
       public boolean tryAcquire(final long timeout, final TimeUnit unit) throws InterruptedException {
-<span class="fc" id="L126">        return PermitSupplier.this.tryAcquire(timeout, unit);</span>
+<span class="fc" id="L227">        return PermitSupplier.this.tryAcquire(timeout, unit);</span>
       }
 
       @Override
       public void acquire(final int nrPermits, final long timeout, final TimeUnit unit)
               throws InterruptedException, TimeoutException {
-<span class="nc" id="L132">        PermitSupplier.this.acquire(nrPermits, timeout, unit);</span>
-<span class="nc" id="L133">      }</span>
+<span class="nc" id="L233">        PermitSupplier.this.acquire(nrPermits, timeout, unit);</span>
+<span class="nc" id="L234">      }</span>
 
       @Override
       public void acquire(final long timeout, final TimeUnit unit) throws InterruptedException, TimeoutException {
-<span class="nc" id="L137">        PermitSupplier.this.acquire(timeout, unit);</span>
-<span class="nc" id="L138">      }</span>
+<span class="nc" id="L238">        PermitSupplier.this.acquire(timeout, unit);</span>
+<span class="nc" id="L239">      }</span>
 
       @Override
       public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
-<span class="fc" id="L142">        return PermitSupplier.this.tryAcquire(nrPermits, deadlineNanos);</span>
+<span class="fc" id="L243">        return PermitSupplier.this.tryAcquire(nrPermits, deadlineNanos);</span>
       }
 
     };

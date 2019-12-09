@@ -42,6 +42,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -59,100 +60,137 @@ public final class Futures {
 
   @Nullable
   @CheckReturnValue
-  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future... futures) {
-<span class="fc" id="L63">    return cancelAll(mayInterrupt, futures, 0);</span>
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Future&lt;?&gt;... futures) {
+<span class="fc" id="L64">    return cancelAll(mayInterrupt, futures, 0);</span>
   }
 
   @Nullable
   @CheckReturnValue
   public static RuntimeException cancelAll(final boolean mayInterrupt, final Future[] futures, final int from) {
-<span class="fc" id="L69">    RuntimeException ex = null;</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">    for (int i = from; i &lt; futures.length; i++) {</span>
-<span class="fc" id="L71">      Future future = futures[i];</span>
+<span class="fc" id="L70">    RuntimeException ex = null;</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    for (int i = from; i &lt; futures.length; i++) {</span>
+<span class="fc" id="L72">      Future future = futures[i];</span>
       try {
-<span class="fc" id="L73">        future.cancel(mayInterrupt);</span>
-<span class="nc" id="L74">      } catch (RuntimeException e) {</span>
-<span class="nc bnc" id="L75" title="All 2 branches missed.">        if (ex == null) {</span>
-<span class="nc" id="L76">          ex = e;</span>
+<span class="fc" id="L74">        future.cancel(mayInterrupt);</span>
+<span class="nc" id="L75">      } catch (RuntimeException e) {</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L77">          ex = e;</span>
         } else {
-<span class="nc" id="L78">          Throwables.suppressLimited(ex, e);</span>
+<span class="nc" id="L79">          Throwables.suppressLimited(ex, e);</span>
         }
-<span class="fc" id="L80">      }</span>
+<span class="fc" id="L81">      }</span>
     }
-<span class="fc" id="L82">    return ex;</span>
+<span class="fc" id="L83">    return ex;</span>
   }
 
   @Nullable
-  public static RuntimeException cancelAll(final boolean mayInterrupt, final Iterator&lt;Future&gt; iterator) {
-<span class="nc" id="L87">    RuntimeException ex = null;</span>
-<span class="nc bnc" id="L88" title="All 2 branches missed.">    while (iterator.hasNext()) {</span>
-<span class="nc" id="L89">      Future future = iterator.next();</span>
+  public static RuntimeException cancelAll(final boolean mayInterrupt, final Iterator&lt;Future&lt;?&gt;&gt; iterator) {
+<span class="nc" id="L88">    RuntimeException ex = null;</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    while (iterator.hasNext()) {</span>
+<span class="nc" id="L90">      Future future = iterator.next();</span>
       try {
-<span class="nc" id="L91">        future.cancel(mayInterrupt);</span>
-<span class="nc" id="L92">      } catch (RuntimeException e) {</span>
-<span class="nc bnc" id="L93" title="All 2 branches missed.">        if (ex == null) {</span>
-<span class="nc" id="L94">          ex = e;</span>
+<span class="nc" id="L92">        future.cancel(mayInterrupt);</span>
+<span class="nc" id="L93">      } catch (RuntimeException e) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L95">          ex = e;</span>
         } else {
-<span class="nc" id="L96">          Throwables.suppressLimited(ex, e);</span>
+<span class="nc" id="L97">          Throwables.suppressLimited(ex, e);</span>
         }
-<span class="nc" id="L98">      }</span>
-<span class="nc" id="L99">    }</span>
-<span class="nc" id="L100">    return ex;</span>
+<span class="nc" id="L99">      }</span>
+<span class="nc" id="L100">    }</span>
+<span class="nc" id="L101">    return ex;</span>
   }
 
   @CheckReturnValue
   @Nonnull
   public static Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAll(final long timeoutMillis, final Future... futures)  {
-<span class="fc" id="L106">    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
-<span class="fc" id="L107">    return getAllWithDeadlineNanos(deadlineNanos, futures);</span>
+<span class="fc" id="L107">    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
+<span class="fc" id="L108">    return getAllWithDeadlineNanos(deadlineNanos, futures);</span>
+  }
+
+
+
+  @CheckReturnValue
+  @Nonnull
+  public static  Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAllWithDeadlineNanos(final long deadlineNanos,
+          final Future... futures) {
+<span class="fc" id="L117">    Map&lt;Future, Object&gt; res = Maps.newHashMapWithExpectedSize(futures.length);</span>
+<span class="fc" id="L118">    Exception ex = getAllWithDeadlineNanos(deadlineNanos, res::put, futures);</span>
+<span class="fc" id="L119">    return Pair.of(res, ex);</span>
   }
 
   /**
-   * Gets all futures resuls.
    *
    * @param deadlineNanos
    * @param futures
    * @return
    */
   @CheckReturnValue
-  @Nonnull
-  public static Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAllWithDeadlineNanos(final long deadlineNanos,
-          final Future... futures) {
-<span class="fc" id="L121">    Exception exception = null;</span>
-<span class="fc" id="L122">    Map&lt;Future, Object&gt; results = new HashMap&lt;&gt;(futures.length);</span>
-<span class="fc bfc" id="L123" title="All 2 branches covered.">    for (int i = 0; i &lt; futures.length; i++) {</span>
-<span class="fc" id="L124">      Future future = futures[i];</span>
+  @Nullable
+  public static &lt;T&gt; Exception getAllWithDeadlineNanos(final long deadlineNanos,
+          final BiConsumer&lt;Future&lt;T&gt;, T&gt; consumer,
+          final Future&lt;T&gt;... futures) {
+<span class="fc" id="L133">    Exception exception = null;</span>
+<span class="fc bfc" id="L134" title="All 2 branches covered.">    for (int i = 0; i &lt; futures.length; i++) {</span>
+<span class="fc" id="L135">      Future&lt;T&gt; future = futures[i];</span>
       try {
-<span class="fc" id="L126">        final long toNanos = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="fc" id="L127">        results.put(future, future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS));</span>
-<span class="nc" id="L128">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L129">        Thread.currentThread().interrupt();</span>
-<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (exception == null) {</span>
-<span class="nc" id="L131">          exception = ex;</span>
+<span class="fc" id="L137">        final long toNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="fc" id="L138">        T get = future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L139">        consumer.accept(future, get);</span>
+<span class="nc" id="L140">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L141">        Thread.currentThread().interrupt();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (exception == null) {</span>
+<span class="nc" id="L143">          exception = ex;</span>
         } else {
-<span class="nc" id="L133">          Throwables.suppressLimited(ex, exception);</span>
-<span class="nc" id="L134">          exception = ex;</span>
+<span class="nc" id="L145">          Throwables.suppressLimited(ex, exception);</span>
+<span class="nc" id="L146">          exception = ex;</span>
         }
-<span class="nc" id="L136">        RuntimeException cex = cancelAll(true, futures, i + 1);</span>
-<span class="nc bnc" id="L137" title="All 2 branches missed.">        if (cex != null) {</span>
-<span class="nc" id="L138">          Throwables.suppressLimited(exception, cex);</span>
+<span class="nc" id="L148">        RuntimeException cex = cancelAll(true, futures, i + 1);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">        if (cex != null) {</span>
+<span class="nc" id="L150">          Throwables.suppressLimited(exception, cex);</span>
         }
-<span class="nc" id="L140">      } catch (TimeoutException | ExecutionException | RuntimeException ex) {</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">        if (exception == null) {</span>
-<span class="nc" id="L142">          exception = ex;</span>
+<span class="nc" id="L152">      }  catch (TimeoutException  ex) {</span>
+        try {
+<span class="nc" id="L154">          future.cancel(true);</span>
+<span class="nc" id="L155">        } catch (RuntimeException ex2) {</span>
+<span class="nc" id="L156">          ex.addSuppressed(ex2);</span>
+<span class="nc" id="L157">        }</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (exception == null) {</span>
+<span class="nc" id="L159">          exception = ex;</span>
         } else {
-<span class="nc" id="L144">          Throwables.suppressLimited(exception, ex);</span>
+<span class="nc" id="L161">          Throwables.suppressLimited(exception, ex);</span>
         }
-<span class="pc" id="L146">      }</span>
+<span class="nc" id="L163">      } catch (ExecutionException | RuntimeException ex) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if (exception == null) {</span>
+<span class="nc" id="L165">          exception = ex;</span>
+        } else {
+<span class="nc" id="L167">          Throwables.suppressLimited(exception, ex);</span>
+        }
+<span class="pc" id="L169">      }</span>
     }
-<span class="fc" id="L148">    return Pair.of(results, exception);</span>
+<span class="fc" id="L171">    return exception;</span>
+  }
+
+ /**
+   * Gets all futures resuls for futures that return Void (no return).
+   *
+   * @param deadlineNanos
+   * @param futures
+   * @return
+   */
+  @CheckReturnValue
+  @Nullable
+  @SuppressWarnings(&quot;unchecked&quot;)
+  public static Exception getAllWithDeadlineNanosRetVoid(final long deadlineNanos,
+          final Future... futures) {
+<span class="nc" id="L186">    return getAllWithDeadlineNanos(deadlineNanos, (a, b) -&gt; { }, futures);</span>
   }
 
   @CheckReturnValue
   @Nonnull
   public static Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAll(final long timeoutMillis, final Iterable&lt;Future&gt; futures)  {
-<span class="fc" id="L154">    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
-<span class="fc" id="L155">    return getAllWithDeadlineNanos(deadlineNanos, futures);</span>
+<span class="fc" id="L192">    long deadlineNanos = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);</span>
+<span class="fc" id="L193">    return getAllWithDeadlineNanos(deadlineNanos, futures);</span>
   }
 
 
@@ -160,71 +198,93 @@ public final class Futures {
   @Nonnull
   public static Pair&lt;Map&lt;Future, Object&gt;, Exception&gt; getAllWithDeadlineNanos(final long deadlineNanos,
           final Iterable&lt;Future&gt; futures) {
-<span class="fc" id="L163">    Exception exception = null;</span>
     Map&lt;Future, Object&gt; results;
-<span class="pc bpc" id="L165" title="1 of 2 branches missed.">    if (futures instanceof Collection) {</span>
-<span class="fc" id="L166">      results = Maps.newHashMapWithExpectedSize(((Collection) futures).size());</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">    if (futures instanceof Collection) {</span>
+<span class="fc" id="L203">      results = Maps.newHashMapWithExpectedSize(((Collection) futures).size());</span>
     } else {
-<span class="nc" id="L168">      results = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L205">      results = new HashMap&lt;&gt;();</span>
     }
-<span class="fc" id="L170">    Iterator&lt;Future&gt; iterator = futures.iterator();</span>
-<span class="fc bfc" id="L171" title="All 2 branches covered.">    while (iterator.hasNext()) {</span>
-<span class="fc" id="L172">      Future future = iterator.next();</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L208">    Exception ex = getAllWithDeadlineNanos(deadlineNanos, results::put, (Iterable) futures);</span>
+<span class="fc" id="L209">    return Pair.of(results, ex);</span>
+  }
+
+  @CheckReturnValue
+  @Nullable
+  public static &lt;T&gt; Exception getAllWithDeadlineNanos(final long deadlineNanos,
+          final BiConsumer&lt;Future&lt;T&gt;, T&gt; consumer,
+          final Iterable&lt;Future&lt;T&gt;&gt; futures) {
+<span class="fc" id="L217">    Exception exception = null;</span>
+<span class="fc" id="L218">    Iterator&lt;Future&lt;T&gt;&gt; iterator = futures.iterator();</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">    while (iterator.hasNext()) {</span>
+<span class="fc" id="L220">      Future&lt;T&gt; future = iterator.next();</span>
       try {
-<span class="fc" id="L174">        final long toNanos = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="fc" id="L175">        results.put(future, future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS));</span>
-<span class="nc" id="L176">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L177">        Thread.currentThread().interrupt();</span>
-<span class="nc bnc" id="L178" title="All 2 branches missed.">        if (exception == null) {</span>
-<span class="nc" id="L179">          exception = ex;</span>
+<span class="fc" id="L222">        final long toNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="fc" id="L223">        T get = future.get(Math.max(0, toNanos), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L224">        consumer.accept(future, get);</span>
+<span class="nc" id="L225">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L226">        Thread.currentThread().interrupt();</span>
+<span class="nc bnc" id="L227" title="All 2 branches missed.">        if (exception == null) {</span>
+<span class="nc" id="L228">          exception = ex;</span>
         } else {
-<span class="nc" id="L181">          Throwables.suppressLimited(ex, exception);</span>
-<span class="nc" id="L182">          exception = ex;</span>
+<span class="nc" id="L230">          Throwables.suppressLimited(ex, exception);</span>
+<span class="nc" id="L231">          exception = ex;</span>
         }
-<span class="nc" id="L184">        RuntimeException cex = cancelAll(true, iterator);</span>
-<span class="nc bnc" id="L185" title="All 2 branches missed.">        if (cex != null) {</span>
-<span class="nc" id="L186">          Throwables.suppressLimited(exception, cex);</span>
+<span class="nc" id="L233">        RuntimeException cex = cancelAll(true, (Iterator) iterator);</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">        if (cex != null) {</span>
+<span class="nc" id="L235">          Throwables.suppressLimited(exception, cex);</span>
         }
-<span class="nc" id="L188">        break;</span>
-<span class="nc" id="L189">      } catch (TimeoutException | ExecutionException | RuntimeException ex) {</span>
-<span class="nc bnc" id="L190" title="All 2 branches missed.">        if (exception == null) {</span>
-<span class="nc" id="L191">          exception = ex;</span>
+<span class="nc" id="L237">        break;</span>
+<span class="nc" id="L238">      } catch (TimeoutException ex) {</span>
+        try {
+<span class="nc" id="L240">          future.cancel(true);</span>
+<span class="nc" id="L241">        } catch (RuntimeException ex2) {</span>
+<span class="nc" id="L242">          ex.addSuppressed(ex2);</span>
+<span class="nc" id="L243">        }</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (exception == null) {</span>
+<span class="nc" id="L245">          exception = ex;</span>
         } else {
-<span class="nc" id="L193">          Throwables.suppressLimited(exception, ex);</span>
+<span class="nc" id="L247">          Throwables.suppressLimited(exception, ex);</span>
         }
-<span class="fc" id="L195">      }</span>
-<span class="fc" id="L196">    }</span>
-<span class="fc" id="L197">    return Pair.of(results, exception);</span>
+<span class="nc" id="L249">      } catch (ExecutionException | RuntimeException ex) {</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        if (exception == null) {</span>
+<span class="nc" id="L251">          exception = ex;</span>
+        } else {
+<span class="nc" id="L253">          Throwables.suppressLimited(exception, ex);</span>
+        }
+<span class="pc" id="L255">      }</span>
+<span class="fc" id="L256">    }</span>
+<span class="fc" id="L257">    return exception;</span>
   }
 
   public static &lt;T&gt; List&lt;Future&lt;T&gt;&gt; timedOutFutures(final int copies, final TimeoutException ex) {
-<span class="nc" id="L201">    Future&lt;T&gt; fut = new Future&lt;T&gt;() {</span>
+<span class="nc" id="L261">    Future&lt;T&gt; fut = new Future&lt;T&gt;() {</span>
       @Override
       public boolean cancel(final boolean mayInterruptIfRunning) {
-<span class="nc" id="L204">        throw new UnsupportedOperationException();</span>
+<span class="nc" id="L264">        throw new UnsupportedOperationException();</span>
       }
 
       @Override
       public boolean isCancelled() {
-<span class="nc" id="L209">        return false;</span>
+<span class="nc" id="L269">        return false;</span>
       }
 
       @Override
       public boolean isDone() {
-<span class="nc" id="L214">        return true;</span>
+<span class="nc" id="L274">        return true;</span>
       }
 
       @Override
       public T get() throws ExecutionException {
-<span class="nc" id="L219">        throw new ExecutionException(ex);</span>
+<span class="nc" id="L279">        throw new ExecutionException(ex);</span>
       }
 
       @Override
       public T get(final long timeout, final TimeUnit unit) throws TimeoutException {
-<span class="nc" id="L224">        throw ex;</span>
+<span class="nc" id="L284">        throw ex;</span>
       }
     };
-<span class="nc" id="L227">    return Collections.nCopies(copies, fut);</span>
+<span class="nc" id="L287">    return Collections.nCopies(copies, fut);</span>
   }
 
 

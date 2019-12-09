@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvroEnumerable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">AvroEnumerable.java</span></div><h1>AvroEnumerable.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import java.util.Arrays;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.calcite.DataContext;
+import org.apache.calcite.linq4j.AbstractEnumerable;
+import org.apache.calcite.linq4j.Enumerator;
+import org.spf4j.base.CloseableIterator;
+
+/**
+ * @author Zoltan Farkas
+ */
+class AvroEnumerable extends AbstractEnumerable&lt;Object[]&gt; {
+
+  private final Supplier&lt;CloseableIterator&lt;? extends IndexedRecord&gt;&gt; stream;
+  private final Supplier&lt;Boolean&gt; cancelFlag;
+  private final int rowLength;
+
+  AvroEnumerable(final int rowLen,
+          final DataContext root,
+<span class="nc" id="L39">          final Supplier&lt;CloseableIterator&lt;? extends IndexedRecord&gt;&gt; stream) {</span>
+<span class="nc" id="L40">    this.rowLength = rowLen;</span>
+<span class="nc" id="L41">    this.stream = stream;</span>
+<span class="nc" id="L42">    AtomicBoolean contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">    cancelFlag = contextFlag == null ? () -&gt; Boolean.FALSE : contextFlag::get;</span>
+<span class="nc" id="L44">  }</span>
+
+  public Enumerator&lt;Object[]&gt; enumerator() {
+<span class="nc" id="L47">    return new Enumerator&lt;Object[]&gt;() {</span>
+<span class="nc" id="L48">      private Object[] current = null;</span>
+
+<span class="nc" id="L50">      private CloseableIterator&lt;? extends IndexedRecord&gt; iterator = stream.get();</span>
+
+      @Override
+      public Object[] current() {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (current == null) {</span>
+<span class="nc" id="L55">          throw new IllegalStateException(&quot;Use moveNext on &quot; + this);</span>
+        }
+<span class="nc" id="L57">        return current;</span>
+      }
+
+      @Override
+      public boolean moveNext() {
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (cancelFlag.get()) {</span>
+<span class="nc" id="L63">          throw new CancellationException(&quot;Operation cancelled on &quot; + stream + &quot; at &quot; + Arrays.toString(current));</span>
+        }
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (iterator.hasNext()) {</span>
+<span class="nc" id="L66">          IndexedRecord ir = iterator.next();</span>
+<span class="nc" id="L67">          current = new Object[rowLength];</span>
+<span class="nc" id="L68">          IndexedRecords.copyRecord(ir, current);</span>
+<span class="nc" id="L69">          return true;</span>
+        } else {
+<span class="nc" id="L71">          current = null;</span>
+<span class="nc" id="L72">          return false;</span>
+        }
+      }
+
+      @Override
+      public void reset() {
+<span class="nc" id="L78">        iterator.close();</span>
+<span class="nc" id="L79">        iterator = stream.get();</span>
+<span class="nc" id="L80">        current = null;</span>
+<span class="nc" id="L81">      }</span>
+
+      @Override
+      public void close() {
+<span class="nc" id="L85">        iterator.close();</span>
+<span class="nc" id="L86">      }</span>
+    };
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L92">    return &quot;AvroEnumerable{&quot; + &quot;stream=&quot; + stream + &quot;, rowLength=&quot; + rowLength + '}';</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -35,34 +35,32 @@ import org.spf4j.zel.vm.Address;
 import org.spf4j.zel.vm.Address.Scope;
 import org.spf4j.zel.vm.ExecutionContext;
 
-
 public final class LODXF extends Instruction {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
-    private final Address fromAddr;
-    
-<span class="fc" id="L45">    public LODXF(final Address fromAddr) {</span>
-<span class="fc" id="L46">        this.fromAddr = fromAddr;</span>
-<span class="fc" id="L47">    }</span>
+  private final Address fromAddr;
 
+<span class="fc" id="L44">  public LODXF(final Address fromAddr) {</span>
+<span class="fc" id="L45">    this.fromAddr = fromAddr;</span>
+<span class="fc" id="L46">  }</span>
 
-    @Override
-    public int execute(final ExecutionContext context) {
-<span class="fc" id="L52">        Address adr = fromAddr;</span>
-        Object obj;
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (adr.getScope() == Scope.LOCAL) {</span>
-<span class="fc" id="L55">            obj = context.localPeek(adr.getAddress());</span>
-        } else {
-<span class="fc" id="L57">            obj = context.globalPeek(adr.getAddress());</span>
-        }
-<span class="fc" id="L59">        context.push(obj);</span>
-<span class="fc" id="L60">        return 1;</span>
+  @Override
+  public int execute(final ExecutionContext context) {
+<span class="fc" id="L50">    Address adr = fromAddr;</span>
+    Object obj;
+<span class="fc bfc" id="L52" title="All 2 branches covered.">    if (adr.getScope() == Scope.LOCAL) {</span>
+<span class="fc" id="L53">      obj = context.localPeek(adr.getAddress());</span>
+    } else {
+<span class="fc" id="L55">      obj = context.globalPeek(adr.getAddress());</span>
     }
+<span class="fc" id="L57">    context.push(obj);</span>
+<span class="fc" id="L58">    return 1;</span>
+  }
 
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L65">        return new Object[] {fromAddr};</span>
-    }
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L63">    return new Object[]{fromAddr};</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -63,23 +63,45 @@ import org.slf4j.LoggerFactory;
 <span class="fc" id="L63">    timeStream = new TLongArrayList(times).iterator();</span>
 <span class="fc" id="L64">  }</span>
 
+  public static long freezeTime() {
+<span class="nc" id="L67">    long nanoTime = TimeSource.nanoTime();</span>
+<span class="nc" id="L68">    setTimeStream(new TLongIterator() {</span>
+      @Override
+      public long next() {
+<span class="nc" id="L71">        return nanoTime;</span>
+      }
+
+      @Override
+      public boolean hasNext() {
+<span class="nc" id="L76">        return true;</span>
+      }
+
+      @Override
+      public void remove() {
+<span class="nc" id="L81">        throw new UnsupportedOperationException();</span>
+      }
+    });
+<span class="nc" id="L84">    return nanoTime;</span>
+  }
+
+
   @Override
   @Nonnull
   @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
   public long getAsLong() {
     long nextTime;
-<span class="fc bfc" id="L71" title="All 2 branches covered.">    if (timeStream.hasNext()) {</span>
-<span class="fc" id="L72">      nextTime = timeStream.next();</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (timeStream.hasNext()) {</span>
+<span class="fc" id="L94">      nextTime = timeStream.next();</span>
     } else {
-<span class="fc" id="L74">      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">      throw new AssertionError(&quot;End of time reached at &quot;</span>
+<span class="fc" id="L96">      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">      throw new AssertionError(&quot;End of time reached at &quot;</span>
               + (stackTrace.length &gt; 2 ? stackTrace[2] : &quot;unknown&quot;));
     }
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
-<span class="nc" id="L79">      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();</span>
-<span class="nc bnc" id="L80" title="All 2 branches missed.">      LOG.trace(&quot;nanoTime = {} at {}&quot;, nextTime, stackTrace.length &gt; 2 ? stackTrace[2] : &quot;unknown&quot;);</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">    if (LOG.isTraceEnabled()) {</span>
+<span class="nc" id="L101">      StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">      LOG.trace(&quot;nanoTime = {} at {}&quot;, nextTime, stackTrace.length &gt; 2 ? stackTrace[2] : &quot;unknown&quot;);</span>
     }
-<span class="fc" id="L82">    return nextTime;</span>
+<span class="fc" id="L104">    return nextTime;</span>
   }
 
 }

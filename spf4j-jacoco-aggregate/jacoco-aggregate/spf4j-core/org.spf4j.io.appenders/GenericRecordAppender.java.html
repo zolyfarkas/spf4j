@@ -31,45 +31,18 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericDatumWriter;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.io.Encoder;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.AppendableOutputStream;
-import org.spf4j.io.ObjectAppender;
-import static org.spf4j.io.appenders.SpecificRecordAppender.TMP;
-import static org.spf4j.io.appenders.SpecificRecordAppender.writeSerializationError;
+import org.spf4j.base.CoreTextMediaType;
+import org.spf4j.io.appenders.json.GenericRecordJsonAppender;
 
 /**
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-<span class="fc" id="L51">public final class GenericRecordAppender implements ObjectAppender&lt;GenericRecord&gt; {</span>
+<span class="fc" id="L41">public final  class GenericRecordAppender extends GenericRecordJsonAppender {</span>
 
   @Override
-  public MediaType getAppendedType() {
-<span class="fc" id="L55">    return MediaTypes.APPLICATION_JSON;</span>
+  public CoreTextMediaType getAppendedType() {
+<span class="fc" id="L45">    return CoreTextMediaType.TEXT_PLAIN;</span>
   }
-
-  @Override
-  public void append(final GenericRecord object, final Appendable appendTo) throws IOException {
-<span class="fc" id="L60">    StringBuilder sb = TMP.get();</span>
-<span class="fc" id="L61">    sb.setLength(0);</span>
-<span class="fc" id="L62">    try (AppendableOutputStream bos = new AppendableOutputStream(appendTo, StandardCharsets.UTF_8)) {</span>
-<span class="fc" id="L63">      final Schema schema = object.getSchema();</span>
-<span class="fc" id="L64">      GenericDatumWriter&lt;GenericRecord&gt; writer = new GenericDatumWriter&lt;&gt;(schema);</span>
-<span class="fc" id="L65">      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, bos);</span>
-<span class="fc" id="L66">      writer.write(object, jsonEncoder);</span>
-<span class="fc" id="L67">      jsonEncoder.flush();</span>
-<span class="nc" id="L68">    } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L69">      writeSerializationError(object, sb, ex);</span>
-<span class="fc" id="L70">    }</span>
-<span class="fc" id="L71">    appendTo.append(sb);</span>
-<span class="fc" id="L72">  }</span>
-
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SqlConverters.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">SqlConverters.java</span></div><h1>SqlConverters.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexInputRef;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.rex.RexSqlStandardConvertletTable;
+import org.apache.calcite.rex.RexToSqlNodeConverterImpl;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlNode;
+import org.apache.calcite.sql.parser.SqlParserPos;
+
+public final class SqlConverters {
+
+  private SqlConverters() { }
+
+<span class="nc" id="L35">  private static final RexSqlStandardConvertletTable TABLE = new RexSqlStandardConvertletTable();</span>
+
+  @Nullable
+  public static List&lt;String&gt; projectionToString(@Nullable final int[] projection, final RelDataType rowType) {
+<span class="nc bnc" id="L39" title="All 2 branches missed.">    if (projection == null) {</span>
+<span class="nc" id="L40">      return null;</span>
+    }
+<span class="nc" id="L42">    List&lt;String&gt; result = new ArrayList&lt;&gt;(projection.length);</span>
+<span class="nc" id="L43">    List&lt;String&gt; fieldNames = rowType.getFieldNames();</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">    for (int i = 0; i &lt; projection.length; i++) {</span>
+<span class="nc" id="L45">      result.add(fieldNames.get(projection[i]));</span>
+    }
+<span class="nc" id="L47">    return result;</span>
+  }
+
+  @Nullable
+  public static SqlNode convert(final RexNode node, final RelDataType rowType) {
+<span class="nc" id="L52">   RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {</span>
+     @Override
+     public SqlNode convertInputRef(final RexInputRef ref) {
+<span class="nc" id="L55">       return new SqlIdentifier(rowType.getFieldNames().get(ref.getIndex()), SqlParserPos.ZERO);</span>
+     }
+   };
+<span class="nc" id="L58">   return conv.convertNode(node);</span>
+  }
+
+  public static List&lt;SqlNode&gt; convert(final List&lt;RexNode&gt; filters, final RelDataType rowType) {
+<span class="nc" id="L62">    List&lt;SqlNode&gt; result = new ArrayList&lt;&gt;(filters.size());</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    for (RexNode node : filters) {</span>
+<span class="nc" id="L64">      result.add(convert(node, rowType));</span>
+<span class="nc" id="L65">    }</span>
+<span class="nc" id="L66">    return result;</span>
+  }
+
+
+  @Nullable
+  public static SqlNode convert(final RexNode node, final Schema rowSchema) {
+<span class="nc" id="L72">   RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {</span>
+     @Override
+     public SqlNode convertInputRef(final RexInputRef ref) {
+<span class="nc" id="L75">       return new SqlIdentifier(rowSchema.getFields().get(ref.getIndex()).name(), SqlParserPos.ZERO);</span>
+     }
+
+   };
+<span class="nc" id="L79">   return conv.convertNode(node);</span>
+  }
+
+  public static List&lt;SqlNode&gt; convert(final List&lt;RexNode&gt; filters, final Schema rowSchema) {
+<span class="nc" id="L83">    List&lt;SqlNode&gt; result = new ArrayList&lt;&gt;(filters.size());</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">    for (RexNode node : filters) {</span>
+<span class="nc" id="L85">      result.add(convert(node, rowSchema));</span>
+<span class="nc" id="L86">    }</span>
+<span class="nc" id="L87">    return result;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

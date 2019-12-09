@@ -35,16 +35,19 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 
 /**
  * Char separated value file Reader.
+ * A newly created reader will initially be positioned at START_DOCUMENT. (current())
+ * A example Token sequence will be:
+ * START_DOCUMENT, ELEMENT, ELEMENT, END_ROW, ELEMENT, ELEMENT, END_ROW, END_DOCUMENT
+ *
  * @author zoly
  */
 public interface CsvReader {
 
-<span class="fc" id="L46">  enum TokenType {</span>
-<span class="fc" id="L47">     ELEMENT, END_ROW, END_DOCUMENT</span>
+<span class="fc" id="L49">  enum TokenType {</span>
+<span class="fc" id="L50">     START_DOCUMENT, ELEMENT, END_ROW, END_DOCUMENT</span>
   }
 
   /**
@@ -61,7 +64,7 @@ public interface CsvReader {
    * @throws IOException
    * @throws CsvParseException
    */
-  @Nullable
+  @Nonnull
   TokenType current();
 
   /**
@@ -72,41 +75,47 @@ public interface CsvReader {
    */
   CharSequence getElement();
 
+  /**
+   * Current CSV line number.
+   * @return
+   */
+  long currentLineNumber();
+
   default int skipRow() throws IOException, CsvParseException {
-<span class="fc" id="L76">    int skipped = 0;</span>
-<span class="fc" id="L77">    TokenType current = current();</span>
-<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (current == null) { // beginning of file.</span>
-<span class="fc" id="L79">      next();</span>
+<span class="fc" id="L85">    int skipped = 0;</span>
+<span class="fc" id="L86">    TokenType current = current();</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">    if (current == TokenType.START_DOCUMENT) { // beginning of file.</span>
+<span class="fc" id="L88">      next();</span>
     }
-<span class="fc bfc" id="L81" title="All 4 branches covered.">    while ((current = current()) != CsvReader.TokenType.END_ROW</span>
+<span class="pc bpc" id="L90" title="1 of 4 branches missed.">    while ((current = current()) != CsvReader.TokenType.END_ROW</span>
             &amp;&amp; current != CsvReader.TokenType.END_DOCUMENT) {
-<span class="fc" id="L83">      next();</span>
-<span class="fc" id="L84">      skipped++;</span>
+<span class="fc" id="L92">      next();</span>
+<span class="fc" id="L93">      skipped++;</span>
     }
-<span class="fc bfc" id="L86" title="All 2 branches covered.">    if (current != CsvReader.TokenType.END_DOCUMENT) {</span>
-<span class="fc" id="L87">      next();</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">    if (current != CsvReader.TokenType.END_DOCUMENT) {</span>
+<span class="fc" id="L96">      next();</span>
     }
-<span class="fc" id="L89">    return skipped;</span>
+<span class="fc" id="L98">    return skipped;</span>
   }
 
   default void readRow(final Consumer&lt;CharSequence&gt; consumer) throws IOException, CsvParseException {
-<span class="nc" id="L93">    TokenType current = current();</span>
-<span class="nc bnc" id="L94" title="All 2 branches missed.">    if (current == null) { // beginning of file.</span>
-<span class="nc" id="L95">      next();</span>
+<span class="nc" id="L102">    TokenType current = current();</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (current == TokenType.START_DOCUMENT) { // beginning of file.</span>
+<span class="nc" id="L104">      next();</span>
     }
-<span class="nc bnc" id="L97" title="All 4 branches missed.">    while ((current = current()) != CsvReader.TokenType.END_ROW</span>
+<span class="nc bnc" id="L106" title="All 4 branches missed.">    while ((current = current()) != CsvReader.TokenType.END_ROW</span>
             &amp;&amp; current != CsvReader.TokenType.END_DOCUMENT) {
-<span class="nc" id="L99">      consumer.accept(getElement());</span>
-<span class="nc" id="L100">      next();</span>
+<span class="nc" id="L108">      consumer.accept(getElement());</span>
+<span class="nc" id="L109">      next();</span>
     }
-<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (current != CsvReader.TokenType.END_DOCUMENT) {</span>
-<span class="nc" id="L103">      next();</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (current != CsvReader.TokenType.END_DOCUMENT) {</span>
+<span class="nc" id="L112">      next();</span>
     }
-<span class="nc" id="L105">  }</span>
+<span class="nc" id="L114">  }</span>
 
 
-  default CsvReader toReader(final Iterator&lt;? extends CharSequence&gt; it) {
-<span class="nc" id="L109">    return new IterableCsvReader(it);</span>
+  static CsvReader toReader(final Iterator&lt;? extends CharSequence&gt; it) {
+<span class="nc" id="L118">    return new IterableCsvReader(it);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>IndexedRecords.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">IndexedRecords.java</span></div><h1>IndexedRecords.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import com.google.common.collect.Maps;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.apache.avro.LogicalType;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.IndexedRecord;
+
+/**
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings({ &quot;UCC_UNRELATED_COLLECTION_CONTENTS&quot;, &quot;URV_UNRELATED_RETURN_VALUES&quot; })
+// this is how a calcite row is...
+public final class IndexedRecords {
+
+  private IndexedRecords() {
+  }
+
+  public static void copyRecord(final IndexedRecord from, final Object[] to) {
+<span class="fc bfc" id="L46" title="All 2 branches covered.">    for (Schema.Field field : from.getSchema().getFields()) {</span>
+<span class="fc" id="L47">      int pos = field.pos();</span>
+<span class="fc" id="L48">      Object val = from.get(pos);</span>
+<span class="fc" id="L49">      Schema fs = field.schema();</span>
+<span class="fc" id="L50">      to[pos] = fromAvroToCalcite(val, fs);</span>
+<span class="fc" id="L51">    }</span>
+<span class="fc" id="L52">  }</span>
+
+  @Nullable
+  public static Object fromAvroToCalcite(@Nullable final Object avro, @Nonnull final Schema schema) {
+<span class="fc" id="L56">    LogicalType logicalType = schema.getLogicalType();</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">    if (logicalType != null) {</span>
+<span class="pc bpc" id="L58" title="3 of 4 branches missed.">      switch (logicalType.getName()) {</span>
+        case &quot;date&quot;:
+<span class="fc" id="L60">          return ((LocalDate) avro).toEpochDay();</span>
+        case &quot;instant&quot;:
+<span class="nc" id="L62">          return ((Instant) avro).toEpochMilli();</span>
+        case &quot;decimal&quot;:
+<span class="nc" id="L64">          return ((Number) avro).doubleValue();</span>
+        default:
+<span class="nc" id="L66">          return avro;</span>
+      }
+    }
+<span class="pc bpc" id="L69" title="3 of 6 branches missed.">    switch (schema.getType()) {</span>
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case ENUM:
+      case FIXED:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+<span class="fc" id="L80">        return avro;</span>
+      case ARRAY:
+<span class="fc" id="L82">        Schema elType = schema.getElementType();</span>
+<span class="fc" id="L83">        Collection&lt;Object&gt; col = (Collection&lt;Object&gt;) avro;</span>
+<span class="fc" id="L84">        return col.stream().map((x) -&gt; fromAvroToCalcite(x, elType))</span>
+<span class="fc" id="L85">                .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(col.size())));</span>
+      case MAP:
+<span class="nc" id="L87">        Schema valueType = schema.getValueType();</span>
+<span class="nc" id="L88">        Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) avro;</span>
+<span class="nc" id="L89">        return map.entrySet().stream()</span>
+<span class="nc" id="L90">                .collect(Collectors.toMap((x) -&gt; x.getKey(), (x) -&gt; fromAvroToCalcite(x.getValue(), valueType),</span>
+                        (u, v) -&gt; {
+<span class="nc" id="L92">                          throw new IllegalStateException(String.format(&quot;Duplicate key %s&quot;, u));</span>
+                        },
+<span class="nc" id="L94">                        () -&gt; Maps.newHashMapWithExpectedSize(map.size())));</span>
+      case RECORD:
+<span class="fc" id="L96">        Object[] res = new Object[schema.getFields().size()];</span>
+<span class="fc" id="L97">        copyRecord((IndexedRecord) avro, res);</span>
+<span class="fc" id="L98">        return res;</span>
+      case UNION:
+<span class="nc" id="L100">        Schema nSchema = org.spf4j.avro.schema.Schemas.nullableUnionSchema(schema);</span>
+<span class="nc bnc" id="L101" title="All 2 branches missed.">        if (nSchema == null) {</span>
+<span class="nc" id="L102">          throw new UnsupportedOperationException(&quot;Not supported union &quot; + schema);</span>
+        }
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (avro == null) {</span>
+<span class="nc" id="L105">          return null;</span>
+        }
+<span class="nc" id="L107">        return fromAvroToCalcite(avro, nSchema);</span>
+      default:
+<span class="nc" id="L109">        throw new UnsupportedOperationException(&quot;Not supported schema &quot; + schema);</span>
+    }
+  }
+
+  @Nullable
+  public static Object fromCalciteToAvro(final Schema schema, @Nullable final Object calc) {
+<span class="fc" id="L115">    LogicalType logicalType = schema.getLogicalType();</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">    if (logicalType != null) {</span>
+<span class="pc bpc" id="L117" title="3 of 4 branches missed.">      switch (logicalType.getName()) {</span>
+        case &quot;date&quot;:
+<span class="fc" id="L119">          return LocalDate.ofEpochDay((Integer) calc);</span>
+        case &quot;instant&quot;:
+<span class="nc" id="L121">          return Instant.ofEpochMilli((Long) calc);</span>
+        case &quot;decimal&quot;:
+<span class="nc" id="L123">          return BigDecimal.valueOf(((Number) calc).doubleValue());</span>
+        default:
+<span class="nc" id="L125">          return calc;</span>
+      }
+    }
+<span class="pc bpc" id="L128" title="3 of 6 branches missed.">    switch (schema.getType()) {</span>
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+      case ENUM:
+      case FIXED:
+      case FLOAT:
+      case INT:
+      case LONG:
+      case NULL:
+      case STRING:
+<span class="fc" id="L139">        return calc;</span>
+      case ARRAY:
+<span class="fc" id="L141">        Schema elType = schema.getElementType();</span>
+<span class="fc" id="L142">        Collection&lt;Object&gt; col = (Collection&lt;Object&gt;) calc;</span>
+<span class="fc" id="L143">        return col.stream().map((x) -&gt; fromCalciteToAvro(elType, x))</span>
+<span class="fc" id="L144">                .collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(col.size())));</span>
+      case MAP:
+<span class="nc" id="L146">        Schema valueType = schema.getValueType();</span>
+<span class="nc" id="L147">        Map&lt;String, Object&gt; map = (Map&lt;String, Object&gt;) calc;</span>
+<span class="nc" id="L148">        return map.entrySet().stream()</span>
+<span class="nc" id="L149">                .collect(Collectors.toMap((x) -&gt; x.getKey(), (x) -&gt; fromCalciteToAvro(valueType, x.getValue()),</span>
+                        (u, v) -&gt; {
+<span class="nc" id="L151">                          throw new IllegalStateException(String.format(&quot;Duplicate key %s&quot;, u));</span>
+                        },
+<span class="nc" id="L153">                        () -&gt; Maps.newHashMapWithExpectedSize(map.size())));</span>
+      case RECORD:
+<span class="fc" id="L155">        return fromRecord(schema, (Object[]) calc);</span>
+      case UNION:
+<span class="nc" id="L157">        Schema nSchema = org.spf4j.avro.schema.Schemas.nullableUnionSchema(schema);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        if (nSchema == null) {</span>
+<span class="nc" id="L159">          throw new UnsupportedOperationException(&quot;Not supported union &quot; + schema);</span>
+        }
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (calc == null) {</span>
+<span class="nc" id="L162">          return null;</span>
+        }
+<span class="nc" id="L164">        return fromCalciteToAvro(nSchema, calc);</span>
+      default:
+<span class="nc" id="L166">        throw new UnsupportedOperationException(&quot;Not supported schema &quot; + schema);</span>
+    }
+  }
+
+  public static GenericRecord fromRecord(final Schema schema, final Object[] from) {
+<span class="fc" id="L171">    GenericData.Record record = new GenericData.Record(schema);</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">    for (Schema.Field field : schema.getFields()) {</span>
+<span class="fc" id="L173">      int pos = field.pos();</span>
+<span class="fc" id="L174">      Schema fs = field.schema();</span>
+<span class="fc" id="L175">      record.put(pos, fromCalciteToAvro(fs, from[pos]));</span>
+
+<span class="fc" id="L177">    }</span>
+<span class="fc" id="L178">    return record;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -32,8 +32,7 @@
 package org.spf4j.io.appenders;
 
 import java.io.IOException;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.ObjectAppenderSupplier;
 
@@ -41,36 +40,36 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-<span class="fc" id="L44">public final class ArrayObjectAppender implements ObjectAppender&lt;Object[]&gt; {</span>
+<span class="fc" id="L43">public final class ArrayObjectAppender implements ObjectAppender&lt;Object[]&gt; {</span>
 
   @Override
-  public MediaType getAppendedType() {
-<span class="nc" id="L48">    return MediaTypes.APPLICATION_JSON;</span>
+  public CoreTextMediaType getAppendedType() {
+<span class="fc" id="L47">    return CoreTextMediaType.TEXT_PLAIN;</span>
   }
 
   @Override
   public void append(final Object[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-<span class="nc" id="L54">    int l = iter.length;</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">    if (l == 0) {</span>
-<span class="nc" id="L56">      appendTo.append(&quot;[]&quot;);</span>
-<span class="nc" id="L57">      return;</span>
+<span class="fc" id="L53">    int l = iter.length;</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">    if (l == 0) {</span>
+<span class="nc" id="L55">      appendTo.append(&quot;[]&quot;);</span>
+<span class="nc" id="L56">      return;</span>
     }
-<span class="nc" id="L59">    appendTo.append('[');</span>
-<span class="nc" id="L60">    Object o = iter[0];</span>
-<span class="nc" id="L61">    ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">    for (int i = 1; i &lt; l; i++) {</span>
-<span class="nc" id="L63">      appendTo.append(',');</span>
-<span class="nc" id="L64">      o = iter[i];</span>
-<span class="nc" id="L65">      ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);</span>
+<span class="fc" id="L58">    appendTo.append('[');</span>
+<span class="fc" id="L59">    Object o = iter[0];</span>
+<span class="fc" id="L60">    ObjectAppender.appendNullable(o, appendTo, appenderSupplier);</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">    for (int i = 1; i &lt; l; i++) {</span>
+<span class="fc" id="L62">      appendTo.append(',');</span>
+<span class="fc" id="L63">      o = iter[i];</span>
+<span class="fc" id="L64">      ObjectAppender.appendNullable(o, appendTo, appenderSupplier);</span>
     }
-<span class="nc" id="L67">    appendTo.append(']');</span>
-<span class="nc" id="L68">  }</span>
+<span class="fc" id="L66">    appendTo.append(']');</span>
+<span class="fc" id="L67">  }</span>
 
 
   @Override
   public void append(final Object[] object, final Appendable appendTo) {
-<span class="nc" id="L73">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L72">    throw new UnsupportedOperationException();</span>
   }
 
 }

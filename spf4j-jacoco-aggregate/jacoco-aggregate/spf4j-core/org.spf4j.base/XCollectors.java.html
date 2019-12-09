@@ -65,32 +65,38 @@ public final class XCollectors {
     );
   }
 
-  public static &lt;T, X extends T&gt; Collector&lt;T, ?, ArrayDeque&lt;T&gt;&gt; last(final int limit, final X addIfLimited) {
-<span class="fc" id="L69">    return Collector.of(ArrayDeque&lt;T&gt;::new,</span>
+  public static &lt;T, X extends T&gt; Collector&lt;T, ArrayDeque&lt;T&gt;,
+         ArrayDeque&lt;T&gt;&gt; last(final int limit, final X addIfLimited) {
+<span class="fc" id="L70">    return  last(() -&gt; new ArrayDeque&lt;T&gt;(), limit, addIfLimited);</span>
+  }
+
+  public static &lt;T, X extends T, D extends Deque&lt;T&gt;&gt; Collector&lt;T, D, D&gt; last(final Supplier&lt;D&gt; dqSupp,
+          final int limit, final X addIfLimited) {
+<span class="fc" id="L75">    return Collector.of(dqSupp,</span>
             (l, e) -&gt; {
-<span class="fc" id="L71">              l.addLast(e);</span>
-<span class="fc" id="L72">              limitDequeue(l, limit, addIfLimited);</span>
-<span class="fc" id="L73">            }, new BinaryOperator&lt;ArrayDeque&lt;T&gt;&gt;() {</span>
+<span class="fc" id="L77">              l.addLast(e);</span>
+<span class="fc" id="L78">              limitDequeue(l, limit, addIfLimited);</span>
+<span class="fc" id="L79">            }, new BinaryOperator&lt;D&gt;() {</span>
       @Override
       @SuppressFBWarnings(&quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;)
       // Agree with FB here, however this confusing behavior is documented in Collector javadoc...
-      public ArrayDeque&lt;T&gt; apply(final ArrayDeque&lt;T&gt; l1, final ArrayDeque&lt;T&gt; l2) {
-<span class="fc" id="L78">        l1.addAll(l2);</span>
-<span class="fc" id="L79">        limitDequeue(l1, limit, addIfLimited);</span>
-<span class="fc" id="L80">        return l1;</span>
+      public D apply(final D l1, final D l2) {
+<span class="nc" id="L84">        l1.addAll(l2);</span>
+<span class="nc" id="L85">        limitDequeue(l1, limit, addIfLimited);</span>
+<span class="nc" id="L86">        return l1;</span>
       }
-    });
+    }, Collector.Characteristics.IDENTITY_FINISH);
   }
 
   public static &lt;T&gt; void limitDequeue(final Deque&lt;T&gt; l1, final int limit, final T addIfLimited) {
-<span class="fc" id="L86">    int extra = l1.size() - limit;</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">    if (extra &gt; 0) {</span>
-<span class="fc bfc" id="L88" title="All 2 branches covered.">      for (int i = 0, m = extra + 1; i &lt; m; i++) {</span>
-<span class="fc" id="L89">        l1.removeFirst();</span>
+<span class="fc" id="L92">    int extra = l1.size() - limit;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (extra &gt; 0) {</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">      for (int i = 0, m = extra + 1; i &lt; m; i++) {</span>
+<span class="fc" id="L95">        l1.removeFirst();</span>
       }
-<span class="fc" id="L91">      l1.addFirst(addIfLimited);</span>
+<span class="fc" id="L97">      l1.addFirst(addIfLimited);</span>
     }
-<span class="fc" id="L93">  }</span>
+<span class="fc" id="L99">  }</span>
 
   /**
    * THis is a backport from JDK9.
@@ -98,20 +104,20 @@ public final class XCollectors {
   public static &lt;T, A, R&gt;
           Collector&lt;T, ?, R&gt; filtering(final Predicate&lt;? super T&gt; predicate,
                   final Collector&lt;? super T, A, R&gt; downstream) {
-<span class="fc" id="L101">    BiConsumer&lt;A, ? super T&gt; downstreamAccumulator = downstream.accumulator();</span>
-<span class="fc" id="L102">    return new CollectorImpl&lt;&gt;(downstream.supplier(),</span>
+<span class="fc" id="L107">    BiConsumer&lt;A, ? super T&gt; downstreamAccumulator = downstream.accumulator();</span>
+<span class="fc" id="L108">    return new CollectorImpl&lt;&gt;(downstream.supplier(),</span>
             (r, t) -&gt; {
-<span class="fc bfc" id="L104" title="All 2 branches covered.">              if (predicate.test(t)) {</span>
-<span class="fc" id="L105">                downstreamAccumulator.accept(r, t);</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">              if (predicate.test(t)) {</span>
+<span class="fc" id="L111">                downstreamAccumulator.accept(r, t);</span>
               }
-<span class="fc" id="L107">            },</span>
-<span class="fc" id="L108">            downstream.combiner(), downstream.finisher(),</span>
-<span class="fc" id="L109">            downstream.characteristics());</span>
+<span class="fc" id="L113">            },</span>
+<span class="fc" id="L114">            downstream.combiner(), downstream.finisher(),</span>
+<span class="fc" id="L115">            downstream.characteristics());</span>
   }
 
   @SuppressWarnings(&quot;unchecked&quot;)
   private static &lt;I, R&gt; Function&lt;I, R&gt; castingIdentity() {
-<span class="nc" id="L114">    return (Function&lt;I, R&gt;) Function.identity();</span>
+<span class="nc" id="L120">    return (Function&lt;I, R&gt;) Function.identity();</span>
   }
 
   static final class CollectorImpl&lt;T, A, R&gt; implements Collector&lt;T, A, R&gt; {
@@ -120,50 +126,50 @@ public final class XCollectors {
     private final BiConsumer&lt;A, T&gt; accumulator;
     private final BinaryOperator&lt;A&gt; combiner;
     private final Function&lt;A, R&gt; finisher;
-    private final Set&lt;Characteristics&gt; characteristics;
+    private final Set&lt;Collector.Characteristics&gt; characteristics;
 
     CollectorImpl(final Supplier&lt;A&gt; supplier,
             final BiConsumer&lt;A, T&gt; accumulator,
             final BinaryOperator&lt;A&gt; combiner,
             final Function&lt;A, R&gt; finisher,
-<span class="fc" id="L129">            final Set&lt;Characteristics&gt; characteristics) {</span>
-<span class="fc" id="L130">      this.supplier = supplier;</span>
-<span class="fc" id="L131">      this.accumulator = accumulator;</span>
-<span class="fc" id="L132">      this.combiner = combiner;</span>
-<span class="fc" id="L133">      this.finisher = finisher;</span>
-<span class="fc" id="L134">      this.characteristics = characteristics;</span>
-<span class="fc" id="L135">    }</span>
+<span class="fc" id="L135">            final Set&lt;Collector.Characteristics&gt; characteristics) {</span>
+<span class="fc" id="L136">      this.supplier = supplier;</span>
+<span class="fc" id="L137">      this.accumulator = accumulator;</span>
+<span class="fc" id="L138">      this.combiner = combiner;</span>
+<span class="fc" id="L139">      this.finisher = finisher;</span>
+<span class="fc" id="L140">      this.characteristics = characteristics;</span>
+<span class="fc" id="L141">    }</span>
 
     CollectorImpl(final Supplier&lt;A&gt; supplier,
             final BiConsumer&lt;A, T&gt; accumulator,
             final BinaryOperator&lt;A&gt; combiner,
-            final Set&lt;Characteristics&gt; characteristics) {
-<span class="nc" id="L141">      this(supplier, accumulator, combiner, castingIdentity(), characteristics);</span>
-<span class="nc" id="L142">    }</span>
+            final Set&lt;Collector.Characteristics&gt; characteristics) {
+<span class="nc" id="L147">      this(supplier, accumulator, combiner, castingIdentity(), characteristics);</span>
+<span class="nc" id="L148">    }</span>
 
     @Override
     public BiConsumer&lt;A, T&gt; accumulator() {
-<span class="fc" id="L146">      return accumulator;</span>
+<span class="fc" id="L152">      return accumulator;</span>
     }
 
     @Override
     public Supplier&lt;A&gt; supplier() {
-<span class="fc" id="L151">      return supplier;</span>
+<span class="fc" id="L157">      return supplier;</span>
     }
 
     @Override
     public BinaryOperator&lt;A&gt; combiner() {
-<span class="fc" id="L156">      return combiner;</span>
+<span class="fc" id="L162">      return combiner;</span>
     }
 
     @Override
     public Function&lt;A, R&gt; finisher() {
-<span class="fc" id="L161">      return finisher;</span>
+<span class="fc" id="L167">      return finisher;</span>
     }
 
     @Override
-    public Set&lt;Characteristics&gt; characteristics() {
-<span class="fc" id="L166">      return characteristics;</span>
+    public Set&lt;Collector.Characteristics&gt; characteristics() {
+<span class="fc" id="L172">      return characteristics;</span>
     }
   }
 

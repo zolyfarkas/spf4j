@@ -126,7 +126,7 @@ public final class GenericRecordBuilder implements Closeable {
 <span class="fc" id="L126">  }</span>
 
   public Class&lt;? extends SpecificRecordBase&gt; getRecordClass(final Schema schema) {
-<span class="fc" id="L129">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+<span class="fc" id="L129">    Preconditions.checkArgument(SchemaUtils.isNamedType(schema), &quot;schema %s has no java class&quot;, schema);</span>
     try {
 <span class="fc" id="L131">      return (Class&lt;? extends SpecificRecordBase&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
 <span class="nc" id="L132">    } catch (ClassNotFoundException ex) {</span>
@@ -135,7 +135,7 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public Class&lt;? extends GenericEnumSymbol&gt; getEnumClass(final Schema schema) {
-<span class="fc" id="L138">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+<span class="fc" id="L138">    Preconditions.checkArgument(SchemaUtils.isNamedType(schema), &quot;schema %s has no java class&quot;, schema);</span>
     try {
 <span class="fc" id="L140">      return (Class&lt;? extends GenericEnumSymbol&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
 <span class="nc" id="L141">    } catch (ClassNotFoundException ex) {</span>
@@ -144,7 +144,7 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public Class&lt;? extends GenericFixed&gt; getFixedClass(final Schema schema) {
-<span class="nc" id="L147">    Preconditions.checkArgument(SchemaUtils.hasGeneratedJavaClass(schema), &quot;schema %s has no java class&quot;, schema);</span>
+<span class="nc" id="L147">    Preconditions.checkArgument(SchemaUtils.isNamedType(schema), &quot;schema %s has no java class&quot;, schema);</span>
     try {
 <span class="nc" id="L149">      return (Class&lt;? extends GenericFixed&gt;) source.loadClass(SchemaUtils.getJavaClassName(schema));</span>
 <span class="nc" id="L150">    } catch (ClassNotFoundException ex) {</span>

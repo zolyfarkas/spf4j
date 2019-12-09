@@ -222,6 +222,11 @@ public final class ByteArrayBuilder extends OutputStream {
 <span class="fc" id="L222">        count = 0;</span>
 <span class="fc" id="L223">    }</span>
 
+    public synchronized void resetCountTo(final int pos) {
+<span class="fc" id="L226">        count = pos;</span>
+<span class="fc" id="L227">    }</span>
+
+
     /**
      * Creates a newly allocated byte array. Its size is the current
      * size of this output stream and the valid contents of the buffer
@@ -231,7 +236,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#size()
      */
     public synchronized byte[] toByteArray() {
-<span class="nc" id="L234">        return Arrays.copyOf(buf, count);</span>
+<span class="nc" id="L239">        return Arrays.copyOf(buf, count);</span>
     }
 
     /**
@@ -242,7 +247,7 @@ public final class ByteArrayBuilder extends OutputStream {
      * @see     java.io.ByteArrayOutputStream#count
      */
     public synchronized int size() {
-<span class="fc" id="L245">        return count;</span>
+<span class="fc" id="L250">        return count;</span>
     }
 
     /**
@@ -261,12 +266,12 @@ public final class ByteArrayBuilder extends OutputStream {
      */
     @Override
     public synchronized String toString() {
-<span class="nc" id="L264">        return toString(StandardCharsets.UTF_8);</span>
+<span class="nc" id="L269">        return toString(StandardCharsets.UTF_8);</span>
     }
 
 
     public synchronized String toString(final Charset charset) {
-<span class="nc" id="L269">        return new String(buf, 0, count, charset);</span>
+<span class="nc" id="L274">        return new String(buf, 0, count, charset);</span>
     }
 
 
@@ -278,10 +283,10 @@ public final class ByteArrayBuilder extends OutputStream {
     @DischargesObligation
     @Override
     public synchronized void close() {
-<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        if (arraySupplier != null) {</span>
-<span class="fc" id="L282">            arraySupplier.recycle(buf);</span>
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">        if (arraySupplier != null) {</span>
+<span class="fc" id="L287">            arraySupplier.recycle(buf);</span>
         }
-<span class="fc" id="L284">    }</span>
+<span class="fc" id="L289">    }</span>
 
 
 }

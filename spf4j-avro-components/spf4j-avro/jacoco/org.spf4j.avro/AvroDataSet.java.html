@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvroDataSet.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro</a> &gt; <span class="el_source">AvroDataSet.java</span></div><h1>AvroDataSet.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro;
+
+import com.google.common.reflect.TypeToken;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.specific.SpecificRecord;
+import org.spf4j.base.CloseableIterable;
+import org.spf4j.base.Reflections;
+import org.spf4j.security.SecurityContext;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public interface AvroDataSet&lt;T extends IndexedRecord&gt; {
+
+<span class="nc" id="L41">  enum Feature {</span>
+<span class="nc" id="L42">    FILTERABLE, PROJECTABLE</span>
+  }
+
+  default Schema getElementSchema() {
+<span class="nc" id="L46">    List&lt;Type&gt; intfs = Reflections.getImplementedGenericInterfaces(this.getClass());</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    for (Type type : intfs) {</span>
+<span class="nc" id="L48">      TypeToken&lt;?&gt; tt = TypeToken.of(type);</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">      if (AvroDataSet.class.isAssignableFrom(tt.getRawType())) {</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (type instanceof ParameterizedType) {</span>
+<span class="nc" id="L51">          Class&lt;?&gt; srClasz = TypeToken.of(((ParameterizedType) type).getActualTypeArguments()[0]).getRawType();</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">          if (SpecificRecord.class.isAssignableFrom(srClasz)) {</span>
+            try {
+<span class="nc" id="L54">              return ((SpecificRecord) srClasz.getDeclaredConstructor().newInstance()).getSchema();</span>
+<span class="nc" id="L55">            } catch (InstantiationException | IllegalAccessException | InvocationTargetException</span>
+                    | NoSuchMethodException | SecurityException ex) {
+<span class="nc" id="L57">              throw new IllegalStateException(&quot;Invalid specific record &quot; + srClasz, ex);</span>
+            }
+          }
+<span class="nc" id="L60">        } else {</span>
+<span class="nc" id="L61">          throw new IllegalStateException(&quot;Resource &quot; + this + &quot; must overwrite default implementation of getSchema()&quot;);</span>
+        }
+      }
+<span class="nc" id="L64">    }</span>
+<span class="nc" id="L65">    throw new IllegalStateException(&quot;Resource &quot; + this + &quot; must overwrite default implementation of getSchema()&quot;);</span>
+  }
+
+  default String getName() {
+<span class="nc" id="L69">    return getElementSchema().getName();</span>
+  }
+
+  default Set&lt;Feature&gt; getFeatures() {
+<span class="nc" id="L73">    return Collections.EMPTY_SET;</span>
+  }
+
+  /**
+   * @return -1 for unknown. or number of elements.
+   */
+  default long getRowCountStatistic() {
+<span class="nc" id="L80">    return -1;</span>
+  }
+
+  /**
+   *
+   * @param filter all results must comply to this filter, null means no filter.
+   * @param selectProjections list of fields that are requested. null for no projections.
+   * @return
+   */
+  CloseableIterable&lt;? extends IndexedRecord&gt; getData(@Nullable SqlPredicate&lt;T&gt; filter,
+          @Nullable List&lt;String&gt; selectProjections,
+          SecurityContext secCtx,
+          long timeout, TimeUnit timeUnit);
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

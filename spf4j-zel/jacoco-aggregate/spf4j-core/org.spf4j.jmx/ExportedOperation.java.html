@@ -33,7 +33,9 @@ package org.spf4j.jmx;
 
 import java.io.InvalidObjectException;
 import javax.annotation.Nullable;
+import javax.management.MBeanException;
 import javax.management.MBeanParameterInfo;
+import javax.management.ReflectionException;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 
@@ -47,7 +49,8 @@ public interface ExportedOperation extends Comparable&lt;ExportedOperation&gt; {
 
     String getDescription();
 
-    Object invoke(Object[] parameters) throws OpenDataException, InvalidObjectException;
+    Object invoke(Object[] parameters) throws  MBeanException, ReflectionException,
+            OpenDataException, InvalidObjectException;
 
     MBeanParameterInfo[] getParameterInfos();
 
@@ -57,7 +60,7 @@ public interface ExportedOperation extends Comparable&lt;ExportedOperation&gt; {
     OpenType&lt;?&gt; getReturnOpenType();
 
     default int compareTo(final ExportedOperation op) {
-<span class="nc" id="L60">      return getName().compareTo(op.getName());</span>
+<span class="nc" id="L63">      return getName().compareTo(op.getName());</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

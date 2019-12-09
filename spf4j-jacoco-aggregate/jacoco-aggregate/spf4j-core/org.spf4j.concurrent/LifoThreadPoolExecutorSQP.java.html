@@ -61,17 +61,17 @@ import org.spf4j.stackmonitor.StackTrace;
 
 /**
  *
- * Lifo scheduled java thread pool, based on talk: http://applicative.acm.org/speaker-BenMaurer.html This implementation
- * behaves differently compared with a java Thread pool in that it prefers to spawn a thread if possible instead of
- * queueing tasks.
+ * LIFO scheduled java thread pool, this behavior is identical  with the JDK's fork join pool, but different from the
+ * older jdk ThreadPoolExecutor implementations.
  *
- * See LifoThreadPoolBuilder for conveniently constructing pools
+ * This implementation behaves differently compared with a java Thread pool in that it prefers to spawn a
+ * thread if possible instead of queueing a task when nr of threads has room to grow.
  *
- * There are 3 data structures involved in the transfer of tasks to Threads.
+ * Performance of this pool implementation is similar to ThreadPoolExecutor however due to LIFO scheduling,
+ * it will have lower resource usage in most use cases.
  *
- * 1) Task Queue - a classic FIFO queue. RW controlled by a reentrant lock. only non-blockng read operations are done on
- * this queue 2) Available Thread Queue - a classic LIFO queue, a thread end up here when there is nothing to process.
- * 3) A &quot;UnitQueue&quot;, is a queue with a capacity on 1, which a thread will listen on while in the available thread queue.
+ * The JDK Fork Join pool's performance is superior to this implementation, however unlike this implementation,
+ * with the fork join pool you will not be able to cancel+interrupt running tasks.
  *
  * @author zoly
  */

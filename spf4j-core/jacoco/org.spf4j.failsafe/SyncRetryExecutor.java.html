@@ -173,7 +173,7 @@ public interface SyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&g
 <span class="pc bpc" id="L173" title="1 of 2 branches missed.">          if (r.isLeft()) {</span>
 <span class="fc" id="L174">            lastEx = r.getLeft();</span>
 <span class="fc" id="L175">            Throwable[] suppressed = lastEx.getSuppressed();</span>
-<span class="pc bpc" id="L176" title="4 of 8 branches missed.">            if (lastExChain != null &amp;&amp; lastEx != lastExChain</span>
+<span class="pc bpc" id="L176" title="6 of 8 branches missed.">            if (lastExChain != null &amp;&amp; lastEx != lastExChain</span>
                     &amp;&amp; (suppressed.length == 0 || suppressed[suppressed.length - 1] != lastExChain)
 <span class="nc bnc" id="L178" title="All 2 branches missed.">                    &amp;&amp; lastEx.getCause() != lastExChain) {</span>
               // we attach the chain in case the new exception does not.
@@ -194,8 +194,8 @@ public interface SyncRetryExecutor&lt;T, C extends Callable&lt;? extends T&gt;&g
       }
 <span class="fc bfc" id="L195" title="All 2 branches covered.">      if (lastExChain instanceof RuntimeException) {</span>
 <span class="fc" id="L196">        throw (RuntimeException) lastExChain;</span>
-<span class="fc bfc" id="L197" title="All 2 branches covered.">      } else if (lastExChain instanceof TimeoutException) {</span>
-<span class="fc" id="L198">        throw (TimeoutException) lastExChain;</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">      } else if (lastExChain instanceof TimeoutException) {</span>
+<span class="nc" id="L198">        throw (TimeoutException) lastExChain;</span>
 <span class="pc bpc" id="L199" title="1 of 2 branches missed.">      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {</span>
 <span class="fc" id="L200">        throw (E) lastExChain;</span>
       } else {

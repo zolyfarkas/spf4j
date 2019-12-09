@@ -38,30 +38,27 @@ import org.spf4j.zel.operators.Operators;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-
-
 public final class MUL extends Instruction {
 
-    private static final long serialVersionUID = -872688683600090372L;
+  private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L47">    public static final Instruction INSTANCE = new MUL();</span>
+<span class="fc" id="L45">  public static final Instruction INSTANCE = new MUL();</span>
 
-    private MUL() {
-    }
+  private MUL() {
+  }
 
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, ExecutionException {
+<span class="fc" id="L53">    final Object[] vals = context.tuple();</span>
+<span class="fc" id="L54">    context.popSyncStackVals(vals);</span>
+<span class="fc" id="L55">    context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));</span>
+<span class="fc" id="L56">    return 1;</span>
+  }
 
-    @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, ExecutionException {
-<span class="fc" id="L56">        final Object[] vals = context.tuple();</span>
-<span class="fc" id="L57">        context.popSyncStackVals(vals);</span>
-<span class="fc" id="L58">        context.push(Operators.apply(Operator.Enum.Mul, vals[0], vals[1]));</span>
-<span class="fc" id="L59">        return 1;</span>
-    }
-
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L64">        return Arrays.EMPTY_OBJ_ARRAY;</span>
-    }
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L61">    return Arrays.EMPTY_OBJ_ARRAY;</span>
+  }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -267,7 +267,7 @@
 <a class="jxr_linenumber" name="L259" href="#L259">259</a>         rp.run(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)), IOException.<strong class="jxr_keyword">class</strong>,
 <a class="jxr_linenumber" name="L260" href="#L260">260</a>                 1000, TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L261" href="#L261">261</a>         Assert.fail();
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>       } <strong class="jxr_keyword">catch</strong> (TimeoutException ex) {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>       } <strong class="jxr_keyword">catch</strong> (SocketException ex) {
 <a class="jxr_linenumber" name="L263" href="#L263">263</a>         LOG.debug(<span class="jxr_string">"Expected exception"</span>, ex);
 <a class="jxr_linenumber" name="L264" href="#L264">264</a>         <em class="jxr_comment">// as expected.</em>
 <a class="jxr_linenumber" name="L265" href="#L265">265</a>       }
@@ -323,11 +323,11 @@
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>                     <span class="jxr_string">"Result java.net.SocketException, retrying ServerCall.*"</span>))) {
 <a class="jxr_linenumber" name="L316" href="#L316">316</a>       <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L317" href="#L317">317</a>         rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)),
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 1000, TimeUnit.MILLISECONDS).get(1200, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>                 1000, TimeUnit.MILLISECONDS).get(2000, TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L319" href="#L319">319</a>         Assert.fail();
 <a class="jxr_linenumber" name="L320" href="#L320">320</a>       } <strong class="jxr_keyword">catch</strong> (ExecutionException | TimeoutException ex) {
 <a class="jxr_linenumber" name="L321" href="#L321">321</a>         LOG.debug(<span class="jxr_string">"Expected exception"</span>, ex);
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>         Assert.assertEquals(TimeoutException.<strong class="jxr_keyword">class</strong>, Throwables.getRootCause(ex).getClass());
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         Assert.assertEquals(SocketException.<strong class="jxr_keyword">class</strong>, Throwables.getRootCause(ex).getClass());
 <a class="jxr_linenumber" name="L323" href="#L323">323</a>         <em class="jxr_comment">// as expected.</em>
 <a class="jxr_linenumber" name="L324" href="#L324">324</a>       }
 <a class="jxr_linenumber" name="L325" href="#L325">325</a>       retryExpect2.assertObservation();
@@ -335,8 +335,8 @@
 <a class="jxr_linenumber" name="L327" href="#L327">327</a>     Future&lt;?&gt; submit = DefaultScheduler.INSTANCE.schedule(
 <a class="jxr_linenumber" name="L328" href="#L328">328</a>             () -&gt; server.breakException(<strong class="jxr_keyword">null</strong>), 100, TimeUnit.MILLISECONDS);
 <a class="jxr_linenumber" name="L329" href="#L329">329</a>     rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)),
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>             200, TimeUnit.MILLISECONDS).get();
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>     submit.get();
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>             200, TimeUnit.MILLISECONDS).get(10, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>     submit.get(10, TimeUnit.SECONDS);
 <a class="jxr_linenumber" name="L332" href="#L332">332</a>     <em class="jxr_comment">// Test error response</em>
 <a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
 <a class="jxr_linenumber" name="L334" href="#L334">334</a>             LogMatchers.hasMessageWithPattern(

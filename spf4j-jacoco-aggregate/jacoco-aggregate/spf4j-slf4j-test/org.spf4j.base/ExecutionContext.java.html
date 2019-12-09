@@ -386,27 +386,33 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable) {
-<span class="nc" id="L389">    List&lt;Slf4jLogRecord&gt; ctxLogs = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L390">    ExecutionContext curr = this;</span>
-<span class="nc bnc" id="L391" title="All 2 branches missed.">    while (curr != null) {</span>
-<span class="nc" id="L392">      curr.streamLogs((log) -&gt; {</span>
-<span class="nc" id="L393">        ctxLogs.add(log);</span>
-<span class="nc" id="L394">      });</span>
-<span class="nc" id="L395">      curr = curr.getSource();</span>
+<span class="nc" id="L389">    return getDebugDetail(origin, throwable, true);</span>
+  }
+
+  default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
+          boolean addStackSamples) {
+<span class="nc" id="L394">    List&lt;Slf4jLogRecord&gt; ctxLogs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L395">    ExecutionContext curr = this;</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">    while (curr != null) {</span>
+<span class="nc" id="L397">      curr.streamLogs((log) -&gt; {</span>
+<span class="nc" id="L398">        ctxLogs.add(log);</span>
+<span class="nc" id="L399">      });</span>
+<span class="nc" id="L400">      curr = curr.getSource();</span>
     }
-<span class="nc" id="L397">    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);</span>
-<span class="nc" id="L398">    StackSamples ss = this.getAndClearStackSamples();</span>
-    List&lt;StackSampleElement&gt; sses;
-<span class="nc bnc" id="L400" title="All 2 branches missed.">    if (ss == null) {</span>
-<span class="nc" id="L401">      sses = Collections.EMPTY_LIST;</span>
+<span class="nc" id="L402">    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">    if (addStackSamples) {</span>
+<span class="nc" id="L404">      StackSamples ss = this.getAndClearStackSamples();</span>
+<span class="nc" id="L405">      List&lt;StackSampleElement&gt; sses = Converters.convert(ss);</span>
+<span class="nc" id="L406">      return new DebugDetail(origin + '/' + this.getName(),</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
+<span class="nc" id="L408">              throwable == null ? null : Converters.convert(throwable),</span>
+              sses);
     } else {
-<span class="nc" id="L403">      sses = new ArrayList&lt;&gt;(64);</span>
-<span class="nc" id="L404">      Converters.convert(Converters.ROOT, ss, -1, 0, (a, b) -&gt; sses.add(a));</span>
+<span class="nc" id="L411">            return new DebugDetail(origin + '/' + this.getName(),</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
+<span class="nc" id="L413">              throwable == null ? null : Converters.convert(throwable),</span>
+<span class="nc" id="L414">              Collections.emptyList());</span>
     }
-<span class="nc" id="L406">    return new DebugDetail(origin + '/' + this.getName(),</span>
-<span class="nc bnc" id="L407" title="All 2 branches missed.">            Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
-<span class="nc" id="L408">            throwable == null ? null : Converters.convert(throwable),</span>
-            sses);
 
   }
 

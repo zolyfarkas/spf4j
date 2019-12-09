@@ -17,18 +17,19 @@ package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.logging.LogManager;
 import java.util.stream.Collector;
@@ -56,9 +57,9 @@ import sun.misc.Contended;
 @SuppressFBWarnings(&quot;SIC_INNER_SHOULD_BE_STATIC_ANON&quot;)
 public final class TestLoggers implements ILoggerFactory {
 
-<span class="fc" id="L59">  public static final  boolean EXECUTED_FROM_IDE = TestUtils.isExecutedFromIDE();</span>
+<span class="fc" id="L60">  public static final  boolean EXECUTED_FROM_IDE = TestUtils.isExecutedFromIDE();</span>
 
-<span class="fc" id="L61">  private static final TestLoggers INSTANCE = new TestLoggers();</span>
+<span class="fc" id="L62">  private static final TestLoggers INSTANCE = new TestLoggers();</span>
 
   private final ConcurrentMap&lt;String, Logger&gt; loggerMap;
 
@@ -70,79 +71,90 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final java.util.logging.Logger julRoot;
 
-  private final Set&lt;String&gt; expectingErrorsIn;
+  private final SortedSet&lt;String&gt; expectingErrorsIn;
 
   @GuardedBy(&quot;sync&quot;)
   @Contended
   private volatile LogConfig config;
 
   public static TestLoggers sys() {
-<span class="fc" id="L80">    return INSTANCE;</span>
+<span class="fc" id="L81">    return INSTANCE;</span>
   }
 
   @SuppressWarnings(&quot;checkstyle:regexp&quot;)
-<span class="fc" id="L84">  private TestLoggers() {</span>
-<span class="fc" id="L85">    sync = new Object();</span>
-<span class="fc" id="L86">    loggerMap = new ConcurrentHashMap&lt;String, Logger&gt;();</span>
-<span class="fc bfc" id="L87" title="All 2 branches covered.">    Level rootPrintLevel = EXECUTED_FROM_IDE</span>
-<span class="fc" id="L88">            ? Level.valueOf(System.getProperty(&quot;spf4j.testLog.rootPrintLevelIDE&quot;, &quot;DEBUG&quot;))</span>
-<span class="fc" id="L89">            : Level.valueOf(System.getProperty(&quot;spf4j.testLog.rootPrintLevel&quot;, &quot;INFO&quot;));</span>
+<span class="fc" id="L85">  private TestLoggers() {</span>
+<span class="fc" id="L86">    sync = new Object();</span>
+<span class="fc" id="L87">    loggerMap = new ConcurrentHashMap&lt;String, Logger&gt;();</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    Level rootPrintLevel = EXECUTED_FROM_IDE</span>
+<span class="fc" id="L89">            ? Level.valueOf(System.getProperty(&quot;spf4j.testLog.rootPrintLevelIDE&quot;, &quot;DEBUG&quot;))</span>
+<span class="fc" id="L90">            : Level.valueOf(System.getProperty(&quot;spf4j.testLog.rootPrintLevel&quot;, &quot;INFO&quot;));</span>
     final Map&lt;String, List&lt;LogHandler&gt;&gt; catHandlers;
-<span class="fc" id="L91">    Map&lt;String, PrintConfig&gt; loadConfig = null;</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">    if (EXECUTED_FROM_IDE) {</span>
-<span class="fc" id="L93">      loadConfig = PrintLogConfigsIO.loadConfigFromResource(&quot;spf4j-test-prtcfg-ide.properties&quot;);</span>
+<span class="fc" id="L92">    Map&lt;String, PrintConfig&gt; loadConfig = null;</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (EXECUTED_FROM_IDE) {</span>
+<span class="fc" id="L94">      loadConfig = PrintLogConfigsIO.loadConfigFromResource(&quot;spf4j-test-prtcfg-ide.properties&quot;);</span>
     }
-<span class="fc bfc" id="L95" title="All 2 branches covered.">    if (loadConfig == null) {</span>
-<span class="fc" id="L96">      loadConfig = PrintLogConfigsIO.loadConfigFromResource(&quot;spf4j-test-prtcfg.properties&quot;);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    if (loadConfig == null) {</span>
+<span class="fc" id="L97">      loadConfig = PrintLogConfigsIO.loadConfigFromResource(&quot;spf4j-test-prtcfg.properties&quot;);</span>
     }
-<span class="fc bfc" id="L98" title="All 2 branches covered.">    if (loadConfig != null) {</span>
-<span class="fc" id="L99">        catHandlers = Maps.newHashMapWithExpectedSize(loadConfig.size());</span>
-<span class="fc bfc" id="L100" title="All 2 branches covered.">        for (PrintConfig pl : loadConfig.values()) {</span>
-<span class="fc bfc" id="L101" title="All 2 branches covered.">          if (pl.getCategory().isEmpty()) {</span>
-<span class="fc" id="L102">            rootPrintLevel = pl.getMinLevel();</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    if (loadConfig != null) {</span>
+<span class="fc" id="L100">        catHandlers = Maps.newHashMapWithExpectedSize(loadConfig.size());</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        for (PrintConfig pl : loadConfig.values()) {</span>
+<span class="fc bfc" id="L102" title="All 2 branches covered.">          if (pl.getCategory().isEmpty()) {</span>
+<span class="fc" id="L103">            rootPrintLevel = pl.getMinLevel();</span>
           } else {
             LogHandler logPrinter;
-<span class="fc bfc" id="L105" title="All 2 branches covered.">            if (pl.isGreedy()) {</span>
-<span class="fc" id="L106">              logPrinter = new GreedyLogPrinter(new LogPrinter(pl.getMinLevel()));</span>
+<span class="fc bfc" id="L106" title="All 2 branches covered.">            if (pl.isGreedy()) {</span>
+<span class="fc" id="L107">              logPrinter = new GreedyLogPrinter(new LogPrinter(pl.getMinLevel()));</span>
             } else {
-<span class="fc" id="L108">              logPrinter = new LogPrinter(pl.getMinLevel());</span>
+<span class="fc" id="L109">              logPrinter = new LogPrinter(pl.getMinLevel());</span>
             }
-<span class="fc" id="L110">            catHandlers.put(pl.getCategory(), Collections.singletonList(logPrinter));</span>
+<span class="fc" id="L111">            catHandlers.put(pl.getCategory(), Collections.singletonList(logPrinter));</span>
           }
-<span class="fc" id="L112">        }</span>
+<span class="fc" id="L113">        }</span>
 
     } else {
-<span class="fc" id="L115">      catHandlers = Collections.EMPTY_MAP;</span>
+<span class="fc" id="L116">      catHandlers = Collections.EMPTY_MAP;</span>
     }
-<span class="fc" id="L117">    computer = (k) -&gt; new TestLogger(k, TestLoggers.this::getConfig);</span>
-<span class="fc" id="L118">    String vals = System.getProperty(&quot;spf4j.testLog.expectingErrorsIn&quot;);</span>
-<span class="fc bfc" id="L119" title="All 2 branches covered.">    if (vals != null) {</span>
-<span class="fc" id="L120">      expectingErrorsIn = ImmutableSet.copyOf(vals.split(&quot;,&quot;));</span>
+<span class="fc" id="L118">    computer = (k) -&gt; new TestLogger(k, TestLoggers.this::getConfig);</span>
+<span class="fc" id="L119">    String vals = System.getProperty(&quot;spf4j.testLog.expectingErrorsIn&quot;);</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">    if (vals != null) {</span>
+<span class="fc" id="L121">      expectingErrorsIn = ImmutableSortedSet.orderedBy(LogConfigImpl.REV_STR_COMPARATOR).add(vals.split(&quot;,&quot;)).build();</span>
     } else {
-<span class="fc" id="L122">      expectingErrorsIn = Collections.EMPTY_SET;</span>
+<span class="fc" id="L123">      expectingErrorsIn = ImmutableSortedSet.of();</span>
     }
-<span class="fc" id="L124">    config = new LogConfigImpl(</span>
-<span class="fc" id="L125">            ImmutableList.of(new LogPrinter(rootPrintLevel), new DefaultAsserter(expectingErrorsIn)), catHandlers);</span>
-<span class="fc" id="L126">    LogManager.getLogManager().reset();</span>
-<span class="fc" id="L127">    SLF4JBridgeHandler.removeHandlersForRootLogger();</span>
-<span class="fc" id="L128">    SLF4JBridgeHandler.install();</span>
-<span class="fc" id="L129">    julGlobal = java.util.logging.Logger.getGlobal();</span>
-<span class="fc" id="L130">    julRoot = java.util.logging.Logger.getLogger(&quot;&quot;);</span>
-<span class="fc" id="L131">    resetJulConfig();</span>
-<span class="fc" id="L132">  }</span>
+<span class="fc" id="L125">    config = new LogConfigImpl(</span>
+<span class="fc" id="L126">            ImmutableList.of(new LogPrinter(rootPrintLevel),</span>
+                    new DefaultAsserter(this::isInExpectingErrorCategories)), catHandlers);
+<span class="fc" id="L128">    LogManager.getLogManager().reset();</span>
+<span class="fc" id="L129">    SLF4JBridgeHandler.removeHandlersForRootLogger();</span>
+<span class="fc" id="L130">    SLF4JBridgeHandler.install();</span>
+<span class="fc" id="L131">    julGlobal = java.util.logging.Logger.getGlobal();</span>
+<span class="fc" id="L132">    julRoot = java.util.logging.Logger.getLogger(&quot;&quot;);</span>
+<span class="fc" id="L133">    resetJulConfig();</span>
+<span class="fc" id="L134">  }</span>
 
-  public Set&lt;String&gt; getExpectingErrorsIn() {
-<span class="fc" id="L135">    return expectingErrorsIn;</span>
+  public boolean isInExpectingErrorCategories(final String loggername) {
+<span class="fc bfc" id="L137" title="All 2 branches covered.">    if (expectingErrorsIn.isEmpty()) {</span>
+<span class="fc" id="L138">      return false;</span>
+    }
+<span class="pc bpc" id="L140" title="1 of 2 branches missed.">    for (String cat : expectingErrorsIn.tailSet(loggername)) {</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">      if (loggername.startsWith(cat)) {</span>
+<span class="fc" id="L142">        return true;</span>
+<span class="nc bnc" id="L143" title="All 4 branches missed.">      } else if (!loggername.isEmpty() &amp;&amp; cat.charAt(0) != loggername.charAt(0)) {</span>
+<span class="nc" id="L144">        break;</span>
+      }
+<span class="nc" id="L146">    }</span>
+<span class="nc" id="L147">    return false;</span>
   }
 
   private void resetJulConfig() {
-<span class="fc" id="L139">    java.util.logging.Level julLevel = config.minRootLevel().getJulLevel();</span>
-<span class="fc" id="L140">    julGlobal.setLevel(julLevel);</span>
-<span class="fc" id="L141">    julRoot.setLevel(julLevel);</span>
-<span class="fc" id="L142">  }</span>
+<span class="fc" id="L151">    java.util.logging.Level julLevel = config.minRootLevel().getJulLevel();</span>
+<span class="fc" id="L152">    julGlobal.setLevel(julLevel);</span>
+<span class="fc" id="L153">    julRoot.setLevel(julLevel);</span>
+<span class="fc" id="L154">  }</span>
 
   public LogConfig getConfig() {
-<span class="fc" id="L145">    return config;</span>
+<span class="fc" id="L157">    return config;</span>
   }
 
   /**
@@ -153,16 +165,16 @@ public final class TestLoggers implements ILoggerFactory {
    * @return a handler that allows this printing to stop (when calling close).
    */
   public void print(final String category, final Level level) {
-<span class="fc" id="L156">    interceptInContext(category, new LogPrinter(level));</span>
-<span class="fc" id="L157">  }</span>
+<span class="fc" id="L168">    interceptInContext(category, new LogPrinter(level));</span>
+<span class="fc" id="L169">  }</span>
 
   public void print(final String category, final Level level, final boolean greedy) {
-<span class="pc bpc" id="L160" title="1 of 2 branches missed.">    if (greedy) {</span>
-<span class="nc" id="L161">      interceptInContext(category, new GreedyLogPrinter(new LogPrinter(level)));</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">    if (greedy) {</span>
+<span class="fc" id="L173">      interceptInContext(category, new GreedyLogPrinter(new LogPrinter(level)));</span>
     } else {
-<span class="fc" id="L163">      interceptInContext(category, new LogPrinter(level));</span>
+<span class="fc" id="L175">      interceptInContext(category, new LogPrinter(level));</span>
     }
-<span class="fc" id="L165">  }</span>
+<span class="fc" id="L177">  }</span>
   /**
    * Ability to intercept log messages logged under a category
    *
@@ -172,30 +184,30 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public HandlerRegistration intercept(final String category, final LogHandler handler) {
-<span class="fc" id="L175">    HandlerRegistration reg = () -&gt; {</span>
-<span class="fc" id="L176">      synchronized (sync) {</span>
-<span class="fc" id="L177">        config = config.remove(category, handler);</span>
-<span class="fc" id="L178">        resetJulConfig();</span>
-<span class="fc" id="L179">      }</span>
-<span class="fc" id="L180">    };</span>
-<span class="fc" id="L181">    addConfig(category, handler,  ExecutionContexts.current(), reg);</span>
-<span class="fc" id="L182">    return reg;</span>
-  }
-
-  @CheckReturnValue
-  public void interceptInContext(final String category, final LogHandler handler) {
 <span class="fc" id="L187">    HandlerRegistration reg = () -&gt; {</span>
 <span class="fc" id="L188">      synchronized (sync) {</span>
 <span class="fc" id="L189">        config = config.remove(category, handler);</span>
 <span class="fc" id="L190">        resetJulConfig();</span>
 <span class="fc" id="L191">      }</span>
 <span class="fc" id="L192">    };</span>
-<span class="fc" id="L193">    ExecutionContext current = ExecutionContexts.current();</span>
-<span class="pc bpc" id="L194" title="1 of 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L195">      throw new IllegalStateException(&quot;No execution context available for &quot; + Thread.currentThread());</span>
+<span class="fc" id="L193">    addConfig(category, handler,  ExecutionContexts.current(), reg);</span>
+<span class="fc" id="L194">    return reg;</span>
+  }
+
+  @CheckReturnValue
+  public void interceptInContext(final String category, final LogHandler handler) {
+<span class="fc" id="L199">    HandlerRegistration reg = () -&gt; {</span>
+<span class="fc" id="L200">      synchronized (sync) {</span>
+<span class="fc" id="L201">        config = config.remove(category, handler);</span>
+<span class="fc" id="L202">        resetJulConfig();</span>
+<span class="fc" id="L203">      }</span>
+<span class="fc" id="L204">    };</span>
+<span class="fc" id="L205">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L207">      throw new IllegalStateException(&quot;No execution context available for &quot; + Thread.currentThread());</span>
     }
-<span class="fc" id="L197">    addConfig(category, handler, current, reg);</span>
-<span class="fc" id="L198">  }</span>
+<span class="fc" id="L209">    addConfig(category, handler, current, reg);</span>
+<span class="fc" id="L210">  }</span>
 
 
   /**
@@ -211,7 +223,7 @@ public final class TestLoggers implements ILoggerFactory {
   public &lt;T&gt; LogCollection&lt;T&gt; collect(final String category, final Level fromLevel,
           final boolean passThrough,
           final Collector&lt;TestLogRecord, ?, T&gt; collector) {
-<span class="fc" id="L214">    return collect(category, fromLevel, Level.ERROR, passThrough, collector);</span>
+<span class="fc" id="L226">    return collect(category, fromLevel, Level.ERROR, passThrough, collector);</span>
   }
 
   /**
@@ -223,12 +235,12 @@ public final class TestLoggers implements ILoggerFactory {
   public &lt;T&gt; LogCollection&lt;T&gt; collect(final String category, final Level fromLevel,
           final boolean passThrough, final Matcher&lt;TestLogRecord&gt; matcher,
           final Collector&lt;TestLogRecord, ?, T&gt; collector) {
-<span class="nc" id="L226">    return collect(category, fromLevel, passThrough, XCollectors.filtering((log) -&gt; {</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">              if (matcher.matches(log)) {</span>
-<span class="nc" id="L228">                log.attach(Attachments.ASSERTED);</span>
-<span class="nc" id="L229">                return true;</span>
+<span class="nc" id="L238">    return collect(category, fromLevel, passThrough, XCollectors.filtering((log) -&gt; {</span>
+<span class="nc bnc" id="L239" title="All 2 branches missed.">              if (matcher.matches(log)) {</span>
+<span class="nc" id="L240">                log.attach(Attachments.ASSERTED);</span>
+<span class="nc" id="L241">                return true;</span>
               }
-<span class="nc" id="L231">              return false;</span>
+<span class="nc" id="L243">              return false;</span>
             }, collector));
   }
 
@@ -241,24 +253,24 @@ public final class TestLoggers implements ILoggerFactory {
   public LogAssert expect(final String category, final Level fromLevel,
           final boolean passThrough, final Matcher&lt;TestLogRecord&gt; matcher,
           final Matcher&lt;Iterable&lt;TestLogRecord&gt;&gt; matchedMatcher) {
-<span class="nc" id="L244">    LogCollection&lt;List&lt;TestLogRecord&gt;&gt; lc = collect(category, fromLevel, passThrough, XCollectors.filtering((log) -&gt; {</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">      if (matcher.matches(log)) {</span>
-<span class="nc" id="L246">        log.attach(Attachments.ASSERTED);</span>
-<span class="nc" id="L247">        return true;</span>
+<span class="nc" id="L256">    LogCollection&lt;List&lt;TestLogRecord&gt;&gt; lc = collect(category, fromLevel, passThrough, XCollectors.filtering((log) -&gt; {</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">      if (matcher.matches(log)) {</span>
+<span class="nc" id="L258">        log.attach(Attachments.ASSERTED);</span>
+<span class="nc" id="L259">        return true;</span>
       }
-<span class="nc" id="L249">      return false;</span>
-<span class="nc" id="L250">    }, Collectors.toList()));</span>
-<span class="nc" id="L251">    return new LogAssert() {</span>
+<span class="nc" id="L261">      return false;</span>
+<span class="nc" id="L262">    }, Collectors.toList()));</span>
+<span class="nc" id="L263">    return new LogAssert() {</span>
       @Override
       public void assertObservation() {
-<span class="nc" id="L254">        MatcherAssert.assertThat(lc.get(), matchedMatcher);</span>
-<span class="nc" id="L255">      }</span>
+<span class="nc" id="L266">        MatcherAssert.assertThat(lc.get(), matchedMatcher);</span>
+<span class="nc" id="L267">      }</span>
 
       @Override
       public void close() {
-<span class="nc" id="L259">        assertObservation();</span>
-<span class="nc" id="L260">        lc.close();</span>
-<span class="nc" id="L261">      }</span>
+<span class="nc" id="L271">        assertObservation();</span>
+<span class="nc" id="L272">        lc.close();</span>
+<span class="nc" id="L273">      }</span>
     };
   }
 
@@ -277,40 +289,49 @@ public final class TestLoggers implements ILoggerFactory {
   public &lt;T&gt; LogCollection&lt;T&gt; collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
           final Collector&lt;TestLogRecord, ?, T&gt; collector) {
-<span class="pc" id="L280">    return collect(category, fromLevel, toLevel, passThrough, collector, (c) -&gt; 0);</span>
+<span class="pc" id="L292">    return collect(category, fromLevel, toLevel, passThrough, collector, (c) -&gt; 0);</span>
   }
 
   @CheckReturnValue
   public &lt;R&gt; LogCollection&lt;R&gt; collect(final String category, final Level fromLevel, final Level toLevel,
           final boolean passThrough,
           final Collector&lt;TestLogRecord, ?, R&gt; collector, final ToIntFunction&lt;List&lt;LogHandler&gt;&gt; whereTo) {
-<span class="fc" id="L287">    LogCollectorHandler&lt;?, R&gt; handler =</span>
+<span class="fc" id="L299">    LogCollectorHandler&lt;?, R&gt; handler =</span>
             new LogCollectorHandler&lt;&gt;(fromLevel, toLevel, passThrough, collector,
     (c) -&gt; {
-<span class="fc" id="L290">       config = config.remove(category, c);</span>
-<span class="fc" id="L291">       resetJulConfig();</span>
-<span class="fc" id="L292">    });</span>
-<span class="fc" id="L293">    addConfig(category, handler, ExecutionContexts.current(),  handler);</span>
-<span class="fc" id="L294">    return handler;</span>
+<span class="fc" id="L302">       config = config.remove(category, c);</span>
+<span class="fc" id="L303">       resetJulConfig();</span>
+<span class="fc" id="L304">    });</span>
+<span class="fc" id="L305">    addConfig(category, handler, ExecutionContexts.current(),  handler, whereTo);</span>
+<span class="fc" id="L306">    return handler;</span>
   }
 
   private void addConfig(final String category, final LogHandler handler,
           @Nullable final ExecutionContext ctx, final HandlerRegistration reg) {
-<span class="fc" id="L299">    addConfig(category, handler, ctx, reg, (c) -&gt; 0);</span>
-<span class="fc" id="L300">  }</span>
+<span class="fc" id="L311">    addConfig(category, handler, ctx, reg, (c) -&gt; 0);</span>
+<span class="fc" id="L312">  }</span>
 
 
+  /**
+   * Add a new handler configuration.
+   * @param category the category this handler is registered to.
+   * @param handler the log handler to register.
+   * @param ctx current execution context.
+   * @param reg the handler registration.
+   * @param whereTo if multiple handlers registered at this category level,
+   * this function will provide the insert location.
+   */
   private void addConfig(final String category, final LogHandler handler,
           @Nullable final ExecutionContext ctx, final HandlerRegistration reg,
           final ToIntFunction&lt;List&lt;LogHandler&gt;&gt; whereTo) {
-<span class="fc" id="L306">    synchronized (sync) {</span>
-<span class="fc" id="L307">      config = config.add(category, handler, whereTo);</span>
-<span class="fc" id="L308">      resetJulConfig();</span>
-<span class="pc bpc" id="L309" title="1 of 2 branches missed.">      if (ctx != null) {</span>
-<span class="fc" id="L310">        ctx.addCloseable(reg);</span>
+<span class="fc" id="L327">    synchronized (sync) {</span>
+<span class="fc" id="L328">      config = config.add(category, handler, whereTo);</span>
+<span class="fc" id="L329">      resetJulConfig();</span>
+<span class="pc bpc" id="L330" title="1 of 2 branches missed.">      if (ctx != null) {</span>
+<span class="fc" id="L331">        ctx.addCloseable(reg);</span>
       }
-<span class="fc" id="L312">    }</span>
-<span class="fc" id="L313">  }</span>
+<span class="fc" id="L333">    }</span>
+<span class="fc" id="L334">  }</span>
 
   /**
    * Convenience method for functional use.
@@ -321,7 +342,7 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public HandlerRegistration interceptAllLevels(final String category, final AllLevelsLogHandler handler) {
-<span class="fc" id="L324">    return intercept(category, handler);</span>
+<span class="fc" id="L345">    return intercept(category, handler);</span>
   }
 
   /**
@@ -333,7 +354,7 @@ public final class TestLoggers implements ILoggerFactory {
    */
   @CheckReturnValue
   public HandlerRegistration ignore(final String category, final Level from, final Level to) {
-<span class="fc" id="L336">    return intercept(category, new ConsumeAllLogs(from, to));</span>
+<span class="fc" id="L357">    return intercept(category, new ConsumeAllLogs(from, to));</span>
   }
 
   /**
@@ -352,13 +373,13 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L355">    return logAssert(true, minimumLogLevel, category, matchers);</span>
+<span class="fc" id="L376">    return logAssert(true, minimumLogLevel, category, matchers);</span>
   }
 
   @CheckReturnValue
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final long timeout, final TimeUnit unit, final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L361">    return logAssert(true, minimumLogLevel, category, timeout, unit, matchers);</span>
+<span class="fc" id="L382">    return logAssert(true, minimumLogLevel, category, timeout, unit, matchers);</span>
   }
 
   /**
@@ -371,53 +392,53 @@ public final class TestLoggers implements ILoggerFactory {
   @CheckReturnValue
   public LogAssert dontExpect(final String category, final Level minimumLogLevel,
           final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L374">    return logAssert(false, minimumLogLevel, category, matchers);</span>
+<span class="fc" id="L395">    return logAssert(false, minimumLogLevel, category, matchers);</span>
   }
 
   private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category, final long timeout, final TimeUnit unit, final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L379">    LogMatchingHandler handler =</span>
-<span class="fc" id="L380">            new LogMatchingHandlerAsync(assertSeen, category, minimumLogLevel, timeout, unit, matchers) {</span>
+<span class="fc" id="L400">    LogMatchingHandler handler =</span>
+<span class="fc" id="L401">            new LogMatchingHandlerAsync(assertSeen, category, minimumLogLevel, timeout, unit, matchers) {</span>
 
-<span class="fc" id="L382">      private boolean isClosed = false;</span>
+<span class="fc" id="L403">      private boolean isClosed = false;</span>
 
       @Override
       public void close() {
-<span class="fc" id="L386">        synchronized (sync) {</span>
-<span class="pc bpc" id="L387" title="1 of 2 branches missed.">          if (!isClosed) {</span>
-<span class="fc" id="L388">            config = config.remove(category, this);</span>
-<span class="fc" id="L389">            isClosed = true;</span>
-<span class="fc" id="L390">            resetJulConfig();</span>
+<span class="fc" id="L407">        synchronized (sync) {</span>
+<span class="pc bpc" id="L408" title="1 of 2 branches missed.">          if (!isClosed) {</span>
+<span class="fc" id="L409">            config = config.remove(category, this);</span>
+<span class="fc" id="L410">            isClosed = true;</span>
+<span class="fc" id="L411">            resetJulConfig();</span>
           }
-<span class="fc" id="L392">        }</span>
-<span class="fc" id="L393">      }</span>
+<span class="fc" id="L413">        }</span>
+<span class="fc" id="L414">      }</span>
 
     };
-<span class="fc" id="L396">    addConfig(category, handler,  ExecutionContexts.current(), handler);</span>
-<span class="fc" id="L397">    return handler;</span>
+<span class="fc" id="L417">    addConfig(category, handler,  ExecutionContexts.current(), handler);</span>
+<span class="fc" id="L418">    return handler;</span>
   }
 
 
   private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category,  final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L403">    LogMatchingHandler handler = new LogMatchingHandler(assertSeen, category, minimumLogLevel, matchers) {</span>
+<span class="fc" id="L424">    LogMatchingHandler handler = new LogMatchingHandler(assertSeen, category, minimumLogLevel, matchers) {</span>
 
-<span class="fc" id="L405">      private boolean isClosed = false;</span>
+<span class="fc" id="L426">      private boolean isClosed = false;</span>
 
       @Override
       public void close() {
-<span class="fc" id="L409">        synchronized (sync) {</span>
-<span class="fc bfc" id="L410" title="All 2 branches covered.">          if (!isClosed) {</span>
-<span class="fc" id="L411">            config = config.remove(category, this);</span>
-<span class="fc" id="L412">            isClosed = true;</span>
-<span class="fc" id="L413">            resetJulConfig();</span>
+<span class="fc" id="L430">        synchronized (sync) {</span>
+<span class="fc bfc" id="L431" title="All 2 branches covered.">          if (!isClosed) {</span>
+<span class="fc" id="L432">            config = config.remove(category, this);</span>
+<span class="fc" id="L433">            isClosed = true;</span>
+<span class="fc" id="L434">            resetJulConfig();</span>
           }
-<span class="fc" id="L415">        }</span>
-<span class="fc" id="L416">      }</span>
+<span class="fc" id="L436">        }</span>
+<span class="fc" id="L437">      }</span>
 
     };
-<span class="fc" id="L419">    addConfig(category, handler,  ExecutionContexts.current(), handler);</span>
-<span class="fc" id="L420">    return handler;</span>
+<span class="fc" id="L440">    addConfig(category, handler,  ExecutionContexts.current(), handler);</span>
+<span class="fc" id="L441">    return handler;</span>
   }
 
   /**
@@ -431,24 +452,24 @@ public final class TestLoggers implements ILoggerFactory {
    */
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L434">    Matcher&lt;TestLogRecord&gt;[] newMatchers = new Matcher[matchers.length * nrTimes];</span>
-<span class="fc bfc" id="L435" title="All 2 branches covered.">    for (int i = 0, j = 0; i &lt; nrTimes; i++) {</span>
-<span class="fc bfc" id="L436" title="All 2 branches covered.">      for (Matcher&lt;TestLogRecord&gt; m : matchers) {</span>
-<span class="fc" id="L437">        newMatchers[j++] = m;</span>
+<span class="fc" id="L455">    Matcher&lt;TestLogRecord&gt;[] newMatchers = new Matcher[matchers.length * nrTimes];</span>
+<span class="fc bfc" id="L456" title="All 2 branches covered.">    for (int i = 0, j = 0; i &lt; nrTimes; i++) {</span>
+<span class="fc bfc" id="L457" title="All 2 branches covered.">      for (Matcher&lt;TestLogRecord&gt; m : matchers) {</span>
+<span class="fc" id="L458">        newMatchers[j++] = m;</span>
       }
     }
-<span class="fc" id="L440">    return expect(category, minimumLogLevel, newMatchers);</span>
+<span class="fc" id="L461">    return expect(category, minimumLogLevel, newMatchers);</span>
   }
 
   public LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final long timeout, final TimeUnit unit, final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L445">    Matcher&lt;TestLogRecord&gt;[] newMatchers = new Matcher[matchers.length * nrTimes];</span>
-<span class="fc bfc" id="L446" title="All 2 branches covered.">    for (int i = 0, j = 0; i &lt; nrTimes; i++) {</span>
-<span class="fc bfc" id="L447" title="All 2 branches covered.">      for (Matcher&lt;TestLogRecord&gt; m : matchers) {</span>
-<span class="fc" id="L448">        newMatchers[j++] = m;</span>
+<span class="fc" id="L466">    Matcher&lt;TestLogRecord&gt;[] newMatchers = new Matcher[matchers.length * nrTimes];</span>
+<span class="fc bfc" id="L467" title="All 2 branches covered.">    for (int i = 0, j = 0; i &lt; nrTimes; i++) {</span>
+<span class="fc bfc" id="L468" title="All 2 branches covered.">      for (Matcher&lt;TestLogRecord&gt; m : matchers) {</span>
+<span class="fc" id="L469">        newMatchers[j++] = m;</span>
       }
     }
-<span class="fc" id="L451">    return expect(category, minimumLogLevel, timeout, unit, newMatchers);</span>
+<span class="fc" id="L472">    return expect(category, minimumLogLevel, timeout, unit, newMatchers);</span>
   }
 
 
@@ -462,16 +483,16 @@ public final class TestLoggers implements ILoggerFactory {
   @Beta
   public LogAssert expectUncaughtException(final long timeout, final TimeUnit unit,
           final Matcher&lt;UncaughtExceptionDetail&gt; matcher) {
-<span class="fc" id="L465">    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();</span>
-<span class="fc" id="L466">    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(timeout, unit, matcher) {</span>
+<span class="fc" id="L486">    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();</span>
+<span class="fc" id="L487">    UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(timeout, unit, matcher) {</span>
 
       @Override
       public void close() {
-<span class="fc" id="L470">        reg.remove(this);</span>
-<span class="fc" id="L471">      }</span>
+<span class="fc" id="L491">        reg.remove(this);</span>
+<span class="fc" id="L492">      }</span>
     };
-<span class="fc" id="L473">    reg.add(asserter);</span>
-<span class="fc" id="L474">    return asserter;</span>
+<span class="fc" id="L494">    reg.add(asserter);</span>
+<span class="fc" id="L495">    return asserter;</span>
   }
 
   /**
@@ -483,30 +504,58 @@ public final class TestLoggers implements ILoggerFactory {
    */
   public LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collect(final Level minimumLogLevel, final int maxNrLogs,
           final boolean collectPrinted) {
-<span class="fc" id="L486">    return collect(&quot;&quot;, minimumLogLevel, maxNrLogs, collectPrinted);</span>
+<span class="fc" id="L507">    return collect(&quot;&quot;, minimumLogLevel, maxNrLogs, collectPrinted, null);</span>
   }
 
-  private LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collect(final String category, final Level minimumLogLevel,
+  public LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collect(final Level minimumLogLevel, final int maxNrLogs,
+          final boolean collectPrinted, final String include, final String... excludeCategories) {
+<span class="fc" id="L512">    ArrayDeque adq = new ArrayDeque(maxNrLogs + 1);</span>
+<span class="fc" id="L513">    Collector&lt;TestLogRecord, ArrayDeque&lt;TestLogRecord&gt;, ArrayDeque&lt;TestLogRecord&gt;&gt; truncationCollector</span>
+<span class="fc" id="L514">            = XCollectors.last(() -&gt; adq, maxNrLogs,</span>
+<span class="fc" id="L515">                    new TestLogRecordImpl(&quot;test&quot;, Level.INFO, &quot;Truncated beyond {} &quot;, maxNrLogs));</span>
+<span class="pc bpc" id="L516" title="1 of 2 branches missed.">      if (excludeCategories.length == 0) {</span>
+<span class="fc" id="L517">         return collect(include, minimumLogLevel, collectPrinted, (Predicate&lt;TestLogRecord&gt;) null, truncationCollector);</span>
+      } else {
+<span class="nc" id="L519">         return collect(include, minimumLogLevel, collectPrinted, (log) -&gt; {</span>
+<span class="nc" id="L520">          String loggerName = log.getLoggerName();</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">          for (String cat : excludeCategories) {</span>
+<span class="nc bnc" id="L522" title="All 2 branches missed.">            if (loggerName.startsWith(cat)) {</span>
+<span class="nc" id="L523">              return false;</span>
+            }
+          }
+<span class="nc" id="L526">          return true;</span>
+        }, truncationCollector);
+      }
+  }
+
+
+  public LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collect(final String category, final Level minimumLogLevel,
           final int maxNrLogs,
-          final boolean collectPrinted) {
-<span class="fc bfc" id="L492" title="All 2 branches covered.">    if (!collectPrinted) {</span>
-<span class="fc" id="L493">      return collect(category,</span>
-            minimumLogLevel,
-            Level.ERROR,
-            true,
-<span class="fc" id="L497">            XCollectors.filtering(</span>
-<span class="fc bfc" id="L498" title="All 2 branches covered.">                 (l) -&gt; !l.hasAttachment(Attachments.PRINTED),</span>
-<span class="fc" id="L499">                 XCollectors.last(maxNrLogs,</span>
-<span class="fc" id="L500">                 new TestLogRecordImpl(&quot;test&quot;, Level.INFO, &quot;Truncated beyond {} &quot;, maxNrLogs))),</span>
-            List::size);
+          final boolean collectPrinted, @Nullable final Predicate&lt;TestLogRecord&gt; collectorFilter) {
+<span class="fc" id="L535">    Collector&lt;TestLogRecord, ArrayDeque&lt;TestLogRecord&gt;, ArrayDeque&lt;TestLogRecord&gt;&gt; truncationCollector</span>
+<span class="fc" id="L536">            = XCollectors.last(maxNrLogs,</span>
+<span class="fc" id="L537">            new TestLogRecordImpl(&quot;test&quot;, Level.INFO, &quot;Truncated beyond {} &quot;, maxNrLogs));</span>
+<span class="fc" id="L538">    return collect(category, minimumLogLevel, collectPrinted, collectorFilter, truncationCollector);</span>
+  }
+
+  public LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collect(
+          final String category, final Level minimumLogLevel,
+          final boolean collectPrinted,
+          final Predicate&lt;TestLogRecord&gt; collectorFilter,
+          final Collector&lt;TestLogRecord, ?, ArrayDeque&lt;TestLogRecord&gt;&gt; pcollector) {
+<span class="fc" id="L546">    Collector&lt;TestLogRecord, ?, ArrayDeque&lt;TestLogRecord&gt;&gt;  collector = pcollector;</span>
+<span class="pc bpc" id="L547" title="1 of 2 branches missed.">    if (collectorFilter != null) {</span>
+<span class="nc" id="L548">      collector = XCollectors.filtering(collectorFilter, collector);</span>
+    }
+<span class="fc bfc" id="L550" title="All 2 branches covered.">    if (!collectPrinted) {</span>
+<span class="fc" id="L551">      return collect(category,</span>
+              minimumLogLevel,
+              Level.ERROR,
+              true,
+<span class="fc bfc" id="L555" title="All 2 branches covered.">              XCollectors.filtering((l) -&gt; !l.hasAttachment(Attachments.PRINTED), collector),</span>
+              List::size);
     } else {
-<span class="fc" id="L503">      return collect(category,</span>
-            minimumLogLevel,
-            Level.ERROR,
-            true,
-<span class="fc" id="L507">            XCollectors.last(maxNrLogs,</span>
-<span class="fc" id="L508">                 new TestLogRecordImpl(&quot;test&quot;, Level.INFO, &quot;Truncated beyond {} &quot;, maxNrLogs)),</span>
-<span class="nc" id="L509">            (c)  -&gt; 0);</span>
+<span class="pc" id="L558">      return collect(category, minimumLogLevel, Level.ERROR, true, collector, (c)  -&gt; 0);</span>
     }
   }
 
@@ -514,20 +563,20 @@ public final class TestLoggers implements ILoggerFactory {
    * Return an appropriate {@link SimpleLogger} instance by name.
    */
   public Logger getLogger(final String name) {
-<span class="fc" id="L517">    return loggerMap.computeIfAbsent(name, computer);</span>
+<span class="fc" id="L566">    return loggerMap.computeIfAbsent(name, computer);</span>
   }
 
   public java.util.logging.Logger getJulGlobal() {
-<span class="nc" id="L521">    return julGlobal;</span>
+<span class="nc" id="L570">    return julGlobal;</span>
   }
 
   public java.util.logging.Logger getJulRoot() {
-<span class="nc" id="L525">    return julRoot;</span>
+<span class="nc" id="L574">    return julRoot;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L530">    return &quot;TestLoggers{ config=&quot; + config + &quot;, loggerMap=&quot; + loggerMap + '}';</span>
+<span class="fc" id="L579">    return &quot;TestLoggers{ config=&quot; + config + &quot;, loggerMap=&quot; + loggerMap + '}';</span>
   }
 
 }

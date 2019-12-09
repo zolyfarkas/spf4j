@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>FilteringProjectingAvroEnumerable.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">FilteringProjectingAvroEnumerable.java</span></div><h1>FilteringProjectingAvroEnumerable.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import java.util.Arrays;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.calcite.DataContext;
+import org.apache.calcite.interpreter.Scalar;
+import org.apache.calcite.interpreter.Spf4jDataContext;
+import org.apache.calcite.linq4j.AbstractEnumerable;
+import org.apache.calcite.linq4j.Enumerator;
+import org.spf4j.base.CloseableIterator;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+class FilteringProjectingAvroEnumerable extends AbstractEnumerable&lt;Object[]&gt; {
+
+  private final Object[] rawRow;
+  private final Spf4jDataContext spf4jDataContext;
+  private final Scalar filterExpression;
+  private final int[] projection;
+  private final Supplier&lt;CloseableIterator&lt;? extends IndexedRecord&gt;&gt; stream;
+  private final Supplier&lt;Boolean&gt; cancelFlag;
+
+  FilteringProjectingAvroEnumerable(final org.apache.avro.Schema componentType,
+          final DataContext root,
+          @Nullable final Scalar filters, @Nullable final int[] projection,
+<span class="fc" id="L48">          final Supplier&lt;CloseableIterator&lt;? extends IndexedRecord&gt;&gt; stream) {</span>
+<span class="fc" id="L49">    this.rawRow = new Object[componentType.getFields().size()];</span>
+<span class="fc" id="L50">    this.spf4jDataContext = new Spf4jDataContext(root);</span>
+<span class="fc" id="L51">    filterExpression = filters;</span>
+<span class="fc" id="L52">    this.projection = projection;</span>
+<span class="fc" id="L53">    this.stream = stream;</span>
+<span class="fc" id="L54">    AtomicBoolean contextFlag = DataContext.Variable.CANCEL_FLAG.get(root);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    cancelFlag = contextFlag == null ? () -&gt; Boolean.FALSE : contextFlag::get;</span>
+<span class="fc" id="L56">  }</span>
+
+  public Enumerator&lt;Object[]&gt; enumerator() {
+<span class="fc" id="L59">    return new Enumerator&lt;Object[]&gt;() {</span>
+<span class="fc" id="L60">      private Object[] current = null;</span>
+
+<span class="fc" id="L62">      private CloseableIterator&lt;? extends IndexedRecord&gt; iterator = stream.get();</span>
+
+      @Override
+      public Object[] current() {
+<span class="pc bpc" id="L66" title="1 of 2 branches missed.">        if (current == null) {</span>
+<span class="nc" id="L67">          throw new IllegalStateException(&quot;Use moveNext on &quot; + this);</span>
+        }
+<span class="fc" id="L69">        return current;</span>
+      }
+
+      @Override
+      public boolean moveNext() {
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (cancelFlag.get()) {</span>
+<span class="nc" id="L75">          throw new CancellationException(&quot;Operation cancelled on &quot; + stream + &quot; at &quot; + Arrays.toString(current));</span>
+        }
+<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (iterator.hasNext()) {</span>
+          while (true) {
+<span class="fc" id="L79">            IndexedRecord ir = iterator.next();</span>
+<span class="fc" id="L80">            IndexedRecords.copyRecord(ir, rawRow);</span>
+<span class="fc" id="L81">            spf4jDataContext.values = rawRow;</span>
+<span class="pc bpc" id="L82" title="1 of 4 branches missed.">            Boolean match = filterExpression == null || (Boolean) filterExpression.execute(spf4jDataContext);</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (match) {</span>
+<span class="fc" id="L84">              break;</span>
+            }
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!iterator.hasNext()) {</span>
+<span class="nc" id="L87">              current = null;</span>
+<span class="nc" id="L88">              return false;</span>
+            }
+<span class="nc" id="L90">          }</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">          if (projection == null) {</span>
+<span class="fc" id="L92">            current = rawRow.clone();</span>
+          } else {
+<span class="nc" id="L94">            current = new Object[projection.length];</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            for (int i = 0; i &lt; projection.length; i++) {</span>
+<span class="nc" id="L96">              current[i] = rawRow[projection[i]];</span>
+            }
+          }
+<span class="fc" id="L99">          return true;</span>
+        } else {
+<span class="fc" id="L101">          current = null;</span>
+<span class="fc" id="L102">          return false;</span>
+        }
+      }
+
+      @Override
+      public void reset() {
+<span class="nc" id="L108">        iterator.close();</span>
+<span class="nc" id="L109">        iterator = stream.get();</span>
+<span class="nc" id="L110">        current = null;</span>
+<span class="nc" id="L111">      }</span>
+
+      @Override
+      public void close() {
+<span class="fc" id="L115">        iterator.close();</span>
+<span class="fc" id="L116">      }</span>
+    };
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L122">    return &quot;FilteringProjectingAvroEnumerable{&quot; + &quot;rawRow=&quot; + Arrays.toString(rawRow)</span>
+            + &quot;, spf4jDataContext=&quot; + spf4jDataContext + &quot;, filterExpression=&quot;
+<span class="nc" id="L124">            + filterExpression + &quot;, projection=&quot; + Arrays.toString(projection) + &quot;, stream=&quot;</span>
+            + stream + &quot;, cancelFlag=&quot; + cancelFlag + '}';
+  }
+
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

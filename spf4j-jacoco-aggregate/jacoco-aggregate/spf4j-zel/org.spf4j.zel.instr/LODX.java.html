@@ -35,48 +35,45 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
 public final class LODX extends Instruction implements RValRef {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
-    
-    private final String symbol;
-    
-<span class="fc" id="L46">    public LODX(final String symbol) {</span>
-<span class="fc" id="L47">        this.symbol = symbol;</span>
-<span class="fc" id="L48">    }</span>
-    
-    
-    public static Object readFrom(final String symbol, final ExecutionContext context) throws ZExecutionException {
-<span class="fc" id="L52">        Program code = context.getProgram();</span>
-<span class="fc" id="L53">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">        if (addr == null) {</span>
-<span class="fc" id="L55">            addr = code.getGlobalSymbolTable().get(symbol);</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">            if (addr == null) {</span>
-<span class="nc" id="L57">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
-            }
-<span class="fc" id="L59">            return context.globalPeek(addr);</span>
-        } else {
-<span class="fc" id="L61">            return context.localPeek(addr);</span>
-        }
-    }
-    
-    @Override
-    public int execute(final ExecutionContext context) throws ZExecutionException {
-<span class="fc" id="L67">        context.push(readFrom(symbol, context));</span>
-<span class="fc" id="L68">        return 1;</span>
-    }
- 
-    @Override
-    public String getSymbol() {
-<span class="fc" id="L73">        return symbol;</span>
-    }
+  private final String symbol;
 
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L78">        return new Object[] {symbol};</span>
+<span class="fc" id="L44">  public LODX(final String symbol) {</span>
+<span class="fc" id="L45">    this.symbol = symbol;</span>
+<span class="fc" id="L46">  }</span>
+
+  public static Object readFrom(final String symbol, final ExecutionContext context) throws ZExecutionException {
+<span class="fc" id="L49">    Program code = context.getProgram();</span>
+<span class="fc" id="L50">    Integer addr = code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">    if (addr == null) {</span>
+<span class="fc" id="L52">      addr = code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">      if (addr == null) {</span>
+<span class="nc" id="L54">        throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
+      }
+<span class="fc" id="L56">      return context.globalPeek(addr);</span>
+    } else {
+<span class="fc" id="L58">      return context.localPeek(addr);</span>
     }
-    
+  }
+
+  @Override
+  public int execute(final ExecutionContext context) throws ZExecutionException {
+<span class="fc" id="L64">    context.push(readFrom(symbol, context));</span>
+<span class="fc" id="L65">    return 1;</span>
+  }
+
+  @Override
+  public String getSymbol() {
+<span class="fc" id="L70">    return symbol;</span>
+  }
+
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L75">    return new Object[]{symbol};</span>
+  }
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

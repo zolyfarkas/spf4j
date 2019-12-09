@@ -161,21 +161,23 @@
 <a class="jxr_linenumber" name="L153" href="#L153">153</a>       <strong class="jxr_keyword">int</strong> val = mbis.read();
 <a class="jxr_linenumber" name="L154" href="#L154">154</a>       Assert.assertEquals(val, mbis.getReadBytesFromBuffer()[0]);
 <a class="jxr_linenumber" name="L155" href="#L155">155</a>       byte[] buff = <strong class="jxr_keyword">new</strong> byte[8];
-<a class="jxr_linenumber" name="L156" href="#L156">156</a>       ByteStreams.readFully(mbis, buff);
-<a class="jxr_linenumber" name="L157" href="#L157">157</a>       Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
-<a class="jxr_linenumber" name="L158" href="#L158">158</a>       <strong class="jxr_keyword">int</strong> result;
-<a class="jxr_linenumber" name="L159" href="#L159">159</a>       <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L160" href="#L160">160</a>         result = mbis.read(buff);
-<a class="jxr_linenumber" name="L161" href="#L161">161</a>       } <strong class="jxr_keyword">while</strong> (result &gt;= 0);
-<a class="jxr_linenumber" name="L162" href="#L162">162</a>       byte[] unredBytesEnd = mbis.getUnreadBytesFromBuffer();
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>       Assert.assertEquals(0, unredBytesEnd.length);
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>       <strong class="jxr_keyword">final</strong> byte[] readBytesFromBuffer = mbis.getReadBytesFromBuffer();
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>       Assert.assertTrue(Arrays.equals(readBytesFromBuffer,
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>               Arrays.copyOfRange(utf8Bytes, utf8Bytes.length - readBytesFromBuffer.length, utf8Bytes.length)));
-<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>     }
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>   }
-<a class="jxr_linenumber" name="L170" href="#L170">170</a> }
+<a class="jxr_linenumber" name="L156" href="#L156">156</a>       <strong class="jxr_keyword">if</strong> (utf8Bytes.length &gt; 8) {
+<a class="jxr_linenumber" name="L157" href="#L157">157</a>         ByteStreams.readFully(mbis, buff);
+<a class="jxr_linenumber" name="L158" href="#L158">158</a>         Assert.assertTrue(Arrays.equals(buff, Arrays.copyOfRange(mbis.getReadBytesFromBuffer(), 1, 9)));
+<a class="jxr_linenumber" name="L159" href="#L159">159</a>       }
+<a class="jxr_linenumber" name="L160" href="#L160">160</a>       <strong class="jxr_keyword">int</strong> result;
+<a class="jxr_linenumber" name="L161" href="#L161">161</a>       <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L162" href="#L162">162</a>         result = mbis.read(buff);
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>       } <strong class="jxr_keyword">while</strong> (result &gt;= 0);
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>       byte[] unredBytesEnd = mbis.getUnreadBytesFromBuffer();
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>       Assert.assertEquals(0, unredBytesEnd.length);
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>       <strong class="jxr_keyword">final</strong> byte[] readBytesFromBuffer = mbis.getReadBytesFromBuffer();
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>       Assert.assertTrue(Arrays.equals(readBytesFromBuffer,
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>               Arrays.copyOfRange(utf8Bytes, utf8Bytes.length - readBytesFromBuffer.length, utf8Bytes.length)));
+<a class="jxr_linenumber" name="L169" href="#L169">169</a> 
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>     }
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>   }
+<a class="jxr_linenumber" name="L172" href="#L172">172</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

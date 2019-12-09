@@ -47,56 +47,56 @@ import org.spf4j.zel.vm.VMASyncFuture;
 @SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;)
 public final class SLEEP extends Instruction {
 
-    private static final long serialVersionUID = -104479947741779060L;
+  private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L52">    public static final Instruction INSTANCE = new SLEEP();</span>
+<span class="fc" id="L52">  public static final Instruction INSTANCE = new SLEEP();</span>
 
-    private SLEEP() {
+  private SLEEP() {
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, InterruptedException, ExecutionException {
+<span class="fc" id="L60">    Number param = (Number) context.popSyncStackVal();</span>
+<span class="fc" id="L61">    final long sleepMillis = param.longValue();</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">    if (sleepMillis &gt; 0) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">      if (context.getExecService() == null) {</span>
+<span class="nc" id="L64">        Thread.sleep(sleepMillis);</span>
+      } else {
+<span class="fc" id="L66">        final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
+<span class="fc" id="L67">        DefaultScheduler.INSTANCE.schedule(</span>
+                new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+<span class="fc" id="L69">        context.incrementInstructionPointer();</span>
+<span class="nc" id="L70">        context.suspend(future);</span>
+      }
     }
+<span class="fc" id="L73">    return 1;</span>
+
+  }
+
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L79">    return Arrays.EMPTY_OBJ_ARRAY;</span>
+  }
+
+  private static final class RunnableImpl implements Runnable {
+
+    private final ExecutionContext context;
+    private final VMASyncFuture&lt;Object&gt; future;
+
+<span class="fc" id="L87">    RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
+<span class="fc" id="L88">      this.context = context;</span>
+<span class="fc" id="L89">      this.future = future;</span>
+<span class="fc" id="L90">    }</span>
 
     @Override
-    public int execute(final ExecutionContext context)
-            throws SuspendedException, InterruptedException, ExecutionException {
-<span class="fc" id="L60">        Number param = (Number) context.popSyncStackVal();</span>
-<span class="fc" id="L61">        final long sleepMillis = param.longValue();</span>
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">        if (sleepMillis &gt; 0) {</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">            if (context.getExecService() == null) {</span>
-<span class="nc" id="L64">                Thread.sleep(sleepMillis);</span>
-            } else {
-<span class="fc" id="L66">                final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
-<span class="fc" id="L67">                DefaultScheduler.INSTANCE.schedule(</span>
-                        new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
-<span class="fc" id="L69">                context.incrementInstructionPointer();</span>
-<span class="nc" id="L70">                context.suspend(future);</span>
-            }
-        }
-<span class="nc" id="L73">        return 1;</span>
-
-    }
-
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L79">        return Arrays.EMPTY_OBJ_ARRAY;</span>
-    }
-
-    private static final  class RunnableImpl implements Runnable {
-
-        private final ExecutionContext context;
-        private final VMASyncFuture&lt;Object&gt; future;
-
-<span class="fc" id="L87">        RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
-<span class="fc" id="L88">            this.context = context;</span>
-<span class="fc" id="L89">            this.future = future;</span>
-<span class="fc" id="L90">        }</span>
-
-        @Override
-        public void run() {
-            Object stuff;
-            do {
-<span class="fc" id="L96">                stuff = context.getExecService().resumeSuspendables(future);</span>
-<span class="pc bpc" id="L97" title="1 of 2 branches missed.">            } while (stuff == null);</span>
-<span class="fc" id="L98">        }</span>
-    }
+    public void run() {
+      Object stuff;
+      do {
+<span class="fc" id="L96">        stuff = context.getExecService().resumeSuspendables(future);</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">      } while (stuff == null);</span>
+<span class="fc" id="L98">    }</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -35,7 +35,7 @@ import java.util.Objects;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
-import org.spf4j.concurrent.ScalableSequence;
+import org.spf4j.concurrent.AtomicSequence;
 import org.spf4j.concurrent.Sequence;
 
 /**
@@ -44,7 +44,7 @@ import org.spf4j.concurrent.Sequence;
  */
 class DelayedTask&lt;R extends Runnable&gt; implements Delayed {
 
-<span class="fc" id="L47">  private static final Sequence SEQUENCE = new ScalableSequence(0, 50);</span>
+<span class="fc" id="L47">  private static final Sequence SEQUENCE = new AtomicSequence(0);</span>
 
   private final R runnable;
   private final long deadlineNanos;
@@ -64,49 +64,48 @@ class DelayedTask&lt;R extends Runnable&gt; implements Delayed {
   @Override
   public int compareTo(final Delayed o) {
 <span class="fc" id="L66">    DelayedTask&lt;R&gt; other = (DelayedTask&lt;R&gt;) o;</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">    if (this.deadlineNanos &gt; other.deadlineNanos) {</span>
-<span class="fc" id="L68">      return 1;</span>
-<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    } else if (this.deadlineNanos &lt; other.deadlineNanos) {</span>
-<span class="fc" id="L70">      return -1;</span>
-<span class="nc bnc" id="L71" title="All 2 branches missed.">    } else if (this.seq &gt; other.seq) {</span>
-<span class="nc" id="L72">      return 1;</span>
-<span class="nc bnc" id="L73" title="All 2 branches missed.">    } else if (this.seq &gt; other.seq) {</span>
-<span class="nc" id="L74">      return -1;</span>
+<span class="fc" id="L67">    long diff = this.deadlineNanos - other.deadlineNanos;</span>
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">    if (diff != 0)  {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">      return diff  &gt; 0 ? 1 : -1;</span>
+    }
+<span class="nc" id="L71">    diff = this.seq  - other.seq;</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (diff == 0) {</span>
+<span class="nc" id="L73">      return 0;</span>
     } else {
-<span class="nc" id="L76">      return 0;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">      return diff  &gt; 0 ? 1 : -1;</span>
     }
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="fc bfc" id="L82" title="All 2 branches covered.">    if (this == obj) {</span>
-<span class="fc" id="L83">      return true;</span>
+<span class="fc bfc" id="L81" title="All 2 branches covered.">    if (this == obj) {</span>
+<span class="fc" id="L82">      return true;</span>
     }
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L86">      return false;</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L85">      return false;</span>
     }
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L89">      return false;</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L88">      return false;</span>
     }
-<span class="fc" id="L91">    final DelayedTask&lt;?&gt; other = (DelayedTask&lt;?&gt;) obj;</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (this.deadlineNanos != other.deadlineNanos) {</span>
-<span class="fc" id="L93">      return false;</span>
+<span class="fc" id="L90">    final DelayedTask&lt;?&gt; other = (DelayedTask&lt;?&gt;) obj;</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (this.deadlineNanos != other.deadlineNanos) {</span>
+<span class="fc" id="L92">      return false;</span>
     }
-<span class="nc" id="L95">    return Objects.equals(this.runnable, other.runnable);</span>
+<span class="nc" id="L94">    return Objects.equals(this.runnable, other.runnable);</span>
   }
 
   @Override
   public int hashCode() {
-<span class="nc" id="L100">    return this.runnable.hashCode();</span>
+<span class="nc" id="L99">    return this.runnable.hashCode();</span>
   }
 
   public R getRunnable() {
-<span class="fc" id="L104">    return runnable;</span>
+<span class="fc" id="L103">    return runnable;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L109">    return &quot;DelayedTask{&quot; + &quot;runnable=&quot; + runnable + &quot;, deadlineNanos=&quot; + deadlineNanos + '}';</span>
+<span class="nc" id="L108">    return &quot;DelayedTask{&quot; + &quot;runnable=&quot; + runnable + &quot;, deadlineNanos=&quot; + deadlineNanos + '}';</span>
   }
 
 }

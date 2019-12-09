@@ -15,6 +15,11 @@
  */
 package org.spf4j.test.log.junit4;
 
+import java.lang.reflect.Field;
+import java.util.List;
+import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.InitializationError;
@@ -22,23 +27,51 @@ import org.junit.runners.model.InitializationError;
 /**
  * @author Zoltan Farkas
  */
+@ThreadSafe
 public class Spf4jTestLogJUnitRunner extends BlockJUnit4ClassRunner {
 
+<span class="fc" id="L33">  private static final Field LISTERES_FIELD = getListenersField();</span>
+
   public Spf4jTestLogJUnitRunner(final Class&lt;?&gt; klass) throws InitializationError {
-<span class="nc" id="L28">    super(klass);</span>
-<span class="nc" id="L29">  }</span>
+<span class="fc" id="L36">    super(klass);</span>
+<span class="fc" id="L37">  }</span>
 
   /**
    * See JUnit doc if overwriting...
    * @param notifier
    */
   @Override
-  public void run(final RunNotifier notifier) {
-<span class="nc" id="L37">    Spf4jTestLogRunListenerSingleton listener = Spf4jTestLogRunListenerSingleton.getInstance();</span>
-<span class="nc" id="L38">    notifier.removeListener(listener);</span>
-<span class="nc" id="L39">    notifier.addListener(listener);</span>
-<span class="nc" id="L40">    super.run(notifier);</span>
-<span class="nc" id="L41">  }</span>
+  public synchronized void run(final RunNotifier notifier) {
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">    if (LISTERES_FIELD != null) {</span>
+      try {
+<span class="fc" id="L47">        List&lt;RunListener&gt; lstnrs =  (List&lt;RunListener&gt;) LISTERES_FIELD.get(notifier);</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">        for (RunListener lstnr : lstnrs) {</span>
+<span class="fc bfc" id="L49" title="All 2 branches covered.">          if (lstnr instanceof Spf4jTestLogRunListener) {</span>
+<span class="fc" id="L50">            super.run(notifier);</span>
+<span class="fc" id="L51">            return;</span>
+          }
+<span class="fc" id="L53">        }</span>
+<span class="nc" id="L54">      } catch (IllegalArgumentException | IllegalAccessException ex) {</span>
+<span class="nc" id="L55">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L56">      }</span>
+    }
+<span class="nc" id="L58">    Spf4jTestLogRunListenerSingleton listener = Spf4jTestLogRunListenerSingleton.getInstance();</span>
+<span class="nc" id="L59">    notifier.removeListener(listener);</span>
+<span class="nc" id="L60">    notifier.addListener(listener);</span>
+<span class="nc" id="L61">    super.run(notifier);</span>
+<span class="nc" id="L62">  }</span>
+
+  @Nullable
+  private static Field getListenersField() {
+    Field field;
+    try {
+<span class="fc" id="L68">      field = RunNotifier.class.getDeclaredField(&quot;listeners&quot;);</span>
+<span class="nc" id="L69">    } catch (NoSuchFieldException | SecurityException ex) {</span>
+<span class="nc" id="L70">      return null;</span>
+<span class="fc" id="L71">    }</span>
+<span class="fc" id="L72">    field.setAccessible(true);</span>
+<span class="fc" id="L73">    return field;</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

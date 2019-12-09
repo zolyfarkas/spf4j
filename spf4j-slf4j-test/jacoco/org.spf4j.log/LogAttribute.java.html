@@ -47,6 +47,7 @@ import org.spf4j.base.CharSequences;
 import org.spf4j.base.Json;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
+import org.spf4j.base.StackSamples;
 import org.spf4j.io.AppendableWriter;
 
 /**
@@ -58,132 +59,140 @@ public final class LogAttribute&lt;T&gt; extends Pair&lt;String, T&gt;
 
   private static final long serialVersionUID = 1L;
 
+  public static final String ID_ATTR_NAME = &quot;trId&quot;;
+
+  public static final String PROFILE_SAMPLES_ATTR_NAME = &quot;prSamples&quot;;
+
   public LogAttribute(final String first, final T second) {
-<span class="nc" id="L62">    super(first, second);</span>
-<span class="nc" id="L63">  }</span>
+<span class="nc" id="L67">    super(first, second);</span>
+<span class="nc" id="L68">  }</span>
 
   public String getName() {
-<span class="nc" id="L66">    return first;</span>
+<span class="nc" id="L71">    return first;</span>
   }
 
   public static &lt;T&gt; LogAttribute&lt;T&gt; of(final String val, final T obj) {
-<span class="nc" id="L70">    return new LogAttribute(val, obj);</span>
+<span class="nc" id="L75">    return new LogAttribute(val, obj);</span>
   }
 
   public static LogAttribute&lt;CharSequence&gt; traceId(final CharSequence id) {
-<span class="nc" id="L74">    return new LogAttribute(&quot;trId&quot;, id);</span>
+<span class="nc" id="L79">    return new LogAttribute(ID_ATTR_NAME, id);</span>
+  }
+
+  public static LogAttribute&lt;StackSamples&gt; profileSamples(final StackSamples ss) {
+<span class="nc" id="L83">    return new LogAttribute(PROFILE_SAMPLES_ATTR_NAME, ss);</span>
   }
 
   public static LogAttribute&lt;Level&gt; origLevel(final Level level) {
-<span class="nc" id="L78">    return new LogAttribute(&quot;origLevel&quot;, level);</span>
+<span class="nc" id="L87">    return new LogAttribute(&quot;origLevel&quot;, level);</span>
   }
 
   public static LogAttribute&lt;Level&gt; origLoggerName(final String loggerName) {
-<span class="nc" id="L82">    return new LogAttribute(&quot;origLogger&quot;, loggerName);</span>
+<span class="nc" id="L91">    return new LogAttribute(&quot;origLogger&quot;, loggerName);</span>
   }
 
   public static LogAttribute&lt;Level&gt; origTimeStamp(final Instant instant) {
-<span class="nc" id="L86">    return new LogAttribute(&quot;origTs&quot;, instant);</span>
+<span class="nc" id="L95">    return new LogAttribute(&quot;origTs&quot;, instant);</span>
   }
 
   public static LogAttribute&lt;Level&gt; origTimeStamp(final long millisSinceEpoch) {
-<span class="nc" id="L90">    return new LogAttribute(&quot;origTs&quot;, Instant.ofEpochMilli(millisSinceEpoch));</span>
+<span class="nc" id="L99">    return new LogAttribute(&quot;origTs&quot;, Instant.ofEpochMilli(millisSinceEpoch));</span>
   }
 
   public static LogAttribute&lt;Slf4jLogRecord&gt; log(final Slf4jLogRecord record) {
-<span class="nc" id="L94">    return new LogAttribute(&quot;log&quot;, record);</span>
+<span class="nc" id="L103">    return new LogAttribute(&quot;log&quot;, record);</span>
   }
 
   public static LogAttribute&lt;Long&gt; execTimeMicros(final long time, final TimeUnit tu) {
-<span class="nc" id="L98">    return new LogAttribute(&quot;execUs&quot;, tu.toMicros(time));</span>
+<span class="nc" id="L107">    return new LogAttribute(&quot;execUs&quot;, tu.toMicros(time));</span>
   }
 
   public static LogAttribute&lt;Long&gt; value(final String what, final long value) {
-<span class="nc" id="L102">    return new LogAttribute(what, value);</span>
+<span class="nc" id="L111">    return new LogAttribute(what, value);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L107">    StringBuilder result = new StringBuilder(32);</span>
-<span class="nc" id="L108">    writeJsonTo(result);</span>
-<span class="nc" id="L109">    return result.toString();</span>
+<span class="nc" id="L116">    StringBuilder result = new StringBuilder(32);</span>
+<span class="nc" id="L117">    writeJsonTo(result);</span>
+<span class="nc" id="L118">    return result.toString();</span>
   }
 
   @Override
   public void writeJsonTo(final Appendable appendable) throws IOException {
-<span class="nc" id="L114">    JsonGenerator gen = Json.FACTORY.createGenerator(new AppendableWriter(appendable));</span>
-<span class="nc" id="L115">    gen.setCodec(Json.MAPPER);</span>
-<span class="nc" id="L116">    writeJsonTo(gen);</span>
-<span class="nc" id="L117">    gen.flush();</span>
-<span class="nc" id="L118">  }</span>
+<span class="nc" id="L123">    JsonGenerator gen = Json.FACTORY.createGenerator(new AppendableWriter(appendable));</span>
+<span class="nc" id="L124">    gen.setCodec(Json.MAPPER);</span>
+<span class="nc" id="L125">    writeJsonTo(gen);</span>
+<span class="nc" id="L126">    gen.flush();</span>
+<span class="nc" id="L127">  }</span>
 
   public void writeJsonTo(final JsonGenerator gen) throws IOException {
-<span class="nc" id="L121">    gen.writeStartObject();</span>
-<span class="nc" id="L122">    gen.writeFieldName(first);</span>
-<span class="nc" id="L123">    gen.writeObject(second);</span>
-<span class="nc" id="L124">    gen.writeEndObject();</span>
-<span class="nc" id="L125">  }</span>
+<span class="nc" id="L130">    gen.writeStartObject();</span>
+<span class="nc" id="L131">    gen.writeFieldName(first);</span>
+<span class="nc" id="L132">    gen.writeObject(second);</span>
+<span class="nc" id="L133">    gen.writeEndObject();</span>
+<span class="nc" id="L134">  }</span>
 
   public static LogAttribute&lt;Object&gt; fromJson(final CharSequence jsonStr) {
     try {
-<span class="nc" id="L129">      JsonParser parser = Json.FACTORY.createParser(CharSequences.reader(jsonStr));</span>
-<span class="nc" id="L130">      parser.setCodec(Json.MAPPER);</span>
-<span class="nc" id="L131">      Map&lt;String, Object&gt; val = parser.readValueAs(Map.class);</span>
-<span class="nc" id="L132">      return fromMap(val);</span>
-<span class="nc" id="L133">    } catch (IOException ex) {</span>
-<span class="nc" id="L134">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L138">      JsonParser parser = Json.FACTORY.createParser(CharSequences.reader(jsonStr));</span>
+<span class="nc" id="L139">      parser.setCodec(Json.MAPPER);</span>
+<span class="nc" id="L140">      Map&lt;String, Object&gt; val = parser.readValueAs(Map.class);</span>
+<span class="nc" id="L141">      return fromMap(val);</span>
+<span class="nc" id="L142">    } catch (IOException ex) {</span>
+<span class="nc" id="L143">      throw new UncheckedIOException(ex);</span>
     }
   }
 
   public static LogAttribute&lt;Object&gt; fromMap(final Map&lt;String, Object&gt; val) {
-<span class="nc bnc" id="L139" title="All 2 branches missed.">    if (val.size() != 1) {</span>
-<span class="nc" id="L140">      throw new IllegalArgumentException(&quot;No Log Attribute: &quot; + val);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (val.size() != 1) {</span>
+<span class="nc" id="L149">      throw new IllegalArgumentException(&quot;No Log Attribute: &quot; + val);</span>
     }
-<span class="nc" id="L142">    Map.Entry&lt;String, Object&gt; entry = val.entrySet().iterator().next();</span>
-<span class="nc" id="L143">    Object value = entry.getValue();</span>
-<span class="nc" id="L144">    return LogAttribute.of(entry.getKey(), value);</span>
+<span class="nc" id="L151">    Map.Entry&lt;String, Object&gt; entry = val.entrySet().iterator().next();</span>
+<span class="nc" id="L152">    Object value = entry.getValue();</span>
+<span class="nc" id="L153">    return LogAttribute.of(entry.getKey(), value);</span>
   }
 
   @Override
   public void add(final Marker reference) {
-<span class="nc" id="L149">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L158">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public boolean remove(final Marker reference) {
-<span class="nc" id="L154">    return false;</span>
+<span class="nc" id="L163">    return false;</span>
   }
 
   @Override
   public boolean hasChildren() {
-<span class="nc" id="L159">    return false;</span>
+<span class="nc" id="L168">    return false;</span>
   }
 
   @Override
   public boolean hasReferences() {
-<span class="nc" id="L164">    return false;</span>
+<span class="nc" id="L173">    return false;</span>
   }
 
   @Override
   public Iterator&lt;Marker&gt; iterator() {
-<span class="nc" id="L169">    return Collections.emptyListIterator();</span>
+<span class="nc" id="L178">    return Collections.emptyListIterator();</span>
   }
 
   @Override
   public boolean contains(final Marker other) {
-<span class="nc" id="L174">    return false;</span>
+<span class="nc" id="L183">    return false;</span>
   }
 
   @Override
   public boolean contains(final String name) {
-<span class="nc" id="L179">    return false;</span>
+<span class="nc" id="L188">    return false;</span>
   }
 
   private Object writeReplace()
           throws java.io.ObjectStreamException {
-<span class="nc" id="L184">    StringBuilder sb = new StringBuilder(32);</span>
-<span class="nc" id="L185">    writeJsonTo(sb);</span>
-<span class="nc" id="L186">    return new AttrProxy(sb);</span>
+<span class="nc" id="L193">    StringBuilder sb = new StringBuilder(32);</span>
+<span class="nc" id="L194">    writeJsonTo(sb);</span>
+<span class="nc" id="L195">    return new AttrProxy(sb);</span>
   }
 
   private static final class AttrProxy implements Serializable {
@@ -191,12 +200,12 @@ public final class LogAttribute&lt;T&gt; extends Pair&lt;String, T&gt;
     private static final long serialVersionUID = 1L;
     private StringBuilder json;
 
-<span class="nc" id="L194">    AttrProxy(final StringBuilder json) {</span>
-<span class="nc" id="L195">      this.json = json;</span>
-<span class="nc" id="L196">    }</span>
+<span class="nc" id="L203">    AttrProxy(final StringBuilder json) {</span>
+<span class="nc" id="L204">      this.json = json;</span>
+<span class="nc" id="L205">    }</span>
 
     private Object readResolve() {
-<span class="nc" id="L199">      return LogAttribute.fromJson(json);</span>
+<span class="nc" id="L208">      return LogAttribute.fromJson(json);</span>
     }
 
   }

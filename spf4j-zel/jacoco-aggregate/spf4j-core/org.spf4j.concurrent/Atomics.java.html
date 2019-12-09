@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.DoubleBinaryOperator;
 import java.util.function.DoubleUnaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.function.UnaryOperator;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -49,7 +50,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @SuppressFBWarnings(&quot;PREDICTABLE_RANDOM&quot;)
 public final class Atomics {
 
-<span class="fc" id="L52">  public static final int MAX_BACKOFF_NANOS = Integer.getInteger(&quot;spf4j.atomics.maxBackoffNanos&quot;, 3);</span>
+<span class="fc" id="L53">  public static final int MAX_BACKOFF_NANOS = Integer.getInteger(&quot;spf4j.atomics.maxBackoffNanos&quot;, 3);</span>
 
   private Atomics() {
   }
@@ -58,65 +59,98 @@ public final class Atomics {
     T initial;
     T newObj;
     do {
-<span class="nc" id="L61">      initial = ar.get();</span>
-<span class="nc" id="L62">      newObj = function.apply(initial);</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">      if (Objects.equals(initial, newObj)) {</span>
-<span class="nc" id="L64">        return UpdateResult.same(initial);</span>
+<span class="nc" id="L62">      initial = ar.get();</span>
+<span class="nc" id="L63">      newObj = function.apply(initial);</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">      if (Objects.equals(initial, newObj)) {</span>
+<span class="nc" id="L65">        return UpdateResult.same(initial);</span>
       }
-<span class="nc bnc" id="L66" title="All 2 branches missed.">    } while (!ar.compareAndSet(initial, newObj));</span>
-<span class="nc" id="L67">    return UpdateResult.updated(newObj);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    } while (!ar.compareAndSet(initial, newObj));</span>
+<span class="nc" id="L68">    return UpdateResult.updated(newObj);</span>
   }
 
   public static boolean maybeAccumulate(final AtomicLong dval, final double x,
           final DoubleBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
-<span class="fc" id="L74">      prev = dval.get();</span>
-<span class="fc" id="L75">      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev), x));</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">      if (prev == next) {</span>
-<span class="fc" id="L77">        return false;</span>
+<span class="nc" id="L75">      prev = dval.get();</span>
+<span class="nc" id="L76">      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev), x));</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">      if (prev == next) {</span>
+<span class="nc" id="L78">        return false;</span>
       }
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
-<span class="fc" id="L80">        return true;</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
+<span class="nc" id="L81">        return true;</span>
       }
-<span class="nc" id="L82">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
-<span class="nc" id="L83">    } while (true);</span>
+<span class="nc" id="L83">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
+<span class="nc" id="L84">    } while (true);</span>
   }
 
   public static void accumulate(final AtomicLong dval, final double x,
           final DoubleBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
-<span class="fc" id="L90">      prev = dval.get();</span>
-<span class="fc" id="L91">      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev), x));</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">      if (next == prev) {</span>
-<span class="nc" id="L93">        return;</span>
+<span class="nc" id="L91">      prev = dval.get();</span>
+<span class="nc" id="L92">      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev), x));</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">      if (next == prev) {</span>
+<span class="nc" id="L94">        return;</span>
       }
-<span class="pc bpc" id="L95" title="1 of 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
-<span class="fc" id="L96">        return;</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
+<span class="nc" id="L97">        return;</span>
       }
-<span class="nc" id="L98">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
-<span class="nc" id="L99">    } while (true);</span>
+<span class="nc" id="L99">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
+<span class="nc" id="L100">    } while (true);</span>
   }
 
+  public static void accumulate(final AtomicLong dval, final long x,
+          final LongBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
+    long prev, next;
+    do {
+<span class="fc" id="L107">      prev = dval.get();</span>
+<span class="fc" id="L108">      next = accumulatorFunction.applyAsLong(prev, x);</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">      if (next == prev) {</span>
+<span class="fc" id="L110">        return;</span>
+      }
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
+<span class="fc" id="L113">        return;</span>
+      }
+<span class="nc" id="L115">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
+<span class="nc" id="L116">    } while (true);</span>
+  }
+
+
   private  static long getBackoffNanos(final int maxBackoffNanos) {
-<span class="nc bnc" id="L103" title="All 2 branches missed.">    return maxBackoffNanos &gt; 0 ? Thread.currentThread().getId() % maxBackoffNanos : 0;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">    return maxBackoffNanos &gt; 0 ? Thread.currentThread().getId() % maxBackoffNanos : 0;</span>
   }
 
   public static boolean maybeAccumulate(final AtomicLong dval,
           final DoubleUnaryOperator accumulatorFunction, final int maxBackoffNanos) {
     long prev, next;
     do {
-<span class="fc" id="L110">      prev = dval.get();</span>
-<span class="fc" id="L111">      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev)));</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">      if (prev == next) {</span>
-<span class="fc" id="L113">        return false;</span>
+<span class="nc" id="L128">      prev = dval.get();</span>
+<span class="nc" id="L129">      next = Double.doubleToRawLongBits(accumulatorFunction.applyAsDouble(Double.longBitsToDouble(prev)));</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">      if (prev == next) {</span>
+<span class="nc" id="L131">        return false;</span>
       }
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
-<span class="fc" id="L116">        return true;</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
+<span class="nc" id="L134">        return true;</span>
       }
-<span class="nc" id="L118">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
-<span class="nc" id="L119">    } while (true);</span>
+<span class="nc" id="L136">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
+<span class="nc" id="L137">    } while (true);</span>
+  }
+
+  public static boolean maybeAccumulate(final AtomicLong dval, final long val,
+          final LongBinaryOperator accumulatorFunction, final int maxBackoffNanos) {
+    long prev, next;
+    do {
+<span class="fc" id="L144">      prev = dval.get();</span>
+<span class="fc" id="L145">      next = accumulatorFunction.applyAsLong(prev, val);</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">      if (prev == next) {</span>
+<span class="fc" id="L147">        return false;</span>
+      }
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">      if (dval.compareAndSet(prev, next)) {</span>
+<span class="fc" id="L150">        return true;</span>
+      }
+<span class="nc" id="L152">      LockSupport.parkNanos(getBackoffNanos(maxBackoffNanos)); // backoff</span>
+<span class="nc" id="L153">    } while (true);</span>
   }
 
 

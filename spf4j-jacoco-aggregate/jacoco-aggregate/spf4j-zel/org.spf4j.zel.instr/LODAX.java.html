@@ -37,61 +37,59 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
-
 @SuppressFBWarnings(&quot;CD_CIRCULAR_DEPENDENCY&quot;)
 public final class LODAX extends Instruction implements LValRef {
 
-    private static final long serialVersionUID = 1257172216541960034L;
+  private static final long serialVersionUID = 1L;
 
-    private final String symbol;
-    
-<span class="fc" id="L48">    public LODAX(final String symbol) {</span>
-<span class="fc" id="L49">        this.symbol = symbol;</span>
-<span class="fc" id="L50">    }</span>
-    
-    
-    public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
-            throws ZExecutionException {
-<span class="fc" id="L55">        Program code = context.getProgram();</span>
-<span class="fc" id="L56">        Integer addr  = code.getLocalSymbolTable().get(symbol);</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">        if (addr == null) {</span>
-<span class="fc" id="L58">            addr = code.getGlobalSymbolTable().get(symbol);</span>
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            if (addr == null) {</span>
-<span class="nc" id="L60">                throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
-            }
-<span class="fc" id="L62">            context.globalPoke(addr, what);</span>
-        } else {
-<span class="fc" id="L64">            context.localPoke(addr, what);</span>
-        }
-<span class="fc" id="L66">    }</span>
+  private final String symbol;
 
-    @Override
-    public int execute(final ExecutionContext context) {
-           
-<span class="fc" id="L71">        context.push(new AssignableValue() {</span>
+<span class="fc" id="L47">  public LODAX(final String symbol) {</span>
+<span class="fc" id="L48">    this.symbol = symbol;</span>
+<span class="fc" id="L49">  }</span>
 
-            @Override
-            public void assign(final Object object) throws ZExecutionException {
-<span class="fc" id="L75">                writeTo(symbol, context, object);</span>
-<span class="fc" id="L76">            }</span>
-
-            @Override
-            public Object get() throws ZExecutionException {
-<span class="fc" id="L80">                return LODX.readFrom(symbol, context);</span>
-            }
-        });
-<span class="fc" id="L83">        return 1;</span>
+  public static void writeTo(final String symbol, final ExecutionContext context, final Object what)
+          throws ZExecutionException {
+<span class="fc" id="L53">    Program code = context.getProgram();</span>
+<span class="fc" id="L54">    Integer addr = code.getLocalSymbolTable().get(symbol);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">    if (addr == null) {</span>
+<span class="fc" id="L56">      addr = code.getGlobalSymbolTable().get(symbol);</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">      if (addr == null) {</span>
+<span class="nc" id="L58">        throw new ZExecutionException(&quot;unalocated symbol encountered &quot; + symbol);</span>
+      }
+<span class="fc" id="L60">      context.globalPoke(addr, what);</span>
+    } else {
+<span class="fc" id="L62">      context.localPoke(addr, what);</span>
     }
+<span class="fc" id="L64">  }</span>
 
-    @Override
-    public String getSymbol() {
-<span class="fc" id="L88">        return symbol;</span>
-    }
+  @Override
+  public int execute(final ExecutionContext context) {
 
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L93">        return new Object[] {symbol};</span>
-    }
+<span class="fc" id="L69">    context.push(new AssignableValue() {</span>
+
+      @Override
+      public void assign(final Object object) throws ZExecutionException {
+<span class="fc" id="L73">        writeTo(symbol, context, object);</span>
+<span class="fc" id="L74">      }</span>
+
+      @Override
+      public Object get() throws ZExecutionException {
+<span class="fc" id="L78">        return LODX.readFrom(symbol, context);</span>
+      }
+    });
+<span class="fc" id="L81">    return 1;</span>
+  }
+
+  @Override
+  public String getSymbol() {
+<span class="fc" id="L86">    return symbol;</span>
+  }
+
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L91">    return new Object[]{symbol};</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

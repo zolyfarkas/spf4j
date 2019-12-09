@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaDependenciesMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.10-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaDependenciesMojo.java</span></div><h1>SchemaDependenciesMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.maven.plugin.avro.avscp;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaDependenciesMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.28-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaDependenciesMojo.java</span></div><h1>SchemaDependenciesMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.maven.plugin.avro.avscp;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -36,7 +37,7 @@ import org.spf4j.maven.MavenRepositoryUtils;
  */
 @Mojo(name = &quot;avro-dependencies&quot;, requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
 @Execute(phase = LifecyclePhase.INITIALIZE)
-<span class="nc" id="L39">public final class SchemaDependenciesMojo</span>
+<span class="nc" id="L40">public final class SchemaDependenciesMojo</span>
         extends SchemaMojoBase {
 
 
@@ -44,104 +45,104 @@ import org.spf4j.maven.MavenRepositoryUtils;
   private MojoExecution mojoExecution;
 
 
-<span class="nc" id="L47">  @Parameter(name = &quot;excludes&quot;)</span>
+<span class="nc" id="L48">  @Parameter(name = &quot;excludes&quot;)</span>
   private List&lt;String&gt; excludes = Collections.EMPTY_LIST;
 
 
-  private static List&lt;Pattern&gt; getPatterns(final List&lt;String&gt; patterns) {
-<span class="nc" id="L52">    List&lt;Pattern&gt; result = new ArrayList&lt;&gt;(patterns.size());</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">    for (String sp : patterns) {</span>
-<span class="nc" id="L54">      result.add(Pattern.compile(sp));</span>
-<span class="nc" id="L55">    }</span>
-<span class="nc" id="L56">    return result;</span>
+  private static List&lt;Pattern&gt; getPatterns(final Collection&lt;String&gt; patterns) {
+<span class="nc" id="L53">    List&lt;Pattern&gt; result = new ArrayList&lt;&gt;(patterns.size());</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    for (String sp : patterns) {</span>
+<span class="nc" id="L55">      result.add(Pattern.compile(sp));</span>
+<span class="nc" id="L56">    }</span>
+<span class="nc" id="L57">    return result;</span>
   }
 
-  private static boolean matches(final List&lt;Pattern&gt; patterns, final String what) {
-<span class="nc bnc" id="L60" title="All 2 branches missed.">    for (Pattern p : patterns) {</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">      if (p.matcher(what).matches()) {</span>
-<span class="nc" id="L62">        return true;</span>
+  private static boolean matches(final Iterable&lt;Pattern&gt; patterns, final String what) {
+<span class="nc bnc" id="L61" title="All 2 branches missed.">    for (Pattern p : patterns) {</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">      if (p.matcher(what).matches()) {</span>
+<span class="nc" id="L63">        return true;</span>
       }
-<span class="nc" id="L64">    }</span>
-<span class="nc" id="L65">    return false;</span>
+<span class="nc" id="L65">    }</span>
+<span class="nc" id="L66">    return false;</span>
   }
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-<span class="nc" id="L70">    super.execute();</span>
-<span class="nc" id="L71">    Log log = this.getLog();</span>
-<span class="nc" id="L72">    log.info(&quot;Resolving schema dependencies&quot;);</span>
-<span class="nc" id="L73">    List&lt;Pattern&gt; patterns = getPatterns(excludes);</span>
-<span class="nc" id="L74">    Set&lt;File&gt; deps = new HashSet();</span>
-<span class="nc" id="L75">    RepositorySystemSession repositorySession = mavenSession.getRepositorySession();</span>
-<span class="nc" id="L76">    List&lt;Dependency&gt; dependencies = mavenProject.getDependencies();</span>
+<span class="nc" id="L71">    super.execute();</span>
+<span class="nc" id="L72">    Log log = this.getLog();</span>
+<span class="nc" id="L73">    log.info(&quot;Resolving schema dependencies&quot;);</span>
+<span class="nc" id="L74">    List&lt;Pattern&gt; patterns = getPatterns(excludes);</span>
+<span class="nc" id="L75">    Set&lt;File&gt; deps = new HashSet();</span>
+<span class="nc" id="L76">    RepositorySystemSession repositorySession = mavenSession.getRepositorySession();</span>
+<span class="nc" id="L77">    List&lt;Dependency&gt; dependencies = mavenProject.getDependencies();</span>
     try {
-<span class="nc bnc" id="L78" title="All 2 branches missed.">      for (Dependency dep : dependencies) {</span>
-<span class="nc" id="L79">        deps.addAll(MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;,</span>
-<span class="nc" id="L80">                dep.getGroupId(), dep.getArtifactId(),</span>
-<span class="nc" id="L81">                dep.getClassifier(), dep.getType(), dep.getVersion(),</span>
-<span class="nc" id="L82">                mavenProject.getRemoteProjectRepositories(),</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">      for (Dependency dep : dependencies) {</span>
+<span class="nc" id="L80">        deps.addAll(MavenRepositoryUtils.resolveArtifactAndDependencies(&quot;compile&quot;,</span>
+<span class="nc" id="L81">                dep.getGroupId(), dep.getArtifactId(),</span>
+<span class="nc" id="L82">                dep.getClassifier(), dep.getType(), dep.getVersion(),</span>
+<span class="nc" id="L83">                mavenProject.getRemoteProjectRepositories(),</span>
                 repoSystem, repositorySession));
-<span class="nc" id="L84">      }</span>
-<span class="nc" id="L85">    } catch (DependencyResolutionException ex) {</span>
-<span class="nc" id="L86">      throw new MojoExecutionException(&quot;Cannot resolve dependencies for &quot; + this, ex);</span>
-<span class="nc" id="L87">    }</span>
-<span class="nc" id="L88">    log.info(&quot;resolved schema dependencies: &quot; + deps);</span>
-<span class="nc" id="L89">    Path dependenciesTargetPath = dependenciesDirectory.toPath();</span>
+<span class="nc" id="L85">      }</span>
+<span class="nc" id="L86">    } catch (DependencyResolutionException ex) {</span>
+<span class="nc" id="L87">      throw new MojoExecutionException(&quot;Cannot resolve dependencies for &quot; + this, ex);</span>
+<span class="nc" id="L88">    }</span>
+<span class="nc" id="L89">    log.info(&quot;resolved schema dependencies: &quot; + deps);</span>
+<span class="nc" id="L90">    Path dependenciesTargetPath = dependenciesDirectory.toPath();</span>
     try {
-<span class="nc" id="L91">      Files.createDirectories(dependenciesTargetPath);</span>
-<span class="nc" id="L92">    } catch (IOException ex) {</span>
-<span class="nc" id="L93">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L94">    }</span>
-<span class="nc" id="L95">    List&lt;String&gt; classes = new ArrayList&lt;&gt;(64);</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">    for (File file : deps) {</span>
+<span class="nc" id="L92">      Files.createDirectories(dependenciesTargetPath);</span>
+<span class="nc" id="L93">    } catch (IOException ex) {</span>
+<span class="nc" id="L94">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L95">    }</span>
+<span class="nc" id="L96">    List&lt;String&gt; classes = new ArrayList&lt;&gt;(64);</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    for (File file : deps) {</span>
       try {
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (file.isDirectory()) {</span>
-<span class="nc" id="L99">          FileUtils.copyDirectory(file, dependenciesTargetPath.toFile());</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (file.isDirectory()) {</span>
+<span class="nc" id="L100">          FileUtils.copyDirectory(file, dependenciesTargetPath.toFile());</span>
         } else {
-<span class="nc" id="L101">          List&lt;Path&gt; unzip = Compress.unzip2(file.toPath(), dependenciesTargetPath, (Path p)</span>
+<span class="nc" id="L102">          List&lt;Path&gt; unzip = Compress.unzip2(file.toPath(), dependenciesTargetPath, (Path p)</span>
                   -&gt; {
-<span class="nc" id="L103">            Path fileName = p.getFileName();</span>
-<span class="nc bnc" id="L104" title="All 2 branches missed.">            if (fileName == null) {</span>
-<span class="nc" id="L105">              return false;</span>
+<span class="nc" id="L104">            Path fileName = p.getFileName();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (fileName == null) {</span>
+<span class="nc" id="L106">              return false;</span>
             }
-<span class="nc" id="L107">            String fn = fileName.toString();</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">            if (fn.endsWith(&quot;class&quot;)) {</span>
-<span class="nc" id="L109">              Path root = p.getRoot();</span>
+<span class="nc" id="L108">            String fn = fileName.toString();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            if (fn.endsWith(&quot;class&quot;)) {</span>
+<span class="nc" id="L110">              Path root = p.getRoot();</span>
               Path relativize;
-<span class="nc bnc" id="L111" title="All 2 branches missed.">              if (root != null) {</span>
-<span class="nc" id="L112">                relativize = root.relativize(p);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">              if (root != null) {</span>
+<span class="nc" id="L113">                relativize = root.relativize(p);</span>
               } else {
-<span class="nc" id="L114">                relativize = p;</span>
+<span class="nc" id="L115">                relativize = p;</span>
               }
-<span class="nc" id="L116">              classes.add(relativize.toString());</span>
+<span class="nc" id="L117">              classes.add(relativize.toString());</span>
             }
-<span class="nc bnc" id="L118" title="All 2 branches missed.">            if (matches(patterns, p.toString())) {</span>
-<span class="nc" id="L119">              return false;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">            if (matches(patterns, p.toString())) {</span>
+<span class="nc" id="L120">              return false;</span>
             }
-<span class="nc bnc" id="L121" title="All 6 branches missed.">            return fn.endsWith(&quot;avsc&quot;) || fn.endsWith(&quot;avpr&quot;) || fn.endsWith(&quot;avdl&quot;);</span>
+<span class="nc bnc" id="L122" title="All 6 branches missed.">            return fn.endsWith(&quot;avsc&quot;) || fn.endsWith(&quot;avpr&quot;) || fn.endsWith(&quot;avdl&quot;);</span>
           });
-<span class="nc bnc" id="L123" title="All 2 branches missed.">          if (!unzip.isEmpty()) {</span>
-<span class="nc" id="L124">            log.info(&quot;Found dependency schemas: &quot; + unzip  + &quot; from &quot; + file);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">          if (!unzip.isEmpty()) {</span>
+<span class="nc" id="L125">            log.info(&quot;Found dependency schemas: &quot; + unzip  + &quot; from &quot; + file);</span>
           }
         }
-<span class="nc" id="L127">      } catch (IOException ex) {</span>
-<span class="nc" id="L128">        throw new MojoExecutionException(&quot;Cannot unzip &quot; + file, ex);</span>
-<span class="nc" id="L129">      }</span>
-<span class="nc" id="L130">    }</span>
-<span class="nc" id="L131">    Path classesInfo = dependenciesTargetPath.resolve(&quot;classes.txt&quot;);</span>
+<span class="nc" id="L128">      } catch (IOException ex) {</span>
+<span class="nc" id="L129">        throw new MojoExecutionException(&quot;Cannot unzip &quot; + file, ex);</span>
+<span class="nc" id="L130">      }</span>
+<span class="nc" id="L131">    }</span>
+<span class="nc" id="L132">    Path classesInfo = dependenciesTargetPath.resolve(&quot;classes.txt&quot;);</span>
     try {
-<span class="nc" id="L133">      Files.write(classesInfo,</span>
+<span class="nc" id="L134">      Files.write(classesInfo,</span>
               classes, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-<span class="nc" id="L135">    } catch (IOException ex) {</span>
-<span class="nc" id="L136">      throw new MojoExecutionException(&quot;Cannot write &quot; + classesInfo, ex);</span>
-<span class="nc" id="L137">    }</span>
+<span class="nc" id="L136">    } catch (IOException ex) {</span>
+<span class="nc" id="L137">      throw new MojoExecutionException(&quot;Cannot write &quot; + classesInfo, ex);</span>
+<span class="nc" id="L138">    }</span>
 
-<span class="nc" id="L139">  }</span>
+<span class="nc" id="L140">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L143">    return &quot;SchemaDependenciesMojo{&quot; + &quot;mavenSession=&quot; + mavenSession + &quot;, repoSystem=&quot;</span>
-<span class="nc" id="L144">            + repoSystem + &quot;, mojoExecution=&quot; + mojoExecution + &quot;, &quot; + super.toString()  + '}';</span>
+<span class="nc" id="L144">    return &quot;SchemaDependenciesMojo{&quot; + &quot;mavenSession=&quot; + mavenSession + &quot;, repoSystem=&quot;</span>
+<span class="nc" id="L145">            + repoSystem + &quot;, mojoExecution=&quot; + mojoExecution + &quot;, &quot; + super.toString()  + '}';</span>
   }
 
 }

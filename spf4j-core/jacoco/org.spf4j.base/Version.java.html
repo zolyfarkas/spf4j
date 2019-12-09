@@ -35,6 +35,7 @@ import com.google.common.primitives.Ints;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -52,51 +53,50 @@ public final class Version implements Comparable&lt;Version&gt;, Serializable {
   private final String image;
 
   public Version(final String version) {
-<span class="fc" id="L55">    this((CharSequence) version);</span>
-<span class="fc" id="L56">  }</span>
+<span class="fc" id="L56">    this((CharSequence) version);</span>
+<span class="fc" id="L57">  }</span>
 
-<span class="fc" id="L58">  public Version(final CharSequence version) {</span>
-<span class="fc" id="L59">    this.image = version.toString();</span>
-<span class="fc" id="L60">    parse(version);</span>
-<span class="fc" id="L61">  }</span>
+<span class="fc" id="L59">  public Version(final CharSequence version) {</span>
+<span class="fc" id="L60">    this.image = version.toString();</span>
+<span class="fc" id="L61">    parse(version);</span>
+<span class="fc" id="L62">  }</span>
 
   private void parse(final CharSequence version) {
-<span class="fc" id="L64">    List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
-<span class="fc" id="L65">    StringBuilder sb = new StringBuilder();</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">    for (int i = 0, l = version.length(); i &lt; l; i++) {</span>
-<span class="fc" id="L67">      char c = version.charAt(i);</span>
-<span class="fc" id="L68">      final int length = sb.length();</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">      if (c == '.') {</span>
-<span class="fc" id="L70">        addPart(sb, comps);</span>
-<span class="fc" id="L71">        sb.setLength(0);</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">      } else if (Character.isDigit(c)) {</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (length &gt; 0) {</span>
-<span class="fc" id="L74">          char prev = sb.charAt(length - 1);</span>
-<span class="fc bfc" id="L75" title="All 2 branches covered.">          if (!Character.isDigit(prev)) {</span>
-<span class="fc" id="L76">            comps.add(sb.toString());</span>
-<span class="fc" id="L77">            sb.setLength(0);</span>
+<span class="fc" id="L65">    List&lt;Comparable&lt;?&gt;&gt; comps = new ArrayList&lt;&gt;(4);</span>
+<span class="fc" id="L66">    StringBuilder sb = new StringBuilder();</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    for (int i = 0, l = version.length(); i &lt; l; i++) {</span>
+<span class="fc" id="L68">      char c = version.charAt(i);</span>
+<span class="fc" id="L69">      final int length = sb.length();</span>
+<span class="fc bfc" id="L70" title="All 2 branches covered.">      if (c == '.') {</span>
+<span class="fc" id="L71">        addPart(sb.toString(), comps);</span>
+<span class="fc" id="L72">        sb.setLength(0);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">      } else if (Character.isDigit(c)) {</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">        if (length &gt; 0) {</span>
+<span class="fc" id="L75">          char prev = sb.charAt(length - 1);</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">          if (!Character.isDigit(prev)) {</span>
+<span class="fc" id="L77">            comps.add(sb.toString());</span>
+<span class="fc" id="L78">            sb.setLength(0);</span>
           }
         }
-<span class="fc" id="L80">        sb.append(c);</span>
+<span class="fc" id="L81">        sb.append(c);</span>
       } else {
-<span class="fc bfc" id="L82" title="All 2 branches covered.">        if (length &gt; 0) {</span>
-<span class="fc" id="L83">          char prev = sb.charAt(length - 1);</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">          if (Character.isDigit(prev)) {</span>
-<span class="fc" id="L85">            comps.add(Integer.valueOf(sb.toString()));</span>
-<span class="fc" id="L86">            sb.setLength(0);</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (length &gt; 0) {</span>
+<span class="fc" id="L84">          char prev = sb.charAt(length - 1);</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">          if (Character.isDigit(prev)) {</span>
+<span class="fc" id="L86">            comps.add(Integer.valueOf(sb.toString()));</span>
+<span class="fc" id="L87">            sb.setLength(0);</span>
           }
         }
-<span class="fc" id="L89">        sb.append(c);</span>
+<span class="fc" id="L90">        sb.append(c);</span>
       }
     }
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">    if (sb.length() &gt; 0) {</span>
-<span class="fc" id="L93">      addPart(sb, comps);</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">    if (sb.length() &gt; 0) {</span>
+<span class="fc" id="L94">      addPart(sb.toString(), comps);</span>
     }
-<span class="fc" id="L95">    components = comps.toArray(new Comparable[comps.size()]);</span>
-<span class="fc" id="L96">  }</span>
+<span class="fc" id="L96">    components = comps.toArray(new Comparable[comps.size()]);</span>
+<span class="fc" id="L97">  }</span>
 
-  private static void addPart(final StringBuilder sb, final List&lt;Comparable&lt;?&gt;&gt; comps) {
-<span class="fc" id="L99">    final String strPart = sb.toString();</span>
+  private static void addPart(final String strPart, final Collection&lt;Comparable&lt;?&gt;&gt; comps) {
 <span class="fc" id="L100">    Integer nr = Ints.tryParse(strPart);</span>
 <span class="fc bfc" id="L101" title="All 2 branches covered.">    if (nr == null) {</span>
 <span class="fc" id="L102">      comps.add(strPart);</span>

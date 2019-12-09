@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Types.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">Types.java</span></div><h1>Types.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.List;
+import org.apache.avro.Schema;
+import org.apache.calcite.rel.type.RelDataType;
+import java.util.Map;
+import org.apache.avro.LogicalType;
+import org.apache.avro.Schema.Field.Order;
+import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.rel.type.RelDataTypeField;
+import org.apache.calcite.rel.type.RelDataTypeFieldImpl;
+import org.apache.calcite.sql.type.SqlTypeName;
+import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.avro.schema.Schemas;
+
+/**
+ *
+ * similar is done in drill, seems like calcite issue I have also stumbled upon:
+ *
+ * https://github.com/apache/drill/blob/master/exec/java-exec/src
+ * /main/java/org/apache/drill/exec/store/avro/AvroDrillTable.java
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings(&quot;CC_CYCLOMATIC_COMPLEXITY&quot;)
+public final class Types {
+
+  private Types() { }
+
+
+  public static Schema from(final RelDataType dataType) {
+<span class="fc" id="L49">    SqlTypeName sqlTypeName = dataType.getSqlTypeName();</span>
+    Schema  result;
+<span class="pc bpc" id="L51" title="7 of 12 branches missed.">    switch (sqlTypeName) {</span>
+      case ROW:
+<span class="fc" id="L53">       List&lt;RelDataTypeField&gt; fieldList = dataType.getFieldList();</span>
+<span class="fc" id="L54">       List&lt;Schema.Field&gt; aFields = new ArrayList&lt;&gt;(fieldList.size());</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">       for (RelDataTypeField field : fieldList) {</span>
+<span class="fc" id="L56">         aFields.add(AvroCompatUtils.createField(field.getName(), from(field.getType()), null,</span>
+                 null, false, false, Order.IGNORE));
+<span class="fc" id="L58">       }</span>
+<span class="fc" id="L59">       return Schema.createRecord(aFields);</span>
+      case INTEGER:
+<span class="fc" id="L61">        result = Schema.create(Schema.Type.INT);</span>
+<span class="fc" id="L62">        break;</span>
+      case BIGINT:
+<span class="nc" id="L64">        result = Schema.create(Schema.Type.LONG);</span>
+<span class="nc" id="L65">        break;</span>
+      case VARCHAR:
+<span class="fc" id="L67">        result = Schema.create(Schema.Type.STRING);</span>
+<span class="fc" id="L68">        break;</span>
+      case DATE:
+<span class="fc" id="L70">        result = Schemas.dateString();</span>
+<span class="fc" id="L71">        break;</span>
+      case BINARY:
+<span class="nc" id="L73">        int precision = dataType.getPrecision();</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (precision &gt; 0) {</span>
+<span class="nc" id="L75">          result = Schema.createFixed(null, null, null, precision);</span>
+        } else {
+<span class="nc" id="L77">          result = Schema.create(Schema.Type.BYTES);</span>
+        }
+<span class="nc" id="L79">        break;</span>
+      case DOUBLE:
+      case REAL:
+      case DECIMAL:
+<span class="nc" id="L83">        result = Schema.create(Schema.Type.DOUBLE);</span>
+<span class="nc" id="L84">        break;</span>
+          // disabled until: https://issues.apache.org/jira/browse/CALCITE-3494
+//        Schema stringSchema = Schema.create(Schema.Type.STRING)
+//            .withProp(&quot;logicalType&quot;, &quot;decimal&quot;);
+//        int prec = dataType.getPrecision();
+//        if (prec != RelDataType.PRECISION_NOT_SPECIFIED) {
+//          stringSchema = stringSchema.withProp(&quot;precision&quot;, prec);
+//        }
+//        int scale = dataType.getScale();
+//        if (scale != RelDataType.SCALE_NOT_SPECIFIED) {
+//          stringSchema = stringSchema.withProp(&quot;scale&quot;, scale);
+//        }
+//        LogicalType dlt = new DecimalFactory().fromSchema(stringSchema);
+//        stringSchema.setLogicalType(dlt);
+//        result = stringSchema;
+//        break;
+      case FLOAT:
+<span class="nc" id="L101">        result = Schema.create(Schema.Type.FLOAT);</span>
+<span class="nc" id="L102">        break;</span>
+      case BOOLEAN:
+<span class="nc" id="L104">        result = Schema.create(Schema.Type.BOOLEAN);</span>
+<span class="nc" id="L105">        break;</span>
+      case ARRAY:
+      case MULTISET:
+<span class="fc" id="L108">        result = Schema.createArray(from(dataType.getComponentType()));</span>
+<span class="fc" id="L109">        break;</span>
+      case MAP:
+<span class="nc" id="L111">        result = Schema.createMap(from(dataType.getValueType()));</span>
+<span class="nc" id="L112">        break;</span>
+      default:
+<span class="nc" id="L114">        throw new UnsupportedOperationException(&quot;Unsupported data Type &quot; + dataType);</span>
+    }
+<span class="pc bpc" id="L116" title="1 of 2 branches missed.">    if (dataType.isNullable()) {</span>
+<span class="nc" id="L117">      result = Schema.createUnion(Schema.create(Schema.Type.NULL), result);</span>
+    }
+<span class="fc" id="L119">    return result;</span>
+  }
+
+
+  @SuppressWarnings(&quot;checkstyle:MissingSwitchDefault&quot;)
+  public static RelDataType from(final JavaTypeFactory fact,
+          final Schema schema, final Map&lt;Schema, RelDataType&gt; defined) {
+<span class="fc" id="L126">    RelDataType ex = defined.get(schema);</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">    if (ex != null) {</span>
+<span class="fc" id="L128">      return ex;</span>
+    }
+<span class="fc" id="L130">    LogicalType logicalType = schema.getLogicalType();</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">    if (logicalType != null) {</span>
+<span class="pc bpc" id="L132" title="3 of 4 branches missed.">      switch (logicalType.getName()) {</span>
+        case &quot;date&quot;:
+<span class="fc" id="L134">          return fact.createSqlType(SqlTypeName.DATE);</span>
+        case &quot;instant&quot;:
+<span class="nc" id="L136">          return fact.createSqlType(SqlTypeName.TIMESTAMP);</span>
+        case &quot;decimal&quot;:
+          // disabled until: https://issues.apache.org/jira/browse/CALCITE-3494
+//          Number precision = (Number) logicalType.getProperty(&quot;precision&quot;);
+//          Number scale = (Number) logicalType.getProperty(&quot;precision&quot;);
+//          if (scale == null) {
+//            if (precision == null) {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, 36);
+//            } else {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, precision.intValue());
+//            }
+//          } else {
+//            if (precision == null) {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, 36, scale.intValue());
+//            } else {
+//              return fact.createSqlType(SqlTypeName.DECIMAL, precision.intValue(), scale.intValue());
+//            }
+//          }
+<span class="nc" id="L154">          return fact.createSqlType(SqlTypeName.DOUBLE);</span>
+      }
+    }
+    RelDataType result;
+<span class="pc bpc" id="L158" title="10 of 14 branches missed.">    switch (schema.getType())  {</span>
+      case STRING:
+<span class="fc" id="L160">        result = fact.createSqlType(SqlTypeName.VARCHAR);</span>
+<span class="fc" id="L161">        break;</span>
+      case BOOLEAN:
+<span class="nc" id="L163">        result = fact.createSqlType(SqlTypeName.BOOLEAN);</span>
+<span class="nc" id="L164">        break;</span>
+      case FIXED:
+<span class="nc" id="L166">        result = fact.createSqlType(SqlTypeName.BINARY, schema.getFixedSize());</span>
+<span class="nc" id="L167">        break;</span>
+      case BYTES:
+<span class="nc" id="L169">        result = fact.createSqlType(SqlTypeName.BINARY);</span>
+<span class="nc" id="L170">        break;</span>
+      case INT:
+<span class="fc" id="L172">        result = fact.createSqlType(SqlTypeName.INTEGER);</span>
+<span class="fc" id="L173">        break;</span>
+      case ENUM:
+<span class="nc" id="L175">        result = fact.createSqlType(SqlTypeName.SYMBOL);</span>
+<span class="nc" id="L176">        break;</span>
+      case DOUBLE:
+<span class="nc" id="L178">        result = fact.createSqlType(SqlTypeName.DOUBLE);</span>
+<span class="nc" id="L179">        break;</span>
+      case FLOAT:
+<span class="nc" id="L181">        result = fact.createSqlType(SqlTypeName.FLOAT);</span>
+<span class="nc" id="L182">        break;</span>
+      case LONG:
+<span class="nc" id="L184">        result = fact.createSqlType(SqlTypeName.BIGINT);</span>
+<span class="nc" id="L185">        break;</span>
+      case RECORD:
+<span class="fc" id="L187">        result = fact.createStructType(fromRecordSchema(fact, schema));</span>
+<span class="fc" id="L188">        break;</span>
+      case MAP:
+<span class="nc" id="L190">        result = fact.createMapType(fact.createSqlType(SqlTypeName.VARCHAR),</span>
+<span class="nc" id="L191">                from(fact, schema.getValueType(), defined));</span>
+<span class="nc" id="L192">        break;</span>
+      case ARRAY:
+<span class="fc" id="L194">        result = fact.createArrayType(from(fact, schema.getElementType(), defined), -1);</span>
+<span class="fc" id="L195">        break;</span>
+      case UNION:
+<span class="nc" id="L197">        Schema nullableUnionSchema = Schemas.nullableUnionSchema(schema);</span>
+<span class="nc bnc" id="L198" title="All 2 branches missed.">        if (nullableUnionSchema != null) {</span>
+<span class="nc" id="L199">          result = fact.createTypeWithNullability(from(fact, nullableUnionSchema, defined), true);</span>
+<span class="nc" id="L200">          break;</span>
+        } else {
+<span class="nc" id="L202">          throw new UnsupportedOperationException(&quot;Unsupported: &quot; + schema);</span>
+        }
+      default:
+<span class="nc" id="L205">        throw new UnsupportedOperationException(&quot;Unsupported: &quot; + schema);</span>
+    }
+<span class="fc" id="L207">    defined.put(schema, result);</span>
+<span class="fc" id="L208">    return result;</span>
+  }
+
+  public static List&lt;RelDataTypeField&gt; fromRecordSchema(final JavaTypeFactory fact, final Schema schema) {
+<span class="fc" id="L212">    List&lt;Schema.Field&gt; fields = schema.getFields();</span>
+<span class="fc" id="L213">    List&lt;RelDataTypeField&gt; result = new ArrayList&lt;&gt;(fields.size());</span>
+<span class="fc" id="L214">    IdentityHashMap&lt;org.apache.avro.Schema, RelDataType&gt; map = new IdentityHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">    for (Schema.Field field : fields)   {</span>
+<span class="fc" id="L216">      result.add(</span>
+            new RelDataTypeFieldImpl(
+<span class="fc" id="L218">                field.name(),</span>
+<span class="fc" id="L219">                field.pos(),</span>
+<span class="fc" id="L220">                Types.from(fact, field.schema(), map)));</span>
+<span class="fc" id="L221">    }</span>
+<span class="fc" id="L222">    return result;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

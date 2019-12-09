@@ -34,8 +34,7 @@ package org.spf4j.io.appenders;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.ObjectAppenderSupplier;
 
@@ -43,28 +42,29 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-<span class="fc" id="L46">public final class CollectionAppender implements ObjectAppender&lt;Collection&gt; {</span>
+<span class="fc" id="L45">public final class CollectionAppender implements ObjectAppender&lt;Collection&gt; {</span>
 
   @Override
-  public MediaType getAppendedType() {
-<span class="fc" id="L50">    return MediaTypes.APPLICATION_JSON;</span>
+  public CoreTextMediaType getAppendedType() {
+<span class="fc" id="L49">    return CoreTextMediaType.TEXT_PLAIN;</span>
   }
 
   @Override
-  public void append(final Collection iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
+  public void append(final Collection collection, final Appendable appendTo,
+          final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
 <span class="fc" id="L56">    appendTo.append('[');</span>
-<span class="fc" id="L57">    Iterator it = iter.iterator();</span>
+<span class="fc" id="L57">    Iterator it = collection.iterator();</span>
 <span class="fc bfc" id="L58" title="All 2 branches covered.">    if (it.hasNext()) {</span>
 <span class="fc" id="L59">      Object o = it.next();</span>
-<span class="pc bpc" id="L60" title="1 of 2 branches missed.">      if (o.equals(iter)) {</span>
-<span class="nc" id="L61">         ObjectAppender.appendNullableJson(o.toString(), appendTo, appenderSupplier);</span>
+<span class="pc bpc" id="L60" title="1 of 2 branches missed.">      if (collection.equals(o)) {</span>
+<span class="nc" id="L61">         ObjectAppender.appendNullable(o.toString(), appendTo, appenderSupplier);</span>
       } else {
-<span class="fc" id="L63">        ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);</span>
+<span class="fc" id="L63">        ObjectAppender.appendNullable(o, appendTo, appenderSupplier);</span>
 <span class="fc bfc" id="L64" title="All 2 branches covered.">        while (it.hasNext()) {</span>
 <span class="fc" id="L65">          appendTo.append(',');</span>
 <span class="fc" id="L66">          o = it.next();</span>
-<span class="fc" id="L67">          ObjectAppender.appendNullableJson(o, appendTo, appenderSupplier);</span>
+<span class="fc" id="L67">          ObjectAppender.appendNullable(o, appendTo, appenderSupplier);</span>
         }
       }
     }

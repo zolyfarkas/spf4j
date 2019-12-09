@@ -33,8 +33,7 @@ package org.spf4j.io.appenders;
 
 import java.io.IOException;
 import org.spf4j.base.Base64;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 import org.spf4j.io.ObjectAppenderSupplier;
 
@@ -42,25 +41,23 @@ import org.spf4j.io.ObjectAppenderSupplier;
  *
  * @author zoly
  */
-<span class="fc" id="L45">public final class ArrayBytesAppender implements ObjectAppender&lt;byte[]&gt; {</span>
+<span class="fc" id="L44">public final class ArrayBytesAppender implements ObjectAppender&lt;byte[]&gt; {</span>
 
   @Override
-  public MediaType getAppendedType() {
-<span class="nc" id="L49">    return MediaTypes.APPLICATION_JSON;</span>
+  public CoreTextMediaType getAppendedType() {
+<span class="fc" id="L48">    return CoreTextMediaType.TEXT_PLAIN;</span>
   }
 
   @Override
   public void append(final byte[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
        throws IOException {
-<span class="nc" id="L55">    appendTo.append('&quot;');</span>
-<span class="nc" id="L56">    Base64.encodeBase64(iter, 0, iter.length, appendTo);</span>
-<span class="nc" id="L57">    appendTo.append('&quot;');</span>
-<span class="nc" id="L58">  }</span>
+<span class="nc" id="L54">    Base64.encodeBase64(iter, 0, iter.length, appendTo);</span>
+<span class="nc" id="L55">  }</span>
 
 
   @Override
   public void append(final byte[] object, final Appendable appendTo) {
-<span class="nc" id="L63">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L60">    throw new UnsupportedOperationException();</span>
   }
 
 }

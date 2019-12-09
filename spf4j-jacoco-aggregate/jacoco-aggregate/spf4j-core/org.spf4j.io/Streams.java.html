@@ -43,98 +43,165 @@ import org.spf4j.recyclable.impl.ArraySuppliers;
  */
 public final class Streams {
 
-    private Streams() {
-    }
+  private Streams() {
+  }
 
-    /**
-     * see copy(final InputStream is, final OutputStream os, final int buffSize) for detail.
-     *
-     * @param is
-     * @param os
-     * @return
-     * @throws IOException
-     */
-    public static long copy(final InputStream is, final OutputStream os) throws IOException {
-<span class="fc" id="L58">        return copy(is, os, 8192);</span>
-    }
+  /**
+   * see copy(final InputStream is, final OutputStream os, final int buffSize) for detail.
+   *
+   * @param is
+   * @param os
+   * @return
+   * @throws IOException
+   */
+  public static long copy(final InputStream is, final OutputStream os) throws IOException {
+<span class="fc" id="L58">    return copy(is, os, 8192);</span>
+  }
 
-    /**
-     * Equivalent to guava ByteStreams.copy, with one special behavior: if is has no bytes immediately available for
-     * read, the os is flushed prior to the next read that will probably block.
-     *
-     * I believe this behavior will yield better performance in most scenarios. This method also makes use of:
-     * Arrays.getBytesTmp. THis method should not be invoked from any context making use of Arrays.getBytesTmp.
-     *
-     * @param is
-     * @param os
-     * @param buffSize
-     * @throws IOException
-     */
-    public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">        if (buffSize &lt; 2) {</span>
-            int val;
-<span class="nc" id="L76">            long count = 0;</span>
-<span class="nc bnc" id="L77" title="All 2 branches missed.">            while ((val = is.read()) &gt;= 0) {</span>
-<span class="nc" id="L78">                os.write(val);</span>
-<span class="nc" id="L79">                count++;</span>
-            }
-<span class="nc" id="L81">            return count;</span>
-        }
-<span class="fc" id="L83">        long total = 0;</span>
-<span class="fc" id="L84">        byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);</span>
-        try {
-<span class="fc" id="L86">            boolean done = false;</span>
-<span class="fc" id="L87">            long bytesCopiedSinceLastFlush = 0;</span>
-            while (true) {
-                // non-blocking(if input is implemented correctly) read+write as long as data is available.
-<span class="fc bfc" id="L90" title="All 2 branches covered.">                while (is.available() &gt; 0) {</span>
-<span class="fc" id="L91">                    int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="fc bfc" id="L92" title="All 2 branches covered.">                    if (nrRead &lt; 0) {</span>
-<span class="fc" id="L93">                        done = true;</span>
-<span class="fc" id="L94">                        break;</span>
-                    } else {
-<span class="fc" id="L96">                        os.write(buffer, 0, nrRead);</span>
-<span class="fc" id="L97">                        total += nrRead;</span>
-<span class="fc" id="L98">                        bytesCopiedSinceLastFlush += nrRead;</span>
-                    }
-<span class="fc" id="L100">                }</span>
-            // there seems to be nothing available to read anymore,
-                // lets flush the os instead of blocking for another read.
-<span class="fc bfc" id="L103" title="All 2 branches covered.">                if (bytesCopiedSinceLastFlush &gt; 0) {</span>
-<span class="fc" id="L104">                    os.flush();</span>
-<span class="fc" id="L105">                    bytesCopiedSinceLastFlush = 0;</span>
-                }
-<span class="fc bfc" id="L107" title="All 2 branches covered.">                if (done) {</span>
-<span class="fc" id="L108">                    break;</span>
-                }
-                // most likely a blocking read.
-<span class="fc" id="L111">                int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">                if (nrRead &lt; 0) {</span>
-<span class="fc" id="L113">                    break;</span>
-                } else {
-<span class="fc" id="L115">                    os.write(buffer, 0, nrRead);</span>
-<span class="fc" id="L116">                    total += nrRead;</span>
-<span class="fc" id="L117">                    bytesCopiedSinceLastFlush += nrRead;</span>
-                }
-<span class="fc" id="L119">            }</span>
-        } finally {
-<span class="fc" id="L121">            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
-        }
-<span class="fc" id="L123">        return total;</span>
-    }
-
-    /**
-     * faster variant than guava CharStreams.asWriter.
-     * @param appendable - the appendable to transform.
-     * @return - the writer that will write to the appendable.
-     */
-    public static Writer asWriter(final Appendable appendable) {
-<span class="nc bnc" id="L132" title="All 2 branches missed.">      if (appendable instanceof Writer) {</span>
-<span class="nc" id="L133">        return (Writer) appendable;</span>
-      } else {
-<span class="nc" id="L135">        return new AppendableWriter(appendable);</span>
+  /**
+   * Equivalent to guava ByteStreams.copy, with one special behavior: if is has no bytes immediately available for read,
+   * the os is flushed prior to the next read that will probably block.
+   *
+   * I believe this behavior will yield better performance in most scenarios. This method also makes use of:
+   * Arrays.getBytesTmp. THis method should not be invoked from any context making use of Arrays.getBytesTmp.
+   *
+   * @param is
+   * @param os
+   * @param buffSize
+   * @throws IOException
+   */
+  public static long copy(final InputStream is, final OutputStream os, final int buffSize) throws IOException {
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    if (buffSize &lt; 2) {</span>
+      int val;
+<span class="nc" id="L76">      long count = 0;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">      while ((val = is.read()) &gt;= 0) {</span>
+<span class="nc" id="L78">        os.write(val);</span>
+<span class="nc" id="L79">        count++;</span>
       }
+<span class="nc" id="L81">      return count;</span>
     }
+<span class="fc" id="L83">    long total = 0;</span>
+<span class="fc" id="L84">    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);</span>
+    try {
+<span class="fc" id="L86">      boolean done = false;</span>
+<span class="fc" id="L87">      long bytesCopiedSinceLastFlush = 0;</span>
+      while (true) {
+        // non-blocking(if input is implemented correctly) read+write as long as data is available.
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        while (is.available() &gt; 0) {</span>
+<span class="fc" id="L91">          int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">          if (nrRead &lt; 0) {</span>
+<span class="fc" id="L93">            done = true;</span>
+<span class="fc" id="L94">            break;</span>
+          } else {
+<span class="fc" id="L96">            os.write(buffer, 0, nrRead);</span>
+<span class="fc" id="L97">            total += nrRead;</span>
+<span class="fc" id="L98">            bytesCopiedSinceLastFlush += nrRead;</span>
+          }
+<span class="fc" id="L100">        }</span>
+        // there seems to be nothing available to read anymore,
+        // lets flush the os instead of blocking for another read.
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (bytesCopiedSinceLastFlush &gt; 0) {</span>
+<span class="fc" id="L104">          os.flush();</span>
+<span class="fc" id="L105">          bytesCopiedSinceLastFlush = 0;</span>
+        }
+<span class="fc bfc" id="L107" title="All 2 branches covered.">        if (done) {</span>
+<span class="fc" id="L108">          break;</span>
+        }
+        // most likely a blocking read.
+<span class="fc" id="L111">        int nrRead = is.read(buffer, 0, buffSize);</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (nrRead &lt; 0) {</span>
+<span class="fc" id="L113">          break;</span>
+        } else {
+<span class="nc" id="L115">          os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L116">          total += nrRead;</span>
+<span class="nc" id="L117">          bytesCopiedSinceLastFlush += nrRead;</span>
+        }
+<span class="nc" id="L119">      }</span>
+    } finally {
+<span class="fc" id="L121">      ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
+    }
+<span class="fc" id="L123">    return total;</span>
+  }
+
+  public static long copy(final InputStream is, final OutputStream os, final int buffSize, final long maxBytes)
+          throws IOException {
+<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (buffSize &lt; 2) {</span>
+      int val;
+<span class="nc" id="L130">      long count = 0;</span>
+<span class="nc bnc" id="L131" title="All 4 branches missed.">      while (count &lt; maxBytes &amp;&amp; (val = is.read()) &gt;= 0) {</span>
+<span class="nc" id="L132">        os.write(val);</span>
+<span class="nc" id="L133">        count++;</span>
+      }
+<span class="nc" id="L135">      return count;</span>
+    }
+<span class="nc" id="L137">    long count = 0;</span>
+<span class="nc" id="L138">    byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(buffSize);</span>
+    try {
+<span class="nc" id="L140">      boolean done = false;</span>
+<span class="nc" id="L141">      long bytesCopiedSinceLastFlush = 0;</span>
+      while (true) {
+        // non-blocking(if input is implemented correctly) read+write as long as data is available.
+<span class="nc bnc" id="L144" title="All 2 branches missed.">        while (is.available() &gt; 0) {</span>
+<span class="nc" id="L145">          long left = maxBytes - count;</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">          int toRead = Math.min(buffSize, left &gt; Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) left);</span>
+<span class="nc" id="L147">          int nrRead = is.read(buffer, 0, toRead);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">          if (nrRead &lt; 0) {</span>
+<span class="nc" id="L149">            done = true;</span>
+<span class="nc" id="L150">            break;</span>
+          } else {
+<span class="nc" id="L152">            os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L153">            count += nrRead;</span>
+<span class="nc" id="L154">            bytesCopiedSinceLastFlush += nrRead;</span>
+          }
+<span class="nc bnc" id="L156" title="All 2 branches missed.">          if (count &gt;= maxBytes) {</span>
+<span class="nc" id="L157">            done = true;</span>
+<span class="nc" id="L158">            break;</span>
+          }
+<span class="nc" id="L160">        }</span>
+        // there seems to be nothing available to read anymore,
+        // lets flush the os instead of blocking for another read.
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (bytesCopiedSinceLastFlush &gt; 0) {</span>
+<span class="nc" id="L164">          os.flush();</span>
+<span class="nc" id="L165">          bytesCopiedSinceLastFlush = 0;</span>
+        }
+<span class="nc bnc" id="L167" title="All 2 branches missed.">        if (done) {</span>
+<span class="nc" id="L168">          break;</span>
+        }
+        // most likely a blocking read.
+<span class="nc" id="L171">        long left = maxBytes - count;</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">        int toRead = Math.min(buffSize, left &gt; Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) left);</span>
+<span class="nc" id="L173">        int nrRead = is.read(buffer, 0, toRead);</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (nrRead &lt; 0) {</span>
+<span class="nc" id="L175">          break;</span>
+        } else {
+<span class="nc" id="L177">          os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L178">          count += nrRead;</span>
+<span class="nc" id="L179">          bytesCopiedSinceLastFlush += nrRead;</span>
+        }
+<span class="nc bnc" id="L181" title="All 2 branches missed.">        if (count &gt;= maxBytes) {</span>
+<span class="nc" id="L182">          done = true;</span>
+<span class="nc" id="L183">          break;</span>
+        }
+<span class="nc" id="L185">      }</span>
+    } finally {
+<span class="nc" id="L187">      ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
+    }
+<span class="nc" id="L189">    return count;</span>
+  }
+
+  /**
+   * faster variant than guava CharStreams.asWriter.
+   *
+   * @param appendable - the appendable to transform.
+   * @return - the writer that will write to the appendable.
+   */
+  public static Writer asWriter(final Appendable appendable) {
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    if (appendable instanceof Writer) {</span>
+<span class="nc" id="L200">      return (Writer) appendable;</span>
+    } else {
+<span class="nc" id="L202">      return new AppendableWriter(appendable);</span>
+    }
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

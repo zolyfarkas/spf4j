@@ -304,7 +304,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc" id="L304">        long nanosSincelLastHB = TimeSource.nanoTime() - lrn;</span>
 <span class="fc" id="L305">        long delayNanos = intervalNanos - nanosSincelLastHB;</span>
 <span class="pc bpc" id="L306" title="1 of 2 branches missed.">        if (delayNanos &lt; (-intervalNanos) * missedHBRatio) {</span>
-<span class="nc" id="L307">          throw new HeartBeatError(&quot;Missed heartbeat since last one was &quot; + nanosSincelLastHB + &quot; ns ago&quot;);</span>
+<span class="nc" id="L307">          throw new HeartBeatError(&quot;Missed heartbeat, last one was &quot; + nanosSincelLastHB + &quot; ns ago&quot;);</span>
         }
 <span class="pc bpc" id="L309" title="1 of 2 branches missed.">        if (delayNanos &lt; 0) {</span>
 <span class="nc" id="L310">          delayNanos = 0;</span>
@@ -481,7 +481,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc" id="L481">              fbeat.close();</span>
 <span class="fc" id="L482">            } catch (SQLException | HeartBeatError ex) {</span>
               // logging in shutdownhooks is not reliable.
-<span class="fc" id="L484">              org.spf4j.base.Runtime.error(&quot;WARN: Could not clean heartbeat record,&quot;</span>
+<span class="nc" id="L484">              org.spf4j.base.Runtime.error(&quot;WARN: Could not clean heartbeat record,&quot;</span>
                       + &quot; this error can be ignored since it is a best effort attempt, detail:&quot;, ex);
 <span class="fc" id="L486">            }</span>
 <span class="fc" id="L487">          }</span>
@@ -527,7 +527,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc" id="L527">        long nanosSinceLastBeat = currentTimeNanos - lrn;</span>
 <span class="pc bpc" id="L528" title="1 of 2 branches missed.">        if (maxMissedNanos &lt; nanosSinceLastBeat) {</span>
           // Unable to beat at inteval!
-<span class="nc" id="L530">          HeartBeatError err = new HeartBeatError(&quot;System to busy to provide regular heartbeat, last heartbeat &quot;</span>
+<span class="nc" id="L530">          HeartBeatError err = new HeartBeatError(&quot;System too busy to provide regular heartbeat, last heartbeat &quot;</span>
                   + nanosSinceLastBeat + &quot; ns ago&quot;);
 
 <span class="nc" id="L533">          handleError(err);</span>

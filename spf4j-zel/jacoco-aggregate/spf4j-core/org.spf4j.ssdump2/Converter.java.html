@@ -46,6 +46,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
@@ -65,6 +67,7 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
+@ParametersAreNonnullByDefault
 public final class Converter {
 
   private Converter() {
@@ -72,62 +75,66 @@ public final class Converter {
 
 
   public static SampleNode convert(final Iterator&lt;StackSampleElement&gt; samples) {
-<span class="fc" id="L75">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L76" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
-<span class="fc" id="L77">      StackSampleElement asmp = samples.next();</span>
-<span class="fc" id="L78">      SampleNode sn = new SampleNode(asmp.getCount(), new THashMap&lt;Method, SampleNode&gt;(4));</span>
-<span class="fc" id="L79">      SampleNode parent = index.get(asmp.getParentId());</span>
-<span class="fc bfc" id="L80" title="All 2 branches covered.">      if (parent != null) {</span>
-<span class="fc" id="L81">        Method m = asmp.getMethod();</span>
-<span class="fc" id="L82">        final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (subNodes == null) {</span>
-<span class="nc" id="L84">          throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
+<span class="fc" id="L78">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L79" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
+<span class="fc" id="L80">      StackSampleElement asmp = samples.next();</span>
+<span class="fc" id="L81">      SampleNode sn = new SampleNode(asmp.getCount(), new THashMap&lt;Method, SampleNode&gt;(4));</span>
+<span class="fc" id="L82">      SampleNode parent = index.get(asmp.getParentId());</span>
+<span class="fc bfc" id="L83" title="All 2 branches covered.">      if (parent != null) {</span>
+<span class="fc" id="L84">        Method m = asmp.getMethod();</span>
+<span class="fc" id="L85">        final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">        if (subNodes == null) {</span>
+<span class="nc" id="L87">          throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
         }
-<span class="fc" id="L86">        subNodes.put(m, sn);</span>
+<span class="fc" id="L89">        subNodes.put(m, sn);</span>
       }
-<span class="fc" id="L88">      index.put(asmp.getId(), sn);</span>
-<span class="fc" id="L89">    }</span>
-<span class="fc" id="L90">    return index.get(0);</span>
+<span class="fc" id="L91">      index.put(asmp.getId(), sn);</span>
+<span class="fc" id="L92">    }</span>
+<span class="fc" id="L93">    return index.get(0);</span>
   }
 
   public static void save(final File file, final SampleNode collected) throws IOException {
-<span class="fc" id="L94">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
-<span class="fc" id="L95">            Files.newOutputStream(file.toPath()))) {</span>
-<span class="fc" id="L96">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer =</span>
-<span class="fc" id="L97">              new SpecificDatumWriter&lt;&gt;(StackSampleElement.getClassSchema());</span>
-<span class="fc" id="L98">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
-<span class="fc" id="L99">      Converters.convert(Methods.ROOT, collected,</span>
-              -1, 0, (final StackSampleElement object, final long deadline) -&gt; {
-<span class="fc" id="L101">                writer.write(object, encoder);</span>
-<span class="fc" id="L102">              });</span>
-<span class="fc" id="L103">      encoder.flush();</span>
+<span class="fc" id="L97">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="fc" id="L98">            Files.newOutputStream(file.toPath()))) {</span>
+<span class="fc" id="L99">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer</span>
+<span class="fc" id="L100">              = new SpecificDatumWriter&lt;&gt;(StackSampleElement.getClassSchema());</span>
+<span class="fc" id="L101">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+<span class="fc" id="L102">      Converters.convert(Methods.ROOT, collected,</span>
+              -1, 0, (StackSampleElement object) -&gt; {
+                try {
+<span class="fc" id="L105">                  writer.write(object, encoder);</span>
+<span class="nc" id="L106">                } catch (IOException ex) {</span>
+<span class="nc" id="L107">                  throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L108">                }</span>
+<span class="fc" id="L109">              });</span>
+<span class="fc" id="L110">      encoder.flush();</span>
     }
-<span class="fc" id="L105">  }</span>
+<span class="fc" id="L112">  }</span>
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   public static SampleNode load(final File file) throws IOException {
-<span class="fc" id="L109">    try (InputStream fis = Files.newInputStream(file.toPath())) {</span>
-<span class="fc" id="L110">      return load(fis);</span>
+<span class="fc" id="L116">    try (InputStream fis = Files.newInputStream(file.toPath())) {</span>
+<span class="fc" id="L117">      return load(fis);</span>
     }
   }
 
   public static SampleNode load(@WillNotClose final InputStream fis) throws IOException {
-<span class="fc" id="L115">    try (MemorizingBufferedInputStream bis</span>
+<span class="fc" id="L122">    try (MemorizingBufferedInputStream bis</span>
             = new MemorizingBufferedInputStream(fis)) {
-<span class="fc" id="L117">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
-<span class="fc" id="L118">      final SpecificDatumReader&lt;StackSampleElement&gt; reader =</span>
-<span class="fc" id="L119">              new SpecificDatumReader&lt;&gt;(StackSampleElement.getClassSchema());</span>
-<span class="fc" id="L120">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
-<span class="fc" id="L121">      return convert(new Iterator&lt;StackSampleElement&gt;() {</span>
+<span class="fc" id="L124">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
+<span class="fc" id="L125">      final SpecificDatumReader&lt;StackSampleElement&gt; reader =</span>
+<span class="fc" id="L126">              new SpecificDatumReader&lt;&gt;(StackSampleElement.getClassSchema());</span>
+<span class="fc" id="L127">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
+<span class="fc" id="L128">      return convert(new Iterator&lt;StackSampleElement&gt;() {</span>
 
         @Override
         public boolean hasNext() {
           try {
-<span class="fc" id="L126">            int read = pis.read();</span>
-<span class="fc" id="L127">            pis.unread(read);</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">            return read &gt;= 0;</span>
-<span class="nc" id="L129">          } catch (IOException ex) {</span>
-<span class="nc" id="L130">            throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L133">            int read = pis.read();</span>
+<span class="fc" id="L134">            pis.unread(read);</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">            return read &gt;= 0;</span>
+<span class="nc" id="L136">          } catch (IOException ex) {</span>
+<span class="nc" id="L137">            throw new UncheckedIOException(ex);</span>
           }
         }
 
@@ -135,84 +142,91 @@ public final class Converter {
         @SuppressFBWarnings
         public StackSampleElement next() {
           try {
-<span class="fc" id="L138">            return reader.read(null, decoder);</span>
-<span class="nc" id="L139">          } catch (IOException ex) {</span>
-<span class="nc" id="L140">            NoSuchElementException e = new NoSuchElementException();</span>
-<span class="nc" id="L141">            e.addSuppressed(ex);</span>
-<span class="nc" id="L142">            throw e;</span>
+<span class="fc" id="L145">            return reader.read(null, decoder);</span>
+<span class="nc" id="L146">          } catch (IOException ex) {</span>
+<span class="nc" id="L147">            NoSuchElementException e = new NoSuchElementException();</span>
+<span class="nc" id="L148">            e.addSuppressed(ex);</span>
+<span class="nc" id="L149">            throw e;</span>
           }
         }
 
         @Override
         public void remove() {
-<span class="nc" id="L148">          throw new UnsupportedOperationException();</span>
+<span class="nc" id="L155">          throw new UnsupportedOperationException();</span>
         }
       });
     }
   }
 
-  public static void saveLabeledDumps(final File file, final Map&lt;String, SampleNode&gt; collected) throws IOException {
-<span class="fc" id="L155">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
-<span class="fc" id="L156">            Files.newOutputStream(file.toPath()))) {</span>
-<span class="fc" id="L157">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer = new SpecificDatumWriter&lt;&gt;(StackSampleElement.SCHEMA$);</span>
-<span class="fc" id="L158">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+  public static void saveLabeledDumps(final File file, final Map&lt;String, SampleNode&gt; pcollected) throws IOException {
+<span class="fc" id="L162">    try (BufferedOutputStream bos = new BufferedOutputStream(</span>
+<span class="fc" id="L163">            Files.newOutputStream(file.toPath()))) {</span>
+<span class="fc" id="L164">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer = new SpecificDatumWriter&lt;&gt;(StackSampleElement.SCHEMA$);</span>
+<span class="fc" id="L165">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
 
-<span class="fc" id="L160">      encoder.writeMapStart();</span>
-<span class="fc" id="L161">      encoder.setItemCount(collected.size());</span>
-<span class="fc bfc" id="L162" title="All 2 branches covered.">      for (Map.Entry&lt;String, SampleNode&gt; entry : collected.entrySet()) {</span>
-<span class="fc" id="L163">        encoder.startItem();</span>
-<span class="fc" id="L164">        encoder.writeString(entry.getKey());</span>
-<span class="fc" id="L165">        encoder.writeArrayStart();</span>
-<span class="fc" id="L166">        Converters.convert(Methods.ROOT, entry.getValue(),</span>
-                -1, 0, (final StackSampleElement object, final long deadline) -&gt; {
-<span class="fc" id="L168">                  encoder.setItemCount(1L);</span>
-<span class="fc" id="L169">                  encoder.startItem();</span>
-<span class="fc" id="L170">                  writer.write(object, encoder);</span>
-<span class="fc" id="L171">                });</span>
-<span class="fc" id="L172">        encoder.writeArrayEnd();</span>
-<span class="fc" id="L173">      }</span>
-<span class="fc" id="L174">      encoder.writeMapEnd();</span>
-<span class="fc" id="L175">      encoder.flush();</span>
+<span class="fc" id="L167">      encoder.writeMapStart();</span>
+<span class="fc" id="L168">      final Map&lt;String, SampleNode&gt; collected = pcollected.entrySet().stream()</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">              .filter((e) -&gt; e.getValue() != null)</span>
+<span class="fc" id="L170">              .collect(Collectors.toMap((e) -&gt; e.getKey(), (e) -&gt; e.getValue()));</span>
+<span class="fc" id="L171">      encoder.setItemCount(collected.size());</span>
+<span class="fc bfc" id="L172" title="All 2 branches covered.">      for (Map.Entry&lt;String, SampleNode&gt; entry : collected.entrySet()) {</span>
+<span class="fc" id="L173">        encoder.startItem();</span>
+<span class="fc" id="L174">        encoder.writeString(entry.getKey());</span>
+<span class="fc" id="L175">        encoder.writeArrayStart();</span>
+<span class="fc" id="L176">        Converters.convert(Methods.ROOT, entry.getValue(),</span>
+                -1, 0, (final StackSampleElement object) -&gt; {
+                  try {
+<span class="fc" id="L179">                  encoder.setItemCount(1L);</span>
+<span class="fc" id="L180">                  encoder.startItem();</span>
+<span class="fc" id="L181">                  writer.write(object, encoder);</span>
+<span class="nc" id="L182">                  } catch (IOException ex) {</span>
+<span class="nc" id="L183">                    throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L184">                  }</span>
+<span class="fc" id="L185">                });</span>
+<span class="fc" id="L186">        encoder.writeArrayEnd();</span>
+<span class="fc" id="L187">      }</span>
+<span class="fc" id="L188">      encoder.writeMapEnd();</span>
+<span class="fc" id="L189">      encoder.flush();</span>
     }
-<span class="fc" id="L177">  }</span>
+<span class="fc" id="L191">  }</span>
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   public static Map&lt;String, SampleNode&gt; loadLabeledDumps(final File file) throws IOException {
-<span class="fc" id="L181">    try (MemorizingBufferedInputStream bis</span>
-<span class="fc" id="L182">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
-<span class="fc" id="L183">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
-<span class="fc" id="L184">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
-<span class="fc" id="L185">      long nrItems = decoder.readMapStart();</span>
-<span class="fc" id="L186">      StackSampleElement asmp = new StackSampleElement();</span>
-<span class="fc" id="L187">      Map&lt;String, SampleNode&gt; result = new HashMap&lt;&gt;((int) nrItems);</span>
-<span class="fc bfc" id="L188" title="All 2 branches covered.">      while (nrItems &gt; 0) {</span>
-<span class="fc bfc" id="L189" title="All 2 branches covered.">        for (int i = 0; i &lt; nrItems; i++) {</span>
-<span class="fc" id="L190">          String key = decoder.readString();</span>
-<span class="fc" id="L191">          TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
-<span class="fc" id="L192">          long nrArrayItems = decoder.readArrayStart();</span>
-<span class="fc bfc" id="L193" title="All 2 branches covered.">          while (nrArrayItems &gt; 0) {</span>
-<span class="fc bfc" id="L194" title="All 2 branches covered.">            for (int j = 0; j &lt; nrArrayItems; j++) {</span>
-<span class="fc" id="L195">              asmp = reader.read(asmp, decoder);</span>
-<span class="fc" id="L196">              SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap&lt;SampleNode&gt;());</span>
-<span class="fc" id="L197">              SampleNode parent = index.get(asmp.getParentId());</span>
-<span class="fc bfc" id="L198" title="All 2 branches covered.">              if (parent != null) {</span>
-<span class="fc" id="L199">                Method readMethod = asmp.getMethod();</span>
-<span class="fc" id="L200">                Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());</span>
-<span class="fc" id="L201">                final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">                if (subNodes == null) {</span>
-<span class="nc" id="L203">                  throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
+<span class="fc" id="L195">    try (MemorizingBufferedInputStream bis</span>
+<span class="fc" id="L196">            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {</span>
+<span class="fc" id="L197">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
+<span class="fc" id="L198">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
+<span class="fc" id="L199">      long nrItems = decoder.readMapStart();</span>
+<span class="fc" id="L200">      StackSampleElement asmp = new StackSampleElement();</span>
+<span class="fc" id="L201">      Map&lt;String, SampleNode&gt; result = new HashMap&lt;&gt;((int) nrItems);</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">      while (nrItems &gt; 0) {</span>
+<span class="fc bfc" id="L203" title="All 2 branches covered.">        for (int i = 0; i &lt; nrItems; i++) {</span>
+<span class="fc" id="L204">          String key = decoder.readString();</span>
+<span class="fc" id="L205">          TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc" id="L206">          long nrArrayItems = decoder.readArrayStart();</span>
+<span class="fc bfc" id="L207" title="All 2 branches covered.">          while (nrArrayItems &gt; 0) {</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">            for (int j = 0; j &lt; nrArrayItems; j++) {</span>
+<span class="fc" id="L209">              asmp = reader.read(asmp, decoder);</span>
+<span class="fc" id="L210">              SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap&lt;SampleNode&gt;());</span>
+<span class="fc" id="L211">              SampleNode parent = index.get(asmp.getParentId());</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">              if (parent != null) {</span>
+<span class="fc" id="L213">                Method readMethod = asmp.getMethod();</span>
+<span class="fc" id="L214">                Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());</span>
+<span class="fc" id="L215">                final Map&lt;Method, SampleNode&gt; subNodes = parent.getSubNodes();</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">                if (subNodes == null) {</span>
+<span class="nc" id="L217">                  throw new IllegalStateException(&quot;Bug, state &quot; + index + &quot;; at node &quot; + asmp);</span>
                 }
-<span class="fc" id="L205">                subNodes.put(m, sn);</span>
+<span class="fc" id="L219">                subNodes.put(m, sn);</span>
               }
-<span class="fc" id="L207">              index.put(asmp.getId(), sn);</span>
+<span class="fc" id="L221">              index.put(asmp.getId(), sn);</span>
             }
-<span class="fc" id="L209">            nrArrayItems = decoder.arrayNext();</span>
+<span class="fc" id="L223">            nrArrayItems = decoder.arrayNext();</span>
           }
-<span class="fc" id="L211">          result.put(key, index.get(0));</span>
+<span class="fc" id="L225">          result.put(key, index.get(0));</span>
         }
-<span class="fc" id="L213">        nrItems = decoder.mapNext();</span>
+<span class="fc" id="L227">        nrItems = decoder.mapNext();</span>
       }
-<span class="fc" id="L215">      return result;</span>
+<span class="fc" id="L229">      return result;</span>
     }
   }
 

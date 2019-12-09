@@ -42,7 +42,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
 
     @Override
     @Nullable
-    public Either getResult() {
+    public Either&lt;Throwable, ?&gt; getResult() {
 <span class="fc" id="L46">      return null;</span>
     }
 
@@ -75,7 +75,7 @@ public interface RetryDecision&lt;T, C extends Callable&lt;? extends T&gt;&gt; {
    * @return a Abort decision with a custom Exception.
    */
   @CheckReturnValue
-  static RetryDecision abortThrow(@Nonnull final Exception exception) {
+  static RetryDecision abortThrow(@Nonnull final Throwable exception) {
 <span class="fc" id="L79">    return new RetryDecision() {</span>
       @Override
       public Type getDecisionType() {

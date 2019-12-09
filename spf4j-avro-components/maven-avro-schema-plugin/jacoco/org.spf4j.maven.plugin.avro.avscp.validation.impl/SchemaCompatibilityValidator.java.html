@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaCompatibilityValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.10-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp.validation.impl</a> &gt; <span class="el_source">SchemaCompatibilityValidator.java</span></div><h1>SchemaCompatibilityValidator.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaCompatibilityValidator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.6.28-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp.validation.impl</a> &gt; <span class="el_source">SchemaCompatibilityValidator.java</span></div><h1>SchemaCompatibilityValidator.java</h1><pre class="source lang-java linenums">/*
  * Copyright 2018 SPF4J.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -48,6 +48,8 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.VersionRangeResolutionException;
 import org.eclipse.aether.version.Version;
+import org.spf4j.avro.schema.SchemaDiff;
+import org.spf4j.avro.schema.Schemas;
 import org.spf4j.io.compress.Compress;
 import org.spf4j.maven.MavenRepositoryUtils;
 import org.spf4j.maven.plugin.avro.avscp.SchemaCompileMojo;
@@ -95,78 +97,78 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
  * &lt;/ul&gt;
  * @author Zoltan Farkas
  */
-<span class="nc" id="L98">public final class SchemaCompatibilityValidator implements Validator&lt;Void&gt; {</span>
+<span class="nc" id="L100">public final class SchemaCompatibilityValidator implements Validator&lt;Void&gt; {</span>
 
   @Override
   public String getName() {
-<span class="nc" id="L102">    return &quot;compatibility&quot;;</span>
+<span class="nc" id="L104">    return &quot;compatibility&quot;;</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
   public Result validate(final Void nv, final ValidatorMojo mojo) throws IOException {
     // loop through dependencies.
-<span class="nc" id="L109">    MavenProject mavenProject = mojo.getMavenProject();</span>
-<span class="nc" id="L110">    Map&lt;String, String&gt; validatorConfigs = mojo.getValidatorConfigs();</span>
-<span class="nc" id="L111">    Log log = mojo.getLog();</span>
-<span class="nc" id="L112">    String versionRange = validatorConfigs.get(&quot;versionRange&quot;);</span>
-<span class="nc bnc" id="L113" title="All 2 branches missed.">    if (versionRange == null) {</span>
-<span class="nc" id="L114">      versionRange = &quot;[,&quot; + mavenProject.getVersion() +  ')';</span>
+<span class="nc" id="L111">    MavenProject mavenProject = mojo.getMavenProject();</span>
+<span class="nc" id="L112">    Map&lt;String, String&gt; validatorConfigs = mojo.getValidatorConfigs();</span>
+<span class="nc" id="L113">    Log log = mojo.getLog();</span>
+<span class="nc" id="L114">    String versionRange = validatorConfigs.get(&quot;versionRange&quot;);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    if (versionRange == null) {</span>
+<span class="nc" id="L116">      versionRange = &quot;[,&quot; + mavenProject.getVersion() +  ')';</span>
     }
-<span class="nc" id="L116">    int maxNrVersToCheck = 30;</span>
-<span class="nc" id="L117">    String strNrVer = validatorConfigs.get(&quot;maxNrOfVersionsToCheckForCompatibility&quot;);</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">    if (strNrVer != null) {</span>
-<span class="nc" id="L119">      maxNrVersToCheck = Integer.parseInt(strNrVer);</span>
+<span class="nc" id="L118">    int maxNrVersToCheck = 30;</span>
+<span class="nc" id="L119">    String strNrVer = validatorConfigs.get(&quot;maxNrOfVersionsToCheckForCompatibility&quot;);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    if (strNrVer != null) {</span>
+<span class="nc" id="L121">      maxNrVersToCheck = Integer.parseInt(strNrVer);</span>
     }
     Instant instantToGoBack;
-<span class="nc" id="L122">    String strNrDays = validatorConfigs.get(&quot;maxNrOfDaysBackCheckForCompatibility&quot;);</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">    if (strNrDays == null) {</span>
-<span class="nc" id="L124">      instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC).minus(1,  ChronoUnit.YEARS).toInstant();</span>
+<span class="nc" id="L124">    String strNrDays = validatorConfigs.get(&quot;maxNrOfDaysBackCheckForCompatibility&quot;);</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    if (strNrDays == null) {</span>
+<span class="nc" id="L126">      instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC).minus(1,  ChronoUnit.YEARS).toInstant();</span>
     } else {
-<span class="nc" id="L126">      instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC)</span>
-<span class="nc" id="L127">              .minus(Integer.parseInt(strNrDays), ChronoUnit.DAYS).toInstant();</span>
+<span class="nc" id="L128">      instantToGoBack = Instant.now().atOffset(ZoneOffset.UTC)</span>
+<span class="nc" id="L129">              .minus(Integer.parseInt(strNrDays), ChronoUnit.DAYS).toInstant();</span>
     }
-<span class="nc" id="L129">    String groupId = mavenProject.getGroupId();</span>
-<span class="nc" id="L130">    String artifactId = mavenProject.getArtifactId();</span>
-<span class="nc" id="L131">    List&lt;RemoteRepository&gt; remoteProjectRepositories = mavenProject.getRemoteProjectRepositories();</span>
-<span class="nc" id="L132">    RepositorySystem repoSystem = mojo.getRepoSystem();</span>
-<span class="nc" id="L133">    RepositorySystemSession repositorySession = mojo.getMavenSession().getRepositorySession();</span>
+<span class="nc" id="L131">    String groupId = mavenProject.getGroupId();</span>
+<span class="nc" id="L132">    String artifactId = mavenProject.getArtifactId();</span>
+<span class="nc" id="L133">    List&lt;RemoteRepository&gt; remoteProjectRepositories = mavenProject.getRemoteProjectRepositories();</span>
+<span class="nc" id="L134">    RepositorySystem repoSystem = mojo.getRepoSystem();</span>
+<span class="nc" id="L135">    RepositorySystemSession repositorySession = mojo.getMavenSession().getRepositorySession();</span>
     List&lt;Version&gt; rangeVersions;
     try {
-<span class="nc" id="L136">      rangeVersions = MavenRepositoryUtils.getVersions(groupId, artifactId, versionRange,</span>
+<span class="nc" id="L138">      rangeVersions = MavenRepositoryUtils.getVersions(groupId, artifactId, versionRange,</span>
               remoteProjectRepositories, repoSystem, repositorySession);
-<span class="nc" id="L138">    } catch (VersionRangeResolutionException ex) {</span>
-<span class="nc" id="L139">      throw new RuntimeException(&quot;Invalid compatibiliy.versionRange = &quot; + versionRange + &quot; setting&quot;, ex);</span>
-<span class="nc" id="L140">    }</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">    rangeVersions = rangeVersions.stream().filter((v) -&gt; !v.toString().endsWith(&quot;SNAPSHOT&quot;))</span>
-<span class="nc" id="L142">            .collect(Collectors.toList());</span>
-<span class="nc" id="L143">    int tSize = rangeVersions.size();</span>
-<span class="nc" id="L144">    rangeVersions = rangeVersions.subList(Math.max(tSize - maxNrVersToCheck, 0), tSize);</span>
-<span class="nc" id="L145">    log.info(&quot;Validating compatibility with previous versions &quot; + rangeVersions + &quot; newer than &quot; + instantToGoBack);</span>
-<span class="nc bnc" id="L146" title="All 2 branches missed.">    if (rangeVersions.isEmpty()) {</span>
-<span class="nc" id="L147">      return Result.valid();</span>
+<span class="nc" id="L140">    } catch (VersionRangeResolutionException ex) {</span>
+<span class="nc" id="L141">      throw new RuntimeException(&quot;Invalid compatibiliy.versionRange = &quot; + versionRange + &quot; setting&quot;, ex);</span>
+<span class="nc" id="L142">    }</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">    rangeVersions = rangeVersions.stream().filter((v) -&gt; !v.toString().endsWith(&quot;SNAPSHOT&quot;))</span>
+<span class="nc" id="L144">            .collect(Collectors.toList());</span>
+<span class="nc" id="L145">    int tSize = rangeVersions.size();</span>
+<span class="nc" id="L146">    rangeVersions = rangeVersions.subList(Math.max(tSize - maxNrVersToCheck, 0), tSize);</span>
+<span class="nc" id="L147">    log.info(&quot;Validating compatibility with previous versions &quot; + rangeVersions + &quot; newer than &quot; + instantToGoBack);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">    if (rangeVersions.isEmpty()) {</span>
+<span class="nc" id="L149">      return Result.valid();</span>
     }
-<span class="nc" id="L149">    String schemaArtifactClassifier = validatorConfigs.get(&quot;schemaArtifactClassifier&quot;);</span>
-<span class="nc bnc" id="L150" title="All 4 branches missed.">    if (schemaArtifactClassifier != null &amp;&amp; schemaArtifactClassifier.trim().isEmpty()) {</span>
-<span class="nc" id="L151">      schemaArtifactClassifier = null;</span>
+<span class="nc" id="L151">    String schemaArtifactClassifier = validatorConfigs.get(&quot;schemaArtifactClassifier&quot;);</span>
+<span class="nc bnc" id="L152" title="All 4 branches missed.">    if (schemaArtifactClassifier != null &amp;&amp; schemaArtifactClassifier.trim().isEmpty()) {</span>
+<span class="nc" id="L153">      schemaArtifactClassifier = null;</span>
     }
-<span class="nc" id="L153">    String schemaArtifactExtension = validatorConfigs.get(&quot;schemaArtifactExtension&quot;);</span>
-<span class="nc bnc" id="L154" title="All 4 branches missed.">    if (schemaArtifactExtension == null || schemaArtifactExtension.trim().isEmpty()) {</span>
-<span class="nc" id="L155">      schemaArtifactExtension = &quot;jar&quot;;</span>
+<span class="nc" id="L155">    String schemaArtifactExtension = validatorConfigs.get(&quot;schemaArtifactExtension&quot;);</span>
+<span class="nc bnc" id="L156" title="All 4 branches missed.">    if (schemaArtifactExtension == null || schemaArtifactExtension.trim().isEmpty()) {</span>
+<span class="nc" id="L157">      schemaArtifactExtension = &quot;jar&quot;;</span>
     }
-<span class="nc" id="L157">    List&lt;String&gt; issues = new ArrayList&lt;&gt;(4);</span>
-<span class="nc" id="L158">    int size = rangeVersions.size();</span>
-<span class="nc bnc" id="L159" title="All 2 branches missed.">    for (int  i = size - 1; i &gt;= 0; i--) {</span>
-<span class="nc" id="L160">      Version version  = rangeVersions.get(i);</span>
-<span class="nc" id="L161">      validateCompatibility(groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version,</span>
+<span class="nc" id="L159">    List&lt;String&gt; issues = new ArrayList&lt;&gt;(4);</span>
+<span class="nc" id="L160">    int size = rangeVersions.size();</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    for (int  i = size - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L162">      Version version  = rangeVersions.get(i);</span>
+<span class="nc" id="L163">      validateCompatibility(groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version,</span>
               remoteProjectRepositories, repoSystem, repositorySession, mojo,
-<span class="nc" id="L163">              Boolean.parseBoolean(validatorConfigs.getOrDefault(&quot;deprecationRemoval&quot;, &quot;false&quot;)),</span>
+<span class="nc" id="L165">              Boolean.parseBoolean(validatorConfigs.getOrDefault(&quot;deprecationRemoval&quot;, &quot;true&quot;)),</span>
               instantToGoBack, issues::add);
     }
-<span class="nc bnc" id="L166" title="All 2 branches missed.">    if (issues.isEmpty()) {</span>
-<span class="nc" id="L167">      return Result.valid();</span>
+<span class="nc bnc" id="L168" title="All 2 branches missed.">    if (issues.isEmpty()) {</span>
+<span class="nc" id="L169">      return Result.valid();</span>
     } else {
-<span class="nc" id="L169">      return Result.failed(&quot;Schema compatibility issues:\n&quot; + String.join(&quot;\n&quot;, issues));</span>
+<span class="nc" id="L171">      return Result.failed(&quot;Schema compatibility issues:\n&quot; + String.join(&quot;\n&quot;, issues));</span>
     }
   }
 
@@ -175,156 +177,184 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validator;
   public void validateCompatibility(final String groupId, final String artifactId,
           @Nullable final String classifier, final String extension,
           final Version version,
-          final List&lt;RemoteRepository&gt; remoteProjectRepositories, final RepositorySystem repoSystem,
+          final List&lt;RemoteRepository&gt; remoteProjectRepositories,
+          final RepositorySystem repoSystem,
           final RepositorySystemSession repositorySession,
           final ValidatorMojo mojo,
-          final boolean deprecationRemoval, final Instant instantToGoBack, final Consumer&lt;String&gt; issues)
+          final boolean deprecationRemoval,
+          final Instant instantToGoBack,
+          final Consumer&lt;String&gt; issues)
           throws IOException {
-<span class="nc" id="L183">    Log log = mojo.getLog();</span>
-<span class="nc" id="L184">    log.info(&quot;Validating compatibility with version: &quot; + version + &quot;, &quot; + groupId + ':' + artifactId</span>
+<span class="nc" id="L188">    Log log = mojo.getLog();</span>
+<span class="nc" id="L189">    log.info(&quot;Validating compatibility with version: &quot; + version + &quot;, &quot; + groupId + ':' + artifactId</span>
             + ':' + classifier + ':' + extension);
-<span class="nc" id="L186">    Path targetPath = mojo.getTarget().toPath();</span>
-<span class="nc" id="L187">    Path currSchemasPath = mojo.getGeneratedAvscTarget().toPath();</span>
+<span class="nc" id="L191">    Path targetPath = mojo.getTarget().toPath();</span>
+<span class="nc" id="L192">    Path currSchemasPath = mojo.getGeneratedAvscTarget().toPath();</span>
     File prevSchemaArchive;
     try {
-<span class="nc" id="L190">      prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(</span>
-<span class="nc" id="L191">              groupId, artifactId, classifier, extension, version.toString(),</span>
+<span class="nc" id="L195">      prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="nc" id="L196">              groupId, artifactId, classifier, extension, version.toString(),</span>
               remoteProjectRepositories, repoSystem, repositorySession);
-<span class="nc" id="L193">    } catch (ArtifactResolutionException ex) {</span>
-<span class="nc" id="L194">      throw new RuntimeException(&quot;Cannot resolve previous version &quot;  + version, ex);</span>
-<span class="nc" id="L195">    }</span>
-<span class="nc" id="L196">    Path dest = targetPath.resolve(&quot;prevSchemas&quot;).resolve(version.toString());</span>
-<span class="nc" id="L197">    Files.createDirectories(dest);</span>
-<span class="nc" id="L198">    log.debug(&quot;Unzipping &quot; + prevSchemaArchive + &quot; to &quot; + dest);</span>
-<span class="nc" id="L199">    List&lt;Path&gt; prevSchemas = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -&gt; {</span>
-<span class="nc" id="L200">      Path fileName = p.getFileName();</span>
-<span class="nc bnc" id="L201" title="All 2 branches missed.">      if (fileName == null) {</span>
-<span class="nc" id="L202">        return false;</span>
+<span class="nc" id="L198">    } catch (ArtifactResolutionException ex) {</span>
+<span class="nc" id="L199">      throw new RuntimeException(&quot;Cannot resolve previous version &quot;  + version, ex);</span>
+<span class="nc" id="L200">    }</span>
+<span class="nc" id="L201">    Path dest = targetPath.resolve(&quot;prevSchemas&quot;).resolve(version.toString());</span>
+<span class="nc" id="L202">    Files.createDirectories(dest);</span>
+<span class="nc" id="L203">    log.debug(&quot;Unzipping &quot; + prevSchemaArchive + &quot; to &quot; + dest);</span>
+<span class="nc" id="L204">    List&lt;Path&gt; prevSchemas = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -&gt; {</span>
+<span class="nc" id="L205">      Path fileName = p.getFileName();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">      if (fileName == null) {</span>
+<span class="nc" id="L207">        return false;</span>
       }
-<span class="nc" id="L204">      String fname = fileName.toString();</span>
-<span class="nc bnc" id="L205" title="All 2 branches missed.">      return (fname.endsWith(&quot;avsc&quot;)</span>
-<span class="nc bnc" id="L206" title="All 2 branches missed.">              || SchemaCompileMojo.SCHEMA_MANIFEST.equals(fname)</span>
-<span class="nc bnc" id="L207" title="All 2 branches missed.">              || &quot;MANIFEST.MF&quot;.equals(fname));</span>
+<span class="nc" id="L209">      String fname = fileName.toString();</span>
+<span class="nc bnc" id="L210" title="All 2 branches missed.">      return (fname.endsWith(&quot;avsc&quot;)</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">              || SchemaCompileMojo.SCHEMA_MANIFEST.equals(fname)</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">              || &quot;MANIFEST.MF&quot;.equals(fname));</span>
     });
-<span class="nc" id="L209">    Instant dependencyBuildTime = getDependencyBuildTime(dest, log);</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (dependencyBuildTime == null) {</span>
-<span class="nc" id="L211">      log.info(&quot;Package &quot; + dest + &quot; build time missing from manifest&quot;);</span>
-<span class="nc bnc" id="L212" title="All 2 branches missed.">    } else if (dependencyBuildTime.isBefore(instantToGoBack)) {</span>
-<span class="nc" id="L213">      return;</span>
+<span class="nc" id="L214">    Instant dependencyBuildTime = getDependencyBuildTime(dest, log);</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    if (dependencyBuildTime == null) {</span>
+<span class="nc" id="L216">      log.info(&quot;Package &quot; + dest + &quot; build time missing from manifest&quot;);</span>
+<span class="nc bnc" id="L217" title="All 2 branches missed.">    } else if (dependencyBuildTime.isBefore(instantToGoBack)) {</span>
+<span class="nc" id="L218">      return;</span>
     }
-<span class="nc bnc" id="L215" title="All 2 branches missed.">    for (Path prevSchemaPath : prevSchemas) {</span>
-<span class="nc" id="L216">      Path fileName = prevSchemaPath.getFileName();</span>
-<span class="nc bnc" id="L217" title="All 2 branches missed.">      if (fileName == null) {</span>
-<span class="nc" id="L218">        continue;</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">    for (Path prevSchemaPath : prevSchemas) {</span>
+<span class="nc" id="L221">      Path fileName = prevSchemaPath.getFileName();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">      if (fileName == null) {</span>
+<span class="nc" id="L223">        continue;</span>
       }
-<span class="nc bnc" id="L220" title="All 2 branches missed.">      if (!fileName.toString().endsWith(&quot;avsc&quot;)) {</span>
-<span class="nc" id="L221">        continue;</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">      if (!fileName.toString().endsWith(&quot;avsc&quot;)) {</span>
+<span class="nc" id="L226">        continue;</span>
       }
-<span class="nc" id="L223">      Path relPath = dest.relativize(prevSchemaPath);</span>
-<span class="nc" id="L224">      Path newSchemaPath = currSchemasPath.resolve(relPath);</span>
-<span class="nc" id="L225">      Schema previousSchema = new Schema.Parser().parse(prevSchemaPath.toFile());</span>
-<span class="nc" id="L226">      String previousSchemaName = previousSchema.getFullName();</span>
-<span class="nc bnc" id="L227" title="All 2 branches missed.">      if (previousSchema.getProp(&quot;beta&quot;) != null) {</span>
-<span class="nc" id="L228">        log.debug(&quot;Skipping beta schema &quot; + previousSchemaName);</span>
-<span class="nc" id="L229">        continue;</span>
+<span class="nc" id="L228">      Path relPath = dest.relativize(prevSchemaPath);</span>
+<span class="nc" id="L229">      Path newSchemaPath = currSchemasPath.resolve(relPath);</span>
+<span class="nc" id="L230">      Schema previousSchema = new Schema.Parser().parse(prevSchemaPath.toFile());</span>
+<span class="nc" id="L231">      String previousSchemaName = previousSchema.getFullName();</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">      if (previousSchema.getProp(&quot;beta&quot;) != null) {</span>
+<span class="nc" id="L233">        log.debug(&quot;Skipping beta schema &quot; + previousSchemaName);</span>
+<span class="nc" id="L234">        continue;</span>
       }
-<span class="nc" id="L231">      log.debug(&quot;Validating compatibility for &quot; + previousSchemaName + &quot; &quot;</span>
+<span class="nc" id="L236">      log.debug(&quot;Validating compatibility for &quot; + previousSchemaName + &quot; &quot;</span>
               + prevSchemaPath + &quot; -&gt; &quot;  + newSchemaPath);
-<span class="nc bnc" id="L233" title="All 2 branches missed.">      if (!Files.exists(newSchemaPath)) {</span>
-<span class="nc bnc" id="L234" title="All 4 branches missed.">        if (deprecationRemoval &amp;&amp; previousSchema.getProp(&quot;deprecated&quot;) == null) {</span>
-<span class="nc" id="L235">          issues.accept(previousSchemaName + &quot; is being removed without being deprecated first&quot;);</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">      if (!Files.exists(newSchemaPath)) {</span>
+<span class="nc bnc" id="L239" title="All 4 branches missed.">        if (deprecationRemoval &amp;&amp; previousSchema.getProp(&quot;beta&quot;) == null</span>
+<span class="nc bnc" id="L240" title="All 2 branches missed.">                &amp;&amp; previousSchema.getProp(&quot;deprecated&quot;) == null) {</span>
+<span class="nc" id="L241">          issues.accept(previousSchemaName + &quot; is being removed without being deprecated first&quot;);</span>
         }
       } else {
-<span class="nc" id="L238">        Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());</span>
-<span class="nc bnc" id="L239" title="All 2 branches missed.">        if (newSchema.getProp(&quot;beta&quot;) != null) {</span>
-<span class="nc" id="L240">          log.debug(&quot;Skipping beta schema &quot; + newSchema.getFullName());</span>
-        } else {
-<span class="nc bnc" id="L242" title="All 2 branches missed.">          if (newSchema.getProp(&quot;noOldToNewCompatibility&quot;) == null) {</span>
-<span class="nc" id="L243">            SchemaCompatibility.SchemaPairCompatibility o2n</span>
-<span class="nc" id="L244">                    = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);</span>
-<span class="nc bnc" id="L245" title="All 2 branches missed.">            if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {</span>
-<span class="nc" id="L246">              issues.accept(newSchema.getFullName() + &quot; cannot convert from previous version &quot; + version</span>
-<span class="nc" id="L247">                    + &quot;, diff: \n&quot; + diff(previousSchema, newSchema));</span>
-            }
-          }
-<span class="nc bnc" id="L250" title="All 2 branches missed.">          if (newSchema.getProp(&quot;noNewToOldCompatibility&quot;) == null) {</span>
-<span class="nc" id="L251">            SchemaCompatibility.SchemaPairCompatibility n2o</span>
-<span class="nc" id="L252">                    = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);</span>
-<span class="nc bnc" id="L253" title="All 2 branches missed.">            if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {</span>
-<span class="nc" id="L254">              issues.accept(newSchema.getFullName() + &quot; cannot convert current to previos version &quot; + version</span>
-<span class="nc" id="L255">                    + &quot;, diff: \n&quot; + diff(previousSchema, newSchema));</span>
-            }
-          }
-        }
+<span class="nc" id="L244">        Schema newSchema = new Schema.Parser().parse(newSchemaPath.toFile());</span>
+<span class="nc" id="L245">        validateCompatiblityBetween2Schemas(newSchema, previousSchema, version, issues, log, deprecationRemoval);</span>
       }
-<span class="nc" id="L260">    }</span>
-<span class="nc" id="L261">  }</span>
+<span class="nc" id="L247">    }</span>
+<span class="nc" id="L248">  }</span>
+
+  public void validateCompatiblityBetween2Schemas(final Schema newSchema, final Schema previousSchema,
+          final Version previousVersion,
+          final Consumer&lt;String&gt; issues, final Log log, final boolean deprecationRemoval) {
+<span class="nc bnc" id="L253" title="All 2 branches missed.">    if (newSchema.getProp(&quot;beta&quot;) != null) {</span>
+<span class="nc" id="L254">      log.debug(&quot;Skipping beta schema &quot; + newSchema.getFullName() + &quot; compatibility validation&quot;);</span>
+    } else {
+<span class="nc bnc" id="L256" title="All 2 branches missed.">      if (newSchema.getProp(&quot;noOldToNewCompatibility&quot;) == null) {</span>
+<span class="nc" id="L257">        SchemaCompatibility.SchemaPairCompatibility o2n</span>
+<span class="nc" id="L258">                = SchemaCompatibility.checkReaderWriterCompatibility(newSchema, previousSchema);</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        if (o2n.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {</span>
+<span class="nc" id="L260">          issues.accept(newSchema.getFullName() + &quot; cannot convert from previous version &quot; + previousVersion</span>
+<span class="nc" id="L261">                 +  &quot;, incompatibilities: &quot; + o2n.getResult().getIncompatibilities()</span>
+<span class="nc" id="L262">                  + &quot;,\n diff: \n&quot; + diff(previousSchema, newSchema));</span>
+        }
+<span class="nc" id="L264">      } else {</span>
+<span class="nc" id="L265">        log.debug(&quot;Skipping  schema &quot; + newSchema.getFullName() + &quot; noOldToNewCompatibility validation&quot;);</span>
+      }
+<span class="nc bnc" id="L267" title="All 2 branches missed.">      if (newSchema.getProp(&quot;noNewToOldCompatibility&quot;) == null) {</span>
+<span class="nc" id="L268">        SchemaCompatibility.SchemaPairCompatibility n2o</span>
+<span class="nc" id="L269">                = SchemaCompatibility.checkReaderWriterCompatibility(previousSchema, newSchema);</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">        if (n2o.getType() == SchemaCompatibility.SchemaCompatibilityType.INCOMPATIBLE) {</span>
+<span class="nc" id="L271">          issues.accept(newSchema.getFullName() + &quot; cannot convert current to previos version &quot; + previousVersion</span>
+<span class="nc" id="L272">                  +  &quot;, incompatibilities: &quot; + n2o.getResult().getIncompatibilities()</span>
+<span class="nc" id="L273">                  + &quot;,\n diff: \n&quot; + diff(previousSchema, newSchema));</span>
+        }
+<span class="nc" id="L275">      } else {</span>
+<span class="nc" id="L276">        log.debug(&quot;Skipping  schema &quot; + newSchema.getFullName() + &quot; noNewToOldCompatibility validation&quot;);</span>
+      }
+<span class="nc bnc" id="L278" title="All 2 branches missed.">      if (deprecationRemoval) {</span>
+<span class="nc" id="L279">        Schemas.diff(previousSchema, newSchema, (diff) -&gt; {</span>
+<span class="nc bnc" id="L280" title="All 2 branches missed.">          if (diff.getDiffType() == SchemaDiff.Type.FIELD_MISSING_RIGHT)  {</span>
+<span class="nc" id="L281">            Schema.Field leftField = diff.getLeftField();</span>
+<span class="nc bnc" id="L282" title="All 2 branches missed.">            if (leftField.getProp(&quot;deprecated&quot;) == null) {</span>
+<span class="nc" id="L283">              issues.accept(previousSchema.getFullName()  + &quot; at &quot; + diff.getPath()</span>
+                      + &quot;field  &quot; + leftField + &quot; is being removed without being deprecated first&quot;);
+
+            }
+          }
+<span class="nc" id="L288">        });</span>
+      }
+    }
+<span class="nc" id="L291">  }</span>
 
   @Nullable
   private static Instant getDependencyBuildTime(final Path location, final Log log) throws IOException {
-<span class="nc" id="L265">    Path jarManifest = location.resolve(&quot;META-INF/MANIFEST.MF&quot;);</span>
-<span class="nc bnc" id="L266" title="All 2 branches missed.">    if (Files.exists(jarManifest)) {</span>
-<span class="nc" id="L267">      try (BufferedInputStream bis = new BufferedInputStream(</span>
-<span class="nc" id="L268">              Files.newInputStream(jarManifest))) {</span>
-<span class="nc" id="L269">        Manifest manifest = new Manifest(bis);</span>
-<span class="nc" id="L270">        Attributes mainAttributes = manifest.getMainAttributes();</span>
-<span class="nc" id="L271">        String buildTime = mainAttributes.getValue(&quot;Build-Time&quot;);</span>
-<span class="nc bnc" id="L272" title="All 2 branches missed.">        if (buildTime != null) {</span>
+<span class="nc" id="L295">    Path jarManifest = location.resolve(&quot;META-INF/MANIFEST.MF&quot;);</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">    if (Files.exists(jarManifest)) {</span>
+<span class="nc" id="L297">      try (BufferedInputStream bis = new BufferedInputStream(</span>
+<span class="nc" id="L298">              Files.newInputStream(jarManifest))) {</span>
+<span class="nc" id="L299">        Manifest manifest = new Manifest(bis);</span>
+<span class="nc" id="L300">        Attributes mainAttributes = manifest.getMainAttributes();</span>
+<span class="nc" id="L301">        String buildTime = mainAttributes.getValue(&quot;Build-Time&quot;);</span>
+<span class="nc bnc" id="L302" title="All 2 branches missed.">        if (buildTime != null) {</span>
           try {
-<span class="nc" id="L274">            return Instant.parse(buildTime);</span>
-<span class="nc" id="L275">          } catch (DateTimeParseException ex) {</span>
-<span class="nc" id="L276">            log.warn(&quot;Cannot parse manifest build time &quot; + buildTime, ex);</span>
+<span class="nc" id="L304">            return Instant.parse(buildTime);</span>
+<span class="nc" id="L305">          } catch (DateTimeParseException ex) {</span>
+<span class="nc" id="L306">            log.warn(&quot;Cannot parse manifest build time &quot; + buildTime, ex);</span>
           }
         }
       }
     }
-<span class="nc" id="L281">    Path codegenManifest = location.resolve(SchemaCompileMojo.SCHEMA_MANIFEST);</span>
-<span class="nc bnc" id="L282" title="All 2 branches missed.">    if (Files.exists(codegenManifest)) {</span>
-<span class="nc" id="L283">      try (BufferedReader br = Files.newBufferedReader(codegenManifest, StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L284">        Properties props = new Properties();</span>
-<span class="nc" id="L285">        props.load(br);</span>
-<span class="nc" id="L286">        String buildTime = props.getProperty(&quot;Build-Time&quot;);</span>
-<span class="nc bnc" id="L287" title="All 2 branches missed.">        if (buildTime != null) {</span>
+<span class="nc" id="L311">    Path codegenManifest = location.resolve(SchemaCompileMojo.SCHEMA_MANIFEST);</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">    if (Files.exists(codegenManifest)) {</span>
+<span class="nc" id="L313">      try (BufferedReader br = Files.newBufferedReader(codegenManifest, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L314">        Properties props = new Properties();</span>
+<span class="nc" id="L315">        props.load(br);</span>
+<span class="nc" id="L316">        String buildTime = props.getProperty(&quot;Build-Time&quot;);</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">        if (buildTime != null) {</span>
           try {
-<span class="nc" id="L289">            return Instant.parse(buildTime);</span>
-<span class="nc" id="L290">          } catch (DateTimeParseException ex) {</span>
-<span class="nc" id="L291">            log.warn(&quot;Cannot parse manifest build time &quot; + buildTime, ex);</span>
+<span class="nc" id="L319">            return Instant.parse(buildTime);</span>
+<span class="nc" id="L320">          } catch (DateTimeParseException ex) {</span>
+<span class="nc" id="L321">            log.warn(&quot;Cannot parse manifest build time &quot; + buildTime, ex);</span>
           }
         }
       }
     }
-<span class="nc" id="L296">    return null;</span>
+<span class="nc" id="L326">    return null;</span>
   }
 
-  static String diff(final Schema reader, final Schema writer) {
-<span class="fc" id="L300">    String s1 = reader.toString(true);</span>
-<span class="fc" id="L301">    String s2 = writer.toString(true);</span>
-<span class="fc" id="L302">    DiffMatchPatch dmp = new DiffMatchPatch();</span>
-<span class="fc" id="L303">    LinkedList&lt;DiffMatchPatch.Diff&gt; diffs = dmp.diffMain(s1, s2, false);</span>
-<span class="fc" id="L304">    dmp.diffCleanupSemantic(diffs);</span>
-<span class="fc" id="L305">    StringBuilder result = new StringBuilder();</span>
-<span class="fc bfc" id="L306" title="All 2 branches covered.">    for (DiffMatchPatch.Diff aDiff : diffs) {</span>
-<span class="fc" id="L307">      String text = aDiff.text;</span>
-<span class="pc bpc" id="L308" title="1 of 4 branches missed.">      switch (aDiff.operation) {</span>
+  static String diff(final Schema schema1, final Schema schema2) {
+<span class="fc" id="L330">    String s1 = schema1.toString(true);</span>
+<span class="fc" id="L331">    String s2 = schema2.toString(true);</span>
+<span class="fc" id="L332">    DiffMatchPatch dmp = new DiffMatchPatch();</span>
+<span class="fc" id="L333">    LinkedList&lt;DiffMatchPatch.Diff&gt; diffs = dmp.diffMain(s1, s2, false);</span>
+<span class="fc" id="L334">    dmp.diffCleanupSemantic(diffs);</span>
+<span class="fc" id="L335">    StringBuilder result = new StringBuilder();</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">    for (DiffMatchPatch.Diff aDiff : diffs) {</span>
+<span class="fc" id="L337">      String text = aDiff.text;</span>
+<span class="pc bpc" id="L338" title="1 of 4 branches missed.">      switch (aDiff.operation) {</span>
         case INSERT:
-<span class="fc" id="L310">          result.append(&quot;+&lt;&lt;&lt;&quot;).append(text).append(&quot;&gt;&gt;&gt;&quot;);</span>
-<span class="fc" id="L311">          break;</span>
+<span class="fc" id="L340">          result.append(&quot;+&lt;&lt;&lt;&quot;).append(text).append(&quot;&gt;&gt;&gt;&quot;);</span>
+<span class="fc" id="L341">          break;</span>
         case DELETE:
-<span class="fc" id="L313">          result.append(&quot;-&lt;&lt;&lt;&quot;).append(text).append(&quot;&gt;&gt;&gt;&quot;);</span>
-<span class="fc" id="L314">          break;</span>
+<span class="fc" id="L343">          result.append(&quot;-&lt;&lt;&lt;&quot;).append(text).append(&quot;&gt;&gt;&gt;&quot;);</span>
+<span class="fc" id="L344">          break;</span>
         case EQUAL:
-<span class="fc" id="L316">          result.append(text);</span>
-<span class="fc" id="L317">          break;</span>
+<span class="fc" id="L346">          result.append(text);</span>
+<span class="fc" id="L347">          break;</span>
         default:
-<span class="nc" id="L319">          throw new UnsupportedOperationException(&quot;Not supported &quot; + aDiff.operation);</span>
+<span class="nc" id="L349">          throw new UnsupportedOperationException(&quot;Not supported &quot; + aDiff.operation);</span>
       }
-<span class="fc" id="L321">    }</span>
-<span class="fc" id="L322">    return result.toString();</span>
+<span class="fc" id="L351">    }</span>
+<span class="fc" id="L352">    return result.toString();</span>
   }
 
   @Override
   public Class&lt;Void&gt; getValidationInput() {
-<span class="nc" id="L327">    return Void.class;</span>
+<span class="nc" id="L357">    return Void.class;</span>
   }
 
 }

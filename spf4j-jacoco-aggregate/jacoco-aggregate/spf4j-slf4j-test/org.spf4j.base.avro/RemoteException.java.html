@@ -38,38 +38,43 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public class RemoteException extends RuntimeException {
-
-  private final String source;
-
-  private final Throwable remote;
+public class RemoteException extends org.spf4j.base.RemoteException {
 
   public RemoteException(final String source, final Throwable remote) {
-<span class="nc" id="L48">    super(remote.getClassName() + '@' + source + &quot;: &quot; + remote.getMessage(),</span>
-<span class="nc bnc" id="L49" title="All 2 branches missed.">            remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));</span>
-<span class="nc" id="L50">    this.remote = remote;</span>
-<span class="nc" id="L51">    this.source = source;</span>
-<span class="nc bnc" id="L52" title="All 2 branches missed.">    for (Throwable suppressed : remote.getSuppressed()) {</span>
-<span class="nc" id="L53">      addSuppressed(new RemoteException(source, suppressed));</span>
-<span class="nc" id="L54">    }</span>
-<span class="nc" id="L55">    List&lt;StackTraceElement&gt; stackTrace = remote.getStackTrace();</span>
-<span class="nc" id="L56">    java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];</span>
-<span class="nc" id="L57">    int i = 0;</span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">    for (StackTraceElement ste : stackTrace) {</span>
-<span class="nc" id="L59">      FileLocation location = ste.getLocation();</span>
-<span class="nc" id="L60">      Method method = ste.getMethod();</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">      jste[i++] = new java.lang.StackTraceElement(method.getDeclaringClass(), method.getName(),</span>
-<span class="nc bnc" id="L62" title="All 2 branches missed.">              location == null ? &quot;N/A&quot; : location.getFileName(), location == null ? -1 : location.getLineNumber());</span>
-<span class="nc" id="L63">    }</span>
-<span class="nc" id="L64">    this.setStackTrace(jste);</span>
-<span class="nc" id="L65">  }</span>
+<span class="nc" id="L44">    super(remote.getMessage(),</span>
+<span class="nc" id="L45">            source, remote.getClassName(),</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            remote, remote.getCause() == null ? null : new RemoteException(source, remote.getCause()));</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    for (Throwable suppressed : remote.getSuppressed()) {</span>
+<span class="nc" id="L48">      addSuppressed(new RemoteException(source, suppressed));</span>
+<span class="nc" id="L49">    }</span>
+<span class="nc" id="L50">    List&lt;StackTraceElement&gt; stackTrace = remote.getStackTrace();</span>
+<span class="nc" id="L51">    java.lang.StackTraceElement[] jste = new java.lang.StackTraceElement[stackTrace.size()];</span>
+<span class="nc" id="L52">    int i = 0;</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    for (StackTraceElement ste : stackTrace) {</span>
+<span class="nc" id="L54">      FileLocation location = ste.getLocation();</span>
+<span class="nc" id="L55">      Method method = ste.getMethod();</span>
+<span class="nc" id="L56">      String declaringClass = method.getDeclaringClass();</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">      if (!declaringClass.startsWith(&quot;remote.&quot;)) { // add this to protect from reflectiion use.</span>
+<span class="nc" id="L58">        declaringClass = &quot;remote.&quot; + declaringClass;</span>
+      }
+<span class="nc bnc" id="L60" title="All 2 branches missed.">      if (location == null) {</span>
+<span class="nc" id="L61">       jste[i] = new java.lang.StackTraceElement(declaringClass, method.getName(),</span>
+               &quot;N/A&quot;, -1);
+      } else  {
+<span class="nc" id="L64">       jste[i] = new java.lang.StackTraceElement(declaringClass, method.getName(),</span>
+<span class="nc" id="L65">               location.getFileName(), location.getLineNumber());</span>
+      }
+<span class="nc" id="L67">      i++;</span>
+<span class="nc" id="L68">    }</span>
+<span class="nc" id="L69">    this.setStackTrace(jste);</span>
+<span class="nc" id="L70">  }</span>
 
   public final Throwable getRemoteCause() {
-<span class="nc" id="L68">    return remote;</span>
+<span class="nc" id="L73">    return (Throwable) getRemoteDetail();</span>
   }
 
   public final String getSource() {
-<span class="nc" id="L72">    return source;</span>
+<span class="nc" id="L77">    return getOrigin();</span>
   }
 
   /**
@@ -79,10 +84,8 @@ public class RemoteException extends RuntimeException {
   @Override
   public synchronized java.lang.Throwable fillInStackTrace() {
     // no need to do anything we will overwrite this.
-<span class="nc" id="L82">    return this;</span>
+<span class="nc" id="L87">    return this;</span>
   }
-
-
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

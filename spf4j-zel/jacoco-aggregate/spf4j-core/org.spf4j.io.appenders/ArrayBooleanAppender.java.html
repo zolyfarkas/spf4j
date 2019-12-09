@@ -31,44 +31,17 @@
  */
 package org.spf4j.io.appenders;
 
-import java.io.IOException;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
-import org.spf4j.io.ObjectAppender;
-import org.spf4j.io.ObjectAppenderSupplier;
+import org.spf4j.base.CoreTextMediaType;
 
 /**
  *
  * @author zoly
  */
-<span class="fc" id="L44">public final class ArrayBooleanAppender implements ObjectAppender&lt;boolean[]&gt; {</span>
+<span class="fc" id="L40">public final class ArrayBooleanAppender extends org.spf4j.io.appenders.json.ArrayBooleanJsonAppender {</span>
 
   @Override
-  public MediaType getAppendedType() {
-<span class="nc" id="L48">    return MediaTypes.APPLICATION_JSON;</span>
-  }
-
-  @Override
-  public void append(final boolean[] iter, final Appendable appendTo, final ObjectAppenderSupplier appenderSupplier)
-       throws IOException {
-<span class="nc" id="L54">    int l = iter.length;</span>
-<span class="nc bnc" id="L55" title="All 2 branches missed.">    if (l == 0) {</span>
-<span class="nc" id="L56">      appendTo.append(&quot;[]&quot;);</span>
-<span class="nc" id="L57">      return;</span>
-    }
-<span class="nc" id="L59">    appendTo.append('[');</span>
-<span class="nc" id="L60">    appendTo.append(Boolean.toString(iter[0]));</span>
-<span class="nc bnc" id="L61" title="All 2 branches missed.">    for (int i = 1; i &lt; l; i++) {</span>
-<span class="nc" id="L62">      appendTo.append(',');</span>
-<span class="nc" id="L63">       appendTo.append(Boolean.toString(iter[i]));</span>
-    }
-<span class="nc" id="L65">    appendTo.append(']');</span>
-<span class="nc" id="L66">  }</span>
-
-
-  @Override
-  public void append(final boolean[] object, final Appendable appendTo) {
-<span class="nc" id="L71">    throw new UnsupportedOperationException();</span>
+  public CoreTextMediaType getAppendedType() {
+<span class="fc" id="L44">    return CoreTextMediaType.TEXT_PLAIN;</span>
   }
 
 }

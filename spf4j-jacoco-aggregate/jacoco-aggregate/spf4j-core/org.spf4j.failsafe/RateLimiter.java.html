@@ -33,14 +33,18 @@ package org.spf4j.failsafe;
 
 import com.google.common.annotations.Beta;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Duration;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.DoubleUnaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.function.LongSupplier;
+import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnegative;
 import javax.annotation.Signed;
 import javax.annotation.concurrent.GuardedBy;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.Atomics;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -78,102 +82,150 @@ import org.spf4j.concurrent.PermitSupplier;
  *
  * @author Zoltan Farkas
  */
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">@Beta</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">@Beta</span>
 public final class RateLimiter
         implements AutoCloseable, PermitSupplier {
 
-<span class="fc" id="L85">  private static final int RE_READ_TIME_AFTER_RETRIES = Integer.getInteger(&quot;spf4j.rateLimiter.reReadTimeAfterTries&quot;, 5);</span>
+<span class="fc" id="L89">  private static final int RE_READ_TIME_AFTER_RETRIES = Integer.getInteger(&quot;spf4j.rateLimiter.reReadTimeAfterTries&quot;, 5);</span>
 
-<span class="fc" id="L87">  private static final long DEFAULT_MIN_REPLENISH_INTERVAL_MS</span>
-<span class="fc" id="L88">          = Long.getLong(&quot;spf4j.rateLimiter.defaultMinReplenishIntervalMs&quot;, 10L);</span>
+<span class="fc" id="L91">  private static final long DEFAULT_MIN_REPLENISH_INTERVAL_MS</span>
+<span class="fc" id="L92">          = Long.getLong(&quot;spf4j.rateLimiter.defaultMinReplenishIntervalMs&quot;, 10L);</span>
 
   private final AtomicLong permits;
 
   private final ScheduledFuture&lt;?&gt; replenisher;
 
-  private final double permitsPerReplenishInterval;
+  private final long permitsPerReplenishInterval;
 
   private final long permitReplenishIntervalNanos;
 
   private final LongSupplier nanoTimeSupplier;
 
+  /**
+   * the time at which replenishment has been made.
+   */
   @GuardedBy(&quot;sync&quot;)
   private long lastReplenishmentNanos;
 
   private final Object sync;
 
-  private final int concurrencyLevel;
+  private final int maxBackoffNanos;
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize, final long minReplenishInterval, final TimeUnit tu) {
-<span class="fc" id="L109">    this(maxReqPerSecond, maxBurstSize, minReplenishInterval, tu,</span>
-<span class="fc" id="L110">            DefaultScheduler.INSTANCE, TimeSource.nanoTimeSupplier());</span>
-<span class="fc" id="L111">  }</span>
+  private final LongBinaryOperator accumulate;
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize) {
-<span class="fc" id="L115">    this(maxReqPerSecond, maxBurstSize, DefaultScheduler.INSTANCE);</span>
-<span class="fc" id="L116">  }</span>
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long maxBurstSize, final long minReplenishInterval, final TimeUnit tu) {
+<span class="fc" id="L119">    this(permitsPerReplenishInterval, replenishmentInterval, maxBurstSize, minReplenishInterval, tu,</span>
+<span class="fc" id="L120">            DefaultScheduler.INSTANCE, TimeSource.nanoTimeSupplier());</span>
+<span class="fc" id="L121">  }</span>
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize,
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long maxBurstSize) {
+<span class="fc" id="L126">    this(permitsPerReplenishInterval, replenishmentInterval, maxBurstSize, DefaultScheduler.INSTANCE);</span>
+<span class="fc" id="L127">  }</span>
+
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long maxBurstSize,
           final ScheduledExecutorService scheduler) {
-<span class="fc" id="L121">    this(maxReqPerSecond, maxBurstSize, scheduler, TimeSource.nanoTimeSupplier());</span>
-<span class="fc" id="L122">  }</span>
+<span class="fc" id="L133">    this(permitsPerReplenishInterval, replenishmentInterval, maxBurstSize, scheduler, TimeSource.nanoTimeSupplier());</span>
+<span class="fc" id="L134">  }</span>
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize,
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long maxBurstSize,
           final ScheduledExecutorService scheduler,
           final LongSupplier nanoTimeSupplier) {
-<span class="fc" id="L128">    this(maxReqPerSecond, maxBurstSize, DEFAULT_MIN_REPLENISH_INTERVAL_MS,</span>
+<span class="fc" id="L141">    this(permitsPerReplenishInterval, replenishmentInterval, maxBurstSize, DEFAULT_MIN_REPLENISH_INTERVAL_MS,</span>
             TimeUnit.MILLISECONDS, scheduler, nanoTimeSupplier);
-<span class="fc" id="L130">  }</span>
+<span class="fc" id="L143">  }</span>
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize,
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long maxBurstSize,
           final long minReplenishInterval,
           final TimeUnit tu,
           final ScheduledExecutorService scheduler,
           final LongSupplier nanoTimeSupplier) {
-<span class="fc" id="L138">    this(maxReqPerSecond, maxBurstSize, minReplenishInterval, tu,</span>
+<span class="fc" id="L152">    this(permitsPerReplenishInterval, replenishmentInterval, maxBurstSize, minReplenishInterval, tu,</span>
             scheduler, nanoTimeSupplier, Atomics.MAX_BACKOFF_NANOS);
-<span class="fc" id="L140">  }</span>
+<span class="fc" id="L154">  }</span>
 
-  public RateLimiter(final double maxReqPerSecond,
-          final int maxBurstSize,
+  /**
+   * create the rate limiter.
+   *
+   * @param maxAvailablePermits the maximum number of permits that can accumulate.
+   * @param minReplenishInterval the minimum replenish interval, since a scheduler replenishes the tokens asynchronously
+   * there is a limit that is relative to the system clock resolution.
+   * @param tu the time unit of the minimum replenish interval.
+   * @param scheduler the scheduler to use to replenish the bucket.
+   * @param nanoTimeSupplier the time supplier.
+   * @param maxBackoffNanos expected concurrency level
+   */
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long maxAvailablePermits,
           final long minReplenishInterval,
           final TimeUnit tu,
           final ScheduledExecutorService scheduler,
-<span class="fc" id="L147">          final LongSupplier nanoTimeSupplier, final int concurrencyLevel) {</span>
-<span class="fc" id="L148">    this.concurrencyLevel = concurrencyLevel;</span>
-<span class="fc" id="L149">    this.sync = new Object();</span>
-<span class="fc" id="L150">    this.nanoTimeSupplier = nanoTimeSupplier;</span>
-<span class="fc" id="L151">    double nsPerReq = 1000000000d / maxReqPerSecond;</span>
-<span class="fc" id="L152">    long minReplenishIntervalNanos = tu.toNanos(minReplenishInterval);</span>
-<span class="fc bfc" id="L153" title="All 2 branches covered.">    if (nsPerReq &lt; minReplenishIntervalNanos) {</span>
-<span class="fc" id="L154">      nsPerReq = minReplenishIntervalNanos;</span>
-    }
-<span class="fc" id="L156">    this.permitReplenishIntervalNanos = (long) nsPerReq;</span>
-<span class="fc" id="L157">    this.permitsPerReplenishInterval = maxReqPerSecond * nsPerReq / 1000000000;</span>
-<span class="pc bpc" id="L158" title="2 of 4 branches missed.">    assert permitsPerReplenishInterval &gt;= 1;</span>
-<span class="fc bfc" id="L159" title="All 2 branches covered.">    if (maxBurstSize &lt; permitsPerReplenishInterval) {</span>
-<span class="fc" id="L160">      throw new IllegalArgumentException(&quot;Invalid max burst size: &quot; + maxBurstSize</span>
+          final LongSupplier nanoTimeSupplier,
+          final int maxBackoffNanos) {
+<span class="fc" id="L175">    this(permitsPerReplenishInterval, replenishmentInterval, 0, maxAvailablePermits, minReplenishInterval, tu,</span>
+            scheduler, nanoTimeSupplier, maxBackoffNanos);
+<span class="fc" id="L177">  }</span>
+
+  /**
+   * create the rate limiter.
+   *
+   * @param maxAvailablePermits the maximum number of permits that can accumulate.
+   * @param minReplenishInterval the minimum replenish interval, since a scheduler replenishes the tokens asynchronously
+   * there is a limit that is relative to the system clock resolution.
+   * @param tu the time unit of the minimum replenish interval.
+   * @param scheduler the scheduler to use to replenish the bucket.
+   * @param nanoTimeSupplier the time supplier.
+   * @param maxBackoffNanos expected concurrency level
+   */
+  public RateLimiter(final long permitsPerReplenishInterval,
+          final Duration replenishmentInterval,
+          final long initialNrOfPermits,
+          final long maxAvailablePermits,
+          final long minReplenishInterval,
+          final TimeUnit tu,
+          final ScheduledExecutorService scheduler,
+          final LongSupplier nanoTimeSupplier,
+<span class="fc" id="L198">          final int maxBackoffNanos) {</span>
+<span class="fc" id="L199">    this.maxBackoffNanos = maxBackoffNanos;</span>
+<span class="fc" id="L200">    this.sync = new Object();</span>
+<span class="fc" id="L201">    this.nanoTimeSupplier = nanoTimeSupplier;</span>
+<span class="fc" id="L202">    this.permitReplenishIntervalNanos = replenishmentInterval.toNanos();</span>
+<span class="fc" id="L203">    this.permitsPerReplenishInterval = permitsPerReplenishInterval;</span>
+<span class="pc bpc" id="L204" title="2 of 4 branches missed.">    assert permitsPerReplenishInterval &gt;= 1;</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">    if (maxAvailablePermits &lt; permitsPerReplenishInterval) {</span>
+<span class="fc" id="L206">      throw new IllegalArgumentException(&quot;Invalid max burst size: &quot; + maxAvailablePermits</span>
               + &quot;,  increase maxBurstSize to something larger than &quot; + permitsPerReplenishInterval
               + &quot; we assume a clock resolution of &quot; + permitReplenishIntervalNanos
               + &quot; and that is the minimum replenish interval&quot;);
     }
-<span class="fc" id="L165">    this.permits = new AtomicLong(Double.doubleToRawLongBits(permitsPerReplenishInterval));</span>
-<span class="fc" id="L166">    lastReplenishmentNanos = nanoTimeSupplier.getAsLong();</span>
-<span class="fc" id="L167">    this.replenisher = scheduler.scheduleAtFixedRate(() -&gt; {</span>
-<span class="fc" id="L168">      synchronized (sync) {</span>
-<span class="fc" id="L169">        Atomics.accumulate(permits, permitsPerReplenishInterval, (left, right) -&gt; {</span>
-<span class="fc" id="L170">          double result = left + right;</span>
-<span class="pc bpc" id="L171" title="1 of 2 branches missed.">          return (result &gt; maxBurstSize) ? maxBurstSize : result;</span>
-        }, concurrencyLevel);
-<span class="fc" id="L173">        lastReplenishmentNanos = nanoTimeSupplier.getAsLong();</span>
-<span class="fc" id="L174">      }</span>
-<span class="fc" id="L175">    }, permitReplenishIntervalNanos, permitReplenishIntervalNanos, TimeUnit.NANOSECONDS);</span>
-<span class="fc" id="L176">  }</span>
+<span class="fc" id="L211">    this.permits = new AtomicLong(initialNrOfPermits);</span>
+<span class="fc" id="L212">    lastReplenishmentNanos = nanoTimeSupplier.getAsLong();</span>
+<span class="fc" id="L213">    accumulate = (long left, long right) -&gt; {</span>
+<span class="fc" id="L214">      long result = left + right;</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">      return (result &gt; maxAvailablePermits) ? maxAvailablePermits : result;</span>
+    };
+<span class="fc" id="L217">    this.replenisher = scheduler.scheduleAtFixedRate(() -&gt; {</span>
+<span class="fc" id="L218">      synchronized (sync) {</span>
+<span class="fc" id="L219">        Atomics.accumulate(permits, permitsPerReplenishInterval, accumulate, maxBackoffNanos);</span>
+<span class="fc" id="L220">        lastReplenishmentNanos = nanoTimeSupplier.getAsLong();</span>
+<span class="fc" id="L221">      }</span>
+<span class="fc" id="L222">    }, permitReplenishIntervalNanos, permitReplenishIntervalNanos, TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L223">  }</span>
+
+  @Override
+  public boolean addPermits(final int nrPermits) {
+<span class="nc" id="L227">    return Atomics.maybeAccumulate(permits, nrPermits, accumulate, maxBackoffNanos);</span>
+  }
 
   /**
    * Try to acquire a permit if available.
@@ -181,106 +233,169 @@ public final class RateLimiter
    * @return true if permit acquired. false otherwise.
    */
   public boolean tryAcquire() {
-<span class="nc" id="L184">    return tryAcquire(1);</span>
+<span class="nc" id="L236">    return tryAcquire(1);</span>
   }
 
   public boolean tryAcquire(final int nrPermits) {
-<span class="pc bpc" id="L188" title="1 of 2 branches missed.">    if (replenisher.isCancelled()) {</span>
-<span class="nc" id="L189">      throw new IllegalStateException(&quot;RateLimiter is closed: &quot; + this);</span>
-    }
-<span class="fc" id="L191">    return Atomics.maybeAccumulate(permits, (double) nrPermits, (prev, x) -&gt; {</span>
-<span class="fc" id="L192">      double dif = prev - x;</span>
+<span class="fc" id="L240">    return Atomics.maybeAccumulate(permits, nrPermits, (long prev, long x) -&gt; {</span>
+<span class="fc" id="L241">      long dif = prev - x;</span>
       // right will be -1d.
-<span class="fc bfc" id="L194" title="All 2 branches covered.">      return (dif &lt; 0) ? prev : dif;</span>
-    }, concurrencyLevel);
+<span class="fc bfc" id="L243" title="All 2 branches covered.">      return (dif &lt; 0) ? prev : dif;</span>
+    }, maxBackoffNanos);
   }
 
-  private final class ReservationHandler implements DoubleUnaryOperator {
+  private final class ReservationHandler implements LongBinaryOperator, Acquisition {
 
     private long currTimeNanos;
 
     private final long deadlineNanos;
 
-    private final int permits;
-
     private long nsUntilResourcesAvailable;
 
     private int reTimeCount;
 
-<span class="fc" id="L210">    ReservationHandler(final long currTimeNanos, final long deadlineNanos, final int permits) {</span>
-<span class="fc" id="L211">      this.currTimeNanos = currTimeNanos;</span>
-<span class="fc" id="L212">      this.deadlineNanos = deadlineNanos;</span>
-<span class="fc" id="L213">      this.permits = permits;</span>
-<span class="fc" id="L214">      this.nsUntilResourcesAvailable = -1;</span>
-<span class="fc" id="L215">      this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;</span>
-<span class="fc" id="L216">    }</span>
+    private boolean isSuccess;
+
+<span class="fc" id="L259">    ReservationHandler(final long currTimeNanos, final long deadlineNanos) {</span>
+<span class="fc" id="L260">      this.currTimeNanos = currTimeNanos;</span>
+<span class="fc" id="L261">      this.deadlineNanos = deadlineNanos;</span>
+<span class="fc" id="L262">      this.nsUntilResourcesAvailable = 0;</span>
+<span class="fc" id="L263">      this.reTimeCount = RE_READ_TIME_AFTER_RETRIES;</span>
+<span class="fc" id="L264">      this.isSuccess = false;</span>
+<span class="fc" id="L265">    }</span>
 
     @Override
-    public double applyAsDouble(final double prev) {
-<span class="fc" id="L220">      double remaimingPermits = prev - permits;</span>
-<span class="fc bfc" id="L221" title="All 2 branches covered.">      if (remaimingPermits &gt;= 0) {</span>
-<span class="fc" id="L222">        return remaimingPermits;</span>
+    public long applyAsLong(final long prev, final long nrPermits) {
+<span class="fc" id="L269">      long remaimingPermits = prev - nrPermits;</span>
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">      if (remaimingPermits &gt;= 0) {</span>
+<span class="nc" id="L271">        isSuccess = true;</span>
+<span class="nc" id="L272">        return remaimingPermits;</span>
       }
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">      if (reTimeCount &gt; 0) {</span>
-<span class="fc" id="L225">        reTimeCount--;</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">      if (reTimeCount &gt; 0) {</span>
+<span class="fc" id="L275">        reTimeCount--;</span>
       } else {
         // re-reading current time on every try is pointless since System.nanotime can take 30ns to exec...
-<span class="nc" id="L228">        reTimeCount = RE_READ_TIME_AFTER_RETRIES;</span>
-<span class="nc" id="L229">        currTimeNanos = nanoTimeSupplier.getAsLong();</span>
+<span class="nc" id="L278">        reTimeCount = RE_READ_TIME_AFTER_RETRIES;</span>
+<span class="nc" id="L279">        currTimeNanos = nanoTimeSupplier.getAsLong();</span>
       }
-<span class="fc" id="L231">      long timeoutNs = deadlineNanos - currTimeNanos;</span>
-<span class="fc bfc" id="L232" title="All 2 branches covered.">      if (timeoutNs &lt;= 0) {</span>
-<span class="fc" id="L233">        return prev;</span>
-      }
-<span class="fc" id="L235">      long nsUntilNextReplenishment</span>
-<span class="fc" id="L236">              = permitReplenishIntervalNanos - (currTimeNanos - lastReplenishmentNanos);</span>
-<span class="fc bfc" id="L237" title="All 2 branches covered.">      if (timeoutNs &lt; nsUntilNextReplenishment) {</span>
-<span class="fc" id="L238">          return prev; // not enough time to wait.</span>
-      }
-<span class="fc" id="L240">      double permitsNeeded = -remaimingPermits;</span>
-<span class="fc bfc" id="L241" title="All 2 branches covered.">      if (permitsNeeded &lt;= permitsPerReplenishInterval) {</span>
-<span class="fc" id="L242">        nsUntilResourcesAvailable = nsUntilNextReplenishment;</span>
-<span class="fc" id="L243">        return remaimingPermits;</span>
+<span class="fc" id="L281">      long timeoutNs = deadlineNanos - currTimeNanos;</span>
+<span class="fc" id="L282">      long nsUntilNextReplenishment</span>
+<span class="fc" id="L283">              = permitReplenishIntervalNanos - (currTimeNanos - lastReplenishmentNanos);</span>
+<span class="fc" id="L284">      long permitsNeeded = -remaimingPermits;</span>
+<span class="fc bfc" id="L285" title="All 2 branches covered.">      if (permitsNeeded &lt;= permitsPerReplenishInterval) {</span>
+<span class="fc" id="L286">        nsUntilResourcesAvailable = nsUntilNextReplenishment;</span>
+<span class="fc" id="L287">        return remaimingPermits;</span>
       } else {
-<span class="fc" id="L245">        int numberOfReplenishMentsNeed = (int) Math.ceil(permitsNeeded / permitsPerReplenishInterval);</span>
-<span class="fc" id="L246">        long nsNeeded = nsUntilNextReplenishment</span>
-<span class="fc" id="L247">                + (numberOfReplenishMentsNeed - 1) * permitReplenishIntervalNanos;</span>
-<span class="fc bfc" id="L248" title="All 2 branches covered.">        if (nsNeeded &lt;= timeoutNs) {</span>
-<span class="fc" id="L249">          nsUntilResourcesAvailable = nsNeeded;</span>
-<span class="fc" id="L250">          return remaimingPermits;</span>
+<span class="pc bpc" id="L289" title="1 of 2 branches missed.">        int numberOfReplenishMentsNeed = permitsNeeded % permitsPerReplenishInterval == 0</span>
+<span class="pc" id="L290">                ? (int) (permitsNeeded / permitsPerReplenishInterval)</span>
+<span class="pc" id="L291">                : (int) (permitsNeeded / permitsPerReplenishInterval + 1);</span>
+<span class="fc" id="L292">        long nsNeeded = nsUntilNextReplenishment</span>
+<span class="fc" id="L293">                + (numberOfReplenishMentsNeed - 1) * permitReplenishIntervalNanos;</span>
+<span class="fc" id="L294">        nsUntilResourcesAvailable = nsNeeded;</span>
+<span class="fc bfc" id="L295" title="All 2 branches covered.">        if (nsNeeded &lt;= timeoutNs) {</span>
+<span class="fc" id="L296">          isSuccess = true;</span>
+<span class="fc" id="L297">          return remaimingPermits; // make reservation.</span>
         } else {
-<span class="fc" id="L252">          return prev;</span>
+<span class="fc" id="L299">          return prev;</span>
         }
       }
     }
 
     public long getNsUntilResourcesAvailable() {
-<span class="fc" id="L258">      return nsUntilResourcesAvailable;</span>
+<span class="nc" id="L305">      return nsUntilResourcesAvailable;</span>
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L263">      return &quot;ReservationHandler{&quot; + &quot;deadlineNanos=&quot; + deadlineNanos + &quot;, permits=&quot; + permits</span>
+<span class="nc" id="L310">      return &quot;ReservationHandler{&quot; + &quot;deadlineNanos=&quot; + deadlineNanos + &quot;, permits=&quot; + permits</span>
               + &quot;, nsUntilResourcesAvailable=&quot; + nsUntilResourcesAvailable + '}';
+    }
+
+    @Override
+    public boolean isSuccess() {
+<span class="fc" id="L316">      return isSuccess;</span>
+    }
+
+    @Override
+    public long permitAvailableEstimateInNanos() {
+<span class="fc" id="L321">      return nsUntilResourcesAvailable;</span>
     }
   }
 
-  public double getNrPermits() {
-<span class="fc" id="L269">    return Double.longBitsToDouble(permits.get());</span>
+  public long getNrPermits() {
+<span class="fc" id="L326">    return permits.get();</span>
   }
 
   @Override
   @SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;) //fb has a point here...
   public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
-<span class="fc" id="L275">    long tryAcquireGetDelayNanos = tryAcquireGetDelayNanos(nrPermits, deadlineNanos);</span>
-<span class="fc bfc" id="L276" title="All 2 branches covered.">    if (tryAcquireGetDelayNanos == 0) {</span>
-<span class="fc" id="L277">      return true;</span>
-<span class="fc bfc" id="L278" title="All 2 branches covered.">    } else if (tryAcquireGetDelayNanos &gt; 0) {</span>
-<span class="fc" id="L279">      TimeUnit.NANOSECONDS.sleep(tryAcquireGetDelayNanos);</span>
-<span class="fc" id="L280">      return true;</span>
+<span class="fc" id="L332">    Acquisition acq = tryAcquireGetDelayNanos(nrPermits, deadlineNanos);</span>
+<span class="pc bpc" id="L333" title="1 of 2 branches missed.">    if (acq.isSuccess()) {</span>
+<span class="fc" id="L334">      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();</span>
+<span class="pc bpc" id="L335" title="1 of 2 branches missed.">      if (permitAvailableEstimateInNanos &gt; 0) {</span>
+<span class="fc" id="L336">        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);</span>
+      }
+<span class="fc" id="L338">      return true;</span>
     } else {
-<span class="fc" id="L282">      return false;</span>
+<span class="nc" id="L340">      return false;</span>
     }
+  }
+
+
+  @CheckReturnValue
+  @Override
+  public boolean tryAcquire(@Nonnegative final int nrPermits, @Nonnegative final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+<span class="pc bpc" id="L349" title="1 of 2 branches missed.">    if (timeout &lt; 0) {</span>
+<span class="nc" id="L350">      throw new IllegalArgumentException(&quot;incalid timeout &quot; + timeout + ' ' + unit);</span>
+    }
+<span class="fc" id="L352">    boolean tryAcquire = tryAcquire(nrPermits);</span>
+<span class="fc bfc" id="L353" title="All 2 branches covered.">    if (tryAcquire) {</span>
+<span class="fc" id="L354">      return true;</span>
+    }
+<span class="fc bfc" id="L356" title="All 2 branches covered.">    if (timeout == 0) {</span>
+<span class="fc" id="L357">      return false;</span>
+    }
+<span class="fc" id="L359">    Acquisition acq = forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);</span>
+<span class="fc bfc" id="L360" title="All 2 branches covered.">    if (acq.isSuccess()) {</span>
+<span class="fc" id="L361">      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();</span>
+<span class="pc bpc" id="L362" title="1 of 2 branches missed.">      if (permitAvailableEstimateInNanos &gt; 0) {</span>
+<span class="fc" id="L363">        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);</span>
+      }
+<span class="fc" id="L365">      return true;</span>
+    } else {
+<span class="fc" id="L367">      return false;</span>
+    }
+  }
+
+  @Override
+  public Acquisition tryAcquireEx(final int nrPermits, final long timeout, final TimeUnit unit)
+          throws InterruptedException {
+<span class="nc" id="L374">    boolean tryAcquire = tryAcquire(nrPermits);</span>
+<span class="nc bnc" id="L375" title="All 2 branches missed.">    if (tryAcquire) {</span>
+<span class="nc" id="L376">      return Acquisition.SUCCESS;</span>
+    }
+<span class="nc" id="L378">    Acquisition acq =  forceReserve(ExecutionContexts.computeDeadline(timeout, unit), nrPermits);</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">    if (acq.isSuccess()) {</span>
+<span class="nc" id="L380">      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">      if (permitAvailableEstimateInNanos &gt; 0) {</span>
+<span class="nc" id="L382">        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);</span>
+      }
+    }
+<span class="nc" id="L385">    return acq;</span>
+  }
+
+  @Override
+  public Acquisition tryAcquireEx(final int nrPermits, final long deadlineNanos)
+          throws InterruptedException {
+<span class="nc" id="L391">    Acquisition acq = tryAcquireGetDelayNanos(nrPermits, deadlineNanos);</span>
+<span class="nc bnc" id="L392" title="All 2 branches missed.">    if (acq.isSuccess()) {</span>
+<span class="nc" id="L393">      long permitAvailableEstimateInNanos = acq.permitAvailableEstimateInNanos();</span>
+<span class="nc bnc" id="L394" title="All 2 branches missed.">      if (permitAvailableEstimateInNanos &gt; 0) {</span>
+<span class="nc" id="L395">        TimeUnit.NANOSECONDS.sleep(permitAvailableEstimateInNanos);</span>
+      }
+    }
+<span class="nc" id="L398">    return acq;</span>
   }
 
   /**
@@ -293,48 +408,49 @@ public final class RateLimiter
    * @throws InterruptedException
    */
   @Signed
-  long tryAcquireGetDelayNanos(final int nrPermits, final long deadlineNanos)
-          throws InterruptedException {
-<span class="fc" id="L298">    boolean tryAcquire = tryAcquire(nrPermits);</span>
-<span class="fc bfc" id="L299" title="All 2 branches covered.">    if (tryAcquire) {</span>
-<span class="fc" id="L300">      return 0L;</span>
-    } else { // no curent permits available, reserve some slots and wait for them.
-<span class="fc" id="L302">      ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos, nrPermits);</span>
-      boolean accd;
-<span class="fc" id="L304">      synchronized (sync) {</span>
-<span class="fc" id="L305">        accd = Atomics.maybeAccumulate(permits, rh, concurrencyLevel);</span>
-<span class="fc" id="L306">      }</span>
-<span class="fc bfc" id="L307" title="All 2 branches covered.">      if (accd) {</span>
-<span class="fc" id="L308">        return rh.getNsUntilResourcesAvailable();</span>
-      } else {
-<span class="fc" id="L310">        return -1L;</span>
-      }
+  Acquisition tryAcquireGetDelayNanos(final int nrPermits, final long deadlineNanos) {
+<span class="fc" id="L412">    boolean tryAcquire = tryAcquire(nrPermits);</span>
+<span class="pc bpc" id="L413" title="1 of 2 branches missed.">    if (tryAcquire) {</span>
+<span class="nc" id="L414">      return Acquisition.SUCCESS;</span>
+    } else {
+<span class="fc" id="L416">      return forceReserve(deadlineNanos, nrPermits);</span>
     }
+  }
+
+  private ReservationHandler forceReserve(final long deadlineNanos, final int nrPermits) {
+    // no curent permits available, reserve the slots and get the wait time
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">    if (replenisher.isCancelled()) {</span>
+<span class="nc" id="L423">      throw new IllegalStateException(&quot;RateLimiter is closed: &quot; + this);</span>
+    }
+<span class="fc" id="L425">    ReservationHandler rh = new ReservationHandler(nanoTimeSupplier.getAsLong(), deadlineNanos);</span>
+<span class="fc" id="L426">    synchronized (sync) {</span>
+<span class="fc" id="L427">      Atomics.accumulate(permits, nrPermits, rh, maxBackoffNanos);</span>
+<span class="fc" id="L428">    }</span>
+<span class="fc" id="L429">    return rh;</span>
   }
 
   @Override
   public void close() {
-<span class="fc" id="L317">    replenisher.cancel(false);</span>
-<span class="fc" id="L318">  }</span>
+<span class="fc" id="L434">    replenisher.cancel(false);</span>
+<span class="fc" id="L435">  }</span>
 
-  public double getPermitsPerReplenishInterval() {
-<span class="fc" id="L321">    return permitsPerReplenishInterval;</span>
+  public long getPermitsPerReplenishInterval() {
+<span class="fc" id="L438">    return permitsPerReplenishInterval;</span>
   }
 
   public long getPermitReplenishIntervalNanos() {
-<span class="fc" id="L325">    return permitReplenishIntervalNanos;</span>
+<span class="fc" id="L442">    return permitReplenishIntervalNanos;</span>
   }
 
   public long getLastReplenishmentNanos() {
-<span class="fc" id="L329">    synchronized (sync) {</span>
-<span class="fc" id="L330">      return lastReplenishmentNanos;</span>
+<span class="fc" id="L446">    synchronized (sync) {</span>
+<span class="fc" id="L447">      return lastReplenishmentNanos;</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L336">    return &quot;RateLimiter{&quot; + &quot;permits=&quot; + Double.longBitsToDouble(permits.get())</span>
-            + &quot;, replenisher=&quot; + replenisher + &quot;, permitsPerReplenishInterval=&quot;
+<span class="fc" id="L453">    return &quot;RateLimiter{&quot; + &quot;permits=&quot; + permits.get() + &quot;, permitsPerReplenishInterval=&quot;</span>
             + permitsPerReplenishInterval + &quot;, permitReplenishIntervalNanos=&quot; + permitReplenishIntervalNanos + '}';
   }
 

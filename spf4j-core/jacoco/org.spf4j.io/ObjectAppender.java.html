@@ -37,9 +37,8 @@ import java.util.ConcurrentModificationException;
 import java.util.function.BiConsumer;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
-import org.spf4j.base.avro.MediaType;
-import org.spf4j.base.avro.MediaTypes;
 
 /**
  * @author zoly
@@ -53,8 +52,8 @@ public interface ObjectAppender&lt;T&gt; extends BiConsumer&lt;T, Appendable&gt;
    * the MimeType of the format used to write the Object.
    * @return
    */
-  default MediaType getAppendedType() {
-<span class="fc" id="L57">    return MediaTypes.TEXT_PLAIN;</span>
+  default CoreTextMediaType getAppendedType() {
+<span class="fc" id="L56">    return CoreTextMediaType.TEXT_PLAIN;</span>
   }
 
   /**
@@ -69,27 +68,28 @@ public interface ObjectAppender&lt;T&gt; extends BiConsumer&lt;T, Appendable&gt;
   static void appendNullable(@Nullable final Object o, final Appendable appendTo,
           final ObjectAppenderSupplier appenderSupplier)
           throws IOException {
-<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (o == null) {</span>
-<span class="nc" id="L73">      appendTo.append(&quot;null&quot;);</span>
+<span class="pc bpc" id="L71" title="1 of 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L72">      appendTo.append(&quot;null&quot;);</span>
     } else {
-<span class="nc" id="L75">      appenderSupplier.get(o.getClass()).append(o, appendTo, appenderSupplier);</span>
+<span class="fc" id="L74">      appenderSupplier.get(o.getClass()).append(o, appendTo, appenderSupplier);</span>
     }
-<span class="nc" id="L77">  }</span>
+<span class="fc" id="L76">  }</span>
 
   static void appendNullableJson(@Nullable final Object o, final Appendable appendTo,
           final ObjectAppenderSupplier appenderSupplier)
           throws IOException {
-<span class="pc bpc" id="L82" title="1 of 2 branches missed.">    if (o == null) {</span>
-<span class="nc" id="L83">      appendTo.append(&quot;null&quot;);</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">    if (o == null) {</span>
+<span class="nc" id="L82">      appendTo.append(&quot;null&quot;);</span>
     } else {
-<span class="fc" id="L85">      ObjectAppender app = appenderSupplier.get(o.getClass());</span>
-<span class="fc bfc" id="L86" title="All 2 branches covered.">      if (app.getAppendedType().getSubType().endsWith(&quot;json&quot;)) {</span>
-<span class="fc" id="L87">         app.append(o, appendTo, appenderSupplier);</span>
+<span class="fc" id="L84">      ObjectAppender app = appenderSupplier.get(CoreTextMediaType.APPLICATION_JSON, o.getClass());</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">      if (app != null) {</span>
+<span class="fc" id="L86">         app.append(o, appendTo, appenderSupplier);</span>
       } else {
-<span class="fc" id="L89">        EscapeJsonStringAppendableWrapper sEsc = new EscapeJsonStringAppendableWrapper(appendTo);</span>
-<span class="fc" id="L90">        appendTo.append('&quot;');</span>
-<span class="fc" id="L91">        app.append(o, sEsc, appenderSupplier);</span>
-<span class="fc" id="L92">        appendTo.append('&quot;');</span>
+<span class="nc" id="L88">        app = appenderSupplier.get(CoreTextMediaType.TEXT_PLAIN, o.getClass());</span>
+<span class="nc" id="L89">        EscapeJsonStringAppendableWrapper sEsc = new EscapeJsonStringAppendableWrapper(appendTo);</span>
+<span class="nc" id="L90">        appendTo.append('&quot;');</span>
+<span class="nc" id="L91">        app.append(o, sEsc, appenderSupplier);</span>
+<span class="nc" id="L92">        appendTo.append('&quot;');</span>
       }
     }
 <span class="fc" id="L95">  }</span>

@@ -50,13 +50,14 @@ import org.spf4j.base.Threads;
  * @author Zoltan Farkas
  */
 @NotThreadSafe
-public final class TracingExecutionContexSampler implements ISampler {
+@SuppressWarnings(&quot;checkstyle:VisibilityModifier&quot;)
+public class TracingExecutionContexSampler implements ISampler {
 
   private final Supplier&lt;Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt;&gt; execCtxSupplier;
 
-  private Thread[] requestFor;
+  protected Thread[] requestFor;
 
-  private ExecutionContext[] contexts;
+  protected ExecutionContext[] contexts;
 
   private final TMap&lt;String, StackCollector&gt; collections;
 
@@ -65,71 +66,87 @@ public final class TracingExecutionContexSampler implements ISampler {
   public TracingExecutionContexSampler(
           final Supplier&lt;Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt;&gt; execCtxSupplier,
           final Function&lt;ExecutionContext, String&gt; ctxToCategory) {
-<span class="fc" id="L68">    this(100, execCtxSupplier, ctxToCategory);</span>
-<span class="fc" id="L69">  }</span>
+<span class="fc" id="L69">    this(100, execCtxSupplier, ctxToCategory);</span>
+<span class="fc" id="L70">  }</span>
 
   public TracingExecutionContexSampler(final int maxNrThreads,
           final Supplier&lt;Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt;&gt; execCtxSupplier,
-<span class="fc" id="L73">          final Function&lt;ExecutionContext, String&gt; ctxToCategory) {</span>
-<span class="fc" id="L74">    requestFor = new Thread[maxNrThreads];</span>
-<span class="fc" id="L75">    contexts = new ExecutionContext[maxNrThreads];</span>
-<span class="fc" id="L76">    this.execCtxSupplier = execCtxSupplier;</span>
-<span class="fc" id="L77">    collections = new THashMap&lt;&gt;();</span>
-<span class="fc" id="L78">    this.ctxToCategory = ctxToCategory;</span>
-<span class="fc" id="L79">  }</span>
+<span class="fc" id="L74">          final Function&lt;ExecutionContext, String&gt; ctxToCategory) {</span>
+<span class="fc" id="L75">    requestFor = new Thread[maxNrThreads];</span>
+<span class="fc" id="L76">    contexts = new ExecutionContext[maxNrThreads];</span>
+<span class="fc" id="L77">    this.execCtxSupplier = execCtxSupplier;</span>
+<span class="fc" id="L78">    collections = new THashMap&lt;&gt;();</span>
+<span class="fc" id="L79">    this.ctxToCategory = ctxToCategory;</span>
+<span class="fc" id="L80">  }</span>
 
   @Override
-  public void sample() {
-<span class="fc" id="L83">    Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt; currentThreads = execCtxSupplier.get();</span>
-<span class="fc" id="L84">    int i = 0;</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">    for (Map.Entry&lt;Thread, ExecutionContext&gt; entry : currentThreads) {</span>
-<span class="fc" id="L86">      requestFor[i] = entry.getKey();</span>
-<span class="fc" id="L87">      contexts[i++] = entry.getValue();</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">      if (i &gt;= requestFor.length) {</span>
-<span class="nc" id="L89">        break;</span>
-      }
-<span class="fc" id="L91">    }</span>
-<span class="fc" id="L92">    Arrays.fill(requestFor, i, requestFor.length, null);</span>
-<span class="fc" id="L93">    StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);</span>
-<span class="fc bfc" id="L94" title="All 2 branches covered.">    for (int j = 0; j &lt; i; j++) {</span>
-<span class="fc" id="L95">      StackTraceElement[] stackTrace = stackTraces[j];</span>
-<span class="pc bpc" id="L96" title="1 of 4 branches missed.">      if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L97">        ExecutionContext context = contexts[j];</span>
-<span class="fc" id="L98">        context.add(stackTrace);</span>
-<span class="fc" id="L99">        String name = ctxToCategory.apply(context);</span>
-<span class="fc" id="L100">        StackCollector c = collections.computeIfAbsent(name, (k) -&gt; new StackCollectorImpl());</span>
-<span class="fc" id="L101">        c.collect(stackTrace);</span>
+  public final void sample() {
+<span class="fc" id="L84">    Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt; currentThreads = execCtxSupplier.get();</span>
+<span class="fc" id="L85">    int nrThreads = prepareThreadsAndContexts(currentThreads);</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">    if (nrThreads &gt; 0) {</span>
+<span class="fc" id="L87">      Arrays.fill(requestFor, nrThreads, requestFor.length, null);</span>
+<span class="fc" id="L88">      StackTraceElement[][] stackTraces = Threads.getStackTraces(requestFor);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">      for (int j = 0; j &lt; nrThreads; j++) {</span>
+<span class="fc" id="L90">        StackTraceElement[] stackTrace = stackTraces[j];</span>
+<span class="pc bpc" id="L91" title="1 of 4 branches missed.">        if (stackTrace != null &amp;&amp; stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L92">          ExecutionContext context = contexts[j];</span>
+<span class="fc" id="L93">          context.add(stackTrace);</span>
+<span class="fc" id="L94">          String name = ctxToCategory.apply(context);</span>
+<span class="fc" id="L95">          StackCollector c = collections.computeIfAbsent(name, (k) -&gt; new StackCollectorImpl());</span>
+<span class="fc" id="L96">          c.collect(stackTrace);</span>
+        }
       }
     }
-<span class="fc" id="L104">  }</span>
+<span class="fc" id="L100">  }</span>
 
-  @Override
-  public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
-<span class="fc" id="L108">    TMap&lt;String, SampleNode&gt; result = new THashMap&lt;&gt;(collections.size());</span>
-<span class="fc" id="L109">    collections.forEachEntry((k, v) -&gt; {</span>
-<span class="fc" id="L110">      result.put(k, v.getAndReset());</span>
-<span class="fc" id="L111">      return true;</span>
-    });
-<span class="fc" id="L113">    return result;</span>
+  /**
+   * Overwrite to filter what to sample
+   * @param currentThreads
+   * @return
+   */
+  protected int prepareThreadsAndContexts(final Iterable&lt;Map.Entry&lt;Thread, ExecutionContext&gt;&gt; currentThreads) {
+<span class="fc" id="L108">    int i = 0;</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    for (Map.Entry&lt;Thread, ExecutionContext&gt; entry : currentThreads) {</span>
+<span class="nc" id="L110">      requestFor[i] = entry.getKey();</span>
+      // child execution contexts might not finish before parent due to improper timeouts, etc
+      // and their samples might get lost.
+      // It is better to add all samples to root.
+<span class="nc" id="L114">      contexts[i++] = entry.getValue().getRootParent();</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">      if (i &gt;= requestFor.length) {</span>
+<span class="nc" id="L116">        break;</span>
+      }
+<span class="nc" id="L118">    }</span>
+<span class="fc" id="L119">    return i;</span>
   }
 
   @Override
-  public Map&lt;String, SampleNode&gt; getCollections() {
-<span class="nc" id="L118">    TMap&lt;String, SampleNode&gt; result = new THashMap&lt;&gt;(collections.size());</span>
-<span class="nc" id="L119">    collections.forEachEntry((k, v) -&gt; {</span>
-<span class="nc" id="L120">      result.put(k, v.get());</span>
-<span class="nc" id="L121">      return true;</span>
+  public final Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
+<span class="fc" id="L124">    TMap&lt;String, SampleNode&gt; result = new THashMap&lt;&gt;(collections.size());</span>
+<span class="fc" id="L125">    collections.forEachEntry((k, v) -&gt; {</span>
+<span class="fc" id="L126">      result.put(k, v.getAndReset());</span>
+<span class="fc" id="L127">      return true;</span>
     });
-<span class="nc" id="L123">    return result;</span>
+<span class="fc" id="L129">    return result;</span>
   }
 
+  @Override
+  public final Map&lt;String, SampleNode&gt; getCollections() {
+<span class="nc" id="L134">    TMap&lt;String, SampleNode&gt; result = new THashMap&lt;&gt;(collections.size());</span>
+<span class="nc" id="L135">    collections.forEachEntry((k, v) -&gt; {</span>
+<span class="nc" id="L136">      result.put(k, v.get());</span>
+<span class="nc" id="L137">      return true;</span>
+    });
+<span class="nc" id="L139">    return result;</span>
+  }
+
+  /**
+   * @inherited
+   */
   @Override
   public String toString() {
-<span class="nc" id="L128">    return &quot;TracingExecutionContextStackCollector{&quot; + &quot;execCtxSupplier=&quot; + execCtxSupplier</span>
+<span class="nc" id="L147">    return &quot;TracingExecutionContextStackCollector{&quot; + &quot;execCtxSupplier=&quot; + execCtxSupplier</span>
             + &quot;, collections=&quot; + collections + '}';
   }
-
-
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

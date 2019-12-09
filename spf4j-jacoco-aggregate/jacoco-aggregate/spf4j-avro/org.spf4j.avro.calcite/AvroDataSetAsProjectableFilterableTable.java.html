@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AvroDataSetAsProjectableFilterableTable.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">AvroDataSetAsProjectableFilterableTable.java</span></div><h1>AvroDataSetAsProjectableFilterableTable.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import com.google.common.collect.Iterables;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.calcite.DataContext;
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.rel.type.RelDataType;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.schema.ProjectableFilterableTable;
+import org.apache.calcite.schema.Statistic;
+import org.apache.calcite.schema.Statistics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.avro.AvroDataSet;
+import org.spf4j.avro.SqlPredicate;
+import org.spf4j.avro.schema.Schemas;
+import org.spf4j.base.CloseableIterable;
+import org.spf4j.base.CloseableIterator;
+import org.spf4j.base.ExecutionContexts;
+import org.spf4j.security.SecurityContext;
+
+/**
+ * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
+ *
+ * @author Zoltan Farkas
+ */
+public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroTable
+        implements ProjectableFilterableTable {
+
+<span class="nc" id="L52">  private static final Logger LOG = LoggerFactory.getLogger(AvroDataSetAsProjectableFilterableTable.class);</span>
+
+  private final AvroDataSet&lt;? extends IndexedRecord&gt; dataSet;
+
+  public AvroDataSetAsProjectableFilterableTable(final AvroDataSet&lt;? extends IndexedRecord&gt; dataSet) {
+<span class="nc" id="L57">    super(dataSet.getElementSchema());</span>
+<span class="nc" id="L58">    this.dataSet = dataSet;</span>
+<span class="nc" id="L59">  }</span>
+
+  @Override
+  public Statistic getStatistic() {
+<span class="nc" id="L63">    long rowCountStatistic = dataSet.getRowCountStatistic();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (rowCountStatistic &gt;= 0) {</span>
+<span class="nc" id="L65">      return Statistics.of(rowCountStatistic, Collections.EMPTY_LIST);</span>
+    } else {
+<span class="nc" id="L67">      return Statistics.of(Collections.EMPTY_LIST);</span>
+    }
+  }
+
+  private  CloseableIterable&lt;IndexedRecord&gt; project(final CloseableIterable&lt;IndexedRecord&gt; iterable,
+          @Nullable final int[] projection) {
+<span class="nc bnc" id="L73" title="All 2 branches missed.">    if (projection == null) {</span>
+<span class="nc" id="L74">      return iterable;</span>
+    }
+<span class="nc" id="L76">    Schema schema = getComponentType();</span>
+<span class="nc" id="L77">    Schema nschema = Schemas.projectRecord(schema, projection);</span>
+<span class="nc" id="L78">    Iterable&lt;IndexedRecord&gt; transformed = Iterables.transform(iterable, (x) -&gt; Schemas.project(nschema, schema, x));</span>
+<span class="nc" id="L79">    return CloseableIterable.from(transformed, iterable);</span>
+  }
+
+  private void deprecations(@Nullable final int[] projection,
+          final DataContext ctx) {
+<span class="nc" id="L84">    Schema schema = getComponentType();</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (projection == null) {</span>
+<span class="nc" id="L86">       EmbededDataContext.addDeprecations(schema, ctx);</span>
+    } else {
+<span class="nc" id="L88">       Schema nschema = Schemas.projectRecord(schema, projection);</span>
+<span class="nc" id="L89">       EmbededDataContext.addDeprecations(nschema, ctx);</span>
+    }
+<span class="nc" id="L91">  }</span>
+
+
+  @Override
+  @SuppressWarnings({&quot;unchecked&quot;, &quot;unchecked&quot;})
+  public Enumerable&lt;Object[]&gt; scan(final DataContext root, final List&lt;RexNode&gt; filters,
+          @Nullable final int[] projection) {
+<span class="nc" id="L98">    LOG.debug(&quot;Filtered+Projected Table scan of {} with filter {} and projection {}&quot;, dataSet.getName(),</span>
+            filters, projection);
+<span class="nc" id="L100">    deprecations(projection, root);</span>
+<span class="nc" id="L101">    RelDataType rowType = this.getRowType(root.getTypeFactory());</span>
+<span class="nc" id="L102">    Long timeoutMillis = DataContext.Variable.TIMEOUT.get(root);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (timeoutMillis == null) {</span>
+<span class="nc" id="L104">      timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);</span>
+    }
+<span class="nc" id="L106">    SecurityContext sc = (SecurityContext) root.get(&quot;security-context&quot;);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (sc == null) {</span>
+<span class="nc" id="L108">      sc = SecurityContext.NOAUTH;</span>
+    }
+    CloseableIterable&lt;IndexedRecord&gt; it;
+<span class="nc" id="L111">    Set&lt;AvroDataSet.Feature&gt; features = dataSet.getFeatures();</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (features.contains(AvroDataSet.Feature.FILTERABLE)) {</span>
+<span class="nc" id="L113">      SqlRowPredicate predicate = null;</span>
+      try {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">         if (!filters.isEmpty()) {</span>
+<span class="nc" id="L116">           predicate = new SqlRowPredicate(filters, rowType);</span>
+         }
+<span class="nc" id="L118">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L119">        LOG.debug(&quot;Unable to resolve filter {}&quot;, filters, ex);</span>
+<span class="nc" id="L120">      }</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">      if (predicate != null) {</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
+<span class="nc" id="L123">          List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
+<span class="nc" id="L124">          it = dataSet.getData(predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
+<span class="nc" id="L125">        } else {</span>
+<span class="nc" id="L126">          it = project(dataSet.getData(predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
+        }
+<span class="nc" id="L128">        filters.clear();</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">      } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
+<span class="nc" id="L130">        List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
+<span class="nc" id="L131">        it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
+<span class="nc" id="L132">      } else {</span>
+<span class="nc" id="L133">        it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
+      }
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
+<span class="nc" id="L136">      List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
+<span class="nc" id="L137">      it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
+<span class="nc" id="L138">    } else {</span>
+<span class="nc" id="L139">      it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
+    }
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    return new AvroEnumerable(projection == null ? rowType.getFieldCount() : projection.length, root, () -&gt; {</span>
+<span class="nc" id="L142">        return CloseableIterator.from((Iterator&lt;IndexedRecord&gt;) it.iterator(), it);</span>
+      });
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L148">    return &quot;AvroDataSetAsProjectableFilterableTable{&quot; + &quot;dataSet=&quot; + dataSet + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

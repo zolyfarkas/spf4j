@@ -62,10 +62,10 @@
 <a class="jxr_linenumber" name="L54" href="#L54">54</a>      <strong class="jxr_keyword">if</strong> (decision.getDecisionType() == RetryDecision.Type.Retry) {
 <a class="jxr_linenumber" name="L55" href="#L55">55</a>        <strong class="jxr_keyword">long</strong> timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
 <a class="jxr_linenumber" name="L56" href="#L56">56</a>        <strong class="jxr_keyword">if</strong> (timeToDeadlineNanos &lt; decision.getDelayNanos()) {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>          TimeoutException timeoutException = <strong class="jxr_keyword">new</strong> TimeoutException(<span class="jxr_string">"Time to deadline not enough "</span>
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>                  + timeToDeadlineNanos + <span class="jxr_string">" ns "</span>);
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>          timeoutException.addSuppressed(value);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          <strong class="jxr_keyword">return</strong> (RetryDecision) RetryDecision.abortThrow(timeoutException);
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          <em class="jxr_comment">//throw exception. attach explanation why retry not done.</em>
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          value.addSuppressed(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/NotEnoughTimeToRetry.html">NotEnoughTimeToRetry</a>(<span class="jxr_string">"Time to deadline not enough "</span>
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>                  + timeToDeadlineNanos + <span class="jxr_string">" ns "</span>));
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>          <strong class="jxr_keyword">return</strong> (RetryDecision) RetryDecision.abortThrow(value);
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>        }
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>      }
 <a class="jxr_linenumber" name="L63" href="#L63">63</a>      <strong class="jxr_keyword">return</strong> decision;

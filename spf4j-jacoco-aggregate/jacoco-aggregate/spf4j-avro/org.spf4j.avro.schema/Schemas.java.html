@@ -33,7 +33,10 @@ package org.spf4j.avro.schema;
 
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,15 +45,28 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.ImmutableSchema;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema.Field;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.reflect.ExtendedReflectData;
+import org.apache.avro.specific.SpecificData;
 import org.spf4j.base.CharSequences;
 import org.spf4j.ds.IdentityHashSet;
+import org.spf4j.io.csv.CharSeparatedValues;
+import org.spf4j.io.csv.CsvParseException;
 
 /**
  * Avro Schema utilities, to traverse...
@@ -62,20 +78,163 @@ import org.spf4j.ds.IdentityHashSet;
 @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;) // false positive
 public final class Schemas {
 
+<span class="fc" id="L81">  private static final CharSeparatedValues SCHEMA_PATH_CSV = new CharSeparatedValues('.');</span>
+
   private Schemas() {
   }
 
+  public static void diff(final Schema s1, final Schema s2, final Consumer&lt;SchemaDiff&gt; diffs) {
+<span class="fc" id="L87">    diff(&quot;&quot;, s1, s2, diffs, new IdentityHashSet&lt;Schema&gt;());</span>
+<span class="fc" id="L88">  }</span>
+
+  private static void diff(final String path, final Schema s1,
+          final Schema s2, final Consumer&lt;SchemaDiff&gt; diffs, final Set&lt;Schema&gt; visited) {
+<span class="fc bfc" id="L92" title="All 2 branches covered.">    if (visited.contains(s1)) {</span>
+<span class="fc" id="L93">      return;</span>
+    }
+<span class="fc" id="L95">    Schema.Type type1 = s1.getType();</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">    if (s2.getType() != type1) {</span>
+<span class="nc" id="L97">      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_TYPES));</span>
+<span class="nc" id="L98">      return;</span>
+    } else {
+<span class="pc bpc" id="L100" title="3 of 8 branches missed.">      switch (type1) {</span>
+        case BOOLEAN:
+        case BYTES:
+        case DOUBLE:
+        case FLOAT:
+        case INT:
+        case LONG:
+        case NULL:
+        case STRING:
+<span class="fc" id="L109">          break;</span>
+        case FIXED:
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">          if (s1.getFixedSize() != s2.getFixedSize()) {</span>
+<span class="nc" id="L112">            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_FIXED_SIZE));</span>
+          }
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">          if (!s1.getFullName().equals(s2.getFullName())) {</span>
+<span class="nc" id="L115">            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));</span>
+          }
+          break;
+        case ARRAY:
+<span class="fc" id="L119">          visited.add(s1);</span>
+<span class="fc" id="L120">          diff(pathAdd(path, &quot;[]&quot;), s1.getElementType(), s2.getElementType(), diffs, visited);</span>
+<span class="fc" id="L121">          break;</span>
+        case MAP:
+<span class="nc" id="L123">          visited.add(s1);</span>
+<span class="nc" id="L124">          diff(pathAdd(path, &quot;{}&quot;), s1.getValueType(), s2.getValueType(), diffs, visited);</span>
+<span class="nc" id="L125">          break;</span>
+        case ENUM:
+<span class="nc bnc" id="L127" title="All 2 branches missed.">          if (!s1.getFullName().equals(s2.getFullName())) {</span>
+<span class="nc" id="L128">            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));</span>
+          }
+<span class="nc" id="L130">          List&lt;String&gt; s1s = s1.getEnumStringSymbols();</span>
+<span class="nc" id="L131">          List&lt;String&gt; s2s = s2.getEnumStringSymbols();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">          if (!(s1s.containsAll(s2s)</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">                  &amp;&amp; s2s.containsAll(s1s))) {</span>
+<span class="nc" id="L134">            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_ENUM_VALUES));</span>
+          }
+          break;
+        case UNION:
+<span class="fc" id="L138">          visited.add(s1);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">          for (Schema s : s1.getTypes()) {</span>
+<span class="fc" id="L140">            Schema os = getFromUnion(s, s2);</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">            if (os == null) {</span>
+<span class="fc" id="L142">              diffs.accept(SchemaDiff.of(path, s, null, SchemaDiff.Type.SCHEMA_MISSING_RIGHT));</span>
+            } else {
+<span class="fc" id="L144">              diff(path, s, os, diffs, visited);</span>
+            }
+<span class="fc" id="L146">          }</span>
+<span class="fc bfc" id="L147" title="All 2 branches covered.">          for (Schema s : s2.getTypes()) {</span>
+<span class="fc" id="L148">            Schema os = getFromUnion(s, s2);</span>
+<span class="pc bpc" id="L149" title="1 of 2 branches missed.">            if (os == null) {</span>
+<span class="nc" id="L150">              diffs.accept(SchemaDiff.of(path, null, s, SchemaDiff.Type.SCHEMA_MISSING_LEFT));</span>
+            }
+<span class="fc" id="L152">          }</span>
+<span class="fc" id="L153">          break;</span>
+        case RECORD:
+<span class="fc" id="L155">          visited.add(s1);</span>
+<span class="fc bfc" id="L156" title="All 2 branches covered.">         if (!s1.getFullName().equals(s2.getFullName())) {</span>
+<span class="fc" id="L157">            diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_NAMES));</span>
+          }
+<span class="fc bfc" id="L159" title="All 2 branches covered.">          for (Schema.Field field1 : s1.getFields()) {</span>
+<span class="fc" id="L160">            Field field2 = s2.getField(field1.name());</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">            if (field2 == null) {</span>
+<span class="fc" id="L162">              diffs.accept(SchemaDiff.of(path,</span>
+                      field1, null, SchemaDiff.Type.FIELD_MISSING_RIGHT));
+            } else {
+<span class="fc" id="L165">              diff(pathAdd(path, field1.name()), field1.schema(), field2.schema(), diffs, visited);</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">              if (!Objects.equals(field1.defaultVal(), field2.defaultVal())) {</span>
+<span class="nc" id="L167">                diffs.accept(SchemaDiff.of(path,</span>
+                        field1, field2, SchemaDiff.Type.DIFFERENT_FIELD_DEFAULTS));
+              }
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">              if (!field1.getObjectProps().equals(field2.getObjectProps())) {</span>
+<span class="nc" id="L171">                diffs.accept(SchemaDiff.of(path,</span>
+                        field1, field2, SchemaDiff.Type.DIFFERENT_FIELD_PROPERTIES));
+              }
+<span class="fc bfc" id="L174" title="All 2 branches covered.">              if (!Objects.equals(field1.doc(), field2.doc())) {</span>
+<span class="fc" id="L175">                diffs.accept(SchemaDiff.of(path,</span>
+                        field1, field2, SchemaDiff.Type.DIFFERRENT_FIELD_DOC));
+              }
+            }
+<span class="fc" id="L179">          }</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">          for (Schema.Field field2 : s2.getFields()) {</span>
+<span class="fc" id="L181">            Field field1 = s1.getField(field2.name());</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">            if (field1 == null) {</span>
+<span class="fc" id="L183">              diffs.accept(SchemaDiff.of(path, null, field2, SchemaDiff.Type.FIELD_MISSING_LEFT));</span>
+            }
+<span class="fc" id="L185">          }</span>
+<span class="fc" id="L186">          break;</span>
+          default:
+<span class="nc" id="L188">            throw new IllegalStateException(&quot;Invalid Schema &quot; + s1);</span>
+      }
+    }
+<span class="fc bfc" id="L191" title="All 2 branches covered.">    if (!Objects.equals(s1.getLogicalType(), s2.getLogicalType())) {</span>
+<span class="fc" id="L192">      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_LOGICAL_TYPES));</span>
+    }
+<span class="fc bfc" id="L194" title="All 2 branches covered.">    if (!s1.getObjectProps().equals(s2.getObjectProps())) {</span>
+<span class="fc" id="L195">      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERENT_SCHEMA_PROPERTIES));</span>
+    }
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    if (!Objects.equals(s1.getDoc(), s2.getDoc())) {</span>
+<span class="nc" id="L198">      diffs.accept(SchemaDiff.of(path, s1, s2, SchemaDiff.Type.DIFFERRENT_SCHEMA_DOC));</span>
+    }
+<span class="fc" id="L200">  }</span>
+
+  private static String pathAdd(final String p, final String ref) {
+<span class="fc bfc" id="L203" title="All 2 branches covered.">    if (p.isEmpty()) {</span>
+<span class="fc" id="L204">      return SCHEMA_PATH_CSV.toCsvElement(ref);</span>
+    } else {
+<span class="fc" id="L206">      return p + '.' + SCHEMA_PATH_CSV.toCsvElement(ref);</span>
+    }
+  }
+
+  @Nullable
+  public static Schema getFromUnion(final Schema what, final Schema unionSchema) {
+<span class="fc" id="L212">    String fullName = what.getFullName();</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">    for (Schema s : unionSchema.getTypes()) {</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">      if (fullName.equals(s.getFullName())) {</span>
+<span class="fc" id="L215">        return s;</span>
+      }
+<span class="fc" id="L217">    }</span>
+<span class="fc" id="L218">    return null;</span>
+  }
+
+
+  public static void deprecations(final Schema schema,
+          final BiConsumer&lt;String, String&gt; toPut) {
+<span class="nc" id="L224">    visit(schema, new DeprecationVisitor(toPut));</span>
+<span class="nc" id="L225">  }</span>
+
   @Nonnull
   public static ImmutableSchema immutable(final Schema schema) {
-<span class="nc bnc" id="L70" title="All 2 branches missed.">    if (schema instanceof ImmutableSchema) {</span>
-<span class="nc" id="L71">      return (ImmutableSchema) schema;</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">    if (schema instanceof ImmutableSchema) {</span>
+<span class="nc" id="L230">      return (ImmutableSchema) schema;</span>
     }
-<span class="nc" id="L73">    return visit(schema, new ImmutableCloningVisitor(schema, false));</span>
+<span class="nc" id="L232">    return visit(schema, new ImmutableCloningVisitor(schema, false));</span>
   }
 
   @Nonnull
   public static ImmutableSchema immutable(final Schema schema, final boolean withSerializationSignificatAttrsonly) {
-<span class="nc" id="L78">    return visit(schema, new ImmutableCloningVisitor(schema, withSerializationSignificatAttrsonly));</span>
+<span class="nc" id="L237">    return visit(schema, new ImmutableCloningVisitor(schema, withSerializationSignificatAttrsonly));</span>
   }
 
   /**
@@ -86,55 +245,55 @@ public final class Schemas {
    */
   public static &lt;T&gt; T visit(final Schema start, final SchemaVisitor&lt;T&gt; visitor) {
     // Set of Visited Schemas
-<span class="fc" id="L89">    IdentityHashSet&lt;Schema&gt; visited = new IdentityHashSet&lt;&gt;();</span>
+<span class="fc" id="L248">    IdentityHashSet&lt;Schema&gt; visited = new IdentityHashSet&lt;&gt;();</span>
     // Stack that contains the Schams to process and afterVisitNonTerminal functions.
     // Deque&lt;Either&lt;Schema, Supplier&lt;SchemaVisitorAction&gt;&gt;&gt;
     // Using either has a cost which we want to avoid...
-<span class="fc" id="L93">    Deque&lt;Object&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L94">    dq.addLast(start);</span>
+<span class="fc" id="L252">    Deque&lt;Object&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L253">    dq.addLast(start);</span>
     Object current;
-<span class="fc bfc" id="L96" title="All 2 branches covered.">    while ((current = dq.pollLast()) != null) {</span>
-<span class="fc bfc" id="L97" title="All 2 branches covered.">      if (current instanceof Supplier) {</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">    while ((current = dq.pollLast()) != null) {</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">      if (current instanceof Supplier) {</span>
         // we are executing a non terminal post visit.
-<span class="fc" id="L99">        SchemaVisitorAction action = ((Supplier&lt;SchemaVisitorAction&gt;) current).get();</span>
-<span class="pc bpc" id="L100" title="4 of 5 branches missed.">        switch (action) {</span>
+<span class="fc" id="L258">        SchemaVisitorAction action = ((Supplier&lt;SchemaVisitorAction&gt;) current).get();</span>
+<span class="pc bpc" id="L259" title="4 of 5 branches missed.">        switch (action) {</span>
           case CONTINUE:
-<span class="fc" id="L102">            break;</span>
+<span class="fc" id="L261">            break;</span>
           case SKIP_SUBTREE:
-<span class="nc" id="L104">            throw new UnsupportedOperationException();</span>
+<span class="nc" id="L263">            throw new UnsupportedOperationException();</span>
           case SKIP_SIBLINGS:
-<span class="nc bnc" id="L106" title="All 2 branches missed.">            while (dq.getLast() instanceof Schema) {</span>
-<span class="nc" id="L107">              dq.removeLast();</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">            while (dq.getLast() instanceof Schema) {</span>
+<span class="nc" id="L266">              dq.removeLast();</span>
             }
             break;
           case TERMINATE:
-<span class="nc" id="L111">            return visitor.get();</span>
+<span class="nc" id="L270">            return visitor.get();</span>
           default:
-<span class="nc" id="L113">            throw new UnsupportedOperationException(&quot;Invalid action &quot; + action);</span>
+<span class="nc" id="L272">            throw new UnsupportedOperationException(&quot;Invalid action &quot; + action);</span>
         }
-<span class="fc" id="L115">      } else {</span>
-<span class="fc" id="L116">        Schema schema = (Schema) current;</span>
+<span class="fc" id="L274">      } else {</span>
+<span class="fc" id="L275">        Schema schema = (Schema) current;</span>
         boolean terminate;
-<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (!visited.contains(schema)) {</span>
-<span class="fc" id="L119">          Schema.Type type = schema.getType();</span>
-<span class="pc bpc" id="L120" title="1 of 6 branches missed.">          switch (type) {</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">        if (!visited.contains(schema)) {</span>
+<span class="fc" id="L278">          Schema.Type type = schema.getType();</span>
+<span class="pc bpc" id="L279" title="1 of 6 branches missed.">          switch (type) {</span>
             case ARRAY:
-<span class="fc" id="L122">              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getElementType()));</span>
-<span class="fc" id="L123">              visited.add(schema);</span>
-<span class="fc" id="L124">              break;</span>
+<span class="fc" id="L281">              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getElementType()));</span>
+<span class="fc" id="L282">              visited.add(schema);</span>
+<span class="fc" id="L283">              break;</span>
             case RECORD:
-<span class="fc" id="L126">              terminate = visitNonTerminal(visitor, schema, dq,</span>
-<span class="fc" id="L127">                      Lists.transform(Lists.reverse(schema.getFields()), Field::schema));</span>
-<span class="fc" id="L128">              visited.add(schema);</span>
-<span class="fc" id="L129">              break;</span>
+<span class="fc" id="L285">              terminate = visitNonTerminal(visitor, schema, dq,</span>
+<span class="fc" id="L286">                      Lists.transform(Lists.reverse(schema.getFields()), Field::schema));</span>
+<span class="fc" id="L287">              visited.add(schema);</span>
+<span class="fc" id="L288">              break;</span>
             case UNION:
-<span class="fc" id="L131">              terminate = visitNonTerminal(visitor, schema, dq, schema.getTypes());</span>
-<span class="fc" id="L132">              visited.add(schema);</span>
-<span class="fc" id="L133">              break;</span>
+<span class="fc" id="L290">              terminate = visitNonTerminal(visitor, schema, dq, schema.getTypes());</span>
+<span class="fc" id="L291">              visited.add(schema);</span>
+<span class="fc" id="L292">              break;</span>
             case MAP:
-<span class="fc" id="L135">              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getValueType()));</span>
-<span class="fc" id="L136">              visited.add(schema);</span>
-<span class="fc" id="L137">              break;</span>
+<span class="fc" id="L294">              terminate = visitNonTerminal(visitor, schema, dq, Collections.singletonList(schema.getValueType()));</span>
+<span class="fc" id="L295">              visited.add(schema);</span>
+<span class="fc" id="L296">              break;</span>
             case NULL:
             case BOOLEAN:
             case BYTES:
@@ -145,278 +304,531 @@ public final class Schemas {
             case INT:
             case LONG:
             case STRING:
-<span class="fc" id="L148">              terminate = visitTerminal(visitor, schema, dq);</span>
-<span class="fc" id="L149">              break;</span>
+<span class="fc" id="L307">              terminate = visitTerminal(visitor, schema, dq);</span>
+<span class="fc" id="L308">              break;</span>
             default:
-<span class="nc" id="L151">              throw new UnsupportedOperationException(&quot;Invalid type &quot; + type);</span>
+<span class="nc" id="L310">              throw new UnsupportedOperationException(&quot;Invalid type &quot; + type);</span>
           }
-
-<span class="fc" id="L154">        } else {</span>
-<span class="fc" id="L155">          terminate = visitTerminal(visitor, schema, dq);</span>
+<span class="fc" id="L312">        } else {</span>
+<span class="fc" id="L313">          terminate = visitTerminal(visitor, schema, dq);</span>
         }
-<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (terminate) {</span>
-<span class="nc" id="L158">          return visitor.get();</span>
+<span class="pc bpc" id="L315" title="1 of 2 branches missed.">        if (terminate) {</span>
+<span class="nc" id="L316">          return visitor.get();</span>
         }
-<span class="fc" id="L160">      }</span>
+<span class="fc" id="L318">      }</span>
     }
-<span class="fc" id="L162">    return visitor.get();</span>
+<span class="fc" id="L320">    return visitor.get();</span>
   }
 
   private static boolean visitNonTerminal(final SchemaVisitor visitor,
           final Schema schema, final Deque&lt;Object&gt; dq,
           final Iterable&lt;Schema&gt; itSupp) {
-<span class="fc" id="L168">    SchemaVisitorAction action = visitor.visitNonTerminal(schema);</span>
-<span class="pc bpc" id="L169" title="4 of 5 branches missed.">    switch (action) {</span>
+<span class="fc" id="L326">    SchemaVisitorAction action = visitor.visitNonTerminal(schema);</span>
+<span class="pc bpc" id="L327" title="4 of 5 branches missed.">    switch (action) {</span>
       case CONTINUE:
-<span class="fc" id="L171">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
-<span class="fc" id="L172">        Iterator&lt;Schema&gt; it = itSupp.iterator();</span>
-<span class="fc bfc" id="L173" title="All 2 branches covered.">        while (it.hasNext()) {</span>
-<span class="fc" id="L174">          Schema child = it.next();</span>
-<span class="fc" id="L175">          dq.addLast(child);</span>
-<span class="fc" id="L176">        }</span>
+<span class="fc" id="L329">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
+<span class="fc" id="L330">        Iterator&lt;Schema&gt; it = itSupp.iterator();</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">        while (it.hasNext()) {</span>
+<span class="fc" id="L332">          Schema child = it.next();</span>
+<span class="fc" id="L333">          dq.addLast(child);</span>
+<span class="fc" id="L334">        }</span>
         break;
       case SKIP_SUBTREE:
-<span class="nc" id="L179">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
-<span class="nc" id="L180">        break;</span>
+<span class="nc" id="L337">        dq.addLast((Supplier&lt;SchemaVisitorAction&gt;) () -&gt; visitor.afterVisitNonTerminal(schema));</span>
+<span class="nc" id="L338">        break;</span>
       case SKIP_SIBLINGS:
-<span class="nc bnc" id="L182" title="All 4 branches missed.">        while (!dq.isEmpty() &amp;&amp; dq.getLast() instanceof Schema) {</span>
-<span class="nc" id="L183">          dq.removeLast();</span>
+<span class="nc bnc" id="L340" title="All 4 branches missed.">        while (!dq.isEmpty() &amp;&amp; dq.getLast() instanceof Schema) {</span>
+<span class="nc" id="L341">          dq.removeLast();</span>
         }
         break;
       case TERMINATE:
-<span class="nc" id="L187">        return true;</span>
+<span class="nc" id="L345">        return true;</span>
       default:
-<span class="nc" id="L189">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
+<span class="nc" id="L347">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
     }
-<span class="fc" id="L191">    return false;</span>
+<span class="fc" id="L349">    return false;</span>
   }
 
   private static boolean visitTerminal(final SchemaVisitor visitor, final Schema schema,
           final Deque&lt;Object&gt; dq) {
-<span class="fc" id="L196">    SchemaVisitorAction action = visitor.visitTerminal(schema);</span>
-<span class="pc bpc" id="L197" title="4 of 5 branches missed.">    switch (action) {</span>
+<span class="fc" id="L354">    SchemaVisitorAction action = visitor.visitTerminal(schema);</span>
+<span class="pc bpc" id="L355" title="4 of 5 branches missed.">    switch (action) {</span>
       case CONTINUE:
-<span class="fc" id="L199">        break;</span>
+<span class="fc" id="L357">        break;</span>
       case SKIP_SUBTREE:
-<span class="nc" id="L201">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
+<span class="nc" id="L359">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
       case SKIP_SIBLINGS:
         Object current;
         //CHECKSTYLE:OFF InnerAssignment
-<span class="nc bnc" id="L205" title="All 2 branches missed.">        while ((current = dq.getLast()) instanceof Schema) {</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">        while ((current = dq.getLast()) instanceof Schema) {</span>
           // just skip
         }
         //CHECKSTYLE:ON
-<span class="nc" id="L209">        dq.addLast(current);</span>
-<span class="nc" id="L210">        break;</span>
+<span class="nc" id="L367">        dq.addLast(current);</span>
+<span class="nc" id="L368">        break;</span>
       case TERMINATE:
-<span class="nc" id="L212">        return true;</span>
+<span class="nc" id="L370">        return true;</span>
       default:
-<span class="nc" id="L214">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
+<span class="nc" id="L372">        throw new UnsupportedOperationException(&quot;Invalid action &quot; + action + &quot; for &quot; + schema);</span>
     }
-<span class="fc" id="L216">    return false;</span>
+<span class="fc" id="L374">    return false;</span>
   }
 
   public static boolean isNullableUnion(final Schema schema) {
-<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (!(schema.getType() == Schema.Type.UNION)) {</span>
-<span class="nc" id="L221">      return false;</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">    if (schema.getType() != Schema.Type.UNION) {</span>
+<span class="nc" id="L379">      return false;</span>
     }
-<span class="nc bnc" id="L223" title="All 2 branches missed.">    for (Schema ss : schema.getTypes()) {</span>
-<span class="nc bnc" id="L224" title="All 2 branches missed.">      if (ss.getType() == Schema.Type.NULL) {</span>
-<span class="nc" id="L225">        return true;</span>
+<span class="nc bnc" id="L381" title="All 2 branches missed.">    for (Schema ss : schema.getTypes()) {</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">      if (ss.getType() == Schema.Type.NULL) {</span>
+<span class="nc" id="L383">        return true;</span>
       }
-<span class="nc" id="L227">    }</span>
-<span class="nc" id="L228">    return false;</span>
+<span class="nc" id="L385">    }</span>
+<span class="nc" id="L386">    return false;</span>
   }
 
+  @Nullable
+  public static Schema nullableUnionSchema(final Schema schema) {
+<span class="nc bnc" id="L391" title="All 2 branches missed.">    if (!(schema.getType() == Schema.Type.UNION)) {</span>
+<span class="nc" id="L392">      return null;</span>
+    }
+<span class="nc" id="L394">    List&lt;Schema&gt; types = schema.getTypes();</span>
+<span class="nc bnc" id="L395" title="All 2 branches missed.">    if (types.size() != 2) {</span>
+<span class="nc" id="L396">      return null;</span>
+    }
+<span class="nc bnc" id="L398" title="All 2 branches missed.">    if (types.get(0).getType() == Schema.Type.NULL) {</span>
+<span class="nc" id="L399">      return types.get(1);</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">    } else if (types.get(1).getType() == Schema.Type.NULL) {</span>
+<span class="nc" id="L401">      return types.get(0);</span>
+    } else {
+<span class="nc" id="L403">      return null;</span>
+    }
+  }
+
+  @Nullable
   public static Schema getSubSchema(final Schema schema, final CharSequence path) {
-<span class="fc" id="L232">    return getSubSchema(schema, path, 0);</span>
+<span class="fc bfc" id="L409" title="All 2 branches covered.">    if (path.length() == 0) {</span>
+<span class="fc" id="L410">      return schema;</span>
+    }
+    List&lt;String&gt; parsedPath;
+    try {
+<span class="fc" id="L414">      parsedPath = SCHEMA_PATH_CSV.readRow(CharSequences.reader(path));</span>
+<span class="nc" id="L415">    } catch (IOException ex) {</span>
+<span class="nc" id="L416">      throw new RuntimeException(ex);</span>
+<span class="nc" id="L417">    } catch (CsvParseException ex) {</span>
+<span class="nc" id="L418">      throw new IllegalArgumentException(&quot;Invalid path &quot; + path, ex);</span>
+<span class="fc" id="L419">    }</span>
+<span class="fc" id="L420">    Schema result = schema;</span>
+<span class="fc bfc" id="L421" title="All 2 branches covered.">    for (String part : parsedPath) {</span>
+<span class="fc" id="L422">      result = getSegment(result, part);</span>
+<span class="fc bfc" id="L423" title="All 2 branches covered.">      if (result == null) {</span>
+<span class="fc" id="L424">        return null;</span>
+      }
+<span class="fc" id="L426">    }</span>
+<span class="fc" id="L427">    return result;</span>
   }
 
-  public static Schema getSubSchema(final Schema schema, final CharSequence path, final int at) {
-<span class="fc" id="L236">    int length = path.length();</span>
-<span class="pc bpc" id="L237" title="1 of 2 branches missed.">    if (at &gt;= length) {</span>
-<span class="nc" id="L238">      return schema;</span>
-    }
-<span class="fc" id="L240">    int to = CharSequences.indexOf(path, at, length, '.');</span>
-<span class="fc bfc" id="L241" title="All 2 branches covered.">    if (to &lt; 0) {</span>
-<span class="fc" id="L242">      to = length;</span>
-    }
-
-<span class="fc" id="L245">    String part = CharSequences.subSequence(path, at, to).toString().trim();</span>
-<span class="pc bpc" id="L246" title="2 of 4 branches missed.">    switch (schema.getType()) {</span>
-      case ARRAY:
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        if (&quot;[]&quot;.equals(part)) {</span>
-<span class="pc bpc" id="L249" title="1 of 2 branches missed.">          if (to == length) {</span>
-<span class="nc" id="L250">            return schema.getElementType();</span>
+  @Nullable
+  private static Schema getSegment(final Schema result, final String part) {
+<span class="pc bpc" id="L432" title="3 of 5 branches missed.">    switch (result.getType()) {</span>
+        case ARRAY:
+<span class="pc bpc" id="L434" title="1 of 2 branches missed.">          if (&quot;[]&quot;.equals(part)) {</span>
+<span class="fc" id="L435">            return result.getElementType();</span>
           }
-<span class="fc" id="L252">          return getSubSchema(schema.getElementType(), path, to + 1);</span>
-        } else {
-<span class="nc" id="L254">          throw new IllegalArgumentException(&quot;Invalid path &quot; + path + &quot; at &quot; + at + &quot;, &quot; + schema);</span>
-        }
-      case MAP:
-<span class="nc bnc" id="L257" title="All 2 branches missed.">        if (&quot;{}&quot;.equals(part)) {</span>
-<span class="nc bnc" id="L258" title="All 2 branches missed.">          if (to == length) {</span>
-<span class="nc" id="L259">            return schema.getValueType();</span>
+          break;
+        case MAP:
+<span class="nc bnc" id="L439" title="All 2 branches missed.">          if (&quot;{}&quot;.equals(part)) {</span>
+<span class="nc" id="L440">            return result.getValueType();</span>
           }
-<span class="nc" id="L261">          return getSubSchema(schema.getValueType(), path, to + 1);</span>
-        } else {
-<span class="nc" id="L263">          throw new IllegalArgumentException(&quot;Invalid path &quot; + path + &quot; at &quot; + at + &quot;, &quot; + schema);</span>
-        }
-      case RECORD:
-<span class="pc bpc" id="L266" title="1 of 2 branches missed.">        for (Schema.Field field : schema.getFields()) {</span>
-<span class="pc bpc" id="L267" title="3 of 4 branches missed.">          if (part.equals(field.name()) || field.aliases().contains(part)) {</span>
-<span class="fc bfc" id="L268" title="All 2 branches covered.">            if (to == length) {</span>
-<span class="fc" id="L269">              return field.schema();</span>
+          break;
+        case UNION:
+<span class="nc bnc" id="L444" title="All 2 branches missed.">          for (Schema us : result.getTypes()) {</span>
+<span class="nc" id="L445">            Schema ur = getSegment(us, part);</span>
+<span class="nc bnc" id="L446" title="All 2 branches missed.">            if (ur != null) {</span>
+<span class="nc" id="L447">              return ur;</span>
             }
-<span class="fc" id="L271">            return getSubSchema(field.schema(), path, to + 1);</span>
+<span class="nc" id="L449">          }</span>
+<span class="nc" id="L450">          break;</span>
+        case RECORD:
+<span class="fc" id="L452">          Field field = result.getField(part);</span>
+<span class="fc bfc" id="L453" title="All 2 branches covered.">          if (field == null) {</span>
+<span class="fc bfc" id="L454" title="All 2 branches covered.">            for (Schema.Field f : result.getFields()) {</span>
+<span class="pc bpc" id="L455" title="1 of 2 branches missed.">              if (f.aliases().contains(part)) {</span>
+<span class="nc" id="L456">                field = f;</span>
+              }
+<span class="fc" id="L458">            }</span>
           }
-<span class="nc" id="L273">        }</span>
-<span class="nc" id="L274">        throw new IllegalArgumentException(&quot;Invalid path &quot; + path + &quot; at &quot; + at + &quot;, &quot; + schema);</span>
-      default:
-<span class="nc" id="L276">        throw new IllegalArgumentException(&quot;Invalid path &quot; + path + &quot; at &quot; + at + &quot;, &quot; + schema);</span>
-    }
-
+<span class="fc bfc" id="L460" title="All 2 branches covered.">          if (field != null) {</span>
+<span class="fc" id="L461">            return field.schema();</span>
+          }
+          break;
+        default:
+<span class="nc" id="L465">          return null;</span>
+      }
+<span class="fc" id="L467">      return null;</span>
   }
+
+  public static Schema projectRecord(final Schema schema, final int[] projection) {
+<span class="nc" id="L471">    List&lt;Field&gt; fields = schema.getFields();</span>
+<span class="nc" id="L472">    List&lt;Field&gt; nFields = new ArrayList&lt;&gt;(projection.length);</span>
+<span class="nc bnc" id="L473" title="All 2 branches missed.">    for (int i = 0; i &lt; projection.length; i++) {</span>
+<span class="nc" id="L474">      Field of = fields.get(projection[i]);</span>
+<span class="nc" id="L475">      Field nfield = new Schema.Field(of, of.schema());</span>
+<span class="nc" id="L476">      nFields.add(nfield);</span>
+    }
+<span class="nc bnc" id="L478" title="All 2 branches missed.">    if (isSameFields(fields, nFields)) {</span>
+<span class="nc" id="L479">      return schema;</span>
+    }
+<span class="nc" id="L481">    Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),</span>
+<span class="nc" id="L482">            &quot;_p.&quot; + schema.getNamespace(), schema.isError());</span>
+<span class="nc" id="L483">    rec.setFields(nFields);</span>
+<span class="nc" id="L484">    String dep = schema.getProp(&quot;deprecated&quot;);</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">    if (dep != null) {</span>
+<span class="nc" id="L486">      rec.addProp(&quot;deprecated&quot;, dep);</span>
+    }
+<span class="nc" id="L488">    return rec;</span>
+  }
+
 
   @Nullable
   public static Schema project(final Schema schema, final CharSequence... paths) {
-<span class="pc bpc" id="L283" title="1 of 6 branches missed.">    if (paths.length == 0 || (paths.length == 1 &amp;&amp; paths[0].length() == 0)) {</span>
-<span class="fc" id="L284">      return schema;</span>
+<span class="fc" id="L494">    return project(schema, Arrays.asList(paths));</span>
+  }
+
+  /**
+   * create a schema projection(partial schema) from a destination schema.
+   *
+   * @param schema the schema to project.
+   * @param paths the paths to elements (paths to record fields) included in the subschema.
+   * @return the subschema.
+   */
+  @Nullable
+  public static Schema project(final Schema schema, final List&lt;? extends CharSequence&gt; paths) {
+<span class="fc" id="L506">    final List&lt;List&lt;String&gt;&gt; p = new ArrayList&lt;&gt;(paths.size());</span>
+<span class="fc bfc" id="L507" title="All 2 branches covered.">    for (CharSequence cs : paths) {</span>
+      try {
+<span class="fc" id="L509">        p.add(SCHEMA_PATH_CSV.readRow(CharSequences.reader(cs)));</span>
+<span class="nc" id="L510">      } catch (IOException ex) {</span>
+<span class="nc" id="L511">        throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L512">      } catch (CsvParseException ex) {</span>
+<span class="nc" id="L513">        throw new IllegalArgumentException(&quot;Invalid projection path &quot; + cs, ex);</span>
+<span class="fc" id="L514">      }</span>
+<span class="fc" id="L515">    }</span>
+<span class="fc" id="L516">    return projectInternal(schema, p);</span>
+  }
+
+  @Nullable
+  private static Schema projectInternal(final Schema schema, final List&lt;List&lt;String&gt;&gt; paths) {
+<span class="fc" id="L521">    int length = paths.size();</span>
+<span class="pc bpc" id="L522" title="1 of 2 branches missed.">    if (length == 0) {</span>
+<span class="nc" id="L523">      return schema;</span>
     }
-    List&lt;CharSequence&gt; seqs;
-<span class="pc bpc" id="L287" title="4 of 5 branches missed.">    switch (schema.getType()) {</span>
+<span class="fc bfc" id="L525" title="All 2 branches covered.">    if (length == 1) {</span>
+<span class="fc" id="L526">       List&lt;String&gt; first = paths.get(0);</span>
+<span class="fc bfc" id="L527" title="All 6 branches covered.">       if (first.isEmpty() || (first.size() == 1 &amp;&amp; first.get(0).isEmpty())) {</span>
+<span class="fc" id="L528">         return schema;</span>
+       }
+    }
+    List&lt;List&lt;String&gt;&gt; seqs;
+<span class="pc bpc" id="L532" title="3 of 5 branches missed.">    switch (schema.getType()) {</span>
       case ARRAY:
-<span class="nc" id="L289">        seqs = new ArrayList&lt;&gt;(paths.length);</span>
-<span class="nc bnc" id="L290" title="All 2 branches missed.">        for (CharSequence path : paths) {</span>
-<span class="nc" id="L291">          String part = getFirstRef(path);</span>
-<span class="nc bnc" id="L292" title="All 2 branches missed.">          if (&quot;[]&quot;.equals(part)) {</span>
-<span class="nc bnc" id="L293" title="All 2 branches missed.">            if (part.length() == path.length()) {</span>
-<span class="nc" id="L294">              return schema;</span>
+<span class="fc" id="L534">        seqs = new ArrayList&lt;&gt;(length);</span>
+<span class="fc bfc" id="L535" title="All 2 branches covered.">        for (List&lt;String&gt; path : paths) {</span>
+<span class="fc" id="L536">          String part = path.get(0);</span>
+<span class="pc bpc" id="L537" title="1 of 2 branches missed.">          if (&quot;[]&quot;.equals(part)) {</span>
+<span class="fc" id="L538">            int pSize = path.size();</span>
+<span class="fc bfc" id="L539" title="All 2 branches covered.">            if (pSize == 1) {</span>
+<span class="fc" id="L540">              return schema;</span>
             }
-<span class="nc" id="L296">            seqs.add(part.substring(part.length() + 1));</span>
-          } else {
-<span class="nc" id="L298">            return null;</span>
+<span class="fc" id="L542">            seqs.add(path.subList(1, pSize));</span>
+<span class="fc" id="L543">          } else {</span>
+<span class="nc" id="L544">            return null;</span>
           }
+<span class="fc" id="L546">        }</span>
+<span class="pc bpc" id="L547" title="1 of 2 branches missed.">        if (seqs.isEmpty()) {</span>
+<span class="nc" id="L548">          return null;</span>
         }
-<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (seqs.isEmpty()) {</span>
-<span class="nc" id="L302">          return null;</span>
-        }
-<span class="nc" id="L304">        return Schema.createArray(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));</span>
+<span class="fc" id="L550">        return Schema.createArray(projectInternal(schema.getElementType(), seqs));</span>
       case MAP:
-<span class="nc" id="L306">        seqs = new ArrayList&lt;&gt;(paths.length);</span>
-<span class="nc bnc" id="L307" title="All 2 branches missed.">        for (CharSequence path : paths) {</span>
-<span class="nc" id="L308">          String part = getFirstRef(path);</span>
-<span class="nc bnc" id="L309" title="All 2 branches missed.">          if (&quot;{}&quot;.equals(part)) {</span>
-<span class="nc bnc" id="L310" title="All 2 branches missed.">            if (part.length() == path.length()) {</span>
-<span class="nc" id="L311">              return schema;</span>
+<span class="nc" id="L552">        seqs = new ArrayList&lt;&gt;(length);</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">        for (List&lt;String&gt;  path : paths) {</span>
+<span class="nc" id="L554">          String part = path.get(0);</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">          if (&quot;{}&quot;.equals(part)) {</span>
+<span class="nc" id="L556">            int pSize = path.size();</span>
+<span class="nc bnc" id="L557" title="All 2 branches missed.">            if (1 == pSize) {</span>
+<span class="nc" id="L558">              return schema;</span>
             }
-<span class="nc" id="L313">            seqs.add(part.substring(&quot;{}&quot;.length() + 1));</span>
+<span class="nc" id="L560">            seqs.add(path.subList(1, pSize));</span>
           }
+<span class="nc" id="L562">        }</span>
+<span class="nc bnc" id="L563" title="All 2 branches missed.">        if (seqs.isEmpty()) {</span>
+<span class="nc" id="L564">          return null;</span>
         }
-<span class="nc bnc" id="L316" title="All 2 branches missed.">        if (seqs.isEmpty()) {</span>
-<span class="nc" id="L317">          return null;</span>
-        }
-<span class="nc" id="L319">        return Schema.createMap(project(schema.getElementType(), seqs.toArray(new CharSequence[seqs.size()])));</span>
+<span class="nc" id="L566">        return Schema.createMap(projectInternal(schema.getElementType(), seqs));</span>
       case RECORD:
-<span class="fc" id="L321">        Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(), schema.getNamespace(), schema.isError());</span>
-<span class="fc" id="L322">        List&lt;Field&gt; fields = schema.getFields();</span>
-<span class="fc" id="L323">        List&lt;Schema.Field&gt; nFields = new ArrayList&lt;&gt;(fields.size());</span>
-<span class="fc" id="L324">        List&lt;CharSequence&gt; tPaths = new LinkedList&lt;&gt;(Arrays.asList(paths));</span>
+<span class="fc" id="L568">        List&lt;Field&gt; fields = schema.getFields();</span>
+<span class="fc" id="L569">        List&lt;Schema.Field&gt; nFields = new ArrayList&lt;&gt;(fields.size());</span>
+<span class="fc" id="L570">        List&lt;List&lt;String&gt;&gt; tPaths = new LinkedList&lt;&gt;(paths);</span>
         do {
-<span class="fc" id="L326">          Field extract = extract(fields, tPaths);</span>
-<span class="fc bfc" id="L327" title="All 2 branches covered.">          if (extract == null) {</span>
-<span class="fc" id="L328">            return null;</span>
+<span class="fc" id="L572">          Field extract = extract(fields, tPaths);</span>
+<span class="fc bfc" id="L573" title="All 2 branches covered.">          if (extract == null) {</span>
+<span class="fc" id="L574">            return null;</span>
           }
-<span class="fc" id="L330">          nFields.add(extract);</span>
-<span class="fc bfc" id="L331" title="All 2 branches covered.">        } while (!tPaths.isEmpty());</span>
-<span class="fc" id="L332">        rec.setFields(nFields);</span>
-<span class="fc" id="L333">        return rec;</span>
+<span class="fc" id="L576">          nFields.add(extract);</span>
+<span class="fc bfc" id="L577" title="All 2 branches covered.">        } while (!tPaths.isEmpty());</span>
+<span class="fc bfc" id="L578" title="All 2 branches covered.">        if (isSameFields(fields, nFields)) {</span>
+<span class="fc" id="L579">          return schema;</span>
+        }
+<span class="fc" id="L581">        Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),</span>
+<span class="fc" id="L582">                &quot;_p.&quot; + schema.getNamespace(), schema.isError());</span>
+<span class="fc" id="L583">        rec.setFields(nFields);</span>
+<span class="fc" id="L584">        String dep = schema.getProp(&quot;deprecated&quot;);</span>
+<span class="pc bpc" id="L585" title="1 of 2 branches missed.">        if (dep != null) {</span>
+<span class="nc" id="L586">          rec.addProp(&quot;deprecated&quot;, dep);</span>
+        }
+<span class="fc" id="L588">        return rec;</span>
       case UNION:
-<span class="nc" id="L335">        List&lt;Schema&gt; types = schema.getTypes();</span>
-<span class="nc" id="L336">        List&lt;Schema&gt; nTypes = new ArrayList&lt;&gt;(types.size());</span>
-<span class="nc bnc" id="L337" title="All 2 branches missed.">        for (Schema us : types) {</span>
-<span class="nc bnc" id="L338" title="All 2 branches missed.">          if (us.getType() == Schema.Type.NULL) {</span>
-<span class="nc" id="L339">            nTypes.add(us);</span>
+<span class="nc" id="L590">        List&lt;Schema&gt; types = schema.getTypes();</span>
+<span class="nc" id="L591">        List&lt;Schema&gt; nTypes = new ArrayList&lt;&gt;(types.size());</span>
+<span class="nc bnc" id="L592" title="All 2 branches missed.">        for (Schema us : types) {</span>
+<span class="nc bnc" id="L593" title="All 2 branches missed.">          if (us.getType() == Schema.Type.NULL) {</span>
+<span class="nc" id="L594">            nTypes.add(us);</span>
           } else {
-<span class="nc" id="L341">            Schema project = project(us, paths);</span>
-<span class="nc bnc" id="L342" title="All 2 branches missed.">            if (project != null) {</span>
-<span class="nc" id="L343">              nTypes.add(project);</span>
+<span class="nc" id="L596">            Schema project = projectInternal(us, paths);</span>
+<span class="nc bnc" id="L597" title="All 2 branches missed.">            if (project != null) {</span>
+<span class="nc" id="L598">              nTypes.add(project);</span>
             }
           }
-<span class="nc" id="L346">        }</span>
-<span class="nc" id="L347">        return Schema.createUnion(nTypes);</span>
+<span class="nc" id="L601">        }</span>
+<span class="nc" id="L602">        return Schema.createUnion(nTypes);</span>
       default:
-<span class="nc" id="L349">        return null;</span>
+<span class="nc" id="L604">        return null;</span>
+    }
+  }
+
+  public static boolean isSameFields(final List&lt;Schema.Field&gt; f1s, final List&lt;Schema.Field&gt; f2s) {
+<span class="fc" id="L609">    int l1 = f1s.size();</span>
+<span class="fc" id="L610">    int l2 = f2s.size();</span>
+<span class="fc bfc" id="L611" title="All 2 branches covered.">    if (l1 != l2) {</span>
+<span class="fc" id="L612">      return false;</span>
+    }
+<span class="fc bfc" id="L614" title="All 2 branches covered.">    for (int i = 0; i &lt; l1; i++) {</span>
+<span class="fc" id="L615">      Schema.Field f1 = f1s.get(i);</span>
+<span class="fc" id="L616">      Schema.Field f2 = f2s.get(i);</span>
+<span class="fc bfc" id="L617" title="All 2 branches covered.">      if (!f1.name().equals(f2.name())</span>
+<span class="fc bfc" id="L618" title="All 2 branches covered.">              || !f1.schema().equals(f2.schema())) {</span>
+<span class="fc" id="L619">        return false;</span>
+      }
+    }
+<span class="fc" id="L622">    return true;</span>
+  }
+
+
+  /**
+   * Project a avro object to a destination.
+   * @param toSchema the object schema
+   * @param fromSchema the destination schema
+   * @param object the object to project.
+   * @return the projected object.
+   */
+  @Nullable
+  public static IndexedRecord project(final Schema toSchema, final Schema fromSchema,
+          @Nullable final IndexedRecord object) {
+<span class="nc" id="L636">    return (IndexedRecord) project(toSchema, fromSchema, (Object) object);</span>
+  }
+
+  /**
+   * Project a avro object to a destination.
+   * @param toSchema the object schema
+   * @param fromSchema the destination schema
+   * @param object the object to project.
+   * @return the projected object.
+   */
+  @Nullable
+  @SuppressFBWarnings(&quot;URV_UNRELATED_RETURN_VALUES&quot;)
+  public static Object project(final Schema toSchema, final Schema fromSchema, @Nullable final Object object) {
+<span class="nc bnc" id="L649" title="All 2 branches missed.">    if (toSchema == fromSchema) {</span>
+<span class="nc" id="L650">      return object;</span>
+    }
+<span class="nc" id="L652">    Schema.Type type = toSchema.getType();</span>
+<span class="nc bnc" id="L653" title="All 2 branches missed.">    if (fromSchema.getType() != type) {</span>
+<span class="nc" id="L654">      throw new IllegalArgumentException(&quot;Unable to project &quot; + object + &quot; from &quot;  + fromSchema +  &quot; to &quot; + toSchema);</span>
+    }
+<span class="nc bnc" id="L656" title="All 7 branches missed.">    switch (type) {</span>
+      case INT:
+      case LONG:
+      case FLOAT:
+      case STRING:
+      case ENUM:
+      case FIXED:
+      case BOOLEAN:
+      case BYTES:
+      case DOUBLE:
+<span class="nc" id="L666">        return object;</span>
+      case NULL:
+<span class="nc" id="L668">        return null;</span>
+      case ARRAY:
+<span class="nc" id="L670">        List from = (List) object;</span>
+<span class="nc" id="L671">        List to = new ArrayList(from.size());</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">        for (Object o : from) {</span>
+<span class="nc" id="L673">          to.add(project(toSchema.getElementType(), fromSchema.getElementType(), o));</span>
+<span class="nc" id="L674">        }</span>
+<span class="nc" id="L675">        return to;</span>
+      case MAP:
+<span class="nc" id="L677">        Map&lt;String, Object&gt; fromMap = (Map&lt;String, Object&gt;) object;</span>
+<span class="nc" id="L678">        Map&lt;String, Object&gt; toMap = Maps.newLinkedHashMapWithExpectedSize(fromMap.size());</span>
+<span class="nc bnc" id="L679" title="All 2 branches missed.">        for (Map.Entry&lt;String, Object&gt; entry : fromMap.entrySet()) {</span>
+<span class="nc" id="L680">          toMap.put(entry.getKey(), project(toSchema.getValueType(), fromSchema.getValueType(), entry.getValue()));</span>
+<span class="nc" id="L681">        }</span>
+<span class="nc" id="L682">        return toMap;</span>
+      case UNION:
+<span class="nc bnc" id="L684" title="All 2 branches missed.">        if (object == null) {</span>
+<span class="nc" id="L685">          return null;</span>
+        }
+<span class="nc" id="L687">        Schema tSchema = Schemas.nullableUnionSchema(toSchema);</span>
+<span class="nc bnc" id="L688" title="All 2 branches missed.">        if (tSchema != null) {</span>
+<span class="nc" id="L689">          return project(tSchema, tSchema, object);</span>
+        } else {
+<span class="nc" id="L691">          Schema objReflSchema = ExtendedReflectData.get().getSchema(object.getClass());</span>
+<span class="nc bnc" id="L692" title="All 2 branches missed.">          for (Schema matching : toSchema.getTypes()) {</span>
+<span class="nc bnc" id="L693" title="All 2 branches missed.">            if (matching.getType() == objReflSchema.getType()) {</span>
+<span class="nc" id="L694">              return project(matching, objReflSchema, object);</span>
+            }
+<span class="nc" id="L696">          }</span>
+        }
+<span class="nc" id="L698">        throw new IllegalArgumentException(&quot;Unable to project &quot; + object + &quot; to &quot; + toSchema);</span>
+
+      case RECORD:
+<span class="nc" id="L701">        GenericData.Record record = new SpecificData.Record(toSchema);</span>
+<span class="nc" id="L702">        GenericRecord fromRec = (GenericRecord) object;</span>
+<span class="nc bnc" id="L703" title="All 2 branches missed.">        for (Field field : toSchema.getFields()) {</span>
+<span class="nc" id="L704">          record.put(field.pos(), fromRec.get(field.name()));</span>
+<span class="nc" id="L705">        }</span>
+<span class="nc" id="L706">        return record;</span>
+      default:
+<span class="nc" id="L708">        throw new IllegalStateException(&quot;Unsupported type &quot; + type);</span>
     }
   }
 
 
 
-  private static Schema.Field extract(final List&lt;Field&gt; fields, final List&lt;CharSequence&gt; paths) {
-<span class="fc" id="L356">    Iterator&lt;CharSequence&gt; iterator = paths.iterator();</span>
-<span class="pc bpc" id="L357" title="1 of 2 branches missed.">    if (iterator.hasNext()) {</span>
-<span class="fc" id="L358">      List&lt;CharSequence&gt; proj = new ArrayList&lt;&gt;(2);</span>
-<span class="fc" id="L359">      CharSequence path = iterator.next();</span>
-<span class="fc" id="L360">      String part = getFirstRef(path);</span>
-<span class="fc" id="L361">      Field field = getField(part, fields);</span>
-<span class="fc bfc" id="L362" title="All 2 branches covered.">      if (field == null) {</span>
-<span class="fc" id="L363">        return null;</span>
+  @Nullable
+  private static Schema.Field extract(final Iterable&lt;Field&gt; fields, final Iterable&lt;List&lt;String&gt;&gt; paths) {
+<span class="fc" id="L716">    Iterator&lt;List&lt;String&gt;&gt; iterator = paths.iterator();</span>
+<span class="pc bpc" id="L717" title="1 of 2 branches missed.">    if (iterator.hasNext()) {</span>
+<span class="fc" id="L718">      List&lt;List&lt;String&gt;&gt; proj = new ArrayList&lt;&gt;(2);</span>
+<span class="fc" id="L719">      List&lt;String&gt; path = iterator.next();</span>
+<span class="fc" id="L720">      String part = path.get(0);</span>
+<span class="fc" id="L721">      Field field = getField(part, fields);</span>
+<span class="fc bfc" id="L722" title="All 2 branches covered.">      if (field == null) {</span>
+<span class="fc" id="L723">        return null;</span>
       }
-<span class="fc" id="L365">      iterator.remove();</span>
-<span class="fc bfc" id="L366" title="All 2 branches covered.">      if (part.length() == path.length()) {</span>
-<span class="fc" id="L367">        proj.add(&quot;&quot;);</span>
+<span class="fc" id="L725">      iterator.remove();</span>
+<span class="fc bfc" id="L726" title="All 2 branches covered.">      if (1 == path.size()) {</span>
+<span class="fc" id="L727">        proj.add(Collections.EMPTY_LIST);</span>
       } else {
-<span class="fc" id="L369">        proj.add(path.subSequence(part.length() + 1, path.length()));</span>
+<span class="fc" id="L729">        proj.add(path.subList(1, path.size()));</span>
       }
-<span class="fc bfc" id="L371" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
-<span class="fc" id="L372">        path = iterator.next();</span>
-<span class="fc" id="L373">        part = getFirstRef(path);</span>
-<span class="fc bfc" id="L374" title="All 2 branches covered.">        if (isNamed(part, field)) {</span>
-<span class="pc bpc" id="L375" title="1 of 2 branches missed.">          if (part.length() == path.length()) {</span>
-<span class="nc" id="L376">            proj.add(&quot;&quot;);</span>
+<span class="fc bfc" id="L731" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
+<span class="fc" id="L732">        path = iterator.next();</span>
+<span class="fc" id="L733">        part = path.get(0);</span>
+<span class="fc bfc" id="L734" title="All 2 branches covered.">        if (isNamed(part, field)) {</span>
+<span class="pc bpc" id="L735" title="1 of 2 branches missed.">          if (1 == path.size()) {</span>
+<span class="nc" id="L736">            proj.add(Collections.EMPTY_LIST);</span>
           } else {
-<span class="fc" id="L378">            proj.add(path.subSequence(part.length() + 1, path.length()));</span>
+<span class="fc" id="L738">            proj.add(path.subList(1,  path.size()));</span>
           }
-<span class="fc" id="L380">          iterator.remove();</span>
+<span class="fc" id="L740">          iterator.remove();</span>
         }
       }
-<span class="fc" id="L383">      return new Schema.Field(field.name(),</span>
-<span class="fc" id="L384">                    project(field.schema(), proj.toArray(new CharSequence[proj.size()])),</span>
-<span class="fc" id="L385">                    field.doc(), field.defaultVal(), field.order());</span>
+<span class="fc" id="L743">      return  new Schema.Field(field, projectInternal(field.schema(), proj));</span>
     } else {
-<span class="nc" id="L387">      return null;</span>
+<span class="nc" id="L745">      return null;</span>
     }
   }
 
 
   @Nullable
-  public static Schema.Field getField(final String name, final List&lt;Field&gt; fields) {
-<span class="fc bfc" id="L394" title="All 2 branches covered.">    for (Schema.Field field : fields) {</span>
-<span class="fc bfc" id="L395" title="All 2 branches covered.">      if (isNamed(name, field)) {</span>
-<span class="fc" id="L396">        return field;</span>
+  public static Schema.Field getField(final String name, final Iterable&lt;Field&gt; fields) {
+<span class="fc bfc" id="L752" title="All 2 branches covered.">    for (Schema.Field field : fields) {</span>
+<span class="fc bfc" id="L753" title="All 2 branches covered.">      if (isNamed(name, field)) {</span>
+<span class="fc" id="L754">        return field;</span>
       }
-<span class="fc" id="L398">    }</span>
-<span class="fc" id="L399">    return null;</span>
+<span class="fc" id="L756">    }</span>
+<span class="fc" id="L757">    return null;</span>
   }
 
   public static boolean isNamed(final String name, final Field field) {
-<span class="pc bpc" id="L403" title="1 of 4 branches missed.">    if (name.equals(field.name()) || field.aliases().contains(name)) {</span>
-<span class="fc" id="L404">      return true;</span>
+<span class="pc bpc" id="L761" title="1 of 4 branches missed.">    if (name.equals(field.name()) || field.aliases().contains(name)) {</span>
+<span class="fc" id="L762">      return true;</span>
     }
-<span class="fc" id="L406">    return false;</span>
+<span class="fc" id="L764">    return false;</span>
   }
 
-  private static String getFirstRef(final CharSequence path) {
-<span class="fc" id="L410">    int length = path.length();</span>
-<span class="fc" id="L411">    int to = CharSequences.indexOf(path, 0, length, '.');</span>
-    String part;
-<span class="fc bfc" id="L413" title="All 2 branches covered.">    if (to &lt; 0) {</span>
-<span class="fc" id="L414">      part = path.toString();</span>
-    } else {
-<span class="fc" id="L416">      part = path.subSequence(0, to).toString();</span>
-    }
-<span class="fc" id="L418">    return part;</span>
+  public static Schema dateString() {
+<span class="fc" id="L768">    Schema schema = Schema.create(Schema.Type.STRING);</span>
+<span class="fc" id="L769">    schema.addProp(&quot;logicalType&quot;, &quot;date&quot;);</span>
+<span class="fc" id="L770">    schema.setLogicalType(LogicalTypes.fromSchema(schema));</span>
+<span class="fc" id="L771">    return schema;</span>
   }
+
+  public static Schema instantString() {
+<span class="nc" id="L775">    Schema schema = Schema.create(Schema.Type.STRING);</span>
+<span class="nc" id="L776">    schema.addProp(&quot;logicalType&quot;, &quot;instant&quot;);</span>
+<span class="nc" id="L777">    schema.setLogicalType(LogicalTypes.fromSchema(schema));</span>
+<span class="nc" id="L778">    return schema;</span>
+  }
+
+  public static Schema temporalString() {
+<span class="nc" id="L782">    Schema schema = Schema.create(Schema.Type.STRING);</span>
+<span class="nc" id="L783">    schema.addProp(&quot;logicalType&quot;, &quot;any_temporal&quot;);</span>
+<span class="nc" id="L784">    schema.setLogicalType(LogicalTypes.fromSchema(schema));</span>
+<span class="nc" id="L785">    return schema;</span>
+  }
+
+  private static class DeprecationVisitor implements SchemaVisitor&lt;Void&gt; {
+
+    private final BiConsumer&lt;String, String&gt; toPut;
+
+<span class="nc" id="L792">    DeprecationVisitor(final BiConsumer&lt;String, String&gt; toPut) {</span>
+<span class="nc" id="L793">      this.toPut = toPut;</span>
+<span class="nc" id="L794">    }</span>
+
+    @Override
+    public SchemaVisitorAction visitTerminal(final Schema terminal) {
+<span class="nc bnc" id="L798" title="All 2 branches missed.">      if (terminal.getType() == Schema.Type.FIXED) {</span>
+<span class="nc" id="L799">        checkDeprecation(terminal);</span>
+      }
+      // do nothing for base types (will ignore if somebody deprercates an int....)
+<span class="nc" id="L802">      return SchemaVisitorAction.CONTINUE;</span>
+    }
+
+    public void checkDeprecation(final Schema terminal) {
+<span class="nc" id="L806">      String dMsg = terminal.getProp(&quot;deprecated&quot;);</span>
+<span class="nc bnc" id="L807" title="All 2 branches missed.">      if (dMsg != null) {</span>
+<span class="nc" id="L808">        toPut.accept(terminal.getFullName(), dMsg);</span>
+      }
+<span class="nc" id="L810">    }</span>
+
+    @Override
+    public SchemaVisitorAction visitNonTerminal(final Schema nonTerminal) {
+<span class="nc" id="L814">      checkDeprecation(nonTerminal);</span>
+<span class="nc bnc" id="L815" title="All 2 branches missed.">      if  (nonTerminal.getType() == Schema.Type.RECORD) {</span>
+<span class="nc bnc" id="L816" title="All 2 branches missed.">        for (Schema.Field field : nonTerminal.getFields()) {</span>
+<span class="nc" id="L817">          String msg = field.getProp(&quot;deprecated&quot;);</span>
+<span class="nc bnc" id="L818" title="All 2 branches missed.">          if (msg != null) {</span>
+<span class="nc" id="L819">            toPut.accept(nonTerminal.getFullName() + '.' + field.name(), msg);</span>
+          }
+<span class="nc" id="L821">        }</span>
+      }
+<span class="nc" id="L823">      return SchemaVisitorAction.CONTINUE;</span>
+    }
+
+    @Override
+    public SchemaVisitorAction afterVisitNonTerminal(final Schema nonTerminal) {
+<span class="nc" id="L828">      return SchemaVisitorAction.CONTINUE;</span>
+    }
+  }
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

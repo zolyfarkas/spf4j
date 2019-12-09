@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvroFilterableTable.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-avro</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.calcite</a> &gt; <span class="el_source">AvroFilterableTable.java</span></div><h1>AvroFilterableTable.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.calcite;
+
+import java.util.List;
+import java.util.function.Supplier;
+import org.apache.avro.generic.IndexedRecord;
+import org.apache.calcite.DataContext;
+import org.apache.calcite.interpreter.Scalar;
+import org.apache.calcite.linq4j.Enumerable;
+import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.schema.FilterableTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spf4j.base.CloseableIterator;
+
+/**
+ * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
+ * @author Zoltan Farkas
+ */
+public final class AvroFilterableTable extends AbstractAvroTable
+        implements FilterableTable {
+
+<span class="nc" id="L37">  private static final Logger LOG = LoggerFactory.getLogger(AvroFilterableTable.class);</span>
+
+  private final Supplier&lt;CloseableIterator&lt;? extends IndexedRecord&gt;&gt; dataSupplier;
+
+  public AvroFilterableTable(final org.apache.avro.Schema componentType,
+          final Supplier&lt;CloseableIterator&lt;? extends IndexedRecord&gt;&gt; dataSupplier) {
+<span class="nc" id="L43">    super(componentType);</span>
+<span class="nc" id="L44">    this.dataSupplier = dataSupplier;</span>
+<span class="nc" id="L45">  }</span>
+
+  @Override
+  public Enumerable&lt;Object[]&gt; scan(final DataContext root, final List&lt;RexNode&gt; filters)  {
+<span class="nc" id="L49">    org.apache.avro.Schema componentType = getComponentType();</span>
+<span class="nc" id="L50">    LOG.debug(&quot;Filtered Table scan of {} with filter {} and projection {}&quot;, componentType.getName(),</span>
+            filters);
+<span class="nc" id="L52">    Scalar filter = InterpreterUtils.toScalar(filters, root.getTypeFactory(), this.getRowType(root.getTypeFactory()));</span>
+<span class="nc" id="L53">    Enumerable&lt;Object[]&gt; result</span>
+            = new FilteringProjectingAvroEnumerable(componentType, root, filter, null, dataSupplier);
+<span class="nc bnc" id="L55" title="All 2 branches missed.">    if (filter != null) {</span>
+<span class="nc" id="L56">      filters.clear();</span>
+    }
+<span class="nc" id="L58">    return result;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L63">    return &quot;AvroFilterableTable{&quot; + &quot;dataSupplier=&quot; + dataSupplier + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

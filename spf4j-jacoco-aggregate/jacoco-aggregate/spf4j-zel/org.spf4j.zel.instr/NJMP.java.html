@@ -37,32 +37,33 @@ import org.spf4j.zel.vm.SuspendedException;
 
 /**
  * Jump to a address is top of the stack is null. (Null jump)
+ *
  * @author Zoltan Farkas
  */
 public final class NJMP extends Instruction {
 
-  private static final long serialVersionUID = 584597000187469774L;
+  private static final long serialVersionUID = 1L;
 
   private final int relAddr;
 
-<span class="fc" id="L48">  public NJMP(final int relAddr) {</span>
-<span class="fc" id="L49">    this.relAddr = relAddr;</span>
-<span class="fc" id="L50">  }</span>
+<span class="fc" id="L49">  public NJMP(final int relAddr) {</span>
+<span class="fc" id="L50">    this.relAddr = relAddr;</span>
+<span class="fc" id="L51">  }</span>
 
   @Override
   public int execute(final ExecutionContext context)
           throws SuspendedException, ExecutionException {
-<span class="fc" id="L55">    Object obj =  context.peekSyncStackVal();</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">    if (obj == null) {</span>
-<span class="fc" id="L57">      return relAddr;</span>
+<span class="fc" id="L56">    Object obj = context.peekSyncStackVal();</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="fc" id="L58">      return relAddr;</span>
     } else {
-<span class="nc" id="L59">      return 1;</span>
+<span class="nc" id="L60">      return 1;</span>
     }
   }
 
   @Override
   public Object[] getParameters() {
-<span class="fc" id="L65">    return new Object[]{relAddr};</span>
+<span class="fc" id="L66">    return new Object[]{relAddr};</span>
   }
 
 }

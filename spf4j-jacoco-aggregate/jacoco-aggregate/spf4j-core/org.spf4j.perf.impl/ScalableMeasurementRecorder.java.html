@@ -266,13 +266,13 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 
     public void persist(final boolean warn) throws IOException {
 <span class="fc" id="L268">      long currentTime = System.currentTimeMillis();</span>
-<span class="fc bfc" id="L269" title="All 2 branches covered.">      if (currentTime &gt; lastRun) {</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">      if (currentTime &gt; lastRun) {</span>
 <span class="fc" id="L270">        lastRun = currentTime;</span>
 <span class="fc" id="L271">        final long[] measurements = ScalableMeasurementRecorder.this.getThenReset();</span>
 <span class="fc bfc" id="L272" title="All 2 branches covered.">        if (measurements != null) {</span>
 <span class="fc" id="L273">          measurementStore.saveMeasurements(tableId, currentTime, measurements);</span>
         }
-<span class="pc bpc" id="L275" title="1 of 2 branches missed.">      } else if (warn) {</span>
+<span class="pc bnc" id="L275" title="All 2 branches missed.">      } else if (warn) {</span>
 <span class="nc" id="L276">        LOG.warn(&quot;Last measurement recording for {} was at {} current run is {}, something is wrong&quot;,</span>
 <span class="nc" id="L277">                processor.getInfo(), lastRun, currentTime);</span>
       }

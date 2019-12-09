@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CompoundPermitSupplier.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">CompoundPermitSupplier.java</span></div><h1>CompoundPermitSupplier.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.concurrent;
+
+import java.util.Arrays;
+
+/**
+ * allows to combine various resource limiters/semahores
+ * @author Zoltan Farkas
+ */
+public final class CompoundPermitSupplier implements PermitSupplier {
+
+  private final PermitSupplier[] suppliers;
+
+<span class="nc" id="L44">  public CompoundPermitSupplier(final PermitSupplier... suppliers) {</span>
+<span class="nc" id="L45">    this.suppliers = suppliers;</span>
+<span class="nc" id="L46">  }</span>
+
+  @Override
+  public boolean tryAcquire(final int nrPermits, final long deadlineNanos)
+          throws InterruptedException {
+<span class="nc" id="L51">    PermitSupplier[] acquired = new PermitSupplier[suppliers.length];</span>
+<span class="nc" id="L52">    int i = 0;</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">    for (PermitSupplier sem : suppliers) {</span>
+      boolean tryAcquire;
+      try {
+<span class="nc" id="L56">        tryAcquire = sem.tryAcquire(nrPermits, deadlineNanos);</span>
+<span class="nc" id="L57">      } catch (InterruptedException | RuntimeException ex) {</span>
+<span class="nc" id="L58">        returnPermits(acquired, i, nrPermits);</span>
+<span class="nc" id="L59">        throw ex;</span>
+<span class="nc" id="L60">      }</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">      if (tryAcquire) {</span>
+<span class="nc" id="L62">        acquired[i++] = sem;</span>
+      } else {
+<span class="nc" id="L64">        returnPermits(acquired, i, nrPermits);</span>
+<span class="nc" id="L65">        return false;</span>
+      }
+    }
+<span class="nc" id="L68">    return true;</span>
+  }
+
+  @Override
+  public Acquisition tryAcquireEx(final int nrPermits, final long deadlineNanos) throws InterruptedException {
+<span class="nc" id="L73">    PermitSupplier[] acquired = new PermitSupplier[suppliers.length];</span>
+<span class="nc" id="L74">    int i = 0;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">    for (PermitSupplier sem : suppliers) {</span>
+      Acquisition tryAcquire;
+      try {
+<span class="nc" id="L78">        tryAcquire = sem.tryAcquireEx(nrPermits, deadlineNanos);</span>
+<span class="nc" id="L79">      } catch (InterruptedException | RuntimeException ex) {</span>
+<span class="nc" id="L80">        returnPermits(acquired, i, nrPermits);</span>
+<span class="nc" id="L81">        throw ex;</span>
+<span class="nc" id="L82">      }</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">      if (tryAcquire.isSuccess()) {</span>
+<span class="nc" id="L84">        acquired[i++] = sem;</span>
+      } else {
+<span class="nc" id="L86">        returnPermits(acquired, i, nrPermits);</span>
+<span class="nc" id="L87">        return tryAcquire;</span>
+      }
+    }
+<span class="nc" id="L90">    return Acquisition.SUCCESS;</span>
+  }
+
+  private static void returnPermits(final PermitSupplier[] pss, final int nr, final int nrPermits) {
+<span class="nc" id="L94">    RuntimeException ex = null;</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">    for (int i = nr - 1; i &gt;= 0; i--) {</span>
+<span class="nc" id="L96">      PermitSupplier sem = pss[i];</span>
+      try {
+<span class="nc" id="L98">        sem.addPermits(nrPermits);</span>
+<span class="nc" id="L99">      } catch (RuntimeException e) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">        if (ex == null) {</span>
+<span class="nc" id="L101">          ex = e;</span>
+        } else {
+<span class="nc" id="L103">          ex.addSuppressed(e);</span>
+        }
+<span class="nc" id="L105">      }</span>
+    }
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (ex != null) {</span>
+<span class="nc" id="L108">      throw ex;</span>
+    }
+<span class="nc" id="L110">  }</span>
+
+  @Override
+  public String toString() {
+<span class="nc" id="L114">    return &quot;CompoundPermitSupplier{&quot; + &quot;suppliers=&quot; + Arrays.toString(suppliers) + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

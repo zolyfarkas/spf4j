@@ -35,42 +35,41 @@ import java.math.MathContext;
 import org.spf4j.zel.operators.Operator;
 import org.spf4j.zel.vm.ExecutionContext;
 
-
 public final class MCTX extends Instruction {
 
-    private static final long serialVersionUID = 6127414006563169983L;
+  private static final long serialVersionUID = 1L;
 
-    private final int precission;
-    
-<span class="fc" id="L45">    public MCTX(final int precission) {</span>
-<span class="fc" id="L46">        this.precission = precission;</span>
-<span class="fc" id="L47">    }</span>
+  private final int precission;
 
-    @Override
-    public int execute(final ExecutionContext context) {
-        MathContext mc;
-<span class="pc bpc" id="L52" title="2 of 4 branches missed.">        switch (precission) {</span>
-            case 32:
-<span class="nc" id="L54">                mc = MathContext.DECIMAL32;</span>
-<span class="nc" id="L55">                break;</span>
-            case 64:
-<span class="fc" id="L57">                mc = MathContext.DECIMAL64;</span>
-<span class="fc" id="L58">                break;</span>
-            case 128:
-<span class="fc" id="L60">                mc = MathContext.DECIMAL128;</span>
-<span class="fc" id="L61">                break;</span>
-            default:
-<span class="nc" id="L63">                mc = new MathContext(precission);</span>
-        }
-<span class="fc" id="L65">        context.setMathContext(mc);</span>
-<span class="fc" id="L66">        Operator.MATH_CONTEXT.set(mc);</span>
-<span class="fc" id="L67">        return 1;</span>
+<span class="fc" id="L44">  public MCTX(final int precission) {</span>
+<span class="fc" id="L45">    this.precission = precission;</span>
+<span class="fc" id="L46">  }</span>
+
+  @Override
+  public int execute(final ExecutionContext context) {
+    MathContext mc;
+<span class="pc bpc" id="L51" title="2 of 4 branches missed.">    switch (precission) {</span>
+      case 32:
+<span class="nc" id="L53">        mc = MathContext.DECIMAL32;</span>
+<span class="nc" id="L54">        break;</span>
+      case 64:
+<span class="fc" id="L56">        mc = MathContext.DECIMAL64;</span>
+<span class="fc" id="L57">        break;</span>
+      case 128:
+<span class="fc" id="L59">        mc = MathContext.DECIMAL128;</span>
+<span class="fc" id="L60">        break;</span>
+      default:
+<span class="nc" id="L62">        mc = new MathContext(precission);</span>
     }
+<span class="fc" id="L64">    context.setMathContext(mc);</span>
+<span class="fc" id="L65">    Operator.MATH_CONTEXT.set(mc);</span>
+<span class="fc" id="L66">    return 1;</span>
+  }
 
-    @Override
-    public Object[] getParameters() {
-<span class="fc" id="L72">        return new Object[] {precission};</span>
-    }
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L71">    return new Object[]{precission};</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
