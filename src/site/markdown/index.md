@@ -244,6 +244,10 @@ Callable<?> monitoredCallable =
 
  [Honest profiler](https://www.youtube.com/watch?v=Yg6_ulhwLw0, https://github.com/RichardWarburton/honest-profiler)
 
+ Over time the Spf4j Stack sampler has been integrated with the application
+ [ExecutionContexts](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/ExecutionContext.java) enabling more granular profiling detail like
+ described [at](https://github.com/zolyfarkas/jaxrs-spf4j-demo/wiki/ContinuousProfiling)
+
 ### 5.2. When to profile your code?
 
  I recommend to deploy your code with profiling turned on as much as you can.
