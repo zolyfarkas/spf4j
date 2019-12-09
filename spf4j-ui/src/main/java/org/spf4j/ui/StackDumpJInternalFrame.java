@@ -34,8 +34,17 @@ package org.spf4j.ui;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ItemEvent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.LinkedList;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileFilter;
 import org.spf4j.base.Methods;
+import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -103,6 +112,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     ssScrollPanel = new javax.swing.JScrollPane();
     jToolBar1 = new javax.swing.JToolBar();
     graphToggle = new javax.swing.JToggleButton();
+    jButton1 = new javax.swing.JButton();
 
     setClosable(true);
     setIconifiable(true);
@@ -123,6 +133,17 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
       }
     });
     jToolBar1.add(graphToggle);
+
+    jButton1.setText("export");
+    jButton1.setFocusable(false);
+    jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+    jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+    jButton1.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        jButton1ActionPerformed(evt);
+      }
+    });
+    jToolBar1.add(jButton1);
 
     org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
@@ -146,8 +167,56 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     setViewType(evt.getStateChange() == ItemEvent.SELECTED);
   }//GEN-LAST:event_graphToggleItemStateChanged
 
+  @SuppressFBWarnings({ "PATH_TRAVERSAL_IN", "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "UP_UNUSED_PARAMETER" })
+  // this is a local app, FB sees problems with Try -> {} genereted code......
+  private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    JFileChooser fc = new JFileChooser();
+    FileFilter[] xFF = fc.getChoosableFileFilters();
+    for (FileFilter ff : xFF) {
+      fc.removeChoosableFileFilter(ff);
+    }
+    fc.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);
+    fc.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);
+    fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);
+    fc.setFileFilter(Spf4jFileFilter.D3_JSON);
+    int retrival = fc.showSaveDialog(null);
+    if (retrival == JFileChooser.APPROVE_OPTION) {
+      File selectedFile = fc.getSelectedFile();
+      FileFilter fileFilter = fc.getFileFilter();
+      if (!(fileFilter instanceof Spf4jFileFilter)) {
+        throw new IllegalArgumentException("Invalid file type selected " + fileFilter);
+      }
+      String suffix = ((Spf4jFileFilter) fileFilter).getSuffix();
+      if (!selectedFile.getName().endsWith(suffix)) {
+        selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + suffix);
+      }
+      if (Spf4jFileFilter.D3_JSON.accept(selectedFile)) { // D3 format.
+        try (BufferedWriter wr = Files.newBufferedWriter(selectedFile.toPath(), StandardCharsets.UTF_8)) {
+          samples.writeD3JsonTo(wr);
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
+        }
+      } else if (Spf4jFileFilter.SPF4J_JSON.accept(selectedFile)) {
+        try (BufferedWriter wr = Files.newBufferedWriter(selectedFile.toPath(), StandardCharsets.UTF_8)) {
+          samples.writeJsonTo(wr);
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
+        }
+      } else if (Spf4jFileFilter.SSDUMP2.accept(selectedFile)) {
+        try {
+          Converter.save(selectedFile, samples);
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
+        }
+      } else {
+        throw new IllegalArgumentException("No ecognized extension for file " + selectedFile);
+      }
+    }
+  }//GEN-LAST:event_jButton1ActionPerformed
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JToggleButton graphToggle;
+  private javax.swing.JButton jButton1;
   private javax.swing.JToolBar jToolBar1;
   private javax.swing.JScrollPane ssScrollPanel;
   // End of variables declaration//GEN-END:variables

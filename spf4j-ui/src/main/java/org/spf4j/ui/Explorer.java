@@ -58,7 +58,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.filechooser.FileFilter;
 import javax.swing.text.DefaultEditorKit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.SysExits;
@@ -245,7 +244,11 @@ public class Explorer extends javax.swing.JFrame {
       chooser.setMultiSelectionEnabled(true);
       chooser.setDialogType(JFileChooser.OPEN_DIALOG);
       chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-      chooser.setFileFilter(new Spf4jFileFilter());
+      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);
       if (folder != null) {
         chooser.setCurrentDirectory(folder);
       }
@@ -492,24 +495,4 @@ public class Explorer extends javax.swing.JFrame {
   private javax.swing.JMenuItem pasteMenuItem;
   // End of variables declaration//GEN-END:variables
 
-  private static class Spf4jFileFilter extends FileFilter {
-
-    @Override
-    public boolean accept(final File f) {
-      if (f.isDirectory()) {
-        return true;
-      } else if (f.isFile()) {
-        String name = f.getName();
-        return (name.endsWith("tsdb") || name.endsWith("tsdb2")
-                || name.endsWith("ssdump") || name.endsWith("ssdump2") || name.endsWith("ssdump3"));
-      } else {
-        return false;
-      }
-    }
-
-    @Override
-    public String getDescription() {
-      return "spf4j dumps";
-    }
-  }
 }
