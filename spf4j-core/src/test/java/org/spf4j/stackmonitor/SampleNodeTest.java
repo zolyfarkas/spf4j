@@ -115,6 +115,11 @@ public final class SampleNodeTest {
     Pair<Method, SampleNode> parsed = SampleNode.parse(new StringReader(sb.toString()));
     Assert.assertEquals(node1, parsed.getSecond());
     Assert.assertEquals(node1, Objects.clone(node1));
+    StringBuilder sb2 = new StringBuilder();
+    node1.writeD3JsonTo(sb2);
+    LOG.debug("Serialized D3 String", sb2);
+    Pair<Method, SampleNode> parsed2 = SampleNode.parseD3Json(new StringReader(sb2.toString()));
+    Assert.assertEquals(node1, parsed2.getSecond());
 
     SampleNode.traverse(parsed.getFirst(), parsed.getSecond(), (f, t, s) -> {
       LOG.debug("{} -> {} sampled {} times", f, t, s);

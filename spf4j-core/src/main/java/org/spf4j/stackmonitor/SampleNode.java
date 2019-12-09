@@ -31,8 +31,10 @@
  */
 package org.spf4j.stackmonitor;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.StackSamples;
 import gnu.trove.map.TMap;
 import gnu.trove.procedure.TObjectObjectProcedure;
@@ -474,15 +476,65 @@ public final class SampleNode implements Serializable, StackSamples {
       consume(jsonP, JsonToken.END_OBJECT);
       return Pair.of(Methods.from(name), new SampleNode(sc, nodes));
     } else {
-      throw new IllegalArgumentException("Expected field name or end Object, not: " + nextToken);
+      throw new JsonParseException(jsonP, "Expected field name or end Object, not: " + nextToken);
     }
+  }
+
+  public static Pair<Method, SampleNode> parseD3Json(@WillNotClose final Reader r) throws IOException {
+    JsonParser jsonP = Json.FACTORY.createParser(r);
+    consume(jsonP, JsonToken.START_OBJECT);
+    return parseD3Json(jsonP);
+  }
+
+  @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING") // not that weak here...
+  private static Pair<Method, SampleNode> parseD3Json(final JsonParser jsonP) throws IOException {
+    String methodName = null;
+    int nrSamples = -1;
+    TMap<Method, SampleNode> nodes = null;
+    while (true) {
+    JsonToken nextToken = jsonP.nextToken();
+      if (nextToken == JsonToken.FIELD_NAME) {
+        String fieldName = jsonP.getCurrentName();
+        switch (fieldName) {
+          case "name":
+            consume(jsonP, JsonToken.VALUE_STRING);
+            methodName = jsonP.getText();
+            break;
+          case "value":
+            consume(jsonP, JsonToken.VALUE_NUMBER_INT);
+            nrSamples = jsonP.getIntValue();
+            break;
+          case "children":
+            consume(jsonP, JsonToken.START_ARRAY);
+            nodes = new MethodMap<>();
+            while (jsonP.nextToken() != JsonToken.END_ARRAY) {
+              Pair<Method, SampleNode> parse = parseD3Json(jsonP);
+              nodes.put(parse.getKey(), parse.getValue());
+            }
+            break;
+          default:
+            throw new JsonParseException(jsonP, "Unexpected field name : " + fieldName);
+        }
+      } else if (nextToken == JsonToken.END_OBJECT) {
+        if (methodName == null) {
+          throw new JsonParseException(jsonP, "name field not found");
+        }
+        if (nrSamples < 0) {
+          throw new JsonParseException(jsonP, "value field not found");
+        }
+        return Pair.of(Methods.from(methodName), new SampleNode(nrSamples, nodes));
+      } else {
+        throw new JsonParseException(jsonP, "Unexpected " + nextToken);
+      }
+    }
+
   }
 
   private static void consume(final JsonParser jsonP, final JsonToken token)
           throws IOException {
     JsonToken nextToken = jsonP.nextToken();
     if (nextToken != token) {
-      throw new IllegalArgumentException("Expected start object, not " + nextToken);
+      throw new JsonParseException(jsonP, "Expected start object, not " + nextToken);
     }
   }
 
