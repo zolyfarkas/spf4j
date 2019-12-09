@@ -348,6 +348,57 @@ public final class SampleNode implements Serializable, StackSamples {
     }
   }
 
+  /**
+   * A Json format compatible with: https://github.com/spiermar/d3-flame-graph
+   * @param appendable
+   * @throws IOException
+   */
+  public void writeD3JsonTo(final Appendable appendable) throws IOException {
+    writeD3JsonFormatTo(Methods.ROOT, appendable);
+  }
+
+  /**
+   * A Json format compatible with: https://github.com/spiermar/d3-flame-graph
+   * @param m
+   * @param appendable
+   * @throws IOException
+   */
+  public void writeD3JsonFormatTo(final Method m, final Appendable appendable) throws IOException {
+    Deque<Object> dq = new ArrayDeque<>();
+    dq.add(Pair.of(m, this));
+    while (!dq.isEmpty()) {
+      Object obj = dq.removeLast();
+      if (obj instanceof CharSequence) {
+        appendable.append((CharSequence) obj);
+      } else {
+        Map.Entry<Method, SampleNode> s = (Map.Entry<Method, SampleNode>) obj;
+        appendable.append("{\"name\":\"");
+        Methods.writeTo(s.getKey(), appendable);
+        appendable.append("\",\"value\":");
+        SampleNode sn = s.getValue();
+        appendable.append(Integer.toString(sn.getSampleCount()));
+        TMap<Method, SampleNode> cSn = sn.getSubNodes();
+        if (cSn != null) {
+          Iterator<Map.Entry<Method, SampleNode>> iterator = cSn.entrySet().iterator();
+          if (iterator.hasNext()) {
+            appendable.append(",\"children\":[");
+            dq.addLast("]}");
+            dq.addLast(iterator.next());
+            while (iterator.hasNext()) {
+              dq.addLast(",");
+              dq.addLast(iterator.next());
+            }
+          } else {
+            appendable.append('}');
+          }
+        } else {
+          appendable.append('}');
+        }
+      }
+    }
+  }
+
+
   private static final class TraversalData {
     private final Method m;
     private final SampleNode n;
