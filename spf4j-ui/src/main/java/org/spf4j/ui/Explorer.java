@@ -38,10 +38,12 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -60,8 +62,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.text.DefaultEditorKit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.Pair;
 import org.spf4j.base.SysExits;
 import org.spf4j.base.Throwables;
+import org.spf4j.base.avro.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.Sampler;
 import org.spf4j.stackmonitor.proto.Converter;
@@ -244,6 +248,8 @@ public class Explorer extends javax.swing.JFrame {
       chooser.setMultiSelectionEnabled(true);
       chooser.setDialogType(JFileChooser.OPEN_DIALOG);
       chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);
@@ -366,6 +372,16 @@ public class Explorer extends javax.swing.JFrame {
       Map<String, SampleNode> loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);
       for (Map.Entry<String, SampleNode> entry : loadLabeledDumps.entrySet()) {
         setFrames(entry.getValue(), fileName + ':' + entry.getKey());
+      }
+    } else if (Spf4jFileFilter.D3_JSON.accept(file)) {
+      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+        Pair<Method, SampleNode> parse = SampleNode.parseD3Json(br);
+        setFrames(parse.getSecond(), fileName);
+      }
+    } else if (Spf4jFileFilter.SPF4J_JSON.accept(file)) {
+      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+        Pair<Method, SampleNode> parse = SampleNode.parse(br);
+        setFrames(parse.getSecond(), fileName);
       }
     } else {
       throw new IOException("Unsupported file format " + fileName);
