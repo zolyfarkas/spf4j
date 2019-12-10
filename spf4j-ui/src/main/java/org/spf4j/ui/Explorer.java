@@ -34,8 +34,6 @@ package org.spf4j.ui;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.awt.Dimension;
-import java.awt.Frame;
 import java.awt.event.KeyEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -46,25 +44,16 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import javax.annotation.Nullable;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.text.DefaultEditorKit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.Pair;
-import org.spf4j.base.SysExits;
-import org.spf4j.base.Throwables;
 import org.spf4j.base.avro.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.Sampler;
@@ -79,9 +68,6 @@ import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 public class Explorer extends javax.swing.JFrame {
 
   private static final long serialVersionUID = 1L;
-
-  private static final Lock ERR_LOCK = new ReentrantLock();
-
 
   private File folder;
 
@@ -408,52 +394,12 @@ public class Explorer extends javax.swing.JFrame {
     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
   }
 
-  @Nullable
-  private static Frame findActiveFrame() {
-    Frame[] frames = JFrame.getFrames();
-    for (Frame frame : frames) {
-      if (frame.isVisible()) {
-        return frame;
-      }
-    }
-    return null;
-  }
-
 
   /**
    * @param args the command line arguments
    */
   public static void main(final String[] args) {
-    Thread.setDefaultUncaughtExceptionHandler((Thread t, Throwable e) -> {
-      Frame frame = findActiveFrame();
-      if (frame != null) {
-        try {
-          if (ERR_LOCK.tryLock(100, TimeUnit.MILLISECONDS)) {
-            try {
-              JTextArea textArea = new JTextArea(Throwables.toString(e));
-              JScrollPane scrollPane = new JScrollPane(textArea);
-              textArea.setLineWrap(true);
-              textArea.setWrapStyleWord(true);
-              scrollPane.setPreferredSize( new Dimension( 500, 500 ) );
-              JOptionPane.showConfirmDialog(frame, scrollPane, "Exception",
-                      JOptionPane.OK_OPTION, JOptionPane.ERROR_MESSAGE);
-            } finally {
-              ERR_LOCK.unlock();
-            }
-          } else {
-            Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
-          }
-        } catch (InterruptedException ex) {
-          Thread.currentThread().interrupt();
-          return;
-        }
-      } else {
-        Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
-      }
-      if (Throwables.isNonRecoverable(e)) {
-        System.exit(SysExits.EX_SOFTWARE.exitCode());
-      }
-    });
+    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionDisplayer());
     System.setProperty("spf4j.tsdb2.lenientRead", "true");
     /* Set the Nimbus look and feel */
     //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -510,5 +456,6 @@ public class Explorer extends javax.swing.JFrame {
   private javax.swing.JMenuItem openMenuItem;
   private javax.swing.JMenuItem pasteMenuItem;
   // End of variables declaration//GEN-END:variables
+
 
 }
