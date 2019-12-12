@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
@@ -160,8 +161,8 @@ public class TextEntryPanel extends javax.swing.JPanel {
         try {
           Decoder decoder = DecoderFactory.get().jsonDecoder(schema, text);
           samples = (List<StackSampleElement>) reader.read(null, decoder);
-        } catch (IOException | RuntimeException ex) {
-          throw new RuntimeException("Unable to read samples: " + text, ex);
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
         }
         nodeConsumer.accept("SampleNode Array", Converter.convert(samples.iterator()));
       } else {
