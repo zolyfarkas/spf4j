@@ -106,7 +106,7 @@ public final class Spf4jRunListener extends RunListener {
   @Override
   public void testFinished(final Description description)
           throws IOException {
-    File dump = sampler.dumpToFile(new File(destinationFolder, description.getDisplayName() + ".ssdump2"));
+    File dump = sampler.dumpToFile(destinationFolder, description.getDisplayName() + ".ssdump2");
     if (dump != null) {
       LOG.info("Profile saved to {}", dump);
       lastWrittenFile = dump;

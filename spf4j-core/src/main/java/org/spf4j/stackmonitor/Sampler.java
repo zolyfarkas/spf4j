@@ -85,6 +85,7 @@ public final class Sampler {
   @GuardedBy("sync")
   private boolean stopped;
 
+  private volatile boolean compressDumps;
   private volatile long sampleTimeNanos;
   private volatile long dumpTimeNanos;
   private final SamplerSupplier stackCollectorSupp;
@@ -145,6 +146,11 @@ public final class Sampler {
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
           final File dumpFolder, final String dumpFilePrefix) {
+    this(sampleTimeMillis, dumpTimeMillis, collector, dumpFolder, dumpFilePrefix, true);
+  }
+
+  public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
+          final File dumpFolder, final String dumpFilePrefix, final boolean compressDumps) {
     CharSequences.validatedFileName(dumpFilePrefix);
     stopped = true;
     if (sampleTimeMillis < 1) {
@@ -158,6 +164,7 @@ public final class Sampler {
     this.stackCollectorSupp = collector;
     this.filePrefix = dumpFilePrefix;
     this.dumpFolder = dumpFolder;
+    this.compressDumps = compressDumps;
   }
 
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
@@ -261,6 +268,17 @@ public final class Sampler {
     }
   }
 
+  @JmxExport
+  public boolean isCompressDumps() {
+    return compressDumps;
+  }
+
+  @JmxExport
+  public void setCompressDumps(final boolean compressDumps) {
+    this.compressDumps = compressDumps;
+  }
+
+
   @JmxExport(description = "save stack samples to file")
   @Nullable
   public File dumpToFile() throws IOException {
@@ -271,26 +289,38 @@ public final class Sampler {
    * Dumps the sampled stacks to file. the collected samples are reset
    *
    * @param id - id will be added to file name returns the name of the file.
-   * @return - the file name where the data was persisted or null if there was no data to persist.
+   * @return - the file name where the data was persisted or null if there was no data to persist. The file name
+   * will be of format: [filePrefix](_[id])?_["yyyyMMdd'T'HHmmssSSSz]_["yyyyMMdd'T'HHmmssSSSz]_[label].ssdump2(.gz)?
+   * or [filePrefix](_[id])?_["yyyyMMdd'T'HHmmssSSSz]_["yyyyMMdd'T'HHmmssSSSz].ssdump3(.gz)?
    * @throws IOException - io issues while persisting data.
    */
   @JmxExport(value = "dumpToSpecificFile", description = "save stack samples to file")
   @Nullable
-  @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not possible the provided ID is validated for path separators.
   public File dumpToFile(
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
-    String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? "" : '_' + id) + '_'
+    String fileName = filePrefix + ((id == null) ? "" : '_' + id) + '_'
             + DateTimeFormats.COMPACT_TS_FORMAT.format(
                     Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
-            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now()));
-    File file = new File(dumpFolder, fileName);
-    return dumpToFile(file);
+            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now());
+    return dumpToFile(dumpFolder, fileName);
   }
 
+  /**
+   * Dump  collected samples to disk.
+   * @param destinationFolder the destination folder.
+   * @param baseFileName file name base. The appropriate extension will be added depending on situation.
+   * either ssdump2 or ssdump3 will be used depending on the number of sample aggregate groups.
+   * additionally .gz will be added if compression is enabled.
+   * in case of ssdump2 the label will be appended to the file name like _[label].ssdump2
+   *
+   * @return the saved file, or null if no collected samples to save.
+   * @throws IOException
+   */
   @Nullable
   @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not possible the provided ID is validated for path separators.
-  public File dumpToFile(@Nonnull final File pfile) throws IOException {
+  public File dumpToFile(@Nonnull final File destinationFolder, final String baseFileName) throws IOException {
+    CharSequences.validatedFileName(baseFileName);
     Map<String, SampleNode> collections;
     synchronized (sync) {
       if (stackCollector == null) {
@@ -302,27 +332,34 @@ public final class Sampler {
     if (collections.isEmpty()) {
       return null;
     }
+    String newFileName;
     if (collections.size() == 1) {
       Map.Entry<String, SampleNode> es = collections.entrySet().iterator().next();
       SampleNode samples = es.getValue();
       if (samples == null) {
         return null;
       }
-      File file;
-      if (pfile.getName().endsWith(".ssdump2")) {
-        file = pfile;
+      if (baseFileName.endsWith(".ssdump2")) {
+        newFileName = baseFileName;
       } else {
-        file = new File(pfile.getParentFile(), pfile.getName() + '_' + es.getKey() + ".ssdump2");
+        newFileName =  baseFileName + '_' + es.getKey() + ".ssdump2";
       }
+      if (this.compressDumps) {
+        newFileName = newFileName + ".gz";
+      }
+      File file = new File(destinationFolder, newFileName);
       Converter.save(file, samples);
       return file;
     } else {
-      File file;
-      if (pfile.getName().endsWith(".ssdump3")) {
-        file = pfile;
+      if (baseFileName.endsWith(".ssdump3")) {
+        newFileName = baseFileName;
       } else {
-        file = new File(pfile.getParentFile(), pfile.getName() + ".ssdump3");
+        newFileName = baseFileName + ".ssdump3";
       }
+      if (this.compressDumps) {
+        newFileName = newFileName + ".gz";
+      }
+      File file = new File(destinationFolder, newFileName);
       Converter.saveLabeledDumps(file, collections);
       return file;
     }
