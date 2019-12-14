@@ -36,6 +36,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
@@ -309,7 +311,8 @@ public final class Sampler {
   /**
    * Dump  collected samples to disk.
    * @param destinationFolder the destination folder.
-   * @param baseFileName file name base. The appropriate extension will be added depending on situation.
+   * @param baseFileName file name base, will be URLEncoded.
+   * The appropriate extension will be added depending on situation.
    * either ssdump2 or ssdump3 will be used depending on the number of sample aggregate groups.
    * additionally .gz will be added if compression is enabled.
    * in case of ssdump2 the label will be appended to the file name like _[label].ssdump2
@@ -319,8 +322,9 @@ public final class Sampler {
    */
   @Nullable
   @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not possible the provided ID is validated for path separators.
-  public File dumpToFile(@Nonnull final File destinationFolder, final String baseFileName) throws IOException {
-    CharSequences.validatedFileName(baseFileName);
+  public File dumpToFile(@Nonnull final File destinationFolder, final String pbaseFileName) throws IOException {
+    CharSequences.validatedFileName(pbaseFileName);
+    String baseFileName = URLEncoder.encode(pbaseFileName, StandardCharsets.UTF_8.name());
     Map<String, SampleNode> collections;
     synchronized (sync) {
       if (stackCollector == null) {
@@ -342,7 +346,7 @@ public final class Sampler {
       if (baseFileName.endsWith(".ssdump2")) {
         newFileName = baseFileName;
       } else {
-        newFileName =  baseFileName + '_' + es.getKey() + ".ssdump2";
+        newFileName =  baseFileName + '_' + URLEncoder.encode(es.getKey(), StandardCharsets.UTF_8.name()) + ".ssdump2";
       }
       if (this.compressDumps) {
         newFileName = newFileName + ".gz";
