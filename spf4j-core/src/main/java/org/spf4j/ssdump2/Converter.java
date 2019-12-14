@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +49,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
@@ -114,7 +116,7 @@ public final class Converter {
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   public static SampleNode load(final File file) throws IOException {
-    try (InputStream fis = Files.newInputStream(file.toPath())) {
+    try (InputStream fis = newInputStream(file)) {
       return load(fis);
     }
   }
@@ -194,15 +196,19 @@ public final class Converter {
     OutputStream result = new BufferedOutputStream(
             Files.newOutputStream(file.toPath()));
     if (file.getName().endsWith(".gz")) {
-      result = new GZIPOutputStream(result);
+      try {
+        result = new GZIPOutputStream(result);
+      } catch (IOException | RuntimeException ex) {
+        result.close();
+        throw ex;
+      }
     }
     return result;
   }
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   public static Map<String, SampleNode> loadLabeledDumps(final File file) throws IOException {
-    try (MemorizingBufferedInputStream bis
-            = new MemorizingBufferedInputStream(Files.newInputStream(file.toPath()))) {
+    try (InputStream bis = newInputStream(file)) {
       final SpecificDatumReader<StackSampleElement> reader = new SpecificDatumReader<>(StackSampleElement.SCHEMA$);
       final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
       long nrItems = decoder.readMapStart();
@@ -238,5 +244,20 @@ public final class Converter {
       return result;
     }
   }
+
+  private static InputStream newInputStream(final File file) throws IOException {
+    InputStream result =  new BufferedInputStream(Files.newInputStream(file.toPath()));
+    if (file.getName().endsWith(".gz")) {
+      try {
+        return new GZIPInputStream(result);
+      } catch (IOException | RuntimeException ex) {
+        result.close();
+        throw ex;
+      }
+    } else {
+      return result;
+    }
+  }
+
 
 }
