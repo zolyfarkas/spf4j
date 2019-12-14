@@ -110,9 +110,9 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
   private void initComponents() {
 
     ssScrollPanel = new javax.swing.JScrollPane();
-    jToolBar1 = new javax.swing.JToolBar();
+    samplesVisualizerToolbar = new javax.swing.JToolBar();
     graphToggle = new javax.swing.JToggleButton();
-    jButton1 = new javax.swing.JButton();
+    exportButton = new javax.swing.JButton();
 
     setClosable(true);
     setIconifiable(true);
@@ -121,7 +121,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
     ssScrollPanel.setAutoscrolls(true);
 
-    jToolBar1.setRollover(true);
+    samplesVisualizerToolbar.setRollover(true);
 
     graphToggle.setText("graph");
     graphToggle.setFocusable(false);
@@ -132,30 +132,30 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         graphToggleItemStateChanged(evt);
       }
     });
-    jToolBar1.add(graphToggle);
+    samplesVisualizerToolbar.add(graphToggle);
 
-    jButton1.setText("export");
-    jButton1.setFocusable(false);
-    jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-    jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    jButton1.addActionListener(new java.awt.event.ActionListener() {
+    exportButton.setText("export");
+    exportButton.setFocusable(false);
+    exportButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+    exportButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+    exportButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        jButton1ActionPerformed(evt);
+        exportButtonActionPerformed(evt);
       }
     });
-    jToolBar1.add(jButton1);
+    samplesVisualizerToolbar.add(exportButton);
 
     org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
       .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
-      .add(jToolBar1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
       layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
       .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()
-        .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
+        .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)
         .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)
         .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE))
     );
@@ -169,7 +169,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
   @SuppressFBWarnings({ "PATH_TRAVERSAL_IN", "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE", "UP_UNUSED_PARAMETER" })
   // this is a local app, FB sees problems with Try -> {} genereted code......
-  private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+  private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportButtonActionPerformed
     JFileChooser fc = new JFileChooser();
     FileFilter[] xFF = fc.getChoosableFileFilters();
     for (FileFilter ff : xFF) {
@@ -178,6 +178,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     fc.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);
     fc.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);
     fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);
+    fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);
     fc.setFileFilter(Spf4jFileFilter.D3_JSON);
     int retrival = fc.showSaveDialog(null);
     if (retrival == JFileChooser.APPROVE_OPTION) {
@@ -202,7 +203,7 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         } catch (IOException ex) {
           throw new UncheckedIOException(ex);
         }
-      } else if (Spf4jFileFilter.SSDUMP2.accept(selectedFile)) {
+      } else if (Spf4jFileFilter.SSDUMP2.accept(selectedFile) || Spf4jFileFilter.SSDUMP2_GZ.accept(selectedFile)) {
         try {
           Converter.save(selectedFile, samples);
         } catch (IOException ex) {
@@ -212,12 +213,12 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
         throw new IllegalArgumentException("No ecognized extension for file " + selectedFile);
       }
     }
-  }//GEN-LAST:event_jButton1ActionPerformed
+  }//GEN-LAST:event_exportButtonActionPerformed
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JButton exportButton;
   private javax.swing.JToggleButton graphToggle;
-  private javax.swing.JButton jButton1;
-  private javax.swing.JToolBar jToolBar1;
+  private javax.swing.JToolBar samplesVisualizerToolbar;
   private javax.swing.JScrollPane ssScrollPanel;
   // End of variables declaration//GEN-END:variables
 }

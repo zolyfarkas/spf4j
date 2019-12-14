@@ -239,6 +239,8 @@ public class Explorer extends javax.swing.JFrame {
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);
       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);
       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);
       if (folder != null) {
@@ -351,10 +353,10 @@ public class Explorer extends javax.swing.JFrame {
     } else if (fileName.endsWith("ssdump")) {
       SampleNode samples = loadLegacyFormat(file);
       setFrames(samples, fileName);
-    } else if (fileName.endsWith("ssdump2")) {
+    } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
       SampleNode samples = org.spf4j.ssdump2.Converter.load(file);
       setFrames(samples, fileName);
-    } else if (fileName.endsWith("ssdump3")) {
+    } else if (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {
       Map<String, SampleNode> loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);
       for (Map.Entry<String, SampleNode> entry : loadLabeledDumps.entrySet()) {
         setFrames(entry.getValue(), fileName + ':' + entry.getKey());

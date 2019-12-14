@@ -27,6 +27,8 @@ public final class Spf4jFileFilter extends ComposableFileFilter {
   public static final Spf4jFileFilter SSDUMP = new Spf4jFileFilter("ssdump");
   public static final Spf4jFileFilter SSDUMP2 = new Spf4jFileFilter("ssdump2");
   public static final Spf4jFileFilter SSDUMP3 = new Spf4jFileFilter("ssdump3");
+  public static final Spf4jFileFilter SSDUMP2_GZ = new Spf4jFileFilter("ssdump2.gz");
+  public static final Spf4jFileFilter SSDUMP3_GZ = new Spf4jFileFilter("ssdump3.gz");
   public static final Spf4jFileFilter D3_JSON = new Spf4jFileFilter("d3.json");
   public static final Spf4jFileFilter SPF4J_JSON = new Spf4jFileFilter("spf4j.json");
 
