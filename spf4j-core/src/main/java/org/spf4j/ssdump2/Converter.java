@@ -39,6 +39,7 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -47,6 +48,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.apache.avro.io.BinaryDecoder;
@@ -94,8 +96,7 @@ public final class Converter {
   }
 
   public static void save(final File file, final SampleNode collected) throws IOException {
-    try (BufferedOutputStream bos = new BufferedOutputStream(
-            Files.newOutputStream(file.toPath()))) {
+    try (OutputStream bos = newOutputStream(file)) {
       final SpecificDatumWriter<StackSampleElement> writer
               = new SpecificDatumWriter<>(StackSampleElement.getClassSchema());
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
@@ -159,8 +160,7 @@ public final class Converter {
   }
 
   public static void saveLabeledDumps(final File file, final Map<String, SampleNode> pcollected) throws IOException {
-    try (BufferedOutputStream bos = new BufferedOutputStream(
-            Files.newOutputStream(file.toPath()))) {
+    try (OutputStream bos = newOutputStream(file)) {
       final SpecificDatumWriter<StackSampleElement> writer = new SpecificDatumWriter<>(StackSampleElement.SCHEMA$);
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
 
@@ -188,6 +188,15 @@ public final class Converter {
       encoder.writeMapEnd();
       encoder.flush();
     }
+  }
+
+  private static OutputStream newOutputStream(final File file) throws IOException {
+    OutputStream result = new BufferedOutputStream(
+            Files.newOutputStream(file.toPath()));
+    if (file.getName().endsWith(".gz")) {
+      result = new GZIPOutputStream(result);
+    }
+    return result;
   }
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
