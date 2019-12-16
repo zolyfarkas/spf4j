@@ -48,13 +48,16 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.apache.avro.io.BinaryDecoder;
 import org.apache.avro.io.BinaryEncoder;
+import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
@@ -206,6 +209,12 @@ public final class Converter {
     return result;
   }
 
+  /**
+   * Load samples forrm file containing multiple labeled stack samples.
+   * @param file the ssdump3 file.
+   * @return
+   * @throws IOException
+   */
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
   public static Map<String, SampleNode> loadLabeledDumps(final File file) throws IOException {
     try (InputStream bis = newInputStream(file)) {
@@ -217,31 +226,103 @@ public final class Converter {
       while (nrItems > 0) {
         for (int i = 0; i < nrItems; i++) {
           String key = decoder.readString();
-          TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
-          long nrArrayItems = decoder.readArrayStart();
-          while (nrArrayItems > 0) {
-            for (int j = 0; j < nrArrayItems; j++) {
-              asmp = reader.read(asmp, decoder);
-              SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap<SampleNode>());
-              SampleNode parent = index.get(asmp.getParentId());
-              if (parent != null) {
-                Method readMethod = asmp.getMethod();
-                Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());
-                final Map<Method, SampleNode> subNodes = parent.getSubNodes();
-                if (subNodes == null) {
-                  throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
-                }
-                subNodes.put(m, sn);
-              }
-              index.put(asmp.getId(), sn);
-            }
-            nrArrayItems = decoder.arrayNext();
-          }
+          TIntObjectMap<SampleNode> index = loadSamples(decoder, asmp, reader);
           result.put(key, index.get(0));
         }
         nrItems = decoder.mapNext();
       }
       return result;
+    }
+  }
+
+  @SuppressFBWarnings("OCP_OVERLY_CONCRETE_PARAMETER")// it's a private method, don't care about being generic
+  private static TIntObjectMap<SampleNode> loadSamples(final Decoder decoder,
+          final StackSampleElement pasmp,
+          final SpecificDatumReader<StackSampleElement> reader) throws IOException {
+    TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
+    long nrArrayItems = decoder.readArrayStart();
+    while (nrArrayItems > 0) {
+      for (int j = 0; j < nrArrayItems; j++) {
+        StackSampleElement asmp = reader.read(pasmp, decoder);
+        SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap<>());
+        SampleNode parent = index.get(asmp.getParentId());
+        if (parent != null) {
+          Method readMethod = asmp.getMethod();
+          Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());
+          final Map<Method, SampleNode> subNodes = parent.getSubNodes();
+          if (subNodes == null) {
+            throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
+          }
+          subNodes.put(m, sn);
+        }
+        index.put(asmp.getId(), sn);
+      }
+      nrArrayItems = decoder.arrayNext();
+    }
+    return index;
+  }
+
+  /**
+   * Load the labels from a ssdump3 file.
+   * @param file the ssdump3 file.
+   * @throws IOException
+   */
+  public static void loadLabels(final File file, final Consumer<String> labalsConsumer) throws IOException {
+    try (InputStream bis = newInputStream(file)) {
+      final SpecificDatumReader<StackSampleElement> reader = new SpecificDatumReader<>(StackSampleElement.SCHEMA$);
+      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+      long nrItems = decoder.readMapStart();
+      StackSampleElement asmp = new StackSampleElement();
+      while (nrItems > 0) {
+        for (int i = 0; i < nrItems; i++) {
+          String key = decoder.readString();
+          labalsConsumer.accept(key);
+          skipDump(decoder, reader, asmp);
+        }
+        nrItems = decoder.mapNext();
+      }
+    }
+  }
+
+  @SuppressFBWarnings("OCP_OVERLY_CONCRETE_PARAMETER")// it's a private method, don't care about being generic
+  private static void skipDump(final Decoder decoder,
+          final SpecificDatumReader<StackSampleElement> reader,
+          final StackSampleElement asmp) throws IOException {
+    long nrArrayItems = decoder.readArrayStart();
+    while (nrArrayItems > 0) {
+      for (int j = 0; j < nrArrayItems; j++) {
+        reader.read(asmp, decoder);
+      }
+      nrArrayItems = decoder.arrayNext();
+    }
+  }
+
+ /**
+   * Load samples forrm file containing multiple labeled stack samples.
+   * @param file the ssdump3 file.
+   * @return
+   * @throws IOException
+   */
+  @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+  @Nullable
+  public static SampleNode loadLabeledDump(final File file, final String label) throws IOException {
+    try (InputStream bis = newInputStream(file)) {
+      final SpecificDatumReader<StackSampleElement> reader = new SpecificDatumReader<>(StackSampleElement.SCHEMA$);
+      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+      long nrItems = decoder.readMapStart();
+      StackSampleElement asmp = new StackSampleElement();
+      while (nrItems > 0) {
+        for (int i = 0; i < nrItems; i++) {
+          String key = decoder.readString();
+          if (label.equals(key)) {
+            return loadSamples(decoder, asmp, reader).get(0);
+          } else {
+            skipDump(decoder, reader, asmp);
+          }
+        }
+        nrItems = decoder.mapNext();
+      }
+      return null;
     }
   }
 
