@@ -346,7 +346,7 @@ public final class Sampler {
       if (baseFileName.endsWith(".ssdump2")) {
         newFileName = baseFileName;
       } else {
-        newFileName =  baseFileName + '_' + URLEncoder.encode(es.getKey(), StandardCharsets.UTF_8.name()) + ".ssdump2";
+        newFileName = Converter.createLabeledSsdump2FileName(baseFileName, es.getKey());
       }
       if (this.compressDumps) {
         newFileName = newFileName + ".gz";

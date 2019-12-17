@@ -43,6 +43,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -80,6 +84,32 @@ public final class Converter {
   private Converter() {
   }
 
+  public static String createLabeledSsdump2FileName(final String baseFileName, final String label) {
+    try {
+      String encoded = URLEncoder.encode(label, StandardCharsets.UTF_8.name());
+      encoded = encoded.replace("_", "%5F");
+      return baseFileName + '_' + encoded + ".ssdump2";
+    } catch (UnsupportedEncodingException ex) {
+      throw new IllegalArgumentException("Unable to encode: " + label, ex);
+    }
+  }
+
+  public static String getLabelFromSsdump2FileName(final String fileName) {
+    int spext = fileName.lastIndexOf(".ssdump2");
+    if (spext < 0) {
+      throw new IllegalArgumentException("Invalid ssdump2 file name: " + fileName);
+    }
+    int grsIdx = fileName.lastIndexOf('_', spext);
+    try {
+      if (grsIdx < 0) {
+        return URLDecoder.decode(fileName.substring(0, spext), StandardCharsets.UTF_8.name());
+      } else {
+        return URLDecoder.decode(fileName.substring(grsIdx + 1, spext), StandardCharsets.UTF_8.name());
+      }
+    } catch (UnsupportedEncodingException ex) {
+      throw new IllegalArgumentException("Invalid ssdump2 file name: " + fileName, ex);
+    }
+  }
 
   public static SampleNode convert(final Iterator<StackSampleElement> samples) {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();

@@ -114,4 +114,11 @@ public class ConverterTest {
 
     }
 
+    @Test
+    public void testNameUtils() {
+      String fileName = Converter.createLabeledSsdump2FileName("base", "bla_");
+      Assert.assertEquals("bla_", Converter.getLabelFromSsdump2FileName(fileName));
+    }
+
+
 }
