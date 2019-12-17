@@ -135,7 +135,7 @@ public final class SampleNode implements Serializable, StackSamples {
       } else {
         return node2;
       }
-    } if (node2 == null) {
+    } else if (node2 == null) {
       return node1;
     }  else {
       return aggregate(node1, node2);
