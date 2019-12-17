@@ -127,6 +127,21 @@ public final class SampleNode implements Serializable, StackSamples {
     return new SampleNode(node.sampleCount, newSubNodes);
   }
 
+  @Nullable
+  public static SampleNode aggregateNullable(@Nullable final SampleNode node1, @Nullable final SampleNode node2) {
+    if (node1 == null) {
+      if (node2 == null) {
+        return null;
+      } else {
+        return node2;
+      }
+    } if (node2 == null) {
+      return node1;
+    }  else {
+      return aggregate(node1, node2);
+    }
+  }
+
   public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
     int newSampleCount = node1.sampleCount + node2.sampleCount;
     TMap<Method, SampleNode> newSubNodes;
