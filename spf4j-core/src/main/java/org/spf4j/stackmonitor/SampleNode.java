@@ -147,10 +147,12 @@ public final class SampleNode implements Serializable, StackSamples {
   public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
     int newSampleCount = node1.sampleCount + node2.sampleCount;
     TMap<Method, SampleNode> newSubNodes;
-    if (node1.subNodes == null && node2.subNodes == null) {
-      newSubNodes = null;
-    } else if (node1.subNodes == null) {
-      newSubNodes = cloneSubNodes(node2);
+    if (node1.subNodes == null) {
+      if (node2.subNodes == null) {
+        newSubNodes = null;
+      } else {
+        newSubNodes = cloneSubNodes(node2);
+      }
     } else if (node2.subNodes == null) {
       newSubNodes = cloneSubNodes(node1);
     } else {
@@ -175,6 +177,70 @@ public final class SampleNode implements Serializable, StackSamples {
     }
     return new SampleNode(newSampleCount, newSubNodes);
   }
+
+  /**
+   * Aggregation implementation where parts of node1 and node2 will be re-used.
+   * @param node1
+   * @param node2
+   * @return
+   */
+  @Nullable
+  public static SampleNode aggregateNullableUnsafe(@Nullable final SampleNode node1,
+          @Nullable final SampleNode node2) {
+    if (node1 == null) {
+      if (node2 == null) {
+        return null;
+      } else {
+        return node2;
+      }
+    } else if (node2 == null) {
+      return node1;
+    }  else {
+      return aggregateUnsafe(node1, node2);
+    }
+  }
+
+
+  /**
+   * Aggregation implementation where parts of node1 and node2 will be re-used.
+   * @param node1
+   * @param node2
+   * @return
+   */
+ public static SampleNode aggregateUnsafe(final SampleNode node1, final SampleNode node2) {
+    int newSampleCount = node1.sampleCount + node2.sampleCount;
+    TMap<Method, SampleNode> newSubNodes;
+    if (node1.subNodes == null) {
+      if (node2.subNodes == null) {
+        newSubNodes = null;
+      } else {
+        newSubNodes = node2.subNodes;
+      }
+    } else if (node2.subNodes == null) {
+      newSubNodes = node1.subNodes;
+    } else {
+      final TMap<Method, SampleNode> ns = new MethodMap<>(node1.subNodes.size()
+              + node2.subNodes.size());
+      node1.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
+        SampleNode other = node2.subNodes.get(m);
+        if (other == null) {
+          ns.put(m, b);
+        } else {
+          ns.put(m, aggregateUnsafe(b, other));
+        }
+        return true;
+      });
+      node2.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
+        if (!node1.subNodes.containsKey(m)) {
+          ns.put(m, b);
+        }
+        return true;
+      });
+      newSubNodes = ns;
+    }
+    return new SampleNode(newSampleCount, newSubNodes);
+  }
+
 
   public void add(final SampleNode node) {
     this.sampleCount += node.getSampleCount();
