@@ -76,7 +76,7 @@ public final class Methods  {
     Map<String, Method> mtom = INSTANCE_REPO.get(className);
     Method result;
     if (mtom == null) {
-      mtom = new THashMap<>(7, 0.7f);
+      mtom = new THashMap<>(5);
       result = new Method(className, methodName);
       mtom.put(methodName, result);
       INSTANCE_REPO.put(className, mtom);
