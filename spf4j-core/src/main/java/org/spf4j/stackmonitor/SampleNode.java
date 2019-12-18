@@ -474,7 +474,9 @@ public final class SampleNode implements Serializable, StackSamples {
     consume(jsonP, JsonToken.START_OBJECT);
     MutableHolder<Method> method  = MutableHolder.of(null);
     MutableHolder<SampleNode> samples = MutableHolder.of((SampleNode) null);
-    parse(jsonP, (m, s) -> { method.setValue(m); samples.setValue(s); });
+    parse(jsonP, (m, s) -> {
+      method.setValue(m); samples.setValue(s);
+    });
     return Pair.of(method.get(), samples.get());
   }
 
@@ -504,7 +506,9 @@ public final class SampleNode implements Serializable, StackSamples {
     consume(jsonP, JsonToken.START_OBJECT);
     MutableHolder<Method> method  = MutableHolder.of(null);
     MutableHolder<SampleNode> samples = MutableHolder.of((SampleNode) null);
-    parseD3Json(jsonP, (m, s) -> { method.setValue(m); samples.setValue(s); });
+    parseD3Json(jsonP, (m, s) -> {
+      method.setValue(m); samples.setValue(s);
+    });
     return Pair.of(method.get(), samples.get());
   }
 
