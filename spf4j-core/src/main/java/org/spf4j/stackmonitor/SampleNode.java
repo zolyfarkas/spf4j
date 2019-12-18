@@ -70,12 +70,9 @@ public final class SampleNode implements Serializable, StackSamples {
   private int sampleCount;
   private TMap<Method, SampleNode> subNodes;
 
-  SampleNode(final StackTraceElement[] stackTrace, final int from) {
-    sampleCount = 1;
-    if (from >= 0) {
-      subNodes = new MethodMap<>();
-      subNodes.put(Methods.getMethod(stackTrace[from]), new SampleNode(stackTrace, from - 1));
-    }
+  public SampleNode(final int count, @Nullable final TMap<Method, SampleNode> subNodes) {
+    this.sampleCount = count;
+    this.subNodes = subNodes;
   }
 
   public static SampleNode createSampleNode(final StackTraceElement... stackTrace) {
@@ -272,29 +269,6 @@ public final class SampleNode implements Serializable, StackSamples {
       destination.put(a, SampleNode.clone(b));
       return true;
     });
-  }
-
-  public SampleNode(final int count, @Nullable final TMap<Method, SampleNode> subNodes) {
-    this.sampleCount = count;
-    this.subNodes = subNodes;
-  }
-
-  void addSample(final StackTraceElement[] stackTrace, final int from) {
-    sampleCount++;
-    if (from >= 0) {
-      Method method = Methods.getMethod(stackTrace[from]);
-      SampleNode subNode = null;
-      if (subNodes == null) {
-        subNodes = new MethodMap();
-      } else {
-        subNode = subNodes.get(method);
-      }
-      if (subNode == null) {
-        subNodes.put(method, new SampleNode(stackTrace, from - 1));
-      } else {
-        subNode.addSample(stackTrace, from - 1);
-      }
-    }
   }
 
   @Override
