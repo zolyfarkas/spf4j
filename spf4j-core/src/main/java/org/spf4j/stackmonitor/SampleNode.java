@@ -46,6 +46,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
@@ -54,6 +55,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.WillNotClose;
 import org.spf4j.base.Json;
 import org.spf4j.base.Methods;
+import org.spf4j.base.MutableHolder;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.Method;
 
@@ -470,26 +472,28 @@ public final class SampleNode implements Serializable, StackSamples {
   public static Pair<Method, SampleNode> parse(@WillNotClose final Reader r) throws IOException {
     JsonParser jsonP = Json.FACTORY.createParser(r);
     consume(jsonP, JsonToken.START_OBJECT);
-    return parse(jsonP);
+    MutableHolder<Method> method  = MutableHolder.of(null);
+    MutableHolder<SampleNode> samples = MutableHolder.of((SampleNode) null);
+    parse(jsonP, (m, s) -> { method.setValue(m); samples.setValue(s); });
+    return Pair.of(method.get(), samples.get());
   }
 
-  private static Pair<Method, SampleNode> parse(final JsonParser jsonP) throws IOException {
+  private static void parse(final JsonParser jsonP, final BiConsumer<Method, SampleNode> consumer) throws IOException {
     consume(jsonP, JsonToken.FIELD_NAME);
     String name = jsonP.getCurrentName();
     consume(jsonP, JsonToken.VALUE_NUMBER_INT);
     int sc = jsonP.getIntValue();
     JsonToken nextToken = jsonP.nextToken();
     if (nextToken == JsonToken.END_OBJECT) {
-      return Pair.of(Methods.from(name), new SampleNode(sc, null));
+      consumer.accept(Methods.from(name), new SampleNode(sc, null));
     } else if (nextToken == JsonToken.FIELD_NAME) {
       consume(jsonP, JsonToken.START_ARRAY);
       TMap<Method, SampleNode> nodes = new MethodMap<>();
       while (jsonP.nextToken() != JsonToken.END_ARRAY) {
-        Pair<Method, SampleNode> parse = parse(jsonP);
-        nodes.put(parse.getKey(), parse.getValue());
+        parse(jsonP, nodes::put);
       }
       consume(jsonP, JsonToken.END_OBJECT);
-      return Pair.of(Methods.from(name), new SampleNode(sc, nodes));
+      consumer.accept(Methods.from(name), new SampleNode(sc, nodes));
     } else {
       throw new JsonParseException(jsonP, "Expected field name or end Object, not: " + nextToken);
     }
@@ -498,11 +502,15 @@ public final class SampleNode implements Serializable, StackSamples {
   public static Pair<Method, SampleNode> parseD3Json(@WillNotClose final Reader r) throws IOException {
     JsonParser jsonP = Json.FACTORY.createParser(r);
     consume(jsonP, JsonToken.START_OBJECT);
-    return parseD3Json(jsonP);
+    MutableHolder<Method> method  = MutableHolder.of(null);
+    MutableHolder<SampleNode> samples = MutableHolder.of((SampleNode) null);
+    parseD3Json(jsonP, (m, s) -> { method.setValue(m); samples.setValue(s); });
+    return Pair.of(method.get(), samples.get());
   }
 
   @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING") // not that weak here...
-  private static Pair<Method, SampleNode> parseD3Json(final JsonParser jsonP) throws IOException {
+  private static void parseD3Json(final JsonParser jsonP, final BiConsumer<Method, SampleNode> consumer)
+          throws IOException {
     String methodName = null;
     int nrSamples = -1;
     TMap<Method, SampleNode> nodes = null;
@@ -523,8 +531,7 @@ public final class SampleNode implements Serializable, StackSamples {
             consume(jsonP, JsonToken.START_ARRAY);
             nodes = new MethodMap<>();
             while (jsonP.nextToken() != JsonToken.END_ARRAY) {
-              Pair<Method, SampleNode> parse = parseD3Json(jsonP);
-              nodes.put(parse.getKey(), parse.getValue());
+              parseD3Json(jsonP, nodes::put);
             }
             break;
           default:
@@ -537,7 +544,8 @@ public final class SampleNode implements Serializable, StackSamples {
         if (nrSamples < 0) {
           throw new JsonParseException(jsonP, "value field not found");
         }
-        return Pair.of(Methods.from(methodName), new SampleNode(nrSamples, nodes));
+        consumer.accept(Methods.from(methodName), new SampleNode(nrSamples, nodes));
+        return;
       } else {
         throw new JsonParseException(jsonP, "Unexpected " + nextToken);
       }
