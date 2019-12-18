@@ -57,7 +57,7 @@ public final class MethodMap<T> extends THashMap<Method, T> {
   @Override
   protected int hash(final Object notnull) {
     Method m = (Method) notnull;
-    return m.getName().hashCode() + m.getDeclaringClass().hashCode() * 7;
+    return m.getName().hashCode();
   }
 
   @Override
