@@ -41,7 +41,7 @@ import org.spf4j.base.avro.Method;
 public final class MethodMap<T> extends THashMap<Method, T> {
 
   public MethodMap() {
-    super(5, 0.7f);
+    super(2, 0.7f);
   }
 
   public MethodMap(final int initialCapacity) {
