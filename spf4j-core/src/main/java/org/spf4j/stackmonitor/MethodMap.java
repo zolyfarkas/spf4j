@@ -65,15 +65,12 @@ public final class MethodMap<T> extends THashMap<Method, T> {
     if (notnull == two) {
       return true;
     }
-    if (notnull instanceof Method) {
+    if (two != null) {
       Method m1 = (Method) notnull;
       Method m2 = (Method) two;
-      if (!m1.getName().equals(m2.getName())) {
-        return false;
-      }
-      return m1.getDeclaringClass().equals(m2.getDeclaringClass());
+      return m1.getName().equals(m2.getName()) && m1.getDeclaringClass().equals(m2.getDeclaringClass());
     } else {
-      return notnull.equals(two);
+      return false;
     }
   }
 
