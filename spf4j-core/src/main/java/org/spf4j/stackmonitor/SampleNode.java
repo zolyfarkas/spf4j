@@ -154,9 +154,8 @@ public final class SampleNode implements Serializable, StackSamples {
     } else if (node2.subNodes == null) {
       newSubNodes = cloneSubNodes(node1);
     } else {
-      final TMap<Method, SampleNode> ns = new MethodMap<>((int) ((node1.subNodes.size()
-              + node2.subNodes.size()) / 0.7));
-
+      final TMap<Method, SampleNode> ns = new MethodMap<>(node1.subNodes.size()
+              + node2.subNodes.size());
       node1.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
         SampleNode other = node2.subNodes.get(m);
         if (other == null) {
@@ -173,7 +172,6 @@ public final class SampleNode implements Serializable, StackSamples {
         return true;
       });
       newSubNodes = ns;
-
     }
     return new SampleNode(newSampleCount, newSubNodes);
   }
