@@ -36,17 +36,18 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.base.StackSamples;
 import gnu.trove.map.TMap;
+import org.spf4j.base.StackSamples;
 import gnu.trove.procedure.TObjectObjectProcedure;
 import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -64,16 +65,25 @@ import org.spf4j.base.avro.Method;
  * @author zoly
  */
 @ParametersAreNonnullByDefault
-public final class SampleNode implements Serializable, StackSamples {
+public final class SampleNode extends MethodMap<SampleNode> implements Serializable, StackSamples {
 
   private static final long serialVersionUID = 1L;
 
   private int sampleCount;
-  private TMap<Method, SampleNode> subNodes;
 
-  public SampleNode(final int count, @Nullable final TMap<Method, SampleNode> subNodes) {
+  public SampleNode(final int count, final int capacity) {
+    super(capacity);
     this.sampleCount = count;
-    this.subNodes = subNodes;
+  }
+
+  public SampleNode(final int count) {
+    super(0);
+    this.sampleCount = count;
+  }
+
+  public SampleNode() {
+    super(0);
+    this.sampleCount = 0;
   }
 
   @VisibleForTesting
@@ -82,15 +92,12 @@ public final class SampleNode implements Serializable, StackSamples {
   }
 
   public static SampleNode createSampleNode(final StackTraceElement... stackTrace) {
-    SampleNode result = new SampleNode(1, null);
+    SampleNode result = new SampleNode(1);
     SampleNode prevResult = result;
     for (int i = stackTrace.length - 1; i >= 0; i--) {
       StackTraceElement elem = stackTrace[i];
-      if (prevResult.subNodes == null) {
-        prevResult.subNodes = new MethodMap<>();
-      }
-      SampleNode node = new SampleNode(1, null);
-      prevResult.subNodes.put(Methods.getMethod(elem), node);
+      SampleNode node = new SampleNode(1);
+      prevResult.put(Methods.getMethod(elem), node);
       prevResult = node;
     }
     return result;
@@ -102,22 +109,20 @@ public final class SampleNode implements Serializable, StackSamples {
     for (int i = stackTrace.length - 1; i >= 0; i--) {
       StackTraceElement elem = stackTrace[i];
       final Method method = Methods.getMethod(elem);
-      SampleNode nNode;
-      if (prevResult.subNodes == null) {
-        prevResult.subNodes = new MethodMap<>();
-        nNode = new SampleNode(1, null);
-        prevResult.subNodes.put(method, nNode);
+      SampleNode nNode = prevResult.get(method);
+      if (nNode != null) {
+        nNode.sampleCount++;
       } else {
-        nNode = prevResult.subNodes.get(method);
-        if (nNode != null) {
-          nNode.sampleCount++;
-        } else {
-          nNode = new SampleNode(1, null);
-          prevResult.subNodes.put(method, nNode);
-        }
+        nNode = new SampleNode(1);
+        prevResult.put(method, nNode);
       }
       prevResult = nNode;
     }
+  }
+
+  @Override
+  public TMap<Method, SampleNode> getSubNodes() {
+    return this;
   }
 
   private static class Traverse {
@@ -133,23 +138,23 @@ public final class SampleNode implements Serializable, StackSamples {
   }
 
   public static SampleNode clone(final SampleNode node) {
-    if (node.subNodes == null) {
-      return new SampleNode(node.sampleCount, null);
+    if (node.isEmpty()) {
+      return new SampleNode(node.sampleCount);
     }
-    SampleNode result = new SampleNode(node.sampleCount, new MethodMap<>(node.subNodes.size()));
+    SampleNode result = new SampleNode(node.sampleCount, node.size());
     ArrayDeque<Traverse> traverse = new ArrayDeque<>();
-    node.subNodes.forEachEntry((final Method a, final SampleNode b) -> {
+    node.forEachEntry((final Method a, final SampleNode b) -> {
       traverse.add(new Traverse(result, a, b));
       return true;
     });
     Traverse t;
     while ((t = traverse.poll()) != null) {
-      if (t.child.subNodes == null) {
-        t.parent.subNodes.put(t.method, new SampleNode(t.child.sampleCount, null));
+      if (t.child.isEmpty()) {
+        t.parent.put(t.method, new SampleNode(t.child.sampleCount));
       } else {
-        SampleNode nc = new SampleNode(t.child.sampleCount, new MethodMap<>(t.child.subNodes.size()));
-        t.parent.subNodes.put(t.method, nc);
-        t.child.subNodes.forEachEntry((final Method a, final SampleNode b) -> {
+        SampleNode nc = new SampleNode(t.child.sampleCount, t.child.size());
+        t.parent.put(t.method, nc);
+        t.child.forEachEntry((final Method a, final SampleNode b) -> {
           traverse.add(new Traverse(nc, a, b));
           return true;
         });
@@ -175,36 +180,24 @@ public final class SampleNode implements Serializable, StackSamples {
   }
 
   public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
-    int newSampleCount = node1.sampleCount + node2.sampleCount;
-    TMap<Method, SampleNode> newSubNodes;
-    if (node1.subNodes == null) {
-      if (node2.subNodes == null) {
-        newSubNodes = null;
-      } else {
-        newSubNodes = cloneSubNodes(node2);
-      }
-    } else if (node2.subNodes == null) {
-      newSubNodes = cloneSubNodes(node1);
-    } else {
-      final TMap<Method, SampleNode> ns = new MethodMap<>(Math.max(node1.subNodes.size(), node2.subNodes.size()) + 1);
-      node1.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
-        SampleNode other = node2.subNodes.get(m);
+    SampleNode result = new SampleNode(node1.sampleCount + node2.sampleCount,
+            Math.max(node1.size(), node2.size()));
+      node1.forEachEntry((final Method m, final SampleNode b) -> {
+        SampleNode other = node2.get(m);
         if (other == null) {
-          ns.put(m, SampleNode.clone(b));
+          result.put(m, SampleNode.clone(b));
         } else {
-          ns.put(m, aggregate(b, other));
+          result.put(m, aggregate(b, other));
         }
         return true;
       });
-      node2.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
-        if (!node1.subNodes.containsKey(m)) {
-          ns.put(m, SampleNode.clone(b));
+      node2.forEachEntry((final Method m, final SampleNode b) -> {
+        if (!node1.containsKey(m)) {
+          result.put(m, SampleNode.clone(b));
         }
         return true;
       });
-      newSubNodes = ns;
-    }
-    return new SampleNode(newSampleCount, newSubNodes);
+    return result;
   }
 
   /**
@@ -236,83 +229,43 @@ public final class SampleNode implements Serializable, StackSamples {
    * @param node2
    * @return
    */
- public static SampleNode aggregateUnsafe(final SampleNode node1, final SampleNode node2) {
-    int newSampleCount = node1.sampleCount + node2.sampleCount;
-    TMap<Method, SampleNode> newSubNodes;
-    if (node1.subNodes == null) {
-      if (node2.subNodes == null) {
-        newSubNodes = null;
-      } else {
-        newSubNodes = node2.subNodes;
-      }
-    } else if (node2.subNodes == null) {
-      newSubNodes = node1.subNodes;
-    } else {
-      final TMap<Method, SampleNode> ns = new MethodMap<>(Math.max(node1.subNodes.size(), node2.subNodes.size()) + 1);
-      node1.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
-        SampleNode other = node2.subNodes.get(m);
+  public static SampleNode aggregateUnsafe(final SampleNode node1, final SampleNode node2) {
+    SampleNode result = new SampleNode(node1.sampleCount + node2.sampleCount,
+            Math.max(node1.size(), node2.size()));
+      node1.forEachEntry((final Method m, final SampleNode b) -> {
+        SampleNode other = node2.get(m);
         if (other == null) {
-          ns.put(m, b);
+          result.put(m, b);
         } else {
-          ns.put(m, aggregateUnsafe(b, other));
+          result.put(m, aggregateUnsafe(b, other));
         }
         return true;
       });
-      node2.subNodes.forEachEntry((final Method m, final SampleNode b) -> {
-        if (!node1.subNodes.containsKey(m)) {
-          ns.put(m, b);
+      node2.forEachEntry((final Method m, final SampleNode b) -> {
+        if (!node1.containsKey(m)) {
+          result.put(m, b);
         }
         return true;
       });
-      newSubNodes = ns;
-    }
-    return new SampleNode(newSampleCount, newSubNodes);
+    return result;
   }
 
-
-  public void add(final SampleNode node) {
-    this.sampleCount += node.getSampleCount();
-    TMap<Method, SampleNode> oSubNodes = (TMap<Method, SampleNode>) node.getSubNodes();
-    if (this.subNodes == null) {
-      this.subNodes = oSubNodes;
-    } else if (oSubNodes != null) {
-      oSubNodes.forEachEntry((final Method m, final SampleNode b) -> {
-        SampleNode other = subNodes.get(m);
-        if (other == null) {
-          subNodes.put(m, b);
+  public void add(final SampleNode other) {
+    this.sampleCount += other.sampleCount;
+      other.forEachEntry((final Method m, final SampleNode b) -> {
+        SampleNode xChild = get(m);
+        if (xChild == null) {
+          put(m, b);
         } else {
-          other.sampleCount += b.sampleCount;
+          xChild.sampleCount += b.sampleCount;
         }
         return true;
       });
-    }
-  }
-
-
-
-  public static TMap<Method, SampleNode> cloneSubNodes(final SampleNode node) {
-    final TMap<Method, SampleNode> ns = new MethodMap<>(node.subNodes.size());
-    putAllClones(node.subNodes, ns);
-    return ns;
-  }
-
-  public static void putAllClones(final TMap<Method, SampleNode> source,
-          final TMap<Method, SampleNode> destination) {
-    source.forEachEntry((final Method a, final SampleNode b) -> {
-      destination.put(a, SampleNode.clone(b));
-      return true;
-    });
   }
 
   @Override
   public int getSampleCount() {
     return sampleCount;
-  }
-
-  @Nullable
-  @Override
-  public TMap<Method, SampleNode> getSubNodes() {
-    return subNodes;
   }
 
   @Override
@@ -323,11 +276,11 @@ public final class SampleNode implements Serializable, StackSamples {
   }
 
   public int height() {
-    if (subNodes == null) {
+    if (isEmpty()) {
       return 1;
     } else {
       int subHeight = 0;
-      for (SampleNode node : subNodes.values()) {
+      for (SampleNode node : values()) {
         int nHeight = node.height();
         if (nHeight > subHeight) {
           subHeight = nHeight;
@@ -335,7 +288,6 @@ public final class SampleNode implements Serializable, StackSamples {
       }
       return subHeight + 1;
     }
-
   }
 
   /**
@@ -344,11 +296,11 @@ public final class SampleNode implements Serializable, StackSamples {
    * @return the total number of nodes in this tree.
    */
   public int getNrNodes() {
-    if (subNodes == null) {
+    if (isEmpty()) {
       return 1;
     } else {
       int nrNodes = 0;
-      for (SampleNode node : subNodes.values()) {
+      for (SampleNode node : values()) {
         nrNodes += node.getNrNodes();
       }
       return nrNodes + 1;
@@ -362,37 +314,30 @@ public final class SampleNode implements Serializable, StackSamples {
    */
   @Nullable
   public SampleNode filteredBy(final Predicate<Method> predicate) {
-
     int newCount = this.sampleCount;
-
-    TMap<Method, SampleNode> sns = null;
-    if (this.subNodes != null) {
-      for (Map.Entry<Method, SampleNode> entry : this.subNodes.entrySet()) {
+    SampleNode result = new SampleNode(0);
+      for (Map.Entry<Method, SampleNode> entry : this.entrySet()) {
         Method method = entry.getKey();
         SampleNode sn = entry.getValue();
         if (predicate.test(method)) {
           newCount -= sn.getSampleCount();
         } else {
-          if (sns == null) {
-            sns = new MethodMap<>();
-          }
           SampleNode sn2 = sn.filteredBy(predicate);
           if (sn2 == null) {
             newCount -= sn.getSampleCount();
           } else {
             newCount -= sn.getSampleCount() - sn2.getSampleCount();
-            sns.put(method, sn2);
+            result.put(method, sn2);
           }
-
         }
-      }
     }
     if (newCount == 0) {
       return null;
     } else if (newCount < 0) {
       throw new IllegalStateException("child sample counts must be <= parent sample count, detail: " + this);
     } else {
-      return new SampleNode(newCount, sns);
+      result.sampleCount = newCount;
+      return result;
     }
   }
 
@@ -415,9 +360,7 @@ public final class SampleNode implements Serializable, StackSamples {
         appendable.append("\":");
         SampleNode sn = s.getValue();
         appendable.append(Integer.toString(sn.getSampleCount()));
-        TMap<Method, SampleNode> cSn = sn.getSubNodes();
-        if (cSn != null) {
-          Iterator<Map.Entry<Method, SampleNode>> iterator = cSn.entrySet().iterator();
+          Iterator<Map.Entry<Method, SampleNode>> iterator = sn.entrySet().iterator();
           if (iterator.hasNext()) {
             appendable.append(",\"c\":[");
             dq.addLast("]}");
@@ -429,9 +372,6 @@ public final class SampleNode implements Serializable, StackSamples {
           } else {
             appendable.append('}');
           }
-        } else {
-          appendable.append('}');
-        }
       }
     }
   }
@@ -465,9 +405,7 @@ public final class SampleNode implements Serializable, StackSamples {
         appendable.append("\",\"value\":");
         SampleNode sn = s.getValue();
         appendable.append(Integer.toString(sn.getSampleCount()));
-        TMap<Method, SampleNode> cSn = sn.getSubNodes();
-        if (cSn != null) {
-          Iterator<Map.Entry<Method, SampleNode>> iterator = cSn.entrySet().iterator();
+          Iterator<Map.Entry<Method, SampleNode>> iterator = sn.entrySet().iterator();
           if (iterator.hasNext()) {
             appendable.append(",\"children\":[");
             dq.addLast("]}");
@@ -479,9 +417,6 @@ public final class SampleNode implements Serializable, StackSamples {
           } else {
             appendable.append('}');
           }
-        } else {
-          appendable.append('}');
-        }
       }
     }
   }
@@ -518,9 +453,9 @@ public final class SampleNode implements Serializable, StackSamples {
     dq.add(new TraversalData(m, node));
     TraversalData t;
     while ((t = func.apply(dq)) != null) {
-      if (t.n.subNodes != null) {
+      if (!t.n.isEmpty()) {
         Method from = t.m;
-        boolean conti = t.n.subNodes.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
+        boolean conti = t.n.forEachEntry(new TObjectObjectProcedure<Method, SampleNode>() {
           @Override
           public boolean execute(final Method a, final SampleNode b) {
             boolean result = handler.invocation(from, a, b.sampleCount);
@@ -556,15 +491,15 @@ public final class SampleNode implements Serializable, StackSamples {
     int sc = jsonP.getIntValue();
     JsonToken nextToken = jsonP.nextToken();
     if (nextToken == JsonToken.END_OBJECT) {
-      consumer.accept(Methods.from(name), new SampleNode(sc, null));
+      consumer.accept(Methods.from(name), new SampleNode(sc));
     } else if (nextToken == JsonToken.FIELD_NAME) {
       consume(jsonP, JsonToken.START_ARRAY);
-      TMap<Method, SampleNode> nodes = new MethodMap<>();
+      SampleNode sn = new SampleNode(sc);
       while (jsonP.nextToken() != JsonToken.END_ARRAY) {
-        parse(jsonP, nodes::put);
+        parse(jsonP, sn::put);
       }
       consume(jsonP, JsonToken.END_OBJECT);
-      consumer.accept(Methods.from(name), new SampleNode(sc, nodes));
+      consumer.accept(Methods.from(name), sn);
     } else {
       throw new JsonParseException(jsonP, "Expected field name or end Object, not: " + nextToken);
     }
@@ -585,8 +520,7 @@ public final class SampleNode implements Serializable, StackSamples {
   private static void parseD3Json(final JsonParser jsonP, final BiConsumer<Method, SampleNode> consumer)
           throws IOException {
     String methodName = null;
-    int nrSamples = -1;
-    TMap<Method, SampleNode> nodes = null;
+    SampleNode sn = new SampleNode(-1);
     while (true) {
     JsonToken nextToken = jsonP.nextToken();
       if (nextToken == JsonToken.FIELD_NAME) {
@@ -598,13 +532,12 @@ public final class SampleNode implements Serializable, StackSamples {
             break;
           case "value":
             consume(jsonP, JsonToken.VALUE_NUMBER_INT);
-            nrSamples = jsonP.getIntValue();
+            sn.sampleCount = jsonP.getIntValue();
             break;
           case "children":
             consume(jsonP, JsonToken.START_ARRAY);
-            nodes = new MethodMap<>();
             while (jsonP.nextToken() != JsonToken.END_ARRAY) {
-              parseD3Json(jsonP, nodes::put);
+              parseD3Json(jsonP, sn::put);
             }
             break;
           default:
@@ -614,10 +547,10 @@ public final class SampleNode implements Serializable, StackSamples {
         if (methodName == null) {
           throw new JsonParseException(jsonP, "name field not found");
         }
-        if (nrSamples < 0) {
+        if (sn.sampleCount < 0) {
           throw new JsonParseException(jsonP, "value field not found");
         }
-        consumer.accept(Methods.from(methodName), new SampleNode(nrSamples, nodes));
+        consumer.accept(Methods.from(methodName), sn);
         return;
       } else {
         throw new JsonParseException(jsonP, "Unexpected " + nextToken);
@@ -636,7 +569,7 @@ public final class SampleNode implements Serializable, StackSamples {
 
   @Override
   public int hashCode() {
-    return 89 * this.sampleCount + Objects.hashCode(this.subNodes);
+    return 89 * this.sampleCount + super.hashCode();
   }
 
   @Override
@@ -647,20 +580,28 @@ public final class SampleNode implements Serializable, StackSamples {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    final SampleNode other = (SampleNode) obj;
-    if (this.sampleCount != other.sampleCount) {
+    if (this.sampleCount != ((SampleNode) obj).sampleCount) {
       return false;
     }
-    if (this.subNodes == other.subNodes) {
-      return true;
-    }
-    if (this.subNodes != null && other.subNodes == null && this.subNodes.isEmpty()) {
-      return true;
-    }
-    if (this.subNodes == null && other.subNodes != null && other.subNodes.isEmpty()) {
-      return true;
-    }
-    return Objects.equals(this.subNodes, other.subNodes);
+    return super.equals(obj);
   }
+
+  public void writeExternal(final ObjectOutput out) throws IOException {
+        // NOTE: Super was not written in version 0
+        super.writeExternal(out);
+
+        // NUMBER OF SAMPLES
+        out.writeInt(this.sampleCount);
+    }
+
+    public void readExternal(final ObjectInput in)
+            throws IOException, ClassNotFoundException {
+
+        super.readExternal(in);
+
+        // NUMBER OF SAMPLES
+        this.sampleCount = in.readInt();
+    }
+
 
 }

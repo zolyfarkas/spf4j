@@ -29,42 +29,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.stackmonitor;
+package org.spf4j.io.appenders.json;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.base.avro.Method;
+import java.io.IOException;
+import org.spf4j.base.CoreTextMediaType;
+import org.spf4j.io.ObjectAppender;
+import org.spf4j.stackmonitor.SampleNode;
 
 /**
- *
- * @author Zoltan Farkas
+ * @author zoly
  */
-public class MethodMapTest {
+public final class SampleNodeWriteableAppender implements ObjectAppender<SampleNode> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(MethodMapTest.class);
-
-
-  @Test
-  public void test() {
-    MethodMap<Integer> map = new MethodMap(0);
-    Assert.assertEquals(0, map.size());
-    Method m = new Method("org.apache.avro.Schema", "toString");
-    Assert.assertNull(map.get(m));
-    Assert.assertNull(map.get(null));
-    map.forEachEntry((a, b) -> true);
-    map.forEachKey((a) -> true);
-    map.forEachValue((a) -> true);
-    Assert.assertTrue(map.entrySet().isEmpty());
-    Assert.assertTrue(map.values().isEmpty());
-    Assert.assertTrue(map.keySet().isEmpty());
-    Method m2 = new Method("org.apache.avro.Schema", "toString2");
-    map.put(m2, Integer.MIN_VALUE);
-    map.put(m, Integer.MAX_VALUE);
-    Assert.assertEquals(2, map.size());
-    Assert.assertEquals((Integer) Integer.MIN_VALUE, map.get(m2));
-    Assert.assertEquals((Integer) Integer.MAX_VALUE, map.get(m));
-
+  @Override
+  public void append(final SampleNode object, final Appendable appendTo) throws IOException {
+    object.writeJsonTo(appendTo);
   }
+
+  @Override
+  public CoreTextMediaType getAppendedType() {
+    return CoreTextMediaType.APPLICATION_JSON;
+  }
+
 }

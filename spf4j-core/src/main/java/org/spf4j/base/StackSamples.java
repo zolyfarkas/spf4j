@@ -32,7 +32,7 @@
 package org.spf4j.base;
 
 import gnu.trove.map.TMap;
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 import org.spf4j.base.avro.Method;
 
 /**
@@ -43,7 +43,7 @@ public interface StackSamples extends JsonWriteable {
 
   int getSampleCount();
 
-  @Nullable
+  @Nonnull
   TMap<Method, ? extends StackSamples> getSubNodes();
 
 

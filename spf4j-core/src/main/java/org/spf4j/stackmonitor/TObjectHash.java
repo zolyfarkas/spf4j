@@ -104,7 +104,12 @@ abstract public class TObjectHash<T> extends THash {
     public int setUp(int initialCapacity) {
         int capacity;
         capacity = super.setUp(initialCapacity);
-        _set = new Object[capacity];
+        if (capacity == 0) {
+          _set = org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+          return 0;
+        } else {
+          _set = new Object[capacity];
+        }
         Arrays.fill(_set, FREE);
         return capacity;
     }
@@ -152,6 +157,10 @@ abstract public class TObjectHash<T> extends THash {
     protected int index(Object obj) {
         if (obj == null)
             return indexForNull();
+
+        if (_set.length == 0) {
+          return -1;
+        }
 
         // From here on we know obj to be non-null
         final int hash = hash(obj) & 0x7fffffff;
@@ -262,7 +271,10 @@ abstract public class TObjectHash<T> extends THash {
      */
     protected int insertKey(T key) {
         consumeFreeSlot = false;
-
+        if (_set.length == 0) {
+          _set = new Object[3];
+           Arrays.fill(_set, FREE);
+        }
         if (key == null)
             return insertKeyForNull();
 

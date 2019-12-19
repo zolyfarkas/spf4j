@@ -261,12 +261,10 @@ public final class SampleGraph {
     aggregates.put(parentVertex.key, aggSampleVertex);
     Deque<TraversalData> dq = new ArrayDeque<>();
     TMap<Method, SampleNode> subNodes = node.getSubNodes();
-    if (subNodes != null) {
-      subNodes.forEachEntry((k, v) -> {
-        dq.add(new TraversalData(parentVertex, k, v));
-        return true;
-      });
-    }
+    subNodes.forEachEntry((k, v) -> {
+      dq.add(new TraversalData(parentVertex, k, v));
+      return true;
+    });
     TraversalData t;
     while ((t = dq.pollFirst()) != null) {
       SampleKey vtxk = new SampleKey(t.method, computeMethodIdx(t.parent, t.method));
@@ -301,12 +299,10 @@ public final class SampleGraph {
       }
       TMap<Method, SampleNode> subNodes2 = t.node.getSubNodes();
       final Sample vvv = vtx;
-      if (subNodes2 != null) {
-        subNodes2.forEachEntry((k, v) -> {
-          dq.add(new TraversalData(vvv, k, v));
-          return true;
-        });
-      }
+      subNodes2.forEachEntry((k, v) -> {
+        dq.add(new TraversalData(vvv, k, v));
+        return true;
+      });
     }
     updateLevels(aggSampleVertex);
     return parentVertex;

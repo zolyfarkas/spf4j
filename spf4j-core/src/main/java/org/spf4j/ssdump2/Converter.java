@@ -70,7 +70,6 @@ import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
-import org.spf4j.stackmonitor.MethodMap;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -114,15 +113,11 @@ public final class Converter {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
     while (samples.hasNext()) {
       StackSampleElement asmp = samples.next();
-      SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap<>());
+      SampleNode sn = new SampleNode(asmp.getCount());
       SampleNode parent = index.get(asmp.getParentId());
       if (parent != null) {
         Method m = asmp.getMethod();
-        final Map<Method, SampleNode> subNodes = parent.getSubNodes();
-        if (subNodes == null) {
-          throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
-        }
-        subNodes.put(m, sn);
+        parent.put(m, sn);
       }
       index.put(asmp.getId(), sn);
     }
@@ -273,16 +268,12 @@ public final class Converter {
     while (nrArrayItems > 0) {
       for (int j = 0; j < nrArrayItems; j++) {
         StackSampleElement asmp = reader.read(pasmp, decoder);
-        SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap<>());
+        SampleNode sn = new SampleNode(asmp.getCount());
         SampleNode parent = index.get(asmp.getParentId());
         if (parent != null) {
           Method readMethod = asmp.getMethod();
           Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());
-          final Map<Method, SampleNode> subNodes = parent.getSubNodes();
-          if (subNodes == null) {
-            throw new IllegalStateException("Bug, state " + index + "; at node " + asmp);
-          }
-          subNodes.put(m, sn);
+          parent.put(m, sn);
         }
         index.put(asmp.getId(), sn);
       }

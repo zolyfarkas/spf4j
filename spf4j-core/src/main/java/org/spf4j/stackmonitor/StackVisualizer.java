@@ -65,7 +65,7 @@ public final class StackVisualizer {
             append(Integer.toString(tableWidth)).append("px\">\n");
     int totalSamples = node.getSampleCount();
 
-    if (subNodes != null && maxDepth > 0) {
+    if (maxDepth > 0 && !subNodes.isEmpty()) {
       writer.append("<tr style=\"height:1em\">");
       for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
         int width = entry.getValue().getSampleCount() * tableWidth / totalSamples;
@@ -78,7 +78,7 @@ public final class StackVisualizer {
       writer.append("</tr>\n");
     }
     writer.append("<tr style=\"height:1em\" ><td ");
-    if (subNodes != null) {
+    if (!subNodes.isEmpty()) {
       writer.append("colspan=\"").append(Integer.toString(subNodes.size() + 1)).append("\" ");
     }
     writer.append(" title=\"");
@@ -167,7 +167,7 @@ public final class StackVisualizer {
     writer.append("</text>\n");
     writer.append("</g>");
 
-    if (subNodes != null && maxDepth > 0) {
+    if (maxDepth > 0 && !subNodes.isEmpty()) {
       int rx = 0;
       for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
         int cwidth = (int) (((long) entry.getValue().getSampleCount()) * width / totalSamples);

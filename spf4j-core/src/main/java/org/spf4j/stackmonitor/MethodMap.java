@@ -37,7 +37,7 @@ import org.spf4j.base.avro.Method;
  * A custom hashcode and eequals map implementation
  * @author Zoltan Farkas
  */
-public final class MethodMap<T> extends THashMap<Method, T> {
+public class MethodMap<T> extends THashMap<Method, T> {
 
   public MethodMap() {
     super(2);
@@ -47,6 +47,9 @@ public final class MethodMap<T> extends THashMap<Method, T> {
     super(initialCapacity);
   }
 
+  /**
+   * optimized hashing.
+   */
   @Override
   protected int hash(final Object notnull) {
     Method m = (Method) notnull;

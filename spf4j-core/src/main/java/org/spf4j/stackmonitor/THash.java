@@ -174,6 +174,9 @@ abstract public class THash implements Externalizable {
      * @return the actual capacity chosen
      */
     protected int setUp( int initialCapacity ) {
+        if (initialCapacity == 0) {
+          return 0;
+        }
         int capacity;
 
         capacity = PrimeFinder.nextPrime( initialCapacity );

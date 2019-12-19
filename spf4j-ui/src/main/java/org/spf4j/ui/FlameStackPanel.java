@@ -80,14 +80,13 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
     g2.setClip(null);
     g2.setPaint(LINK_COLOR);
     g2.drawRect(x, y, width, height);
-    Map<Method, SampleNode> children = node.getSubNodes();
     int result = height;
-    if (children != null) {
+    if (!node.isEmpty()) {
       y += height;
       int relX = x;
       double scale = (double) width / sampleCount;
       int maxY = 0;
-      for (Map.Entry<Method, SampleNode> entry : children.entrySet()) {
+      for (Map.Entry<Method, SampleNode> entry : node.entrySet()) {
         SampleNode cnode = entry.getValue();
         // sampleCount -> width
         // childSampleCount -> childWidth

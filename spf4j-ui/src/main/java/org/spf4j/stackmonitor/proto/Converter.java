@@ -31,8 +31,6 @@
  */
 package org.spf4j.stackmonitor.proto;
 
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -51,58 +49,48 @@ import org.spf4j.base.avro.Method;
  */
 public final class Converter {
 
-    private Converter() { }
+  private Converter() {
+  }
 
-
-    public static void saveToFile(@Nonnull final File file, @Nonnull final SampleNode input) throws IOException {
-        try (BufferedOutputStream bos = new BufferedOutputStream(
-                Files.newOutputStream(file.toPath()))) {
-            fromSampleNodeToProto(input).writeTo(bos);
-        }
+  public static void saveToFile(@Nonnull final File file, @Nonnull final SampleNode input) throws IOException {
+    try (BufferedOutputStream bos = new BufferedOutputStream(
+            Files.newOutputStream(file.toPath()))) {
+      fromSampleNodeToProto(input).writeTo(bos);
     }
+  }
 
-    public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
-        return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getName())
-                .setDeclaringClass(m.getDeclaringClass())
-                .build();
+  public static ProtoSampleNodes.Method fromMethodToProto(final Method m) {
+    return ProtoSampleNodes.Method.newBuilder().setMethodName(m.getName())
+            .setDeclaringClass(m.getDeclaringClass())
+            .build();
+  }
+
+  public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final StackSamples node) {
+
+    ProtoSampleNodes.SampleNode.Builder resultBuilder
+            = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());
+
+    Map<Method, ? extends StackSamples> subNodes = node.getSubNodes();
+    for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
+      resultBuilder.addSubNodes(
+              ProtoSampleNodes.SamplePair.newBuilder().setMethod(fromMethodToProto(entry.getKey())).
+                      setNode(fromSampleNodeToProto(entry.getValue())).build());
     }
+    return resultBuilder.build();
+  }
 
-    public static ProtoSampleNodes.SampleNode fromSampleNodeToProto(final StackSamples node) {
-
-        ProtoSampleNodes.SampleNode.Builder resultBuilder
-                = ProtoSampleNodes.SampleNode.newBuilder().setCount(node.getSampleCount());
-
-        Map<Method, ? extends StackSamples> subNodes = node.getSubNodes();
-        if (subNodes != null) {
-           for (Map.Entry<Method, ? extends StackSamples> entry : subNodes.entrySet()) {
-               resultBuilder.addSubNodes(
-               ProtoSampleNodes.SamplePair.newBuilder().setMethod(fromMethodToProto(entry.getKey())).
-                        setNode(fromSampleNodeToProto(entry.getValue())).build());
-           }
-        }
-        return resultBuilder.build();
+  public static SampleNode fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
+    SampleNode result = new SampleNode(node.getCount());
+    List<ProtoSampleNodes.SamplePair> sns = node.getSubNodesList();
+    if (sns != null) {
+      for (ProtoSampleNodes.SamplePair pair : sns) {
+        final ProtoSampleNodes.Method method = pair.getMethod();
+        result.put(new Method(method.getDeclaringClass(),
+                method.getMethodName()),
+                fromProtoToSampleNode(pair.getNode()));
+      }
     }
-
-
-
-    public static SampleNode  fromProtoToSampleNode(final ProtoSampleNodes.SampleNodeOrBuilder node) {
-
-        TMap<Method, SampleNode> subNodes = null;
-
-        List<ProtoSampleNodes.SamplePair> sns =  node.getSubNodesList();
-        if (sns != null) {
-            subNodes = new THashMap<>();
-            for (ProtoSampleNodes.SamplePair pair : sns) {
-                final ProtoSampleNodes.Method method = pair.getMethod();
-                subNodes.put(new Method(method.getDeclaringClass(),
-                        method.getMethodName()),
-                        fromProtoToSampleNode(pair.getNode()));
-            }
-        }
-        return new SampleNode(node.getCount(), subNodes);
-
-
-    }
-
+    return result;
+  }
 
 }

@@ -115,7 +115,11 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
 
         capacity = super.setUp(initialCapacity);
         //noinspection unchecked
-        _values = (V[]) new Object[capacity];
+        if (capacity == 0) {
+          _values = (V[]) org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+        } else {
+          _values = (V[]) new Object[capacity];
+        }
         return capacity;
     }
 
@@ -155,6 +159,9 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
 
 
     private V doPut(V value, int index) {
+        if (_values.length == 0) {
+          _values = (V[]) new Object[3];
+        }
         V previous = null;
         boolean isNewMapping = true;
         if (index < 0) {
@@ -673,17 +680,6 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
                 return false;
             }
         }
-
-
-//        public boolean containsAll( Collection<?> collection ) {
-//            for ( Object element : collection ) {
-//                if ( !contains( element ) ) {
-//                    return false;
-//                }
-//            }
-//            return true;
-//        }
-
 
         public void clear() {
             THashMap.this.clear();
