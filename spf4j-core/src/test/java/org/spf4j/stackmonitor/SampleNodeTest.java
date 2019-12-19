@@ -103,6 +103,10 @@ public final class SampleNodeTest {
     Pair<Method, SampleNode> parsed = SampleNode.parse(new StringReader(sb.toString()));
     Assert.assertEquals(node1, parsed.getSecond());
     Assert.assertEquals(node1, Objects.clone(node1));
+    SampleNode node1Clone = SampleNode.clone(node1);
+    Assert.assertEquals(node1, node1Clone);
+    node1Clone.addToCount(5);
+    Assert.assertNotEquals(node1, node1Clone);
     StringBuilder sb2 = new StringBuilder();
     node1.writeD3JsonTo(sb2);
     LOG.debug("Serialized D3 String", sb2);

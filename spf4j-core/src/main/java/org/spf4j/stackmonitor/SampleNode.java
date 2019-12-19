@@ -34,6 +34,7 @@ package org.spf4j.stackmonitor;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
+import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.StackSamples;
 import gnu.trove.map.TMap;
@@ -75,6 +76,11 @@ public final class SampleNode implements Serializable, StackSamples {
     this.subNodes = subNodes;
   }
 
+  @VisibleForTesting
+  void addToCount(final int nr) {
+    sampleCount += nr;
+  }
+
   public static SampleNode createSampleNode(final StackTraceElement... stackTrace) {
     SampleNode result = new SampleNode(1, null);
     SampleNode prevResult = result;
@@ -114,17 +120,44 @@ public final class SampleNode implements Serializable, StackSamples {
     }
   }
 
+  private static class Traverse {
+    private final SampleNode parent;
+    private final Method method;
+    private final SampleNode child;
+
+    Traverse(final SampleNode parent, final Method method, final SampleNode child) {
+      this.parent = parent;
+      this.method = method;
+      this.child = child;
+    }
+  }
+
   public static SampleNode clone(final SampleNode node) {
     if (node.subNodes == null) {
       return new SampleNode(node.sampleCount, null);
     }
-    final TMap<Method, SampleNode> newSubNodes = new MethodMap<>(node.subNodes.size());
+    SampleNode result = new SampleNode(node.sampleCount, new MethodMap<>(node.subNodes.size()));
+    ArrayDeque<Traverse> traverse = new ArrayDeque<>();
     node.subNodes.forEachEntry((final Method a, final SampleNode b) -> {
-      newSubNodes.put(a, SampleNode.clone(b));
+      traverse.add(new Traverse(result, a, b));
       return true;
     });
-    return new SampleNode(node.sampleCount, newSubNodes);
+    Traverse t;
+    while ((t = traverse.poll()) != null) {
+      if (t.child.subNodes == null) {
+        t.parent.subNodes.put(t.method, new SampleNode(t.child.sampleCount, null));
+      } else {
+        SampleNode nc = new SampleNode(t.child.sampleCount, new MethodMap<>(t.child.subNodes.size()));
+        t.parent.subNodes.put(t.method, nc);
+        t.child.subNodes.forEachEntry((final Method a, final SampleNode b) -> {
+          traverse.add(new Traverse(nc, a, b));
+          return true;
+        });
+      }
+    }
+    return result;
   }
+
 
   @Nullable
   public static SampleNode aggregateNullable(@Nullable final SampleNode node1, @Nullable final SampleNode node2) {

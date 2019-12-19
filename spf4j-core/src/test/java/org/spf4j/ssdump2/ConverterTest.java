@@ -99,7 +99,7 @@ public class ConverterTest {
         final List<StackSampleElement> samples = new ArrayList<>();
         Converters.convert(Methods.ROOT, testSample, -1, 0,  samples::add);
         SampleNode back = Converter.convert(samples.iterator());
-        Assert.assertEquals(testSample.toString(), back.toString());
+        Assert.assertEquals(testSample, back);
     }
 
 
