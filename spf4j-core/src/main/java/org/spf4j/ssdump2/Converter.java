@@ -33,7 +33,6 @@ package org.spf4j.ssdump2;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -115,7 +114,7 @@ public final class Converter {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
     while (samples.hasNext()) {
       StackSampleElement asmp = samples.next();
-      SampleNode sn = new SampleNode(asmp.getCount(), new THashMap<Method, SampleNode>(4));
+      SampleNode sn = new SampleNode(asmp.getCount(), new MethodMap<>());
       SampleNode parent = index.get(asmp.getParentId());
       if (parent != null) {
         Method m = asmp.getMethod();

@@ -31,7 +31,6 @@
  */
 package org.spf4j.stackmonitor;
 
-import gnu.trove.map.hash.THashMap;
 import org.spf4j.base.avro.Method;
 
 /**
@@ -41,18 +40,12 @@ import org.spf4j.base.avro.Method;
 public final class MethodMap<T> extends THashMap<Method, T> {
 
   public MethodMap() {
-    super(2, 0.7f);
+    super(2);
   }
 
   public MethodMap(final int initialCapacity) {
-    super(initialCapacity, 0.7f);
+    super(initialCapacity);
   }
-
-  public MethodMap(final int initialCapacity, final float loadFactor) {
-    super(initialCapacity, loadFactor);
-  }
-
-
 
   @Override
   protected int hash(final Object notnull) {
