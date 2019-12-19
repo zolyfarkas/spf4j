@@ -60,17 +60,25 @@ public final class MethodMap<T> extends THashMap<Method, T> {
     return m.getName().hashCode();
   }
 
+  /** equals is used for both keys and values. */
   @Override
   protected boolean equals(final Object notnull, final Object two) {
     if (notnull == two) {
       return true;
     }
-    if (two != null) {
+    if (two == null) {
+      return false;
+    }
+    Class<? extends Object> fClass = notnull.getClass();
+    if (fClass != two.getClass()) {
+      return false;
+    }
+    if (fClass == Method.class) {
       Method m1 = (Method) notnull;
       Method m2 = (Method) two;
       return m1.getName().equals(m2.getName()) && m1.getDeclaringClass().equals(m2.getDeclaringClass());
     } else {
-      return false;
+      return notnull.equals(two);
     }
   }
 
