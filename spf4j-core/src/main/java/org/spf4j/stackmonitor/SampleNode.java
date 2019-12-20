@@ -225,6 +225,11 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
   }
 
 
+  /**
+   * add other samples to this one.
+   * other will not be usable after this operation since it will be linked directly where possible.
+   * @param other
+   */
   public void add(final SampleNode other) {
     this.sampleCount += other.sampleCount;
       other.forEachEntry((final Method m, final SampleNode b) -> {
@@ -232,7 +237,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
         if (xChild == null) {
           put(m, b);
         } else {
-          xChild.sampleCount += b.sampleCount;
+          xChild.add(b);
         }
         return true;
       });
