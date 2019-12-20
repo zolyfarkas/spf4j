@@ -207,6 +207,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
    * @return
    */
   @Nullable
+  @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS") // this is why this is called unsafe.
   public static SampleNode aggregateNullableUnsafe(@Nullable final SampleNode node1,
           @Nullable final SampleNode node2) {
     if (node1 == null) {
@@ -218,37 +219,11 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     } else if (node2 == null) {
       return node1;
     }  else {
-      return aggregateUnsafe(node1, node2);
+      node1.add(node2);
+      return node1;
     }
   }
 
-
-  /**
-   * Aggregation implementation where parts of node1 and node2 will be re-used.
-   * @param node1
-   * @param node2
-   * @return
-   */
-  public static SampleNode aggregateUnsafe(final SampleNode node1, final SampleNode node2) {
-    SampleNode result = new SampleNode(node1.sampleCount + node2.sampleCount,
-            Math.max(node1.size(), node2.size()));
-      node1.forEachEntry((final Method m, final SampleNode b) -> {
-        SampleNode other = node2.get(m);
-        if (other == null) {
-          result.put(m, b);
-        } else {
-          result.put(m, aggregateUnsafe(b, other));
-        }
-        return true;
-      });
-      node2.forEachEntry((final Method m, final SampleNode b) -> {
-        if (!node1.containsKey(m)) {
-          result.put(m, b);
-        }
-        return true;
-      });
-    return result;
-  }
 
   public void add(final SampleNode other) {
     this.sampleCount += other.sampleCount;
