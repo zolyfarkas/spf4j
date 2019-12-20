@@ -181,19 +181,17 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
 
   public static SampleNode aggregate(final SampleNode node1, final SampleNode node2) {
     SampleNode result = new SampleNode(node1.sampleCount + node2.sampleCount,
-            Math.max(node1.size(), node2.size()));
-      node1.forEachEntry((final Method m, final SampleNode b) -> {
-        SampleNode other = node2.get(m);
-        if (other == null) {
-          result.put(m, SampleNode.clone(b));
-        } else {
-          result.put(m, aggregate(b, other));
-        }
+            Math.max(node1.size(), node2.size()) + 1);
+      node1.forEachEntry((final Method m, final SampleNode n) -> {
+        result.put(m, SampleNode.clone(n));
         return true;
       });
-      node2.forEachEntry((final Method m, final SampleNode b) -> {
-        if (!node1.containsKey(m)) {
-          result.put(m, SampleNode.clone(b));
+      node2.forEachEntry((final Method m, final SampleNode n) -> {
+        SampleNode xn = result.get(m);
+        if (xn == null) {
+          result.put(m, SampleNode.clone(n));
+        } else {
+          xn.add(SampleNode.clone(n));
         }
         return true;
       });
