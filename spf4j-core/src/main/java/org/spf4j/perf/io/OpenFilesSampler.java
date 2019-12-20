@@ -32,11 +32,13 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.os.OperatingSystem;
@@ -63,6 +65,8 @@ public final class OpenFilesSampler {
   private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
 
   private static volatile CharSequence lastWarnLsof = "";
+
+  private static volatile Instant lastWarnLsofTime;
 
   static {
     Runtime.queueHook(2, new AbstractRunnable(true) {
@@ -94,6 +98,17 @@ public final class OpenFilesSampler {
   @JmxExport
   public static String getWarnLsofDetail() {
     return lastWarnLsof.toString();
+  }
+
+  @JmxExport
+  @Nullable
+  public static synchronized String getWarnLsofTime() {
+    Instant lwt = lastWarnLsofTime;
+    if (lwt == null) {
+      return null;
+    } else {
+      return lwt.toString();
+    }
   }
 
   public static void start(final long sampleTimeMillis,
@@ -131,7 +146,7 @@ public final class OpenFilesSampler {
 
   @JmxExport
   public static String getLsof() {
-    CharSequence lsofOutput = Runtime.getLsofOutput();
+    CharSequence lsofOutput = Lsof.getLsofOutput();
     return lsofOutput == null ? "unable to obtain lsof" : lsofOutput.toString();
   }
 
@@ -184,6 +199,7 @@ public final class OpenFilesSampler {
       long nrOf = OperatingSystem.getOpenFileDescriptorCount();
       if (nrOf > errorThreshold) {
         lastWarnLsof = Lsof.getLsofOutput();
+        lastWarnLsofTime = Instant.now();
         LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
                 nrOf, errorThreshold, lastWarnLsof);
         if (shutdownOnError) {
@@ -191,6 +207,7 @@ public final class OpenFilesSampler {
         }
       } else if (nrOf > warnThreshold) {
         lastWarnLsof = Lsof.getLsofOutput();
+        lastWarnLsofTime = Instant.now();
         LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
                 nrOf, warnThreshold, lastWarnLsof);
         if (!Runtime.gc(60000)) {
