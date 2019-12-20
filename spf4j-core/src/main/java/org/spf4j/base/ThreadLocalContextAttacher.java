@@ -42,13 +42,30 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public interface ThreadLocalContextAttacher {
 
   public interface Attached {
+
+    /**
+     * Remove context from thread.
+     */
     void detach();
 
+    /**
+     * Returns true if the Attached Context is the first/only context in the Thread context stack.
+     * @return
+     */
     boolean isTopOfStack();
 
+    /**
+     * Return the Thread that this context has been attached to.
+     * @return
+     */
     Thread attachedThread();
   }
 
+  /**
+   * Attach an execution context to the current Thread.
+   * @param ctx the Execution context.
+   * @return Information object about the operation.
+   */
   Attached attach(ExecutionContext ctx);
 
 }

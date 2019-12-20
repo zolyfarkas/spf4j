@@ -74,7 +74,7 @@ public final class ExecutionContexts {
 
   };
 
-  private static final ThreadLocalContextAttacher DEFAULT_TL_ATTACHER = new ThreadLocalScopeImpl();
+  private static final ThreadLocalContextAttacher DEFAULT_TL_ATTACHER = new ThreadLocalContextAttacherImpl();
 
   private static final ExecutionContextFactory<ExecutionContext> CTX_FACTORY = initFactory();
 
@@ -759,7 +759,7 @@ private static final class PropagatingSupplier<X> implements Supplier<X>, Wrappe
     }
   }
 
-  private static class ThreadLocalScopeImpl implements ThreadLocalContextAttacher {
+  private static class ThreadLocalContextAttacherImpl implements ThreadLocalContextAttacher {
 
     @Override
     public Attached attach(final ExecutionContext ctx) {
