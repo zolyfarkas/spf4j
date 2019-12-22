@@ -56,12 +56,6 @@ abstract public class TObjectHash<T> extends THash {
 
     public static final Object REMOVED = new Object(), FREE = new Object();
 
-    /**
-     * Indicates whether the last insertKey() call used a FREE slot. This field
-     * should be inspected right after call insertKey()
-     */
-    protected boolean consumeFreeSlot;
-
 
     /**
      * Creates a new <code>TObjectHash</code> instance with the
@@ -270,7 +264,6 @@ abstract public class TObjectHash<T> extends THash {
      *         that index, minus 1: -index -1.
      */
     protected int insertKey(T key) {
-        consumeFreeSlot = false;
         if (key == null)
             return insertKeyForNull();
 
@@ -279,7 +272,6 @@ abstract public class TObjectHash<T> extends THash {
         Object cur = _set[index];
 
         if (cur == FREE) {
-            consumeFreeSlot = true;
             _set[index] = key;  // insert value
             return index;       // empty, all done
         }
@@ -331,7 +323,6 @@ abstract public class TObjectHash<T> extends THash {
                     _set[firstRemoved] = key;
                     return firstRemoved;
                 } else {
-                    consumeFreeSlot = true;
                     _set[index] = key;  // insert value
                     return index;
                 }
@@ -380,7 +371,6 @@ abstract public class TObjectHash<T> extends THash {
                     _set[firstRemoved] = null;
                     return firstRemoved;
                 } else {
-                    consumeFreeSlot = true;
                     _set[index] = null;  // insert value
                     return index;
                 }

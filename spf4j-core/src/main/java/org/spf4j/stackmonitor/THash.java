@@ -210,7 +210,7 @@ abstract public class THash implements Externalizable {
      *
      * @param usedFreeSlot the slot
      */
-    protected final void postInsertHook( boolean usedFreeSlot ) {
+    protected final void postInsertHook() {
         ++_size;
     }
 

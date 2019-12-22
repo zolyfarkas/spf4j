@@ -175,7 +175,7 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
         }
         _values[index] = value;
         if (isNewMapping) {
-            postInsertHook(consumeFreeSlot);
+            postInsertHook();
         }
 
         return previous;
