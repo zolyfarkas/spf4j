@@ -100,9 +100,13 @@ public final class SampleNodeTest {
     StringBuilder sb = new StringBuilder();
     node1.writeTo(sb);
     LOG.debug("Serialized String", sb);
+
+    SampleNode into = new SampleNode();
+    SampleNode.parseInto(new StringReader(sb.toString()), into);
     Pair<Method, SampleNode> parsed = SampleNode.parse(new StringReader(sb.toString()));
     Assert.assertEquals(node1, parsed.getSecond());
     Assert.assertEquals(node1, Objects.clone(node1));
+    Assert.assertEquals(node1, into);
     SampleNode node1Clone = SampleNode.clone(node1);
     Assert.assertEquals(node1, node1Clone);
     node1Clone.addToCount(5);

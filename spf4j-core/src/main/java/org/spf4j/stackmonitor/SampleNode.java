@@ -483,6 +483,42 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     }
   }
 
+  public static void parseInto(@WillNotClose final Reader r, final SampleNode root) throws IOException {
+    JsonParser jsonP = Json.FACTORY.createParser(r);
+    consume(jsonP, JsonToken.START_OBJECT);
+    SampleNode sn = new SampleNode();
+    sn.put(Methods.ROOT, root);
+    parseInto(jsonP, sn);
+  }
+
+
+  public static void parseInto(final JsonParser jsonP, final SampleNode parentNode) throws IOException {
+    consume(jsonP, JsonToken.FIELD_NAME);
+    String name = jsonP.getCurrentName();
+    consume(jsonP, JsonToken.VALUE_NUMBER_INT);
+    int sc = jsonP.getIntValue();
+    JsonToken nextToken = jsonP.nextToken();
+    Method method = Methods.from(name);
+    SampleNode sn = parentNode.get(method);
+    if (sn == null) {
+      sn =  new SampleNode(sc);
+      parentNode.put(method, sn);
+    } else {
+      sn.sampleCount += sc;
+    }
+    if (nextToken == JsonToken.END_OBJECT) {
+      return;
+    } else if (nextToken == JsonToken.FIELD_NAME) {
+      consume(jsonP, JsonToken.START_ARRAY);
+      while (jsonP.nextToken() != JsonToken.END_ARRAY) {
+        parseInto(jsonP, sn);
+      }
+      consume(jsonP, JsonToken.END_OBJECT);
+    } else {
+      throw new JsonParseException(jsonP, "Expected field name or end Object, not: " + nextToken);
+    }
+  }
+
   public static Pair<Method, SampleNode> parseD3Json(@WillNotClose final Reader r) throws IOException {
     JsonParser jsonP = Json.FACTORY.createParser(r);
     consume(jsonP, JsonToken.START_OBJECT);
