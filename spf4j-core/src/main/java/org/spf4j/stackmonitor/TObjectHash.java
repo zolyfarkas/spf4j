@@ -271,10 +271,6 @@ abstract public class TObjectHash<T> extends THash {
      */
     protected int insertKey(T key) {
         consumeFreeSlot = false;
-        if (_set.length == 0) {
-          _set = new Object[3];
-           Arrays.fill(_set, FREE);
-        }
         if (key == null)
             return insertKeyForNull();
 

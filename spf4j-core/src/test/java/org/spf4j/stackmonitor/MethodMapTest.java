@@ -65,6 +65,37 @@ public class MethodMapTest {
     Assert.assertEquals(2, map.size());
     Assert.assertEquals((Integer) Integer.MIN_VALUE, map.get(m2));
     Assert.assertEquals((Integer) Integer.MAX_VALUE, map.get(m));
+  }
+
+  @Test
+  public void test2() {
+    MethodMap<Integer> map = new MethodMap(0);
+    Assert.assertEquals(0, map.capacity());
+    Method m1 = new Method("x", "m1");
+    map.put(m1, 0);
+    Assert.assertEquals(3, map.capacity());
+    Assert.assertEquals(2, map._free);
+    Assert.assertEquals(1, map._size);
+    map.put(m1, 1);
+    Assert.assertEquals(3, map.capacity());
+    Assert.assertEquals(2, map._free);
+    Assert.assertEquals(1, map._size);
+    Assert.assertEquals(2, map._maxSize);
+    Method m2 = new Method("x", "m2");
+    map.put(m2, 2);
+    Assert.assertEquals(3, map.capacity());
+    Assert.assertEquals(1, map._free);
+    Assert.assertEquals(2, map._size);
+    Assert.assertEquals(2, map._maxSize);
+    Method m3 = new Method("x", "m3");
+    map.put(m3, 3);
+    Assert.assertEquals(7, map.capacity());
+    Assert.assertEquals(4, map._free);
+    Assert.assertEquals(3, map._size);
+    Assert.assertEquals(4, map._maxSize);
+    Assert.assertEquals((Integer) 1, map.get(m1));
+    Assert.assertEquals((Integer) 2, map.get(m2));
+    Assert.assertEquals((Integer) 3, map.get(m3));
 
   }
 }

@@ -139,11 +139,13 @@ abstract public class THash implements Externalizable {
      *
      * @param desiredCapacity an <code>int</code> value
      */
-    public void ensureCapacity( int desiredCapacity ) {
-        if ( desiredCapacity > ( _maxSize - size() ) ) {
-			rehash( PrimeFinder.nextPrime( Math.max( size() + 1,
-				HashFunctions.fastCeil( ( desiredCapacity + size() ) / DEFAULT_LOAD_FACTOR ) + 1 ) ) );
-            computeMaxSize( capacity() );
+
+    public void ensureCapacity(int desiredCapacity) {
+        int requiredSize = desiredCapacity + _size;
+        if (requiredSize > _maxSize) {
+            rehash(PrimeFinder.nextPrime(Math.max( _size + (_size >> 1) + 1,
+				HashFunctions.fastCeil((requiredSize) / DEFAULT_LOAD_FACTOR ) + 1) ) );
+            computeMaxSize(capacity());
         }
     }
 
@@ -218,18 +220,7 @@ abstract public class THash implements Externalizable {
         if ( usedFreeSlot ) {
             _free--;
         }
-
-        // rehash whenever we exhaust the available space in the table
-        if ( ++_size > _maxSize || _free == 0 ) {
-            int capacity = capacity();
-            // choose a new capacity suited to the new state of the table
-            // if we've grown beyond our maximum size, double capacity;
-            // if we've exhausted the free spots, rehash to the same capacity,
-            // which will free up any stale removed slots for reuse.
-            int newCapacity = _size > _maxSize ? PrimeFinder.nextPrime( capacity + (capacity >> 1) ) : capacity;
-            rehash( newCapacity );
-            computeMaxSize( capacity() );
-        }
+        ++_size;
     }
 
 

@@ -134,6 +134,12 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
      */
     public V put(K key, V value) {
         // insertKey() inserts the key if a slot if found and returns the index
+        ensureCapacity(1);
+        return putKnownToFit(key, value);
+    }
+
+    private V putKnownToFit(K key, V value) {
+        // insertKey() inserts the key if a slot if found and returns the index
         int index = insertKey(key);
         return doPut(value, index);
     }
@@ -150,6 +156,7 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
      */
     public V putIfAbsent(K key, V value) {
         // insertKey() inserts the key if a slot if found and returns the index
+        ensureCapacity(1);
         int index = insertKey(key);
         if (index < 0) {
             return _values[-index - 1];
@@ -159,9 +166,6 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
 
 
     private V doPut(V value, int index) {
-        if (_values.length == 0) {
-          _values = (V[]) new Object[3];
-        }
         V previous = null;
         boolean isNewMapping = true;
         if (index < 0) {
@@ -539,7 +543,7 @@ public class THashMap<K, V> extends TObjectHash<K> implements TMap<K, V>, Extern
         ensureCapacity(map.size());
         // could optimize this for cases when map instanceof THashMap
         for (Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
-            put(e.getKey(), e.getValue());
+            putKnownToFit(e.getKey(), e.getValue());
         }
     }
 
