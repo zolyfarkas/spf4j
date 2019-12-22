@@ -70,10 +70,6 @@ abstract public class THash implements Externalizable {
     /** the current number of occupied slots in the hash. */
     protected transient int _size;
 
-    /** the current number of free slots in the hash. */
-    protected transient int _free;
-
-
     /**
      * The maximum number of elements allowed without allocating more
      * space.
@@ -164,7 +160,6 @@ abstract public class THash implements Externalizable {
     /** Empties the collection. */
     public void clear() {
         _size = 0;
-        _free = capacity();
     }
 
 
@@ -206,7 +201,6 @@ abstract public class THash implements Externalizable {
     protected void computeMaxSize( int capacity ) {
         // need at least one free slot for open addressing
         _maxSize = Math.min( capacity - 1, (int) ( capacity * DEFAULT_LOAD_FACTOR ) );
-        _free = capacity - _size; // reset the free element count
     }
 
 
@@ -217,9 +211,6 @@ abstract public class THash implements Externalizable {
      * @param usedFreeSlot the slot
      */
     protected final void postInsertHook( boolean usedFreeSlot ) {
-        if ( usedFreeSlot ) {
-            _free--;
-        }
         ++_size;
     }
 
@@ -232,7 +223,6 @@ abstract public class THash implements Externalizable {
     public void writeExternal( ObjectOutput out ) throws IOException {
         // VERSION
         out.writeByte( 0 );
-
     }
 
 
