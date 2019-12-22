@@ -31,6 +31,8 @@
  */
 package org.spf4j.stackmonitor;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -92,6 +94,16 @@ public class MethodMapTest {
     Assert.assertEquals((Integer) 1, map.get(m1));
     Assert.assertEquals((Integer) 2, map.get(m2));
     Assert.assertEquals((Integer) 3, map.get(m3));
+    Method ym3 = new Method("y", "m3");
+    Assert.assertNull(map.get(ym3));
+    map.put(ym3, 13);
+    Assert.assertEquals((Integer) 13, map.get(ym3));
+    List<Integer> values = new ArrayList<>();
+    map.forEachEntry((k, v) -> {
+      values.add(v);
+      return true;
+    });
+    Assert.assertEquals(4, values.size());
 
   }
 }
