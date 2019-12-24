@@ -29,59 +29,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf.impl;
+package org.spf4j.base.avro;
 
-import java.time.Instant;
-import java.util.Collections;
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.spf4j.base.avro.AvroCloseableIterable;
-import org.spf4j.perf.MeasurementsInfo;
-import org.spf4j.perf.MeasurementStore;
-import org.spf4j.perf.TimeSeriesRecord;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Iterator;
+import org.apache.avro.Schema;
+import org.spf4j.base.CloseableIterable;
 
 /**
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public final class NopMeasurementStore implements MeasurementStore {
+public interface AvroCloseableIterable<T> extends AvroContainer, CloseableIterable<T> {
 
-    @Override
-    public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
-        // Do nothing
-        return -1;
-    }
+  static <T>  AvroCloseableIterable<T> from(final Iterable<T> it, final Closeable toClose,
+          final Schema elementSchema) {
+    return new AvroCloseableIterable<T>() {
+      @Override
+      @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+      public void close() {
+        try {
+          toClose.close();
+        } catch (IOException ex) {
+          throw new UncheckedIOException(ex);
+        }
+      }
 
-    @Override
-    public void saveMeasurements(final long tableId, final long timeStampMillis, final long... measurements) {
-        // Do nothing
-    }
+      @Override
+      public Schema getElementSchema() {
+        return elementSchema;
+      }
 
-    @Override
-    public void flush() {
-        // Do nothing
-    }
-
-    @Override
-    public void close() {
-        // Do nothing
-    }
-
-  @Override
-  public Set<String> getMeasurements() {
-    return Collections.EMPTY_SET;
-  }
-
-  @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
-          final Instant from, final Instant to) {
-    return null;
-  }
-
-  @Override
-  public boolean readable() {
-    return false;
+      @Override
+      public Iterator<T> iterator() {
+        return it.iterator();
+      }
+    };
   }
 
 }

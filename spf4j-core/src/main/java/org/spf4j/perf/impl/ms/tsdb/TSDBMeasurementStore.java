@@ -35,11 +35,14 @@ import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBWriter;
 import org.spf4j.tsdb2.avro.ColumnDef;
@@ -115,5 +118,22 @@ public final class TSDBMeasurementStore
   public TSDBWriter getDBWriter() {
     return database;
   }
+
+  @Override
+  public Set<String> getMeasurements() throws IOException {
+    return TSDBQuery.getAllTables(database.getFile()).keySet();
+  }
+
+  @Override
+  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
+          final Instant from, final Instant to) throws IOException {
+    return TSDBQuery.getTimeSeriesData(database.getFile(), measurement, from.toEpochMilli(), to.toEpochMilli());
+  }
+
+  @Override
+  public boolean readable() {
+    return true;
+  }
+
 
 }

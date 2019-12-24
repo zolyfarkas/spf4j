@@ -42,6 +42,8 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
@@ -49,10 +51,12 @@ import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Strings;
 import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.base.UncheckedTimeoutException;
+import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.perf.impl.ms.Id2Info;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.recyclable.ObjectDisposeException;
@@ -71,6 +75,22 @@ public final class GraphiteUdpStore implements MeasurementStore {
   private final RecyclingSupplier<DatagramChannel> datagramChannelSupplier;
 
   private final InetSocketAddress address;
+
+  @Override
+  public boolean readable() {
+    return false;
+  }
+
+  @Override
+  public Set<String> getMeasurements() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement, final Instant from,
+          final Instant to) {
+    throw new UnsupportedOperationException();
+  }
 
   private static class DatagramChannelSupplierFactory implements RecyclingSupplier.Factory<DatagramChannel> {
 

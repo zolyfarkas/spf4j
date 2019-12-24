@@ -40,10 +40,14 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.time.Instant;
+import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.perf.impl.ms.Id2Info;
 
 /**
@@ -111,6 +115,22 @@ public final class TSDBTxtMeasurementStore
   @Override
   public String toString() {
     return "TSDBTxtMeasurementStore{" + "fileName=" + fileName + '}';
+  }
+
+  @Override
+  public Set<String> getMeasurements() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
+          final Instant from, final Instant to) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean readable() {
+    return false;
   }
 
 }

@@ -29,59 +29,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf.impl;
+package org.spf4j.perf;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.spf4j.base.avro.AvroCloseableIterable;
-import org.spf4j.perf.MeasurementsInfo;
-import org.spf4j.perf.MeasurementStore;
-import org.spf4j.perf.TimeSeriesRecord;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericRecord;
 
 /**
- *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public final class NopMeasurementStore implements MeasurementStore {
+public interface TimeSeriesRecord extends GenericRecord {
 
-    @Override
-    public long alocateMeasurements(final MeasurementsInfo measurement, final int sampleTimeMillis) {
-        // Do nothing
-        return -1;
-    }
+  Instant getTimeStamp();
 
-    @Override
-    public void saveMeasurements(final long tableId, final long timeStampMillis, final long... measurements) {
-        // Do nothing
-    }
+  long getLongValue(String column);
 
-    @Override
-    public void flush() {
-        // Do nothing
-    }
+  double getDoubleValue(String column);
 
-    @Override
-    public void close() {
-        // Do nothing
-    }
+  static TimeSeriesRecord from(final GenericRecord rec) {
+    return new TimeSeriesRecord() {
+      @Override
+      public Instant getTimeStamp() {
+        return (Instant) rec.get(0);
+      }
 
-  @Override
-  public Set<String> getMeasurements() {
-    return Collections.EMPTY_SET;
-  }
+      @Override
+      public long getLongValue(final String column) {
+        return ((Number) rec.get(column)).longValue();
+      }
 
-  @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
-          final Instant from, final Instant to) {
-    return null;
-  }
+      @Override
+      public double getDoubleValue(final String column) {
+        return ((Number) rec.get(column)).doubleValue();
+      }
 
-  @Override
-  public boolean readable() {
-    return false;
+      @Override
+      public void put(final String key, final Object v) {
+        rec.put(key, v);
+      }
+
+      @Override
+      public Object get(final String key) {
+        return rec.get(key);
+      }
+
+      @Override
+      public void put(final int i, final Object v) {
+        rec.put(i, v);
+      }
+
+      @Override
+      public Object get(final int i) {
+        return rec.get(i);
+      }
+
+      @Override
+      public Schema getSchema() {
+        return rec.getSchema();
+      }
+    };
   }
 
 }

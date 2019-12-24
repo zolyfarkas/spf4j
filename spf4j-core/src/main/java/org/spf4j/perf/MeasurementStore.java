@@ -33,6 +33,10 @@ package org.spf4j.perf;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Set;
+import javax.annotation.Nullable;
+import org.spf4j.base.avro.AvroCloseableIterable;
 
 /**
  * A measurement store.
@@ -56,7 +60,7 @@ public interface MeasurementStore extends Closeable {
    * Save measurements.
    *
    * @param tableId - the table ID to store measurements for.
-   * @param timeStampMillis - the timestamp of the measurement (millis since Jan 1 1970 UTC)
+   * @param timeStampMillis - the timestamp of the measurement (milliseconds since Jan 1 1970 UTC)
    * @param measurements - the measurements to persist. (same order as declared)
    * @throws IOException - IO issues.
    */
@@ -69,5 +73,21 @@ public interface MeasurementStore extends Closeable {
    * @throws IOException - IO issues.
    */
   void flush() throws IOException;
+
+  boolean readable();
+
+  Set<String> getMeasurements() throws IOException;
+
+  /**
+   * Query measurement data.
+   * @param measurement
+   * @param from
+   * @param to
+   * @return data iterable, or null if measurement not in database.
+   * @throws IOException
+   */
+  @Nullable
+  AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(String measurement,
+          Instant from, Instant to) throws IOException;
 
 }

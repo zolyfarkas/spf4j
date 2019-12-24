@@ -42,6 +42,8 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
@@ -49,9 +51,11 @@ import javax.net.SocketFactory;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.UncheckedExecutionException;
 import org.spf4j.base.UncheckedTimeoutException;
+import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.failsafe.RetryPolicy;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.perf.impl.ms.Id2Info;
 import static org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore.writeMetric;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -69,6 +73,22 @@ public final class GraphiteTcpStore implements MeasurementStore {
   private final RecyclingSupplier<Writer> socketWriterSupplier;
 
   private final InetSocketAddress address;
+
+  @Override
+  public boolean readable() {
+    return false;
+  }
+
+  @Override
+  public Set<String> getMeasurements() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement, final Instant from,
+          final Instant to) {
+    throw new UnsupportedOperationException();
+  }
 
   private static class WriterSupplierFactory implements RecyclingSupplier.Factory<Writer> {
 
