@@ -301,7 +301,9 @@ public final class TSDBQuery {
   }
 
   public static Schema createSchema(final TableDef td) {
-    SchemaBuilder.FieldAssembler<Schema> fieldBuilder = SchemaBuilder.record(td.getName()).fields();
+    SchemaBuilder.FieldAssembler<Schema> fieldBuilder = SchemaBuilder.record(td.getName())
+            .doc(td.getDescription())
+            .fields();
     Schema ts = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
     fieldBuilder = fieldBuilder.name("timeStamp").type(ts).noDefault();
     for (ColumnDef cd : td.getColumns()) {
