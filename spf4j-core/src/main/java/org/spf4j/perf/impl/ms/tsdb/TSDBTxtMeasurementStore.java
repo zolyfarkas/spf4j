@@ -44,6 +44,7 @@ import java.time.Instant;
 import java.util.Set;
 import javax.annotation.PreDestroy;
 import javax.annotation.concurrent.ThreadSafe;
+import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.JmxExport;
@@ -131,6 +132,11 @@ public final class TSDBTxtMeasurementStore
   @Override
   public boolean readable() {
     return false;
+  }
+
+  @Override
+  public Schema getMeasurementSchema(final String measurement) {
+    throw new UnsupportedOperationException();
   }
 
 }

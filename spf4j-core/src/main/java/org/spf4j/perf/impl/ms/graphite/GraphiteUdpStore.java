@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.Nullable;
+import org.apache.avro.Schema;
 import org.spf4j.base.HandlerNano;
 import org.spf4j.base.Strings;
 import org.spf4j.base.UncheckedExecutionException;
@@ -89,6 +90,11 @@ public final class GraphiteUdpStore implements MeasurementStore {
   @Override
   public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement, final Instant from,
           final Instant to) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Schema getMeasurementSchema(final String measurement) {
     throw new UnsupportedOperationException();
   }
 

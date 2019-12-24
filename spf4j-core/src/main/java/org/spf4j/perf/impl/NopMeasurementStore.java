@@ -35,6 +35,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
@@ -82,6 +83,11 @@ public final class NopMeasurementStore implements MeasurementStore {
   @Override
   public boolean readable() {
     return false;
+  }
+
+  @Override
+  public Schema getMeasurementSchema(final String measurement) {
+    return null;
   }
 
 }

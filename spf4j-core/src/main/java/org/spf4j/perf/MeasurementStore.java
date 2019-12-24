@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
 
 /**
@@ -89,5 +90,15 @@ public interface MeasurementStore extends Closeable {
   @Nullable
   AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(String measurement,
           Instant from, Instant to) throws IOException;
+
+
+  /**
+   * Query measurement schema.
+   * @param measurement
+   * @return measurement schema
+   */
+  @Nullable
+  Schema getMeasurementSchema(String measurement) throws IOException;
+
 
 }

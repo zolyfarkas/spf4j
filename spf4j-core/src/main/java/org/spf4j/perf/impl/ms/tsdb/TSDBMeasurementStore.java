@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
+import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.TimeSeriesRecord;
@@ -133,6 +134,16 @@ public final class TSDBMeasurementStore
   @Override
   public boolean readable() {
     return true;
+  }
+
+  @Override
+  public Schema getMeasurementSchema(final String measurement) throws IOException {
+    List<TableDef> tableDef;
+    tableDef = TSDBQuery.getTableDef(database.getFile(), measurement);
+    if (tableDef.isEmpty()) {
+      return null;
+    }
+    return TSDBQuery.createSchema(tableDef.get(0));
   }
 
 

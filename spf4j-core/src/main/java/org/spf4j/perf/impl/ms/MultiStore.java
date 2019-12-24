@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
+import org.apache.avro.Schema;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementsInfo;
@@ -202,6 +203,16 @@ public final class MultiStore implements MeasurementStore {
       }
     }
     return false;
+  }
+
+  @Override
+  public Schema getMeasurementSchema(final String measurement) throws IOException {
+   for (MeasurementStore store : stores) {
+      if (store.readable()) {
+        return store.getMeasurementSchema(measurement);
+      }
+    }
+    throw new UnsupportedOperationException();
   }
 
 }
