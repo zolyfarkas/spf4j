@@ -102,10 +102,9 @@ public final class GCUsageSampler {
   public static long getGCTimeDiff(final Iterable<GarbageCollectorMXBean> gcBeans, final TObjectLongMap lastValues) {
     long gcTime = 0;
     for (GarbageCollectorMXBean gcBean : gcBeans) {
-      long prevVal = lastValues.get(gcBean);
       long currVal = gcBean.getCollectionTime();
+      long prevVal = lastValues.put(gcBean, currVal);
       gcTime += currVal - prevVal;
-      lastValues.put(gcBean, currVal);
     }
     return gcTime;
   }
