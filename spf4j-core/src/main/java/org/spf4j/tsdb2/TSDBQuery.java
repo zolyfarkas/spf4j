@@ -303,6 +303,7 @@ public final class TSDBQuery {
   public static Schema createSchema(final TableDef td) {
     SchemaBuilder.FieldAssembler<Schema> fieldBuilder = SchemaBuilder.record(td.getName())
             .doc(td.getDescription())
+            .noNameValidation()
             .fields();
     Schema ts = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
     fieldBuilder = fieldBuilder.name("timeStamp").type(ts).noDefault();
@@ -310,13 +311,13 @@ public final class TSDBQuery {
       Type type = cd.getType();
       switch (type) {
         case DOUBLE:
-          fieldBuilder = fieldBuilder.name(cd.getName())
+          fieldBuilder = fieldBuilder.name(cd.getName()).noNameValidation()
                   .type(new Schema.Parser().parse("{\"type\":\"double\",\"unit\":\""
                           + cd.getUnitOfMeasurement() + "\"}"))
                   .noDefault();
           break;
         case LONG:
-          fieldBuilder = fieldBuilder.name(cd.getName())
+          fieldBuilder = fieldBuilder.name(cd.getName()).noNameValidation()
                   .type(new Schema.Parser().parse("{\"type\":\"long\",\"unit\":\""
                           + cd.getUnitOfMeasurement() + "\"}"))
                   .noDefault();
@@ -499,7 +500,7 @@ public final class TSDBQuery {
   @Nonnull
   public static ColumnDef getColumnDef(final TableDef td, final String columnName) {
     for (ColumnDef cdef : td.getColumns()) {
-      if (Strings.equals(columnName, cdef.getName())) {
+      if (columnName.equals(cdef.getName())) {
         return cdef;
       }
     }
@@ -509,7 +510,7 @@ public final class TSDBQuery {
   public static int getColumnIndex(final TableDef td, final String columnName) {
     int i = 0;
     for (ColumnDef cdef : td.getColumns()) {
-      if (Strings.equals(columnName, cdef.getName())) {
+      if (columnName.equals(cdef.getName())) {
         return i;
       }
       i++;
