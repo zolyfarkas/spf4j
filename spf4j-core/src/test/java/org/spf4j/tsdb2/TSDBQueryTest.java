@@ -53,12 +53,12 @@ public class TSDBQueryTest {
 
   private final TableDef tableDef = TableDef.newBuilder()
           .setName("test")
-          .setDescription("test")
+          .setDescription("test-1")
           .setSampleTime(0)
           .setColumns(Arrays.asList(
                   ColumnDef.newBuilder().setName("a").setDescription("atest").setUnitOfMeasurement("ms").build(),
                   ColumnDef.newBuilder().setName("b").setDescription("btest").setUnitOfMeasurement("ms").build(),
-                  ColumnDef.newBuilder().setName("c").setDescription("ctest").setUnitOfMeasurement("ms").build()))
+                  ColumnDef.newBuilder().setName("c x").setDescription("ctest x").setUnitOfMeasurement("ms").build()))
           .build();
 
   @Test

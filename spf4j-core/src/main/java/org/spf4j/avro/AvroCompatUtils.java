@@ -16,13 +16,14 @@
 package org.spf4j.avro;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 import org.apache.avro.Schema;
 import org.spf4j.avro.official.OriginUtilInterface;
 import org.spf4j.avro.zfork.ZFUtilInterface;
 import org.spf4j.base.Reflections;
 
 /**
- *
+ * A set of Utils to abstract away differences between zolyfarkas/avro forrk and apache/avro
  * @author Zoltan Farkas
  */
 public final class AvroCompatUtils {
@@ -44,6 +45,13 @@ public final class AvroCompatUtils {
     Schema.Field createField(String name, Schema schema, String doc,
             Object defaultVal,
             boolean validateDefault, boolean validateName, Schema.Field.Order order);
+
+    Schema createRecordSchema(String name, String doc, String namespace,
+                                    boolean isError, List<Schema.Field> fields, boolean validateName);
+
+    Schema createRecordSchema(String name, String doc, String namespace,
+                                    boolean isError,  boolean validateName);
+
   }
 
   public static Schema.Field createField(final String name, final Schema schema, final String doc,
@@ -51,5 +59,18 @@ public final class AvroCompatUtils {
           final boolean validateDefault, final boolean validateName, final Schema.Field.Order order) {
     return INTF.createField(name, schema, doc, defaultVal, validateDefault, validateName, order);
   }
+
+  public static Schema createRecordSchema(final String name, final String doc, final String namespace,
+                                    final boolean isError, final List<Schema.Field> fields,
+                                    final boolean validateName) {
+    return INTF.createRecordSchema(name, doc, namespace, isError, fields, validateName);
+  }
+
+
+  public static Schema createRecordSchema(final String name, final String doc, final String namespace,
+                                    final boolean isError, final boolean validateName) {
+    return INTF.createRecordSchema(name, doc, namespace, isError, validateName);
+  }
+
 
 }

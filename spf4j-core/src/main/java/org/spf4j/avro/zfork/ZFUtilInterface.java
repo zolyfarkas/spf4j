@@ -15,11 +15,12 @@
  */
 package org.spf4j.avro.zfork;
 
+import java.util.List;
 import org.apache.avro.Schema;
 import org.spf4j.avro.AvroCompatUtils;
 
 /**
- *
+ * Adapter for the zolyfarkas/avro fork.
  * @author Zoltan Farkas
  */
 public final class ZFUtilInterface implements AvroCompatUtils.UtilInterface {
@@ -29,6 +30,18 @@ public final class ZFUtilInterface implements AvroCompatUtils.UtilInterface {
           final Object defaultVal,
           final boolean validateDefault, final boolean validateName, final Schema.Field.Order order) {
     return new Schema.Field(name, schema, doc, defaultVal, validateDefault, validateName, order);
+  }
+
+  @Override
+  public Schema createRecordSchema(final String name, final String doc,
+          final String namespace, final boolean isError, final List<Schema.Field> fields, final boolean validateName) {
+    return Schema.createRecord(name, doc, namespace, isError, fields, validateName);
+  }
+
+  @Override
+  public Schema createRecordSchema(final String name, final String doc,
+          final String namespace, final boolean isError, final boolean validateName) {
+    return Schema.createRecord(name, doc, namespace, isError, validateName);
   }
 
 }

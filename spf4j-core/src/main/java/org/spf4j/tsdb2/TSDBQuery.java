@@ -62,9 +62,9 @@ import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
-import org.apache.avro.SchemaBuilder;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.DateTimeFormats;
 import org.spf4j.base.Either;
 import org.spf4j.base.Strings;
@@ -301,32 +301,33 @@ public final class TSDBQuery {
   }
 
   public static Schema createSchema(final TableDef td) {
-    SchemaBuilder.FieldAssembler<Schema> fieldBuilder = SchemaBuilder.record(td.getName())
-            .doc(td.getDescription())
-            .noNameValidation()
-            .fields();
+    Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, true, false);
+    List<ColumnDef> columns = td.getColumns();
+    List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
     Schema ts = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
-    fieldBuilder = fieldBuilder.name("timeStamp").type(ts).noDefault();
-    for (ColumnDef cd : td.getColumns()) {
+    fields.add(AvroCompatUtils.createField("ts", ts, "Measurement time stamp", null, true, false,
+            Schema.Field.Order.IGNORE));
+    for (ColumnDef cd : columns) {
       Type type = cd.getType();
       switch (type) {
         case DOUBLE:
-          fieldBuilder = fieldBuilder.name(cd.getName()).noNameValidation()
-                  .type(new Schema.Parser().parse("{\"type\":\"double\",\"unit\":\""
-                          + cd.getUnitOfMeasurement() + "\"}"))
-                  .noDefault();
+          fields.add(AvroCompatUtils.createField(cd.getName(),
+                  new Schema.Parser().parse("{\"type\":\"double\",\"unit\":\""
+                          + cd.getUnitOfMeasurement() + "\"}"), cd.getDescription(), null, true, false,
+            Schema.Field.Order.IGNORE));
           break;
         case LONG:
-          fieldBuilder = fieldBuilder.name(cd.getName()).noNameValidation()
-                  .type(new Schema.Parser().parse("{\"type\":\"long\",\"unit\":\""
-                          + cd.getUnitOfMeasurement() + "\"}"))
-                  .noDefault();
+          fields.add(AvroCompatUtils.createField(cd.getName(),
+                  new Schema.Parser().parse("{\"type\":\"long\",\"unit\":\""
+                          + cd.getUnitOfMeasurement() + "\"}"), cd.getDescription(), null, true, false,
+            Schema.Field.Order.IGNORE));
           break;
         default:
           throw new IllegalStateException("Invalid data type " + type);
       }
     }
-    return fieldBuilder.endRecord();
+    recSchema.setFields(fields);
+    return recSchema;
   }
 
   private static class Row {
