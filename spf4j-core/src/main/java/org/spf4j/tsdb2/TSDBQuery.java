@@ -301,7 +301,7 @@ public final class TSDBQuery {
   }
 
   public static Schema createSchema(final TableDef td) {
-    Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, true, false);
+    Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, false, false);
     List<ColumnDef> columns = td.getColumns();
     List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
     Schema ts = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
