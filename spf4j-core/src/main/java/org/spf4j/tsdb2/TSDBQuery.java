@@ -327,6 +327,10 @@ public final class TSDBQuery {
       }
     }
     recSchema.setFields(fields);
+    int sampleTime = td.getSampleTime();
+    if (sampleTime > 0) {
+      recSchema.addProp("frequency", sampleTime);
+    }
     return recSchema;
   }
 
