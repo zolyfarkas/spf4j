@@ -57,7 +57,6 @@ public final class DefaultSchedulerTest {
   public void testScheduleAllignedAtFixedRateMillis() throws InterruptedException {
 
     Runnable command = new Runnable() {
-      private volatile boolean first = true;
 
       @Override
       public void run() {
@@ -66,14 +65,6 @@ public final class DefaultSchedulerTest {
           notAligned = true;
         }
         LOG.debug("scheduled at {}", Instant.ofEpochMilli(time));
-        if (first) {
-          try {
-            Thread.sleep(2000);
-          } catch (InterruptedException e) {
-            return;
-          }
-          first = false;
-        }
       }
     };
     long millisInterval = 1000L;
