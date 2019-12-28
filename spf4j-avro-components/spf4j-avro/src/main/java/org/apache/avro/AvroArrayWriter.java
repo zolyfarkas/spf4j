@@ -29,7 +29,7 @@ import org.spf4j.base.ArrayWriter;
 @ThreadSafe
 public final class AvroArrayWriter<T> implements ArrayWriter<T> {
 
-  private final T[] buffer;
+  private final Object[] buffer;
 
   private final Encoder encoder;
 
@@ -48,7 +48,19 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
     }
     this.encoder = encoder;
     this.writer = elementWriter;
-    buffer = (T[]) java.lang.reflect.Array.newInstance(type, bufferSize);
+    buffer = (Object[]) java.lang.reflect.Array.newInstance(type, bufferSize);
+    this.at = 0;
+    this.start = true;
+    this.isClosed = false;
+  }
+
+  public AvroArrayWriter(final Encoder encoder, final DatumWriter<T> elementWriter, final int bufferSize) {
+    if (bufferSize < 1) {
+      throw new IllegalArgumentException("Invalid buffer size " + bufferSize);
+    }
+    this.encoder = encoder;
+    this.writer = elementWriter;
+    buffer = new Object[bufferSize];
     this.at = 0;
     this.start = true;
     this.isClosed = false;
@@ -73,7 +85,7 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
       encoder.setItemCount(at);
       for (int i = 0; i < at; i++) {
         encoder.startItem();
-        writer.write(buffer[i], encoder);
+        writer.write((T) buffer[i], encoder);
         buffer[i] = null;
       }
       at = 0;
