@@ -63,6 +63,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.specific.SpecificData;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.CharSequences;
 import org.spf4j.ds.IdentityHashSet;
 import org.spf4j.io.csv.CharSeparatedValues;
@@ -578,8 +579,8 @@ public final class Schemas {
         if (isSameFields(fields, nFields)) {
           return schema;
         }
-        Schema rec = Schema.createRecord(schema.getName(), schema.getDoc(),
-                "_p." + schema.getNamespace(), schema.isError());
+        Schema rec = AvroCompatUtils.createRecordSchema(schema.getName(), schema.getDoc(),
+                "_p." + schema.getNamespace(), schema.isError(), false);
         rec.setFields(nFields);
         String dep = schema.getProp("deprecated");
         if (dep != null) {
