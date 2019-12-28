@@ -41,6 +41,10 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
 
   private boolean isClosed;
 
+  /**
+   * @deprecated use the other constructor.
+   */
+  @Deprecated
   public AvroArrayWriter(final Encoder encoder, final DatumWriter<T> elementWriter,
           final Class<T> type, final int bufferSize) {
     if (bufferSize < 1) {
