@@ -218,7 +218,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
         if (result == null) {
           result = (Throwable) argument;
         } else {
-          result.addSuppressed((Throwable) argument);
+          Throwables.suppressLimited(result, (Throwable) argument);
         }
       }
     }
