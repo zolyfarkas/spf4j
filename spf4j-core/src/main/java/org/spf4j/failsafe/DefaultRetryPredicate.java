@@ -25,6 +25,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.log.Level;
+import org.spf4j.log.SLf4jXLogAdapter;
+import org.spf4j.log.XLog;
 
 /**
  * @author Zoltan Farkas
@@ -33,11 +36,14 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
+  private static final Level RETRY_LOG_LEVEL =
+          Level.valueOf(System.getProperty("spf4j.failsafe.retryLogLevel", "WARN"));
+
   private static final PartialResultRetryPredicate[] NO_RP = new PartialResultRetryPredicate[0];
 
   private static final PartialExceptionRetryPredicate[] NO_EP = new PartialExceptionRetryPredicate[0];
 
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryPredicate.class);
+  private static final Logger LOG =  LoggerFactory.getLogger(DefaultRetryPredicate.class);
 
   private final Function<Object, RetryDelaySupplier> defaultBackoffSupplier;
 
@@ -45,14 +51,14 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
 
   private final PartialExceptionRetryPredicate<T, Callable<T>>[] exceptionPredicates;
 
-  private final Logger log;
+  private final XLog log;
 
   @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER") // not suspect if you want to customize logging behavior.
   DefaultRetryPredicate(@Nullable final Logger log, final long startNanos, final long deadlineNanos,
           final Supplier<Function<Object, RetryDelaySupplier>> defaultBackoffSupplierSupplier,
           final TimedSupplier<PartialResultRetryPredicate<T, Callable<T>>>[] resultPredicates,
           final TimedSupplier<PartialExceptionRetryPredicate<T, Callable<T>>>... exceptionPredicates) {
-    this.log = log == null ? LOG : log;
+    this.log = new SLf4jXLogAdapter(log == null ? LOG : log);
     this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();
     int rpl = resultPredicates.length;
     if (rpl > 0) {
@@ -87,7 +93,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
             decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
           }
-          log.debug("Result {}, retrying {} with {}", value,  newCallable, decision);
+          log.log(null, RETRY_LOG_LEVEL, "Result {}, retrying {} with {}", value,  newCallable, decision);
         }
         return decision;
       }
@@ -107,7 +113,8 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
             RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);
             decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);
           }
-          LOG.debug("Result {}, retrying {} with {}", value.getClass().getName(), newCallable, decision, value);
+          log.log(null, RETRY_LOG_LEVEL,
+                  "Result {}, retrying {} with {}", value.getClass().getName(), newCallable, decision, value);
         }
         return decision;
       }
