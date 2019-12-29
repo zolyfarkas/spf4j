@@ -76,7 +76,8 @@ public final class Throwables {
    */
   public static final String CAUSE_CAPTION = "Caused by: ";
 
-  public static final int MAX_THROWABLE_CHAIN
+
+  private static final int MAX_SUPPRESS_CHAIN
           = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 100);
 
   private static final Field CAUSE_FIELD;
@@ -296,7 +297,7 @@ public final class Throwables {
    * @return
    */
   public static <T extends Throwable> T chain(final T t, final Throwable newRootCause) {
-    return chain(t, newRootCause, MAX_THROWABLE_CHAIN);
+    return chain(t, newRootCause, MAX_SUPPRESS_CHAIN);
   }
 
   public static final class TrimmedException extends Exception {
@@ -328,7 +329,7 @@ public final class Throwables {
 
 
   public static void setRootCause(final Throwable t, final Throwable newRootCause) {
-     setRootCause(t, newRootCause, MAX_THROWABLE_CHAIN);
+     setRootCause(t, newRootCause, MAX_SUPPRESS_CHAIN);
   }
 
   public static void setRootCause(final Throwable t, final Throwable newRootCause, final int maxChained) {
@@ -368,19 +369,32 @@ public final class Throwables {
    *
    * 1) limit to nr of exceptions suppressed.
    * 2) if exception is already suppressed, will not add it.
+   * 3) will return a clone of exception t.
    *
    * @param <T>
    * @param t
    * @param suppressed
-   * @return
+   * @returna clone of exception t with suppressed exception suppressed;
+   * @deprecated use suppressLimited instead.
+   *
    */
   @CheckReturnValue
+  @Deprecated
   public static <T extends Throwable> T suppress(@Nonnull final T t, @Nonnull final Throwable suppressed) {
-    return suppress(t, suppressed, MAX_THROWABLE_CHAIN);
+    return suppress(t, suppressed, MAX_SUPPRESS_CHAIN);
   }
 
+  /**
+   * Functionality will call Throwable.addSuppressed, 2 extra things happen:
+   *
+   * 1) limit to nr of exceptions suppressed.
+   * 2) if exception is already suppressed, will not add it.
+   *
+   * @param t
+   * @param suppressed
+   */
   public static void suppressLimited(@Nonnull final Throwable t, @Nonnull final Throwable suppressed) {
-    suppressLimited(t, suppressed, MAX_THROWABLE_CHAIN);
+    suppressLimited(t, suppressed, MAX_SUPPRESS_CHAIN);
   }
 
   @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
@@ -409,6 +423,9 @@ public final class Throwables {
     } catch (RuntimeException ex) {
       t.addSuppressed(ex);
       clone = t;
+    }
+    if (contains(t, suppressed)) {
+      return clone;
     }
     clone.addSuppressed(suppressed);
     while (getNrRecursiveSuppressedExceptions(clone) > maxSuppressed) {
@@ -782,7 +799,7 @@ public final class Throwables {
    * @param predicate the predicate
    * @return true if a Throwable matching the predicate is found.
    */
-  public static boolean contains(@Nonnull final Throwable t, @Nonnull Throwable toLookFor) {
+  public static boolean contains(@Nonnull final Throwable t, @Nonnull final Throwable toLookFor) {
     return first(t, (x) -> x == toLookFor) != null;
   }
 
