@@ -364,9 +364,10 @@ public final class Throwables {
   }
 
   /**
-   * Functionality similar for java 1.7 Throwable.addSuppressed. 2 extra things happen:
+   * Functionality will call Throwable.addSuppressed, 2 extra things happen:
    *
-   * 1) limit to nr of exceptions suppressed. 2) Suppression does not mutate Exception, it clones it.
+   * 1) limit to nr of exceptions suppressed.
+   * 2) if exception is already suppressed, will not add it.
    *
    * @param <T>
    * @param t
@@ -385,7 +386,7 @@ public final class Throwables {
   @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
   public static void suppressLimited(@Nonnull final Throwable t, @Nonnull final Throwable suppressed,
           final int maxSuppressed) {
-    if (t == suppressed) {
+    if (contains(t, suppressed)) { //protect against circular references.
       return;
     }
     synchronized (t) {
@@ -775,6 +776,17 @@ public final class Throwables {
 
 
   /**
+   * checks in the throwable + children (both causal and suppressed) contain a throwable that
+   * respects the Predicate.
+   * @param t the throwable
+   * @param predicate the predicate
+   * @return true if a Throwable matching the predicate is found.
+   */
+  public static boolean contains(@Nonnull final Throwable t, @Nonnull Throwable toLookFor) {
+    return first(t, (x) -> x == toLookFor) != null;
+  }
+
+  /**
    * return first Exception in the causal chain Assignable to clasz.
    * @param <T>
    * @param t
@@ -797,8 +809,17 @@ public final class Throwables {
   @Nullable
   @CheckReturnValue
   public static Throwable first(@Nonnull final Throwable t, final Predicate<Throwable> predicate) {
+    if (predicate.test(t)) { //shortcut
+      return t;
+    }
     ArrayDeque<Throwable> toScan =  new ArrayDeque<>();
-    toScan.addFirst(t);
+    Throwable cause = t.getCause();
+    if (cause != null) {
+      toScan.addFirst(cause);
+    }
+    for (Throwable supp : getSuppressed(t)) {
+      toScan.addLast(supp);
+    }
     Throwable th;
     THashSet<Throwable> seen = new IdentityHashSet<>();
     while ((th = toScan.pollFirst()) != null) {
@@ -808,7 +829,7 @@ public final class Throwables {
       if (predicate.test(th)) {
         return th;
       } else {
-        Throwable cause = th.getCause();
+        cause = th.getCause();
         if (cause != null) {
           toScan.addFirst(cause);
         }
