@@ -654,9 +654,8 @@ public final class Callables {
         lastEx = e;
         if (lastExChain != null) {
           Throwables.suppressLimited(lastEx, lastExChain);
-        } else {
-          lastExChain = lastEx;
         }
+        lastExChain = lastEx;
       }
     }
     if (decision == null) {

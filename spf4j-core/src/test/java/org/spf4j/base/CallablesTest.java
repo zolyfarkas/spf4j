@@ -153,10 +153,6 @@ public final class CallablesTest {
 
       @Override
       public AdvancedAction apply(final Exception input) {
-        final Throwable[] suppressed = Throwables.getSuppressed(input);
-        if (suppressed.length > 0) {
-          throw new UnsupportedOperationException();
-        }
         return AdvancedAction.RETRY;
       }
     }, IOException.class);
