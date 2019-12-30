@@ -48,6 +48,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -401,6 +403,8 @@ public final class Throwables {
   public static void suppressLimited(@Nonnull final Throwable t, @Nonnull final Throwable suppressed,
           final int maxSuppressed) {
     if (contains(t, suppressed)) { //protect against circular references.
+      Logger.getLogger(Throwables.class.getName()).log(Level.INFO,
+              "Circular suppression attempted", new RuntimeException(suppressed));
       return;
     }
     synchronized (t) {
