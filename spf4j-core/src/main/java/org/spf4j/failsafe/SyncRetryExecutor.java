@@ -94,7 +94,7 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
   default <E extends Exception, W extends C> void run(W pwhat, Class<E> exceptionClass,
           long timeout, TimeUnit tu)
           throws InterruptedException, TimeoutException, E {
-     run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), tu, timeout));
+     run(pwhat, exceptionClass, ExecutionContexts.computeDeadline(ExecutionContexts.current(), timeout, tu));
   }
 
 
