@@ -670,15 +670,19 @@ public final class Schemas {
       case ARRAY:
         List from = (List) object;
         List to = new ArrayList(from.size());
+        Schema toElementType = toSchema.getElementType();
+        Schema fromElementType = fromSchema.getElementType();
         for (Object o : from) {
-          to.add(project(toSchema.getElementType(), fromSchema.getElementType(), o));
+          to.add(project(toElementType, fromElementType, o));
         }
         return to;
       case MAP:
         Map<String, Object> fromMap = (Map<String, Object>) object;
         Map<String, Object> toMap = Maps.newLinkedHashMapWithExpectedSize(fromMap.size());
+        Schema toValueType = toSchema.getValueType();
+        Schema fromValueType = fromSchema.getValueType();
         for (Map.Entry<String, Object> entry : fromMap.entrySet()) {
-          toMap.put(entry.getKey(), project(toSchema.getValueType(), fromSchema.getValueType(), entry.getValue()));
+          toMap.put(entry.getKey(), project(toValueType, fromValueType, entry.getValue()));
         }
         return toMap;
       case UNION:
@@ -697,12 +701,18 @@ public final class Schemas {
           }
         }
         throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
-
       case RECORD:
         GenericData.Record record = new SpecificData.Record(toSchema);
         GenericRecord fromRec = (GenericRecord) object;
+        Schema frSchema = fromRec.getSchema();
         for (Field field : toSchema.getFields()) {
-          record.put(field.pos(), fromRec.get(field.name()));
+          int pos = getPos(field, frSchema);
+          int toPos = field.pos();
+          if (pos < 0) {
+            record.put(toPos, field.defaultVal());
+          } else {
+            record.put(toPos, fromRec.get(pos));
+          }
         }
         return record;
       default:
@@ -710,6 +720,21 @@ public final class Schemas {
     }
   }
 
+
+  public static int getPos(final Schema.Field field, final Schema recordSchema) {
+    Field rf = recordSchema.getField(field.name());
+    if (rf == null) {
+      for (String alias : field.aliases()) {
+        rf = recordSchema.getField(alias);
+        if (rf != null) {
+          return rf.pos();
+        }
+      }
+      return -1;
+    } else {
+      return rf.pos();
+    }
+  }
 
 
   @Nullable
