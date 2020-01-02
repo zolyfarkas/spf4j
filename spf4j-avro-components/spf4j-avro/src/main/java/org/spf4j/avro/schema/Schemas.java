@@ -406,6 +406,20 @@ public final class Schemas {
   }
 
   @Nullable
+  public static Schema getSchemaFromUnionByName(final Schema unionSchema, final String name) {
+    if (!(unionSchema.getType() == Schema.Type.UNION)) {
+      return name.equals(unionSchema.getFullName()) ? unionSchema : null;
+    }
+    List<Schema> types = unionSchema.getTypes();
+    for (Schema schema : types) {
+      if (name.equals(schema.getFullName())) {
+        return schema;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   public static Schema getSubSchema(final Schema schema, final CharSequence path) {
     if (path.length() == 0) {
       return schema;
@@ -689,16 +703,14 @@ public final class Schemas {
         if (object == null) {
           return null;
         }
-        Schema tSchema = Schemas.nullableUnionSchema(toSchema);
-        if (tSchema != null) {
-          return project(tSchema, tSchema, object);
-        } else {
-          Schema objReflSchema = ExtendedReflectData.get().getSchema(object.getClass());
+        Schema objReflSchema = ExtendedReflectData.get().getSchema(object.getClass());
+        if (objReflSchema != null) {
+          String name = objReflSchema.getFullName();
           for (Schema matching : toSchema.getTypes()) {
-            if (matching.getType() == objReflSchema.getType()) {
+            if (name.equals(matching.getFullName())) {
               return project(matching, objReflSchema, object);
             }
-          }
+          }  
         }
         throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
       case RECORD:
@@ -706,12 +718,12 @@ public final class Schemas {
         GenericRecord fromRec = (GenericRecord) object;
         Schema frSchema = fromRec.getSchema();
         for (Field field : toSchema.getFields()) {
-          int pos = getPos(field, frSchema);
+          Field frField = getPos(field, frSchema);
           int toPos = field.pos();
-          if (pos < 0) {
+          if (frField == null) {
             record.put(toPos, field.defaultVal());
           } else {
-            record.put(toPos, fromRec.get(pos));
+            record.put(toPos, project(field.schema(), frField.schema(), fromRec.get(frField.pos())));
           }
         }
         return record;
@@ -721,18 +733,19 @@ public final class Schemas {
   }
 
 
-  public static int getPos(final Schema.Field field, final Schema recordSchema) {
+  @Nullable
+  public static Schema.Field getPos(final Schema.Field field, final Schema recordSchema) {
     Field rf = recordSchema.getField(field.name());
     if (rf == null) {
       for (String alias : field.aliases()) {
         rf = recordSchema.getField(alias);
         if (rf != null) {
-          return rf.pos();
+          return rf;
         }
       }
-      return -1;
+      return null;
     } else {
-      return rf.pos();
+      return rf;
     }
   }
 
