@@ -34,6 +34,7 @@ package org.spf4j.avro.schema;
 import com.google.common.annotations.Beta;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -703,14 +704,25 @@ public final class Schemas {
         if (object == null) {
           return null;
         }
-        Schema objReflSchema = ExtendedReflectData.get().getSchema(object.getClass());
-        if (objReflSchema != null) {
-          String name = objReflSchema.getFullName();
-          for (Schema matching : toSchema.getTypes()) {
-            if (name.equals(matching.getFullName())) {
-              return project(matching, objReflSchema, object);
+        Schema objSchema = ExtendedReflectData.get().getSchema(object.getClass());
+        if (objSchema != null) {
+          String name = objSchema.getFullName();
+          Set<String> aliases = objSchema.getAliases();
+          if (aliases.isEmpty()) {
+            for (Schema toMatch : toSchema.getTypes()) {
+              if (name.equals(toMatch.getFullName()) || toMatch.getAliases().contains(name)) {
+                return project(toMatch, objSchema, object);
+              }
             }
-          }  
+          } else {
+            for (Schema toMatch : toSchema.getTypes()) {
+              String toMatchName = toMatch.getFullName();
+              if (name.equals(toMatchName) || aliases.contains(toMatchName)
+                      || !Sets.intersection(aliases, toMatch.getAliases()).isEmpty()) {
+                return project(toMatch, objSchema, object);
+              }
+            }
+          }
         }
         throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
       case RECORD:
