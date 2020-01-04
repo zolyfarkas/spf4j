@@ -49,10 +49,19 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.VersionRangeResolutionException;
+import org.eclipse.aether.version.Version;
 import org.spf4j.base.AppendableUtils;
 import org.spf4j.base.PackageInfo;
+import org.spf4j.io.compress.Compress;
+import org.spf4j.maven.MavenRepositoryUtils;
 
 /**
  * Mojo that will compile the avro sources: *.avsc, *.avpr, *.avdl in: 1) java files. 2) avsc files.
@@ -122,6 +131,73 @@ public final class SchemaCompileMojo
 
   private final Map<String, Schema> index = new HashMap<>();
 
+
+  private final Map<String, Integer> prevReleaseName2Index = new HashMap();
+
+  @SuppressWarnings("unchecked")
+  private void loadPrevReleaseId2Map() throws IOException {
+    MavenProject mavenProject = getMavenProject();
+    Log log = getLog();
+    String versionRange = "[," + mavenProject.getVersion() +  ')';
+    String groupId = mavenProject.getGroupId();
+    String artifactId = mavenProject.getArtifactId();
+    List<RemoteRepository> remoteProjectRepositories = mavenProject.getRemoteProjectRepositories();
+    RepositorySystem repoSystem = getRepoSystem();
+    RepositorySystemSession repositorySession = getMavenSession().getRepositorySession();
+    List<Version> rangeVersions;
+    try {
+      rangeVersions = MavenRepositoryUtils.getVersions(groupId, artifactId, versionRange,
+              remoteProjectRepositories, repoSystem, repositorySession);
+    } catch (VersionRangeResolutionException ex) {
+      throw new RuntimeException("Invalid compatibiliy.versionRange = " + versionRange + " setting", ex);
+    }
+    rangeVersions = rangeVersions.stream().filter((v) -> !v.toString().endsWith("SNAPSHOT"))
+            .collect(Collectors.toList());
+    int tSize = rangeVersions.size();
+    rangeVersions = rangeVersions.subList(Math.max(tSize - 1, 0), tSize);
+    log.info("Loading id 2 name map from " + rangeVersions);
+    if (rangeVersions.isEmpty()) {
+      return;
+    }
+    Version version  = rangeVersions.get(0);
+    Path targetPath = getTarget().toPath();
+    File prevSchemaArchive;
+    try {
+      prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(
+              groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version.toString(),
+              remoteProjectRepositories, repoSystem, repositorySession);
+    } catch (ArtifactResolutionException ex) {
+      throw new RuntimeException("Cannot resolve previous version "  + version, ex);
+    }
+    Path dest = targetPath.resolve("prevSchema").resolve(version.toString());
+    Files.createDirectories(dest);
+    log.debug("Unzipping " + prevSchemaArchive + " to " + dest);
+    List<Path> indexFiles = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -> {
+      Path fileName = p.getFileName();
+      if (fileName == null) {
+        return false;
+      }
+      return "schema_index.properties".equals(fileName.toString());
+    });
+    if (indexFiles.size() != 1) {
+      log.info("no index file or rtto many  in previous version: " + indexFiles);
+    }
+    Path indexFile = indexFiles.get(0);
+    Properties prevIndex = new Properties();
+    try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {
+      prevIndex.load(br);
+    }
+    for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) (Set) prevIndex.entrySet()) {
+      String key = entry.getKey();
+      int idx = Integer.parseInt(key, 32);
+      if (idx >= idSequence) {
+        idSequence = idx + 1;
+      }
+      prevReleaseName2Index.put(entry.getValue(), idx);
+    }
+    log.info("loaded existing mappings " + prevIndex.size() + ", new id sequence: " + idSequence);
+  }
+
   private String attachMavenId(final Schema schema) {
     String exMvnId = schema.getProp("mvnId");
     if (exMvnId == null) {
@@ -144,10 +220,13 @@ public final class SchemaCompileMojo
     StringBuilder idBuilder = new StringBuilder(64);
     idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())
             .append(':').append(mavenProject.getVersion());
+    Integer idx = prevReleaseName2Index.get(schema.getFullName());
+    if (idx == null) {
+      idx = idSequence++;
+    }
     StringBuilder idb = new StringBuilder(4);
-    AppendableUtils.appendUnsignedString(idb, idSequence, 5);
+    AppendableUtils.appendUnsignedString(idb, idx, 5);
     idBuilder.append(':').append(idb);
-    idSequence++;
     index.put(idb.toString(), schema);
     return idBuilder.toString();
   }
@@ -393,6 +472,12 @@ public final class SchemaCompileMojo
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    try {
+      loadPrevReleaseId2Map();
+    } catch (IOException ex) {
+      throw new MojoExecutionException("Unable to proces previous release of "
+              + getMavenProject().getVersion(), ex);
+    }
     super.execute();
     Log logger = this.getLog();
     logger.info("Generationg java code + schemas, using avro "
