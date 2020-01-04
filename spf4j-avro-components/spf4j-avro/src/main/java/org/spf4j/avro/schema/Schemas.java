@@ -701,30 +701,28 @@ public final class Schemas {
         }
         return toMap;
       case UNION:
-        if (object == null) {
-          return null;
-        }
-        Schema objSchema = ExtendedReflectData.get().getSchema(object.getClass());
-        if (objSchema != null) {
-          String name = objSchema.getFullName();
-          Set<String> aliases = objSchema.getAliases();
-          if (aliases.isEmpty()) {
-            for (Schema toMatch : toSchema.getTypes()) {
-              if (name.equals(toMatch.getFullName()) || toMatch.getAliases().contains(name)) {
-                return project(toMatch, objSchema, object);
-              }
+        ExtendedReflectData rftor = ExtendedReflectData.get();
+        int unionIdx = rftor.resolveUnion(fromSchema, object);
+        Schema objSchema = fromSchema.getTypes().get(unionIdx);
+        String name = rftor.getSchemaName(objSchema);
+        Set<String> aliases = objSchema.getAliases();
+        if (aliases.isEmpty()) {
+          for (Schema toMatch : toSchema.getTypes()) {
+            if (name.equals(rftor.getSchemaName(toMatch)) || toMatch.getAliases().contains(name)) {
+              return project(toMatch, objSchema, object);
             }
-          } else {
-            for (Schema toMatch : toSchema.getTypes()) {
-              String toMatchName = toMatch.getFullName();
-              if (name.equals(toMatchName) || aliases.contains(toMatchName)
-                      || !Sets.intersection(aliases, toMatch.getAliases()).isEmpty()) {
-                return project(toMatch, objSchema, object);
-              }
+          }
+        } else {
+          for (Schema toMatch : toSchema.getTypes()) {
+            String toMatchName = rftor.getSchemaName(toMatch);
+            if (name.equals(toMatchName) || aliases.contains(toMatchName)
+                    || !Sets.intersection(aliases, toMatch.getAliases()).isEmpty()) {
+              return project(toMatch, objSchema, object);
             }
           }
         }
         throw new IllegalArgumentException("Unable to project " + object + " to " + toSchema);
+
       case RECORD:
         GenericData.Record record = new SpecificData.Record(toSchema);
         GenericRecord fromRec = (GenericRecord) object;
