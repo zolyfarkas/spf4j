@@ -75,6 +75,10 @@ import org.spf4j.maven.MavenRepositoryUtils;
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
 
+  public static final String SCHEMA_INDEX_FILENAME = "schema_index.properties";
+
+  public static final String SCHEMA_INDEX_PGK_KEY = "_pkg";
+
   public static final String SCHEMA_MANIFEST = "codegen.properties";
 
   /**
@@ -177,7 +181,7 @@ public final class SchemaCompileMojo
       if (fileName == null) {
         return false;
       }
-      return "schema_index.properties".equals(fileName.toString());
+      return SCHEMA_INDEX_FILENAME.equals(fileName.toString());
     });
     if (indexFiles.size() != 1) {
       log.info("no index file or rtto many  in previous version: " + indexFiles);
@@ -189,13 +193,17 @@ public final class SchemaCompileMojo
     }
     for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) (Set) prevIndex.entrySet()) {
       String key = entry.getKey();
+      if (SCHEMA_INDEX_PGK_KEY.equals(key)) {
+        continue;
+      }
       int idx = Integer.parseInt(key, 32);
       if (idx >= idSequence) {
         idSequence = idx + 1;
       }
       prevReleaseName2Index.put(entry.getValue(), idx);
     }
-    log.info("loaded existing mappings " + prevIndex.size() + ", new id sequence: " + idSequence);
+    log.debug("loaded existing mappings: " + prevReleaseName2Index);
+    log.info("loaded existing mappings, new id sequence: " + idSequence);
   }
 
   private String attachMavenId(final Schema schema) {
@@ -313,11 +321,12 @@ public final class SchemaCompileMojo
       }
       int zbLineNr = sl.getLineNr() - 1;
       String line = readAllLines.get(zbLineNr);
-      getLog().debug("inserting mvnId at "
-              + sl + " for line \"" + line + "\" schema: " + s);
+      String sMvnId = genMnvId(s);
+      getLog().debug("inserting mvnId: " + sMvnId + " at "
+              + sl + " for line \"" + line + "\" schema: " + s.getFullName());
       int zbColNr = sl.getColNr() - 1;
       readAllLines.set(zbLineNr, line.substring(0, zbColNr)
-              + " @mvnId(\"" + genMnvId(s) + "\") "
+              + " @mvnId(\"" + sMvnId + "\") "
               + line.substring(zbColNr, line.length()));
     }
     Path tempIdl = Files.createTempFile(this.target.toPath(), idl.getName(), ".tmp");
@@ -519,10 +528,11 @@ public final class SchemaCompileMojo
         } catch (IOException ex) {
           throw new MojoExecutionException("Cannot delete dependency dupes " + this, ex);
         }
-        Path indexFile = generatedAvscTargetPath.resolve("schema_index.properties");
+        Path indexFile = generatedAvscTargetPath.resolve(SCHEMA_INDEX_FILENAME);
         try (BufferedWriter bw = Files.newBufferedWriter(indexFile,
                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-          bw.append("_pkg=");
+          bw.append(SCHEMA_INDEX_PGK_KEY);
+          bw.append('=');
           bw.append(getPackageMvnIdPrefix());
           bw.append('\n');
           for (Map.Entry<String, Schema> entry : index.entrySet()) {
