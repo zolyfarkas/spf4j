@@ -70,6 +70,10 @@ public final class GCUsageSampler {
   private GCUsageSampler() {
   }
 
+  public static List<GarbageCollectorMXBean> getMBEANS() {
+    return MBEANS;
+  }
+  
   @JmxExport
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
     if (samplingFuture == null) {

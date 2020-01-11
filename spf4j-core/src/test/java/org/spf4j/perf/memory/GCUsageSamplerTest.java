@@ -32,6 +32,9 @@
 package org.spf4j.perf.memory;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.hash.TObjectLongHashMap;
+import java.lang.management.GarbageCollectorMXBean;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -61,5 +64,12 @@ public final class GCUsageSamplerTest {
     Thread.sleep(1000);
     GCUsageSampler.stop();
     Assert.assertFalse(GCUsageSampler.isStarted());
+  }
+
+  @Test
+  public void testSampling() {
+    List<GarbageCollectorMXBean> beans = GCUsageSampler.getMBEANS();
+    long gcTimeDiff = GCUsageSampler.getGCTimeDiff(beans, new TObjectLongHashMap<>());
+    Assert.assertTrue(gcTimeDiff >= 0);
   }
 }
