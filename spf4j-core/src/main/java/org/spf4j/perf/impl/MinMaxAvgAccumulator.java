@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -54,7 +55,8 @@ public final class MinMaxAvgAccumulator
     private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
             final long counter, final long total, final long min, final long max) {
         this.info = new MeasurementsInfoImpl(measuredEntity, description,
-                MEASUREMENTS, new String[] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement});
+                MEASUREMENTS, new String[] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement},
+                MeasurementType.SUMMARY);
         this.counter = counter;
         this.total = total;
         this.min = min;

@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  * @author zoly
@@ -58,7 +59,7 @@ public class TSDBTxtMeasurementStoreTest {
     File file = tmpFile.toFile();
     TSDBTxtMeasurementStore store = new TSDBTxtMeasurementStore(file);
     long id = store.alocateMeasurements(new MeasurementsInfoImpl("test", "bla",
-            new String[]{"a", "b"}, new String[]{"ms", "ms"}), 10000);
+            new String[]{"a", "b"}, new String[]{"ms", "ms"}, MeasurementType.GAUGE), 10000);
     store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
     store.close();
     String content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining("\n"));

@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  * @author zoly
@@ -92,7 +93,7 @@ public final class GraphiteUdpStoreTest {
     final GraphiteUdpStore store = new GraphiteUdpStore("127.0.0.1", 1976);
     long id = store.alocateMeasurements(new MeasurementsInfoImpl("bla", "ms",
             new String[]{"val1", "val2", "val3"},
-            new String[]{"ms", "ms", "ms"}), 0);
+            new String[]{"ms", "ms", "ms"}, MeasurementType.UNTYPED), 0);
     store.saveMeasurements(id, 1L, 2L, 3L, 5L);
     LOG.debug("measurements sent: {} {} {} {}", 1L, 2L, 3L, 5L);
     String line = QUEUE.poll(5, TimeUnit.SECONDS);

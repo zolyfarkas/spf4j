@@ -34,6 +34,7 @@ package org.spf4j.perf.impl;
 import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -41,89 +42,93 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class MeasurementsInfoImpl implements MeasurementsInfo {
-    private final Object measuredEntity;
-    private final String description;
-    private final String[] measurementNames;
-    private final String[] measurementUnits;
 
+  private final Object measuredEntity;
+  private final String description;
+  private final String[] measurementNames;
+  private final String[] measurementUnits;
+  private final MeasurementType measurementType;
 
+  public MeasurementsInfoImpl(final Object measuredEntity, final String description,
+          final String[] measurementNames, final String[] measurementUnits,
+          final MeasurementType measurementType) {
+    this.measuredEntity = measuredEntity;
+    this.description = description;
+    this.measurementNames = measurementNames.clone();
+    this.measurementUnits = measurementUnits.clone();
+    this.measurementType = measurementType;
+  }
 
-    public MeasurementsInfoImpl(final Object measuredEntity, final String description,
-            final String[] measurementNames, final String[] measurementUnits) {
-        this.measuredEntity = measuredEntity;
-        this.description = description;
-        this.measurementNames = measurementNames.clone();
-        this.measurementUnits = measurementUnits.clone();
+  public MeasurementType getMeasurementType() {
+    return measurementType;
+  }
+
+  @Override
+  public Object getMeasuredEntity() {
+    return measuredEntity;
+  }
+
+  @Override
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  public String[] getMeasurementNames() {
+    return measurementNames.clone();
+  }
+
+  @Override
+  public int hashCode() {
+    return measuredEntity.hashCode();
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (obj == null) {
+      return false;
     }
-
-    @Override
-    public Object getMeasuredEntity() {
-        return measuredEntity;
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-
-    @Override
-    public String getDescription() {
-        return description;
+    final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;
+    if (this.measuredEntity != other.measuredEntity
+            && (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
+      return false;
     }
-
-    @Override
-    public String[] getMeasurementNames() {
-        return measurementNames.clone();
+    if ((this.description == null)
+            ? (other.description != null) : !this.description.equals(other.description)) {
+      return false;
     }
+    return Arrays.equals(this.measurementNames, other.measurementNames);
+  }
 
-    @Override
-    public int hashCode() {
-        return measuredEntity.hashCode();
-    }
+  @Override
+  public String toString() {
+    return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity
+            + ", description=" + description + ", measurementNames="
+            + Arrays.toString(measurementNames) + ", measurementUnits="
+            + Arrays.toString(measurementUnits) + '}';
+  }
 
-    @Override
-    public boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;
-        if (this.measuredEntity != other.measuredEntity
-                && (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {
-            return false;
-        }
-        if ((this.description == null)
-                ? (other.description != null) : !this.description.equals(other.description)) {
-            return false;
-        }
-        return Arrays.equals(this.measurementNames, other.measurementNames);
-    }
+  @Override
+  public int getNumberOfMeasurements() {
+    return measurementNames.length;
+  }
 
-    @Override
-    public String toString() {
-        return "EntityMeasurementsInfoImpl{" + "measuredEntity=" + measuredEntity
-                + ", description=" + description + ", measurementNames="
-                + Arrays.toString(measurementNames) + ", measurementUnits="
-                + Arrays.toString(measurementUnits) + '}';
-    }
+  @Override
+  public String[] getMeasurementUnits() {
+    return measurementUnits.clone();
+  }
 
+  @Override
+  public String getMeasurementName(final int measurementNr) {
+    return measurementNames[measurementNr];
+  }
 
-    @Override
-    public int getNumberOfMeasurements() {
-        return measurementNames.length;
-    }
-
-    @Override
-    public String[] getMeasurementUnits() {
-        return measurementUnits.clone();
-    }
-
-    @Override
-    public String getMeasurementName(final int measurementNr) {
-        return measurementNames[measurementNr];
-    }
-
-    @Override
-    public String getMeasurementUnit(final int measurementNr) {
-        return measurementUnits[measurementNr];
-    }
-
+  @Override
+  public String getMeasurementUnit(final int measurementNr) {
+    return measurementUnits[measurementNr];
+  }
 
 }

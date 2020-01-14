@@ -74,6 +74,7 @@ import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.DataRow;
+import org.spf4j.tsdb2.avro.MeasurementType;
 import org.spf4j.tsdb2.avro.TableDef;
 import org.spf4j.tsdb2.avro.Type;
 
@@ -83,8 +84,42 @@ import org.spf4j.tsdb2.avro.Type;
  */
 public final class TSDBQuery {
 
+  public static final String MEASUREMENT_TYPE_PROP = "measurementType";
+
   private TSDBQuery() {
   }
+
+  @SuppressFBWarnings("STT_STRING_PARSING_A_FIELD")
+  public static MeasurementType getMeasurementType(final TableDef info) {
+    MeasurementType measurementType = info.getMeasurementType();
+    if (measurementType != MeasurementType.UNTYPED) {
+      return measurementType;
+    }
+    boolean hasCount = false;
+    for (ColumnDef colDef : info.getColumns()) {
+      String colName = colDef.getName();
+      if (colName.startsWith("Q") && colName.contains("_")) {
+        return MeasurementType.HISTOGRAM;
+      } else if ("sum".equals(colName)) {
+        return MeasurementType.SUMMARY;
+      } else if ("count".equals(colName)) {
+        hasCount = true;
+      }
+    }
+    if (hasCount) {
+      return MeasurementType.COUNTER;
+    }
+    return MeasurementType.UNTYPED;
+  }
+
+  public static MeasurementType getMeasurementType(final Schema schema) {
+    String mt = schema.getProp(MEASUREMENT_TYPE_PROP);
+    if (mt == null) {
+      return MeasurementType.UNTYPED;
+    }
+    return MeasurementType.valueOf(mt);
+  }
+
 
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static ListMultimap<String, TableDef> getAllTables(final File tsdbFile) throws IOException {
@@ -329,8 +364,9 @@ public final class TSDBQuery {
     recSchema.setFields(fields);
     int sampleTime = td.getSampleTime();
     if (sampleTime > 0) {
-      recSchema.addProp("frequency", sampleTime);
+      recSchema.addProp("frequencyMillis", sampleTime);
     }
+    recSchema.addProp(MEASUREMENT_TYPE_PROP, getMeasurementType(td));
     return recSchema;
   }
 

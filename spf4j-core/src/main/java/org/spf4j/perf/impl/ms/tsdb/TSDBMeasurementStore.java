@@ -77,7 +77,7 @@ public final class TSDBMeasurementStore
     }
     return database.writeTableDef(new TableDef(-1,
             measurement.getMeasuredEntity().toString(),
-            "", columns, sampleTimeMillis));
+            "", columns, sampleTimeMillis, measurement.getMeasurementType()));
   }
 
   @Override

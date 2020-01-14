@@ -57,6 +57,7 @@ import org.spf4j.perf.impl.ms.Flusher;
 import org.spf4j.perf.impl.ms.MultiStore;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -273,7 +274,7 @@ public final class RecorderFactory {
           final String[] measurementNames, final String[] measurementUnits) {
     DirectStoreMultiAccumulator mr = new DirectStoreMultiAccumulator(
             new MeasurementsInfoImpl(measuredEntity, description,
-                    measurementNames, measurementUnits), MEASUREMENT_STORE);
+                    measurementNames, measurementUnits, MeasurementType.UNTYPED), MEASUREMENT_STORE);
     mr.registerJmx();
     return mr;
   }

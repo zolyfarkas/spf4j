@@ -40,6 +40,7 @@ import java.util.Arrays;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  * inspired by DTrace LLQUANTIZE
@@ -192,7 +193,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
               .append("_PI").toString();
       uom[m] = "count";
     }
-    info = new MeasurementsInfoImpl(measuredEntity, description, result, uom);
+    info = new MeasurementsInfoImpl(measuredEntity, description, result, uom, MeasurementType.HISTOGRAM);
 
   }
 
