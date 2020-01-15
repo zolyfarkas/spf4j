@@ -160,22 +160,22 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public final synchronized <T> T get(@Nonnull final Tag<T> key) {
     Object res = baggage.get(key);
-    if (res == null) {
-      if (source != null) {
-        return source.get(key);
-      } else {
-        return null;
-      }
-    } else {
-      return (T) res;
+    if (res == null && source != null && key.isInherited()) {
+       ExecutionContext src = source;
+       do {
+          res = source.getLocal(key);
+          src = src.getSource();
+       } while (res == null && src != null);
     }
+    return res == null ? key.defaultValue() : (T) res;
   }
 
   @Nullable
   @Beta
   @Override
   public final synchronized <T> T getLocal(@Nonnull final Tag<T> key) {
-    return (T) baggage.get(key);
+    T res = (T) baggage.get(key);
+    return res == null ? key.defaultValue() : (T) res;
   }
 
   @Override
