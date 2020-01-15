@@ -63,7 +63,7 @@ public final class DirectStoreAccumulator implements CloseableMeasurementRecorde
     this(measuredEntity, description, unitOfMeasurement, sampleTimeMillis, measurementStore, MeasurementType.GAUGE);
   }
 
-  public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+  private DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
           final int sampleTimeMillis, final MeasurementStore measurementStore, final MeasurementType mType) {
     this.info = new MeasurementsInfoImpl(measuredEntity, description,
             MEASUREMENTS, new String[]{unitOfMeasurement}, mType);

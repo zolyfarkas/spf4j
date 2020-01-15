@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -52,6 +53,7 @@ import org.spf4j.io.AppendableWriter;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecord;
 import org.spf4j.base.ThreadLocalContextAttacher.Attached;
+import org.spf4j.log.LogUtils;
 
 /**
  * The simplest execution context possible.
@@ -213,6 +215,19 @@ public class BasicExecutionContext implements ExecutionContext {
           if (key.pushOnClose(this.relation))  {
             parent.combine(key, be.getValue());
           }
+        }
+      } else {
+        // In theory a child context should finish before parent,
+        // if not, we will log the baggage that was not returned to parent.
+        Logger orphaned = Logger.getLogger("ORPHAN_LOGS");
+        if (logs != null) {
+          for (Slf4jLogRecord lr : logs) {
+            LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned log", lr.toLogRecord("", ""));
+          }
+        }
+        for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
+          LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned baggage", Pair.of(be.getKey().toString(),
+                  be.getValue().toString()));
         }
       }
       isClosed = true;
