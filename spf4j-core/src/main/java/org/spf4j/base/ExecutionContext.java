@@ -71,6 +71,22 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
     String toString();
 
     /**
+     * is this a inherited tag?
+     */
+    default boolean isInherited() {
+      return true;
+    }
+
+    /**
+     * the value to return when tag is not set.
+     * null means no default, null will be returned by context.get.
+     */
+    @Nullable
+    default T defaultValue() {
+      return null;
+    }
+
+    /**
      * push this tag/values to the parent context when current context is closed.
      * only child -> parent will be pushed, follows relationships will not be considered.
      */
@@ -289,7 +305,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   /**
    * Method to get context associated data.
-   * if current context does not have baggage, the parent context is queried.
+   * if current context does not have baggage, the parent context is queried if tag is inherited.
    * This is done recursively.
    * @param <T> type of data.
    * @param key key of data.
@@ -301,6 +317,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   /**
    * Method to get context associated data.
+   * will ignore inheritance tag attribute.
    * @param <T> type of data.
    * @param key key of data.
    * @return the data
@@ -368,13 +385,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   @Beta
   default <T> List<T> add(final Tag<List<T>> tag, final T data) {
-    return compute(tag, (k, v) -> {
-      if (v == null)  {
-        v = new ArrayList<>(2);
-      }
-      v.add(data);
-      return v;
-    });
+    return accumulate(tag, Collections.singletonList(data));
   }
 
   @Nullable
