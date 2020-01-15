@@ -171,6 +171,13 @@ public class BasicExecutionContext implements ExecutionContext {
     }
   }
 
+  @Nullable
+  @Beta
+  @Override
+  public final synchronized <T> T getLocal(@Nonnull final Tag<T> key) {
+    return (T) baggage.get(key);
+  }
+
   @Override
   @Nullable
   public final synchronized <V> V compute(@Nonnull final Tag<V> key, final BiFunction<Tag<V>, V, V> compute) {
@@ -212,8 +219,8 @@ public class BasicExecutionContext implements ExecutionContext {
         }
         for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
           Tag key = be.getKey();
-          if (key.pushOnClose(this.relation))  {
-            parent.combine(key, be.getValue());
+          if (key.pushOnClose())  {
+            parent.accumulate(key, be.getValue());
           }
         }
       } else {
@@ -226,8 +233,11 @@ public class BasicExecutionContext implements ExecutionContext {
           }
         }
         for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
-          LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned baggage", Pair.of(be.getKey().toString(),
+          Tag key = be.getKey();
+          if (key.pushOnClose())  {
+            LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned baggage", Pair.of(be.getKey().toString(),
                   be.getValue().toString()));
+          }
         }
       }
       isClosed = true;

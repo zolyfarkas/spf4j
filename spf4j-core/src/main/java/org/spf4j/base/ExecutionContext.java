@@ -70,12 +70,33 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
     String toString();
 
+    /**
+     * push this tag/values to the parent context when current context is closed.
+     * only child -> parent will be pushed, follows relationships will not be considered.
+     */
+    default boolean pushOnClose() {
+      return pushOnClose(Relation.CHILD_OF);
+    }
+
+
+    /**
+     * @deprecated overwrite other variant instead.
+     */
+    @Deprecated
     default boolean pushOnClose(final Relation relation) {
       return false;
     }
 
-    default T combine(@Nullable final T existing, final T current) {
-      return current;
+    default T accumulate(@Nullable final T existing, final T newVal) {
+      return combine(existing, newVal);
+    }
+
+    /**
+     * @deprecated overwrite accumulate instead.
+     */
+    @Deprecated
+    default T combine(@Nullable final T existing, final T newVal) {
+      return newVal;
     }
 
   }
@@ -269,6 +290,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   /**
    * Method to get context associated data.
    * if current context does not have baggage, the parent context is queried.
+   * This is done recursively.
    * @param <T> type of data.
    * @param key key of data.
    * @return the data
@@ -276,6 +298,16 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   @Beta
   <T> T get(Tag<T> key);
+
+  /**
+   * Method to get context associated data.
+   * @param <T> type of data.
+   * @param key key of data.
+   * @return the data
+   */
+  @Nullable
+  @Beta
+  <T> T getLocal(Tag<T> key);
 
 
   /**
@@ -289,13 +321,22 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   <T> T put(Tag<T> tag, T data);
 
-  @Beta
+  /**
+   * @deprecated use accumulate.
+   */
+  @Deprecated
   default <T> void combine(Tag<T> tag, T data) {
+    accumulate(tag, data);
+  }
+
+  @Beta
+  default <T> T accumulate(Tag<T> tag, T data) {
     T existing = put(tag, data);
-    T combined = tag.combine(existing, data);
+    T combined = tag.accumulate(existing, data);
     if (data != combined) {
       put(tag, combined);
     }
+    return existing;
   }
 
   /**
