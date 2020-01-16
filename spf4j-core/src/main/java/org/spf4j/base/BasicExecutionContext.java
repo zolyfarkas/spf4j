@@ -223,7 +223,7 @@ public class BasicExecutionContext implements ExecutionContext {
             parent.accumulate(key, be.getValue());
           }
         }
-      } else {
+      } else if (this.source != null && this.relation == relation.CHILD_OF) {
         // In theory a child context should finish before parent,
         // if not, we will log the baggage that was not returned to parent.
         Logger orphaned = Logger.getLogger("ORPHAN_LOGS");
