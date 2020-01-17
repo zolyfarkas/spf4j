@@ -383,9 +383,10 @@ public final class CsvDecoder extends ParsingDecoder {
         });
         record.setFields(bfields);
       } else {
-        List<CharSequence> list = new ArrayList<>(readerSchema.getFields().size());
+        Schema elementType = readerSchema.getElementType();
+        List<CharSequence> list = new ArrayList<>(elementType.getFields().size());
         reader.readRow((cs) -> list.add(cs.toString()));
-        record = Schemas.project(readerSchema.getElementType(), list);
+        record = Schemas.project(elementType, list);
       }
       Schema arraySchema = Schema.createArray(record);
       return new DecodedSchema(arraySchema, new CsvDecoder(reader, arraySchema));
