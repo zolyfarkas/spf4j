@@ -77,7 +77,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
      * if true, a child execution context will check parent execution contexts
      * for tag values if not local values exist.
      */
-    default boolean isInherited() {
+    default boolean isInherited(final Relation relation) {
       return true;
     }
 

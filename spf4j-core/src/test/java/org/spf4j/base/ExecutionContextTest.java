@@ -163,6 +163,17 @@ public class ExecutionContextTest {
 
   }
 
+  @Test
+  public void testContextInheritance() {
+    try (ExecutionContext start = ExecutionContexts.start("test", 10, TimeUnit.SECONDS)) {
+      start.put(KEY_TAG, "bla");
+      ExecutionContext detachedChild = start.detachedChild("detached");
+      try (ExecutionContext start2 = ExecutionContexts.start("test", detachedChild, 10, TimeUnit.SECONDS)) {
+        Assert.assertEquals("bla", start2.get(KEY_TAG));
+      }
+    }
+  }
+
 
 
 }
