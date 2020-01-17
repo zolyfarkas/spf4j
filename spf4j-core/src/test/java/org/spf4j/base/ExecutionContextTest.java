@@ -60,7 +60,7 @@ public class ExecutionContextTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ExecutionContextTest.class);
 
-  private static final ExecutionContext.Tag<String> KEY_TAG = new ExecutionContext.Tag<String>() {
+  private static final ExecutionContext.Tag<String, Void> KEY_TAG = new ExecutionContext.Tag<String, Void>() {
     @Override
     public String toString() {
       return "KEY";
@@ -132,7 +132,7 @@ public class ExecutionContextTest {
 
      try (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
 
-      Tag<String> tag = new ExecutionContext.Tag<String>() {
+      Tag<String, Void> tag = new ExecutionContext.Tag<String, Void>() {
         @Override
         public String toString() {
           return  "mine";

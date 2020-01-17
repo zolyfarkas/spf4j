@@ -66,24 +66,19 @@ import org.spf4j.log.Slf4jLogRecord;
 @ParametersAreNonnullByDefault
 public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
-  public interface Tag<T> {
+  public interface SimpleTag<T> extends Tag<T, Void> {
+  }
+
+  public interface Tag<T, A> {
 
     String toString();
 
     /**
-     * is this a inherited tag?
+     * if true, a child execution context will check parent execution contexts
+     * for tag values if not local values exist.
      */
     default boolean isInherited() {
       return true;
-    }
-
-    /**
-     * the value to return when tag is not set.
-     * null means no default, null will be returned by context.get.
-     */
-    @Nullable
-    default T defaultValue() {
-      return null;
     }
 
     /**
@@ -91,28 +86,16 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
      * only child -> parent will be pushed, follows relationships will not be considered.
      */
     default boolean pushOnClose() {
-      return pushOnClose(Relation.CHILD_OF);
-    }
-
-
-    /**
-     * @deprecated overwrite other variant instead.
-     */
-    @Deprecated
-    default boolean pushOnClose(final Relation relation) {
       return false;
     }
 
+
     default T accumulate(@Nullable final T existing, final T newVal) {
-      return combine(existing, newVal);
+      return newVal;
     }
 
-    /**
-     * @deprecated overwrite accumulate instead.
-     */
-    @Deprecated
-    default T combine(@Nullable final T existing, final T newVal) {
-      return newVal;
+    default T accumulateComponent(@Nullable final T existing, final A component) {
+      throw new UnsupportedOperationException();
     }
 
   }
@@ -264,6 +247,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   void attach();
 
+  boolean isAttached();
 
   @Nonnegative
   default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
@@ -313,7 +297,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  <T> T get(Tag<T> key);
+  <T> T get(Tag<T, ?> key);
 
   /**
    * Method to get context associated data.
@@ -324,7 +308,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  <T> T getLocal(Tag<T> key);
+  <T> T getLocal(Tag<T, ?> key);
 
 
   /**
@@ -336,24 +320,24 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  <T> T put(Tag<T> tag, T data);
+  <T> T put(Tag<T, ?> tag, T data);
 
   /**
    * @deprecated use accumulate.
    */
   @Deprecated
-  default <T> void combine(Tag<T> tag, T data) {
+  default <T> void combine(Tag<T, ?> tag, T data) {
     accumulate(tag, data);
   }
 
   @Beta
-  default <T> T accumulate(Tag<T> tag, T data) {
-    T existing = put(tag, data);
-    T combined = tag.accumulate(existing, data);
-    if (data != combined) {
-      put(tag, combined);
-    }
-    return existing;
+  default <T> void accumulate(Tag<T, ?> tag, T data) {
+    compute(tag, (t, v) -> t.accumulate(v, data));
+  }
+
+  @Beta
+  default <T, A> void accumulateComponent(Tag<T, A> tag, A data) {
+    compute(tag, (t, v) -> t.accumulateComponent(v, data));
   }
 
   /**
@@ -365,7 +349,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  default <T> T putToRootParent(final Tag<T> key, final T data) {
+  default <T> T putToRootParent(final Tag<T, ?> key, final T data) {
     return getRootParent().put(key, data);
   }
 
@@ -379,18 +363,12 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Beta
   @Nullable
-  <V> V compute(Tag<V> key, BiFunction<Tag<V>, V, V> compute);
+  <V, A> V compute(Tag<V, A> key, BiFunction<Tag<V, A>, V, V> compute);
 
 
   @Nullable
   @Beta
-  default <T> List<T> add(final Tag<List<T>> tag, final T data) {
-    return accumulate(tag, Collections.singletonList(data));
-  }
-
-  @Nullable
-  @Beta
-  default <T> List<T> addToRootParent(final Tag<List<T>> tag, final T data) {
+  default <T> List<T> addToRootParent(final Tag<List<T>, T> tag, final T data) {
     ExecutionContext ctx = getRootParent();
     return ctx.compute(tag, (k, v) -> {
       if (v == null)  {

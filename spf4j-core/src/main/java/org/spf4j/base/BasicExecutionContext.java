@@ -148,7 +148,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Nullable
   @Beta
   @Override
-  public final synchronized <T> T put(@Nonnull final Tag<T> key, @Nonnull final T data) {
+  public final synchronized <T> T put(@Nonnull final Tag<T, ?> key, @Nonnull final T data) {
     if (baggage == Collections.EMPTY_MAP) {
       baggage = new HashMap<>(4);
     }
@@ -158,7 +158,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Nullable
   @Beta
   @Override
-  public final synchronized <T> T get(@Nonnull final Tag<T> key) {
+  public final synchronized <T> T get(@Nonnull final Tag<T, ?> key) {
     Object res = baggage.get(key);
     if (res == null && source != null && key.isInherited()) {
        ExecutionContext src = source;
@@ -167,20 +167,19 @@ public class BasicExecutionContext implements ExecutionContext {
           src = src.getSource();
        } while (res == null && src != null);
     }
-    return res == null ? key.defaultValue() : (T) res;
+    return (T) res;
   }
 
   @Nullable
   @Beta
   @Override
-  public final synchronized <T> T getLocal(@Nonnull final Tag<T> key) {
-    T res = (T) baggage.get(key);
-    return res == null ? key.defaultValue() : (T) res;
+  public final synchronized <T> T getLocal(@Nonnull final Tag<T, ?> key) {
+    return (T) baggage.get(key);
   }
 
   @Override
   @Nullable
-  public final synchronized <V> V compute(@Nonnull final Tag<V> key, final BiFunction<Tag<V>, V, V> compute) {
+  public final synchronized <V, A> V compute(@Nonnull final Tag<V, A> key, final BiFunction<Tag<V, A>, V, V> compute) {
     if (baggage == Collections.EMPTY_MAP) {
       baggage = new HashMap(4);
     }
@@ -255,6 +254,10 @@ public class BasicExecutionContext implements ExecutionContext {
   public final synchronized void detach() {
     attached.detach();
     attached = null;
+  }
+
+  public final synchronized boolean isAttached() {
+    return attached != null;
   }
 
   @Override
