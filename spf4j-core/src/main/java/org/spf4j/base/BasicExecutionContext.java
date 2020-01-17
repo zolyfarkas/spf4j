@@ -163,7 +163,7 @@ public class BasicExecutionContext implements ExecutionContext {
     if (res == null && source != null && key.isInherited()) {
        ExecutionContext src = source;
        do {
-          res = source.getLocal(key);
+          res = src.getLocal(key);
           src = src.getSource();
        } while (res == null && src != null);
     }
