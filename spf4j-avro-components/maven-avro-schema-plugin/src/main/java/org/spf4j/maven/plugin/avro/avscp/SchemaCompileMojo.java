@@ -183,13 +183,15 @@ public final class SchemaCompileMojo
       }
       return SCHEMA_INDEX_FILENAME.equals(fileName.toString());
     });
-    if (indexFiles.size() != 1) {
-      log.info("no index file or rtto many  in previous version: " + indexFiles);
-    }
-    Path indexFile = indexFiles.get(0);
     Properties prevIndex = new Properties();
-    try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {
-      prevIndex.load(br);
+    if (indexFiles.size() != 1) {
+      log.info("no index file or to many in previous version: " + indexFiles);
+    } else {
+      // load previous index file
+      Path indexFile = indexFiles.get(0);
+      try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {
+        prevIndex.load(br);
+      }
     }
     for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) (Set) prevIndex.entrySet()) {
       String key = entry.getKey();
