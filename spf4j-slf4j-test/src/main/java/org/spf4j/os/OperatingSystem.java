@@ -321,4 +321,9 @@ public final class OperatingSystem {
     }
   }
 
+  @SuppressFBWarnings("MRC_METHOD_RETURNS_CONSTANT")
+  public static String getHostName() {
+    return "127.0.1.1";
+  }
+
 }
