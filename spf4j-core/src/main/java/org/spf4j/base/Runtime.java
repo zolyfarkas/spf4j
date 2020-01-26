@@ -223,10 +223,17 @@ public final class Runtime {
    */
   public static ApplicationInfo getApplicationInfo() {
     Class<?> mainClass = getMainClass();
+    if (mainClass == null) {
+      try {
+        return new ApplicationInfo("N/A", "N/A main class", new URL("file://manifest/Implementation-Url"), null);
+      } catch (MalformedURLException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
     Package p = mainClass.getPackage();
     if (p == null) {
       try {
-        return new ApplicationInfo("N/A", "N/A", new URL("file://manifest/Implementation-Url"), null);
+        return new ApplicationInfo("N/A", "N/A package Info", new URL("file://manifest/Implementation-Url"), null);
       } catch (MalformedURLException ex) {
         throw new RuntimeException(ex);
       }
