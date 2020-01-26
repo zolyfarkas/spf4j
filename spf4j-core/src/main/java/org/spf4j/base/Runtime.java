@@ -642,25 +642,37 @@ public final class Runtime {
   }
 
   /**
+   * Method will figure out the main class and cache the result for successive invocations.
+   * You should call this method prior to the main thread's termination.
    * @return null if main class cannot be found.
    */
   @Nullable
   public static Class<?> getMainClass() {
-    Thread mainThread = getMainThread();
-    if (mainThread == null) {
-      return null;
-    }
-    StackTraceElement[] stackTrace = mainThread.getStackTrace();
-    if (stackTrace.length == 0) {
-      return null;
-    }
-    String className = stackTrace[stackTrace.length - 1].getClassName();
-    try {
-      return Class.forName(className);
-    } catch (ClassNotFoundException ex) {
-      NoClassDefFoundError tex = new NoClassDefFoundError("Cannot find " + className);
-      tex.initCause(ex);
-      throw tex;
+    return LazyMain.MAIN_CLASS;
+  }
+
+  private static class LazyMain {
+
+    private static final Class<?> MAIN_CLASS = getMainClass();
+
+    @Nullable
+    private static Class<?> getMainClass() {
+      Thread mainThread = getMainThread();
+      if (mainThread == null) {
+        return null;
+      }
+      StackTraceElement[] stackTrace = mainThread.getStackTrace();
+      if (stackTrace.length == 0) {
+        return null;
+      }
+      String className = stackTrace[stackTrace.length - 1].getClassName();
+      try {
+        return Class.forName(className);
+      } catch (ClassNotFoundException ex) {
+        NoClassDefFoundError tex = new NoClassDefFoundError("Cannot find " + className);
+        tex.initCause(ex);
+        throw tex;
+      }
     }
   }
 
