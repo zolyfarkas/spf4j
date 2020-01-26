@@ -177,7 +177,12 @@ public final class Runtime {
 
   public static String getAppVersionString() {
     Class<?> mainClass = getMainClass();
-    return mainClass.getPackage().getImplementationVersion();
+    String version = mainClass.getPackage().getImplementationVersion();
+    if (version == null) {
+      return "N/A";
+    } else  {
+      return version;
+    }
   }
 
   /**
