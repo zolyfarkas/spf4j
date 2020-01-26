@@ -241,7 +241,7 @@ public final class Runtime {
     URL jarSourceUrl = PackageInfo.getJarSourceUrl(mainClass);
     if (jarSourceUrl == null) {
       try {
-        return new ApplicationInfo(p.getImplementationTitle(), "N/A",
+        return new ApplicationInfo(p.getImplementationTitle(), "N/A jar",
                 new URL("file://manifest/Implementation-Url"), null);
       } catch (MalformedURLException ex) {
         throw new RuntimeException(ex);
@@ -249,6 +249,14 @@ public final class Runtime {
     }
     try {
       Manifest manifest = Reflections.getManifest(jarSourceUrl);
+      if (manifest == null) {
+        try {
+          return new ApplicationInfo(p.getImplementationTitle(), "N/A jar manifest",
+                  new URL("file://manifest/Implementation-Url"), null);
+        } catch (MalformedURLException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
       Attributes mainAttributes = manifest.getMainAttributes();
       String appDescription = mainAttributes.getValue("Implementation-Description");
       String appUrl = mainAttributes.getValue("Implementation-Url");
