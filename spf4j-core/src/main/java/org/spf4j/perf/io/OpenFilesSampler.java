@@ -189,7 +189,7 @@ public final class OpenFilesSampler {
       this.errorThreshold = errorThreshold;
       this.shutdownOnError = shutdownOnError;
       this.warnThreshold = warnThreshold;
-      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder2("nr-open-files", "count", aggMillis);
+      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder2("nr_open_files", "count", aggMillis);
     }
 
     @Override

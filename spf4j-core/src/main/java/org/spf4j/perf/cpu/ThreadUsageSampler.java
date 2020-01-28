@@ -88,7 +88,7 @@ public final class ThreadUsageSampler {
           case "none":
             break;
           default:
-            throw new IllegalArgumentException("Invalida settign for spf4j.threadUsageSampler.peakThreadsOnShutdown: "
+            throw new IllegalArgumentException("Invalid settig for spf4j.threadUsageSampler.peakThreadsOnShutdown: "
                     + pto);
         }
       }
@@ -221,7 +221,7 @@ public final class ThreadUsageSampler {
 
     ThreadStateRecorder(final int sampleTime, final boolean withStackTraces) {
       this.cpuUsage
-              = RecorderFactory.createDirectRecorder("peak-thread-count", "count", sampleTime);
+              = RecorderFactory.createDirectRecorder("peak_thread_count", "count", sampleTime);
       this.withStackTraces = withStackTraces;
     }
     private int maxThreadsNr = 0;

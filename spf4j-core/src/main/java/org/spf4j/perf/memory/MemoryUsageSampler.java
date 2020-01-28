@@ -132,9 +132,9 @@ public final class MemoryUsageSampler {
 
     AccumulatorRunnable(final int accumulationIntervalMillis) {
       heapCommited
-              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap-commited", "bytes", accumulationIntervalMillis);
+              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_commited", "bytes", accumulationIntervalMillis);
       heapUsed
-              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap-used", "bytes", accumulationIntervalMillis);
+              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_used", "bytes", accumulationIntervalMillis);
     }
 
     @Override

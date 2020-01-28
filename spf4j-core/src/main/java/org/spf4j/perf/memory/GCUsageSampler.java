@@ -73,12 +73,12 @@ public final class GCUsageSampler {
   public static List<GarbageCollectorMXBean> getMBEANS() {
     return MBEANS;
   }
-  
+
   @JmxExport
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
     if (samplingFuture == null) {
       final MeasurementRecorder gcUsage
-              = RecorderFactory.createDirectRecorder("gc-time", "ms", sampleTime);
+              = RecorderFactory.createDirectRecorder("gc_time", "ms", sampleTime);
       samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
         private final TObjectLongMap lastValues = new TObjectLongHashMap();

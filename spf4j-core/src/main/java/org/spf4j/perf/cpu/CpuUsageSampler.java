@@ -80,7 +80,7 @@ public final class CpuUsageSampler {
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
     if (samplingFuture == null) {
       final MeasurementRecorder cpuUsage
-              = RecorderFactory.createDirectRecorder("cpu-time", "ns", sampleTime);
+              = RecorderFactory.createDirectRecorder("cpu_time", "ns", sampleTime);
       samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
         private long lastValue = 0;

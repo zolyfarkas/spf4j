@@ -39,6 +39,7 @@ import java.lang.management.ManagementFactory;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -414,12 +415,18 @@ public final class Sampler {
 
   public Map<String, SampleNode> getStackCollectionsAndReset() {
     synchronized (sync) {
+      if (stackCollector == null) {
+        return Collections.EMPTY_MAP;
+      }
       return stackCollector.getCollectionsAndReset();
     }
   }
 
   public Map<String, SampleNode> getStackCollections() {
     synchronized (sync) {
+      if (stackCollector == null) {
+        return Collections.EMPTY_MAP;
+      }
       return stackCollector.getCollections();
     }
   }
