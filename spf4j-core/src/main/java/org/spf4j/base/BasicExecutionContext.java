@@ -227,16 +227,24 @@ public class BasicExecutionContext implements ExecutionContext {
       } else if (this.source != null && this.relation == relation.CHILD_OF) {
         // In theory a child context should finish before parent,
         // if not, we will log the baggage that was not returned to parent.
+        StackTraceElement[] stackTrace = null;
         Logger orphaned = Logger.getLogger("ORPHAN_CTX_ENTITIES");
         if (logs != null) {
           for (Slf4jLogRecord lr : logs) {
-            LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned log", lr.toLogRecord("", ""));
+            if (stackTrace == null) {
+              stackTrace = Thread.currentThread().getStackTrace();
+            }
+            LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned log", lr.toLogRecord("", ""), stackTrace);
           }
         }
         for (Map.Entry<Tag, Object> be : baggage.entrySet()) {
           Tag key = be.getKey();
           if (key.pushOnClose())  {
-            LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned baggage", be.getKey().toString(), be.getValue());
+            if (stackTrace == null) {
+              stackTrace = Thread.currentThread().getStackTrace();
+            }
+            LogUtils.logUpgrade(orphaned, Level.INFO, "Orphaned baggage", be.getKey().toString(),
+                    be.getValue(), stackTrace);
           }
         }
       }
