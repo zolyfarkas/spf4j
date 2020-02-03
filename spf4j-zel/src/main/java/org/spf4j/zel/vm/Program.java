@@ -47,7 +47,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -325,7 +324,7 @@ public final class Program implements Serializable {
 
 
   @Nonnull
-  public static <T> Predicate<T> compilePredicate(@Nonnull final CharSequence zExpr, @Nonnull final String varName)
+  public static <T> ZelPredicate<T> compilePredicate(@Nonnull final CharSequence zExpr, @Nonnull final String varName)
           throws CompileException {
     ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
     final String srcId = ZelFrame.newSource(zExpr);
@@ -336,7 +335,7 @@ public final class Program implements Serializable {
     }
     Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varName));
     ZelFrame.annotate(srcId, result);
-    return result.toPredicate();
+    return result.toPredicate(zExpr.toString());
   }
 
   static Program compile(@Nonnull final String zExpr,
@@ -367,15 +366,34 @@ public final class Program implements Serializable {
     return execute(ProcessIOStreams.DEFAULT, args);
   }
 
-  public <T> Predicate<T> toPredicate() {
+  public <T> ZelPredicate<T> toPredicate(final String toString) {
     if (parameterNames.length != 1) {
       throw new UnsupportedOperationException("Not a predicate " + this);
     }
-    return (T arg) -> {
-      try {
-        return (Boolean) execute((Object) arg);
-      } catch (ExecutionException | InterruptedException ex) {
-        throw new RuntimeException(ex);
+    String paramName = parameterNames[0];
+    return new ZelPredicate<T>() {
+      @Override
+      public boolean test(final T arg) {
+        try {
+          return (Boolean) execute((Object) arg);
+        } catch (ExecutionException | InterruptedException ex) {
+          throw new RuntimeException(ex);
+        }
+      }
+
+      @Override
+      public String toString() {
+        return toString;
+      }
+
+      @Override
+      public String getZelExpression() {
+        return toString;
+      }
+
+      @Override
+      public String getParameterId() {
+        return paramName;
       }
     };
   }
