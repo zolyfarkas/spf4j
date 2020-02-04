@@ -86,7 +86,7 @@ public final class AllocationMonitorAspectTest {
     final TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
     dbWriter.flush();
     File file = dbWriter.getFile();
-    List<TableDef> tableDef = TSDBQuery.getTableDef(file, "heap-used");
+    List<TableDef> tableDef = TSDBQuery.getTableDef(file, "heap_used");
     Assert.assertFalse(tableDef.isEmpty());
     MemoryUsageSampler.stop();
     OpenFilesSampler.stop();
