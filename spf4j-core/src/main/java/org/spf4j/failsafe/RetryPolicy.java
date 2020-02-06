@@ -154,7 +154,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
     private final List<TimedSupplier<? extends PartialExceptionRetryPredicate<T, C>>> exceptionPredicates;
 
-    private int nrInitialRetries;
+    private int nrInitialImmediateRetries;
 
     private long startDelayNanos;
 
@@ -165,7 +165,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     private Logger log;
 
     private Builder() {
-      this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
+      this.nrInitialImmediateRetries = DEFAULT_INITIAL_NODELAY_RETRIES;
       this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;
       this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;
       this.jitterFactor = 0.2;
@@ -175,7 +175,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     }
 
     private Builder(final Builder from) {
-      this.nrInitialRetries = from.nrInitialRetries;
+      this.nrInitialImmediateRetries = from.nrInitialImmediateRetries;
       this.startDelayNanos = from.startDelayNanos;
       this.maxDelayNanos = from.maxDelayNanos;
       this.jitterFactor = from.jitterFactor;
@@ -342,8 +342,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return this;
     }
 
+    /**
+     * @deprecated use withInitialImmediateRetries instead.
+     */
+    @Deprecated
     public Builder<T, C> withInitialRetries(final int retries) {
-      this.nrInitialRetries = retries;
+      this.nrInitialImmediateRetries = retries;
+      return this;
+    }
+
+    public Builder<T, C> withInitialImmediateRetries(final int retries) {
+      this.nrInitialImmediateRetries = retries;
       return this;
     }
 
@@ -373,7 +382,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
       TimedSupplier<RetryPredicate<T, C>> retryPredicate
               = (s, e) -> new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
-              (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,
+              (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialImmediateRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new RetryPolicy<>(retryPredicate, maxExceptionChain);
     }
