@@ -32,6 +32,7 @@
 package org.spf4j.tsdb2;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.primitives.Longs;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -39,29 +40,43 @@ import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.set.TLongSet;
+import gnu.trove.set.hash.TLongHashSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.DateTimeFormats;
 import org.spf4j.base.Either;
 import org.spf4j.base.Strings;
+import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.io.Csv;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.DataRow;
+import org.spf4j.tsdb2.avro.MeasurementType;
 import org.spf4j.tsdb2.avro.TableDef;
+import org.spf4j.tsdb2.avro.Type;
 
 /**
  *
@@ -69,42 +84,76 @@ import org.spf4j.tsdb2.avro.TableDef;
  */
 public final class TSDBQuery {
 
+  public static final String MEASUREMENT_TYPE_PROP = &quot;measurementType&quot;;
+
   private TSDBQuery() {
   }
 
+  @SuppressFBWarnings(&quot;STT_STRING_PARSING_A_FIELD&quot;)
+  public static MeasurementType getMeasurementType(final TableDef info) {
+<span class="fc" id="L94">    MeasurementType measurementType = info.getMeasurementType();</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">    if (measurementType != MeasurementType.UNTYPED) {</span>
+<span class="nc" id="L96">      return measurementType;</span>
+    }
+<span class="fc" id="L98">    boolean hasCount = false;</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">    for (ColumnDef colDef : info.getColumns()) {</span>
+<span class="fc" id="L100">      String colName = colDef.getName();</span>
+<span class="pc bpc" id="L101" title="3 of 4 branches missed.">      if (colName.startsWith(&quot;Q&quot;) &amp;&amp; colName.contains(&quot;_&quot;)) {</span>
+<span class="nc" id="L102">        return MeasurementType.HISTOGRAM;</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">      } else if (&quot;sum&quot;.equals(colName)) {</span>
+<span class="nc" id="L104">        return MeasurementType.SUMMARY;</span>
+<span class="pc bpc" id="L105" title="1 of 2 branches missed.">      } else if (&quot;count&quot;.equals(colName)) {</span>
+<span class="nc" id="L106">        hasCount = true;</span>
+      }
+<span class="fc" id="L108">    }</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    if (hasCount) {</span>
+<span class="nc" id="L110">      return MeasurementType.COUNTER;</span>
+    }
+<span class="fc" id="L112">    return MeasurementType.UNTYPED;</span>
+  }
+
+  public static MeasurementType getMeasurementType(final Schema schema) {
+<span class="nc" id="L116">    String mt = schema.getProp(MEASUREMENT_TYPE_PROP);</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (mt == null) {</span>
+<span class="nc" id="L118">      return MeasurementType.UNTYPED;</span>
+    }
+<span class="nc" id="L120">    return MeasurementType.valueOf(mt);</span>
+  }
+
+
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public static ListMultimap&lt;String, TableDef&gt; getAllTables(final File tsdbFile) throws IOException {
-<span class="fc" id="L77">    ListMultimap&lt;String, TableDef&gt; result = ArrayListMultimap.create();</span>
-<span class="fc" id="L78">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L126">    ListMultimap&lt;String, TableDef&gt; result = ArrayListMultimap.create();</span>
+<span class="fc" id="L127">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="fc bfc" id="L80" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
-<span class="fc bfc" id="L81" title="All 2 branches covered.">        if (read.isLeft()) {</span>
-<span class="fc" id="L82">          final TableDef tdef = read.getLeft();</span>
-<span class="fc" id="L83">          result.put(tdef.getName(), tdef);</span>
-<span class="fc" id="L84">        }</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L130" title="All 2 branches covered.">        if (read.isLeft()) {</span>
+<span class="fc" id="L131">          final TableDef tdef = read.getLeft();</span>
+<span class="fc" id="L132">          result.put(tdef.getName(), tdef);</span>
+<span class="fc" id="L133">        }</span>
       }
     }
-<span class="fc" id="L87">    return result;</span>
+<span class="fc" id="L136">    return result;</span>
   }
 
 
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public static ListMultimap&lt;String, TableDef&gt; getTables(final File tsdbFile, final Set&lt;String&gt; tables)
           throws IOException {
-<span class="nc" id="L94">    ListMultimap&lt;String, TableDef&gt; result = ArrayListMultimap.create();</span>
-<span class="nc" id="L95">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="nc" id="L143">    ListMultimap&lt;String, TableDef&gt; result = ArrayListMultimap.create();</span>
+<span class="nc" id="L144">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="nc bnc" id="L97" title="All 2 branches missed.">      while ((read = reader.read()) != null) {</span>
-<span class="nc bnc" id="L98" title="All 2 branches missed.">        if (read.isLeft()) {</span>
-<span class="nc" id="L99">          final TableDef tdef = read.getLeft();</span>
-<span class="nc" id="L100">          final String name = tdef.getName();</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">          if (tables.contains(name)) {</span>
-<span class="nc" id="L102">            result.put(name, tdef);</span>
+<span class="nc bnc" id="L146" title="All 2 branches missed.">      while ((read = reader.read()) != null) {</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        if (read.isLeft()) {</span>
+<span class="nc" id="L148">          final TableDef tdef = read.getLeft();</span>
+<span class="nc" id="L149">          final String name = tdef.getName();</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">          if (tables.contains(name)) {</span>
+<span class="nc" id="L151">            result.put(name, tdef);</span>
           }
-<span class="nc" id="L104">        }</span>
+<span class="nc" id="L153">        }</span>
       }
     }
-<span class="nc" id="L107">    return result;</span>
+<span class="nc" id="L156">    return result;</span>
   }
 
   public static final class TableDefEx {
@@ -113,244 +162,421 @@ public final class TSDBQuery {
     private long startTime;
     private long endTime;
 
-<span class="fc" id="L116">    public TableDefEx(final TableDef tableDef, final long startTime, final long endTime) {</span>
-<span class="fc" id="L117">      this.tableDef = tableDef;</span>
-<span class="fc" id="L118">      this.startTime = startTime;</span>
-<span class="fc" id="L119">      this.endTime = endTime;</span>
-<span class="fc" id="L120">    }</span>
+<span class="fc" id="L165">    public TableDefEx(final TableDef tableDef, final long startTime, final long endTime) {</span>
+<span class="fc" id="L166">      this.tableDef = tableDef;</span>
+<span class="fc" id="L167">      this.startTime = startTime;</span>
+<span class="fc" id="L168">      this.endTime = endTime;</span>
+<span class="fc" id="L169">    }</span>
 
     public TableDef getTableDef() {
-<span class="fc" id="L123">      return tableDef;</span>
+<span class="fc" id="L172">      return tableDef;</span>
     }
 
     public long getStartTime() {
-<span class="fc" id="L127">      return startTime;</span>
+<span class="fc" id="L176">      return startTime;</span>
     }
 
     public long getEndTime() {
-<span class="fc" id="L131">      return endTime;</span>
+<span class="fc" id="L180">      return endTime;</span>
     }
 
     public void setStartTime(final long startTime) {
-<span class="fc" id="L135">      this.startTime = startTime;</span>
-<span class="fc" id="L136">    }</span>
+<span class="fc" id="L184">      this.startTime = startTime;</span>
+<span class="fc" id="L185">    }</span>
 
     public void setEndTime(final long endTime) {
-<span class="fc" id="L139">      this.endTime = endTime;</span>
-<span class="fc" id="L140">    }</span>
+<span class="fc" id="L188">      this.endTime = endTime;</span>
+<span class="fc" id="L189">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L144">      return &quot;TableDefEx{&quot; + &quot;tableDef=&quot; + tableDef + &quot;, startTime=&quot; + startTime + &quot;, endTime=&quot; + endTime + '}';</span>
+<span class="fc" id="L193">      return &quot;TableDefEx{&quot; + &quot;tableDef=&quot; + tableDef + &quot;, startTime=&quot; + startTime + &quot;, endTime=&quot; + endTime + '}';</span>
     }
 
   }
 
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public static ListMultimap&lt;String, TableDefEx&gt; getAllTablesWithDataRanges(final File tsdbFile) throws IOException {
-<span class="fc" id="L151">    ListMultimap&lt;String, TableDefEx&gt; result = ArrayListMultimap.create();</span>
-<span class="fc" id="L152">    TLongObjectMap&lt;TableDefEx&gt; id2Def = new TLongObjectHashMap&lt;&gt;();</span>
-<span class="fc" id="L153">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L200">    ListMultimap&lt;String, TableDefEx&gt; result = ArrayListMultimap.create();</span>
+<span class="fc" id="L201">    TLongObjectMap&lt;TableDefEx&gt; id2Def = new TLongObjectHashMap&lt;&gt;();</span>
+<span class="fc" id="L202">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="fc bfc" id="L155" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
-<span class="fc bfc" id="L156" title="All 2 branches covered.">        if (read.isLeft()) {</span>
-<span class="fc" id="L157">          final TableDef left = read.getLeft();</span>
-<span class="fc" id="L158">          final TableDefEx tableDefEx = new TableDefEx(left, Long.MAX_VALUE, 0L);</span>
-<span class="fc" id="L159">          id2Def.put(left.getId(), tableDefEx);</span>
-<span class="fc" id="L160">          result.put(tableDefEx.getTableDef().getName(), tableDefEx);</span>
-<span class="fc" id="L161">        } else {</span>
-<span class="fc" id="L162">          DataBlock right = read.getRight();</span>
-<span class="fc" id="L163">          long baseTs = right.getBaseTimestamp();</span>
-<span class="fc bfc" id="L164" title="All 2 branches covered.">          for (DataRow row : right.getValues()) {</span>
-<span class="fc" id="L165">            TableDefEx tdex = id2Def.get(row.getTableDefId());</span>
-<span class="pc bpc" id="L166" title="1 of 2 branches missed.">            if (tdex == null) {</span>
-<span class="nc" id="L167">              throw new IOException(&quot;Potentially corupted file data row with no tableDef &quot; + row);</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">        if (read.isLeft()) {</span>
+<span class="fc" id="L206">          final TableDef left = read.getLeft();</span>
+<span class="fc" id="L207">          final TableDefEx tableDefEx = new TableDefEx(left, Long.MAX_VALUE, 0L);</span>
+<span class="fc" id="L208">          id2Def.put(left.getId(), tableDefEx);</span>
+<span class="fc" id="L209">          result.put(tableDefEx.getTableDef().getName(), tableDefEx);</span>
+<span class="fc" id="L210">        } else {</span>
+<span class="fc" id="L211">          DataBlock right = read.getRight();</span>
+<span class="fc" id="L212">          long baseTs = right.getBaseTimestamp();</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">          for (DataRow row : right.getValues()) {</span>
+<span class="fc" id="L214">            TableDefEx tdex = id2Def.get(row.getTableDefId());</span>
+<span class="pc bpc" id="L215" title="1 of 2 branches missed.">            if (tdex == null) {</span>
+<span class="nc" id="L216">              throw new IOException(&quot;Potentially corupted file data row with no tableDef &quot; + row);</span>
             }
-<span class="fc" id="L169">            long ts = baseTs + row.getRelTimeStamp();</span>
-<span class="pc bpc" id="L170" title="1 of 2 branches missed.">            if (ts &lt; tdex.getStartTime()) {</span>
-<span class="fc" id="L171">              tdex.setStartTime(ts);</span>
+<span class="fc" id="L218">            long ts = baseTs + row.getRelTimeStamp();</span>
+<span class="pc bpc" id="L219" title="1 of 2 branches missed.">            if (ts &lt; tdex.getStartTime()) {</span>
+<span class="fc" id="L220">              tdex.setStartTime(ts);</span>
             }
-<span class="pc bpc" id="L173" title="1 of 2 branches missed.">            if (ts &gt; tdex.getEndTime()) {</span>
-<span class="fc" id="L174">              tdex.setEndTime(ts);</span>
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">            if (ts &gt; tdex.getEndTime()) {</span>
+<span class="fc" id="L223">              tdex.setEndTime(ts);</span>
             }
-<span class="fc" id="L176">          }</span>
-<span class="fc" id="L177">        }</span>
+<span class="fc" id="L225">          }</span>
+<span class="fc" id="L226">        }</span>
       }
     }
-<span class="fc" id="L180">    return result;</span>
+<span class="fc" id="L229">    return result;</span>
   }
 
   @Nonnull
   public static List&lt;TableDef&gt; getTableDef(final File tsdbFile, final String tableName) throws IOException {
-<span class="fc" id="L185">    List&lt;TableDef&gt; result = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L186">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L234">    List&lt;TableDef&gt; result = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L235">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="fc bfc" id="L188" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
-<span class="fc bfc" id="L189" title="All 2 branches covered.">        if (read.isLeft()) {</span>
-<span class="fc" id="L190">          TableDef left = read.getLeft();</span>
-<span class="fc bfc" id="L191" title="All 2 branches covered.">          if (tableName.equals(left.getName())) {</span>
-<span class="fc" id="L192">            result.add(left);</span>
+<span class="fc bfc" id="L237" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">        if (read.isLeft()) {</span>
+<span class="fc" id="L239">          TableDef left = read.getLeft();</span>
+<span class="fc bfc" id="L240" title="All 2 branches covered.">          if (tableName.equals(left.getName())) {</span>
+<span class="fc" id="L241">            result.add(left);</span>
           }
-<span class="fc" id="L194">        }</span>
+<span class="fc" id="L243">        }</span>
       }
     }
-<span class="fc" id="L197">    return result;</span>
+<span class="fc" id="L246">    return result;</span>
   }
 
   public static TimeSeries getTimeSeries(final File tsdbFile, final long[] tableIds,
           final long startTimeMillis, final long endTimeMillis) throws IOException {
-<span class="fc" id="L202">    TLongList timestamps = new TLongArrayList();</span>
-<span class="fc" id="L203">    List&lt;long[]&gt; metrics = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L204">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
+<span class="fc" id="L251">    TLongList timestamps = new TLongArrayList();</span>
+<span class="fc" id="L252">    List&lt;long[]&gt; metrics = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L253">    getTimeSeries(tsdbFile, tableIds, startTimeMillis, endTimeMillis, (ts, data) -&gt; {</span>
+<span class="fc" id="L254">      timestamps.add(ts);</span>
+<span class="fc" id="L255">      metrics.add(data);</span>
+<span class="fc" id="L256">    });</span>
+<span class="fc" id="L257">    return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));</span>
+  }
+
+ public static void getTimeSeries(final File tsdbFile, final long[] tableIds,
+          final long startTimeMillis, final long endTimeMillis, final BiConsumer&lt;Long, long[]&gt; consumer)
+         throws IOException {
+<span class="fc" id="L263">    try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {</span>
       Either&lt;TableDef, DataBlock&gt; read;
-<span class="fc bfc" id="L206" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">        if (read.isRight()) {</span>
-<span class="fc" id="L208">          DataBlock data = read.getRight();</span>
-<span class="fc" id="L209">          long baseTs = data.getBaseTimestamp();</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">          for (DataRow row : data.getValues()) {</span>
-<span class="fc bfc" id="L211" title="All 2 branches covered.">            for (long tableId : tableIds) {</span>
-<span class="fc bfc" id="L212" title="All 2 branches covered.">              if (tableId == row.getTableDefId()) {</span>
-<span class="fc" id="L213">                final long ts = baseTs + row.getRelTimeStamp();</span>
-<span class="pc bpc" id="L214" title="2 of 4 branches missed.">                if (ts &gt;= startTimeMillis &amp;&amp; ts &lt;= endTimeMillis) {</span>
-<span class="fc" id="L215">                  timestamps.add(ts);</span>
-<span class="fc" id="L216">                  metrics.add(Longs.toArray(row.getData()));</span>
+<span class="fc bfc" id="L265" title="All 2 branches covered.">      while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">        if (read.isRight()) {</span>
+<span class="fc" id="L267">          DataBlock data = read.getRight();</span>
+<span class="fc" id="L268">          long baseTs = data.getBaseTimestamp();</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">          for (DataRow row : data.getValues()) {</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">            for (long tableId : tableIds) {</span>
+<span class="fc bfc" id="L271" title="All 2 branches covered.">              if (tableId == row.getTableDefId()) {</span>
+<span class="fc" id="L272">                final long ts = baseTs + row.getRelTimeStamp();</span>
+<span class="pc bpc" id="L273" title="2 of 4 branches missed.">                if (ts &gt;= startTimeMillis &amp;&amp; ts &lt;= endTimeMillis) {</span>
+<span class="fc" id="L274">                  consumer.accept(ts, Longs.toArray(row.getData()));</span>
                 }
               }
             }
-<span class="fc" id="L220">          }</span>
-<span class="fc" id="L221">        }</span>
+<span class="fc" id="L278">          }</span>
+<span class="fc" id="L279">        }</span>
       }
     }
-<span class="fc" id="L224">    return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));</span>
+<span class="fc" id="L282">  }</span>
+
+ /**
+  *
+  * @param tsdbFile
+  * @param tableName
+  * @param startTimeMillis
+  * @param endTimeMillis
+  * @return iterator through the results, null when not table found.
+  * @throws IOException
+  */
+  @Nullable
+  public static AvroCloseableIterable&lt;TimeSeriesRecord&gt; getTimeSeriesData(final File tsdbFile, final String tableName,
+          final long startTimeMillis, final long endTimeMillis)
+          throws IOException {
+<span class="fc" id="L297">    List&lt;TableDef&gt; tableDef = getTableDef(tsdbFile, tableName);</span>
+<span class="pc bpc" id="L298" title="1 of 2 branches missed.">    if (tableDef.isEmpty()) {</span>
+<span class="nc" id="L299">      return null;</span>
+    }
+<span class="fc" id="L301">    TLongSet ids = new TLongHashSet(getIds(tableDef));</span>
+<span class="fc" id="L302">    TableDef td = tableDef.get(0);</span>
+<span class="fc" id="L303">    Schema rSchema = createSchema(td);</span>
+<span class="fc" id="L304">    TSDBReader reader = new TSDBReader(tsdbFile, 8192);</span>
+    try {
+<span class="fc" id="L306">      DataScan dataScan = new DataScan(reader);</span>
+<span class="fc" id="L307">      Iterable&lt;Row&gt; filtered = Iterables.filter(dataScan,</span>
+<span class="pc bpc" id="L308" title="1 of 2 branches missed.">              (x) -&gt; x.timestamp &gt;= startTimeMillis</span>
+<span class="pc bpc" id="L309" title="2 of 4 branches missed.">              &amp;&amp; x.timestamp &lt;= endTimeMillis &amp;&amp; ids.contains(x.data.getTableDefId()));</span>
+
+<span class="fc" id="L311">      Iterable&lt;TimeSeriesRecord&gt; it = Iterables.transform(filtered, (x) -&gt; {</span>
+<span class="fc" id="L312">        GenericRecord rec = new GenericData.Record(rSchema);</span>
+<span class="fc" id="L313">        rec.put(0, Instant.ofEpochMilli(x.timestamp));</span>
+<span class="fc" id="L314">        List&lt;Long&gt; nrs = x.data.getData();</span>
+<span class="fc" id="L315">        List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">        for (int i = 1, l = fields.size(); i &lt; l; i++) {</span>
+<span class="fc" id="L317">          Schema.Type type = fields.get(i).schema().getType();</span>
+<span class="pc bpc" id="L318" title="2 of 3 branches missed.">          switch (type) {</span>
+            case DOUBLE:
+<span class="nc" id="L320">              rec.put(i, Double.longBitsToDouble(nrs.get(i - 1)));</span>
+<span class="nc" id="L321">              break;</span>
+            case LONG:
+<span class="fc" id="L323">              rec.put(i, nrs.get(i - 1));</span>
+<span class="fc" id="L324">              break;</span>
+            default:
+<span class="nc" id="L326">              throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
+          }
+        }
+<span class="fc" id="L329">        return TimeSeriesRecord.from(rec);</span>
+      });
+<span class="fc" id="L331">      return AvroCloseableIterable.from(it, reader, rSchema);</span>
+<span class="nc" id="L332">    } catch (RuntimeException | IOException ex) {</span>
+<span class="nc" id="L333">      reader.close();</span>
+<span class="nc" id="L334">      throw ex;</span>
+    }
   }
 
+  public static Schema createSchema(final TableDef td) {
+<span class="fc" id="L339">    Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, false, false);</span>
+<span class="fc" id="L340">    List&lt;ColumnDef&gt; columns = td.getColumns();</span>
+<span class="fc" id="L341">    List&lt;Schema.Field&gt; fields = new ArrayList&lt;&gt;(columns.size() + 1);</span>
+<span class="fc" id="L342">    Schema ts = new Schema.Parser().parse(&quot;{\&quot;type\&quot;:\&quot;string\&quot;,\&quot;logicalType\&quot;:\&quot;instant\&quot;}&quot;);</span>
+<span class="fc" id="L343">    fields.add(AvroCompatUtils.createField(&quot;ts&quot;, ts, &quot;Measurement time stamp&quot;, null, true, false,</span>
+            Schema.Field.Order.IGNORE));
+<span class="fc bfc" id="L345" title="All 2 branches covered.">    for (ColumnDef cd : columns) {</span>
+<span class="fc" id="L346">      Type type = cd.getType();</span>
+<span class="pc bpc" id="L347" title="2 of 3 branches missed.">      switch (type) {</span>
+        case DOUBLE:
+<span class="nc" id="L349">          fields.add(AvroCompatUtils.createField(cd.getName(),</span>
+<span class="nc" id="L350">                  new Schema.Parser().parse(&quot;{\&quot;type\&quot;:\&quot;double\&quot;,\&quot;unit\&quot;:\&quot;&quot;</span>
+<span class="nc" id="L351">                          + cd.getUnitOfMeasurement() + &quot;\&quot;}&quot;), cd.getDescription(), null, true, false,</span>
+            Schema.Field.Order.IGNORE));
+<span class="nc" id="L353">          break;</span>
+        case LONG:
+<span class="fc" id="L355">          fields.add(AvroCompatUtils.createField(cd.getName(),</span>
+<span class="fc" id="L356">                  new Schema.Parser().parse(&quot;{\&quot;type\&quot;:\&quot;long\&quot;,\&quot;unit\&quot;:\&quot;&quot;</span>
+<span class="fc" id="L357">                          + cd.getUnitOfMeasurement() + &quot;\&quot;}&quot;), cd.getDescription(), null, true, false,</span>
+            Schema.Field.Order.IGNORE));
+<span class="fc" id="L359">          break;</span>
+        default:
+<span class="nc" id="L361">          throw new IllegalStateException(&quot;Invalid data type &quot; + type);</span>
+      }
+<span class="fc" id="L363">    }</span>
+<span class="fc" id="L364">    recSchema.setFields(fields);</span>
+<span class="fc" id="L365">    int sampleTime = td.getSampleTime();</span>
+<span class="pc bpc" id="L366" title="1 of 2 branches missed.">    if (sampleTime &gt; 0) {</span>
+<span class="nc" id="L367">      recSchema.addProp(&quot;frequencyMillis&quot;, sampleTime);</span>
+    }
+<span class="fc" id="L369">    recSchema.addProp(MEASUREMENT_TYPE_PROP, getMeasurementType(td));</span>
+<span class="fc" id="L370">    return recSchema;</span>
+  }
+
+  private static class Row {
+<span class="fc" id="L374">    Row(final long ts, final DataRow data) {</span>
+<span class="fc" id="L375">      this.timestamp = ts;</span>
+<span class="fc" id="L376">      this.data = data;</span>
+<span class="fc" id="L377">    }</span>
+    private final long timestamp;
+    private final DataRow data;
+  }
+
+
+    private static class DataScan implements Iterable&lt;Row&gt; {
+
+      private final TSDBReader reader;
+
+<span class="fc" id="L387">      DataScan(final TSDBReader tsdb) throws IOException {</span>
+<span class="fc" id="L388">        reader = tsdb;</span>
+<span class="fc" id="L389">      }</span>
+
+
+     @Override
+     public Iterator&lt;Row&gt; iterator() {
+<span class="fc" id="L394">       return new Iterator&lt;Row&gt;() {</span>
+
+         private long baseTs;
+         private Iterator&lt;DataRow&gt; dataBlock;
+         {
+<span class="fc" id="L399">           nextBlock();</span>
+<span class="fc" id="L400">         }</span>
+
+         private void nextBlock() {
+           Either&lt;TableDef, DataBlock&gt; read;
+           try {
+<span class="fc bfc" id="L405" title="All 2 branches covered.">            while ((read = reader.read()) != null) {</span>
+<span class="fc bfc" id="L406" title="All 2 branches covered.">              if (read.isRight()) {</span>
+<span class="fc" id="L407">                 DataBlock block = read.getRight();</span>
+<span class="fc" id="L408">                 baseTs = block.getBaseTimestamp();</span>
+<span class="fc" id="L409">                 dataBlock = block.getValues().iterator();</span>
+<span class="fc" id="L410">                 return;</span>
+              }
+            }
+<span class="nc" id="L413">           } catch (IOException ex) {</span>
+<span class="nc" id="L414">             throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L415">           }</span>
+<span class="fc" id="L416">           dataBlock = null;</span>
+<span class="fc" id="L417">         }</span>
+
+         @Override
+         public boolean hasNext() {
+           while (true) {
+<span class="fc bfc" id="L422" title="All 2 branches covered.">              if (dataBlock == null) {</span>
+<span class="fc" id="L423">                return false;</span>
+              }
+<span class="fc bfc" id="L425" title="All 2 branches covered.">              if (dataBlock.hasNext()) {</span>
+<span class="fc" id="L426">                return true;</span>
+              }
+<span class="fc" id="L428">              nextBlock();</span>
+           }
+         }
+
+         @Override
+         public Row next() {
+           while (true) {
+<span class="pc bpc" id="L435" title="1 of 2 branches missed.">              if (dataBlock == null) {</span>
+<span class="nc" id="L436">                throw new NoSuchElementException();</span>
+              }
+<span class="pc bpc" id="L438" title="1 of 2 branches missed.">              if (dataBlock.hasNext()) {</span>
+<span class="fc" id="L439">                DataRow next = dataBlock.next();</span>
+<span class="fc" id="L440">                return new Row(baseTs + next.getRelTimeStamp(), next);</span>
+              }
+<span class="nc" id="L442">              nextBlock();</span>
+           }
+         }
+       };
+     }
+   }
+
+
+
+
+
   public static long[] getIds(final Collection&lt;TableDef&gt; tableDefs) {
-<span class="nc" id="L228">    long[] result = new long[tableDefs.size()];</span>
-<span class="nc" id="L229">    int i = 0;</span>
-<span class="nc bnc" id="L230" title="All 2 branches missed.">    for (TableDef tdef : tableDefs) {</span>
-<span class="nc" id="L231">      result[i++] = tdef.getId();</span>
-<span class="nc" id="L232">    }</span>
-<span class="nc" id="L233">    return result;</span>
+<span class="fc" id="L454">    long[] result = new long[tableDefs.size()];</span>
+<span class="fc" id="L455">    int i = 0;</span>
+<span class="fc bfc" id="L456" title="All 2 branches covered.">    for (TableDef tdef : tableDefs) {</span>
+<span class="fc" id="L457">      result[i++] = tdef.getId();</span>
+<span class="fc" id="L458">    }</span>
+<span class="fc" id="L459">    return result;</span>
   }
 
   public static void writeCsvTable(final File tsDB, final String tableName, final File output)
           throws IOException {
-<span class="nc" id="L238">    try (Writer writer = new BufferedWriter(new OutputStreamWriter(</span>
-<span class="nc" id="L239">            Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {</span>
-<span class="nc" id="L240">      writeAsCsv(writer, tsDB, tableName);</span>
+<span class="nc" id="L464">    try (Writer writer = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L465">            Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {</span>
+<span class="nc" id="L466">      writeAsCsv(writer, tsDB, tableName);</span>
     }
-<span class="nc" id="L242">  }</span>
+<span class="nc" id="L468">  }</span>
 
   public static void writeAsCsv(final Appendable writer, final File tsDB, final String tableName)
           throws IOException {
 
-<span class="nc" id="L247">    List&lt;TableDef&gt; tableDefs = getTableDef(tsDB, tableName);</span>
-<span class="nc" id="L248">    TimeSeries data = getTimeSeries(tsDB, getIds(tableDefs), 0, Long.MAX_VALUE);</span>
+<span class="nc" id="L473">    List&lt;TableDef&gt; tableDefs = getTableDef(tsDB, tableName);</span>
+<span class="nc" id="L474">    TimeSeries data = getTimeSeries(tsDB, getIds(tableDefs), 0, Long.MAX_VALUE);</span>
 
-<span class="nc" id="L250">    Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
-<span class="nc bnc" id="L251" title="All 2 branches missed.">    for (ColumnDef col : tableDefs.get(0).getColumns()) {</span>
-<span class="nc" id="L252">      writer.append(',');</span>
-<span class="nc" id="L253">      Csv.writeCsvElement(col.getName(), writer);</span>
-<span class="nc" id="L254">    }</span>
-<span class="nc" id="L255">    writer.append('\n');</span>
-<span class="nc" id="L256">    long[] timestamps = data.getTimeStamps();</span>
-<span class="nc" id="L257">    long[][] values = data.getValues();</span>
-<span class="nc bnc" id="L258" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
-<span class="nc" id="L259">      Csv.writeCsvElement(DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);</span>
-<span class="nc bnc" id="L260" title="All 2 branches missed.">      for (long val : values[i]) {</span>
-<span class="nc" id="L261">        writer.append(',');</span>
-<span class="nc" id="L262">        Csv.writeCsvElement(Long.toString(val), writer);</span>
+<span class="nc" id="L476">    Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">    for (ColumnDef col : tableDefs.get(0).getColumns()) {</span>
+<span class="nc" id="L478">      writer.append(',');</span>
+<span class="nc" id="L479">      Csv.writeCsvElement(col.getName(), writer);</span>
+<span class="nc" id="L480">    }</span>
+<span class="nc" id="L481">    writer.append('\n');</span>
+<span class="nc" id="L482">    long[] timestamps = data.getTimeStamps();</span>
+<span class="nc" id="L483">    long[][] values = data.getValues();</span>
+<span class="nc bnc" id="L484" title="All 2 branches missed.">    for (int i = 0; i &lt; timestamps.length; i++) {</span>
+<span class="nc" id="L485">      Csv.writeCsvElement(DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">      for (long val : values[i]) {</span>
+<span class="nc" id="L487">        writer.append(',');</span>
+<span class="nc" id="L488">        Csv.writeCsvElement(Long.toString(val), writer);</span>
       }
-<span class="nc" id="L264">      writer.append('\n');</span>
+<span class="nc" id="L490">      writer.append('\n');</span>
     }
-<span class="nc" id="L266">  }</span>
+<span class="nc" id="L492">  }</span>
 
   public static void writeCsvTables(final File tsDB, final Set&lt;String&gt; tableNames, final File output)
           throws IOException {
-<span class="nc bnc" id="L270" title="All 2 branches missed.">    if (tableNames.isEmpty()) {</span>
-<span class="nc" id="L271">      return;</span>
+<span class="nc bnc" id="L496" title="All 2 branches missed.">    if (tableNames.isEmpty()) {</span>
+<span class="nc" id="L497">      return;</span>
     }
-<span class="nc" id="L273">    ListMultimap&lt;String, TableDef&gt; tables = getTables(tsDB, tableNames);</span>
-<span class="nc" id="L274">    try (Writer writer = new BufferedWriter(new OutputStreamWriter(</span>
-<span class="nc" id="L275">            Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {</span>
-<span class="nc" id="L276">      TableDef table = tables.values().iterator().next();</span>
-<span class="nc" id="L277">      Csv.writeCsvElement(&quot;table&quot;, writer);</span>
-<span class="nc" id="L278">      writer.append(',');</span>
-<span class="nc" id="L279">      Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
-<span class="nc bnc" id="L280" title="All 2 branches missed.">      for (ColumnDef col : table.getColumns()) {</span>
-<span class="nc" id="L281">        writer.append(',');</span>
-<span class="nc" id="L282">        Csv.writeCsvElement(col.getName(), writer);</span>
-<span class="nc" id="L283">      }</span>
-<span class="nc" id="L284">      writer.write('\n');</span>
+<span class="nc" id="L499">    ListMultimap&lt;String, TableDef&gt; tables = getTables(tsDB, tableNames);</span>
+<span class="nc" id="L500">    try (Writer writer = new BufferedWriter(new OutputStreamWriter(</span>
+<span class="nc" id="L501">            Files.newOutputStream(output.toPath()), StandardCharsets.UTF_8))) {</span>
+<span class="nc" id="L502">      TableDef table = tables.values().iterator().next();</span>
+<span class="nc" id="L503">      Csv.writeCsvElement(&quot;table&quot;, writer);</span>
+<span class="nc" id="L504">      writer.append(',');</span>
+<span class="nc" id="L505">      Csv.writeCsvElement(&quot;timestamp&quot;, writer);</span>
+<span class="nc bnc" id="L506" title="All 2 branches missed.">      for (ColumnDef col : table.getColumns()) {</span>
+<span class="nc" id="L507">        writer.append(',');</span>
+<span class="nc" id="L508">        Csv.writeCsvElement(col.getName(), writer);</span>
+<span class="nc" id="L509">      }</span>
+<span class="nc" id="L510">      writer.write('\n');</span>
 
-<span class="nc bnc" id="L286" title="All 2 branches missed.">      for (Map.Entry&lt;String, Collection&lt;TableDef&gt;&gt; tEntry : tables.asMap().entrySet()) {</span>
+<span class="nc bnc" id="L512" title="All 2 branches missed.">      for (Map.Entry&lt;String, Collection&lt;TableDef&gt;&gt; tEntry : tables.asMap().entrySet()) {</span>
 
-<span class="nc" id="L288">        TimeSeries data = getTimeSeries(tsDB, getIds(tEntry.getValue()), 0, Long.MAX_VALUE);</span>
-<span class="nc" id="L289">        long[] timestamps = data.getTimeStamps();</span>
-<span class="nc" id="L290">        long[][] values = data.getValues();</span>
-<span class="nc bnc" id="L291" title="All 2 branches missed.">        for (int i = 0; i &lt; timestamps.length; i++) {</span>
-<span class="nc" id="L292">          Csv.writeCsvElement(tEntry.getKey(), writer);</span>
-<span class="nc" id="L293">          writer.append(',');</span>
-<span class="nc" id="L294">          Csv.writeCsvElement(DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);</span>
-<span class="nc bnc" id="L295" title="All 2 branches missed.">          for (long val : values[i]) {</span>
-<span class="nc" id="L296">            writer.append(',');</span>
-<span class="nc" id="L297">            Csv.writeCsvElement(Long.toString(val), writer);</span>
+<span class="nc" id="L514">        TimeSeries data = getTimeSeries(tsDB, getIds(tEntry.getValue()), 0, Long.MAX_VALUE);</span>
+<span class="nc" id="L515">        long[] timestamps = data.getTimeStamps();</span>
+<span class="nc" id="L516">        long[][] values = data.getValues();</span>
+<span class="nc bnc" id="L517" title="All 2 branches missed.">        for (int i = 0; i &lt; timestamps.length; i++) {</span>
+<span class="nc" id="L518">          Csv.writeCsvElement(tEntry.getKey(), writer);</span>
+<span class="nc" id="L519">          writer.append(',');</span>
+<span class="nc" id="L520">          Csv.writeCsvElement(DateTimeFormats.TS_FORMAT.format(Instant.ofEpochMilli(timestamps[i])), writer);</span>
+<span class="nc bnc" id="L521" title="All 2 branches missed.">          for (long val : values[i]) {</span>
+<span class="nc" id="L522">            writer.append(',');</span>
+<span class="nc" id="L523">            Csv.writeCsvElement(Long.toString(val), writer);</span>
           }
-<span class="nc" id="L299">          writer.write('\n');</span>
+<span class="nc" id="L525">          writer.write('\n');</span>
         }
-<span class="nc" id="L301">      }</span>
+<span class="nc" id="L527">      }</span>
     }
-<span class="nc" id="L303">  }</span>
+<span class="nc" id="L529">  }</span>
 
   @Nullable
   public static ColumnDef getColumnDefIfExists(final TableDef td, final String columnName) {
-<span class="nc bnc" id="L307" title="All 2 branches missed.">    for (ColumnDef cdef : td.getColumns()) {</span>
-<span class="nc bnc" id="L308" title="All 2 branches missed.">      if (Strings.equals(columnName, cdef.getName())) {</span>
-<span class="nc" id="L309">        return cdef;</span>
+<span class="nc bnc" id="L533" title="All 2 branches missed.">    for (ColumnDef cdef : td.getColumns()) {</span>
+<span class="nc bnc" id="L534" title="All 2 branches missed.">      if (Strings.equals(columnName, cdef.getName())) {</span>
+<span class="nc" id="L535">        return cdef;</span>
       }
-<span class="nc" id="L311">    }</span>
-<span class="nc" id="L312">    return null;</span>
+<span class="nc" id="L537">    }</span>
+<span class="nc" id="L538">    return null;</span>
   }
 
   @Nonnull
   public static ColumnDef getColumnDef(final TableDef td, final String columnName) {
-<span class="nc bnc" id="L317" title="All 2 branches missed.">    for (ColumnDef cdef : td.getColumns()) {</span>
-<span class="nc bnc" id="L318" title="All 2 branches missed.">      if (Strings.equals(columnName, cdef.getName())) {</span>
-<span class="nc" id="L319">        return cdef;</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">    for (ColumnDef cdef : td.getColumns()) {</span>
+<span class="nc bnc" id="L544" title="All 2 branches missed.">      if (columnName.equals(cdef.getName())) {</span>
+<span class="nc" id="L545">        return cdef;</span>
       }
-<span class="nc" id="L321">    }</span>
-<span class="nc" id="L322">    throw new IllegalArgumentException(&quot;Column &quot; + columnName + &quot; not found in &quot; + td);</span>
+<span class="nc" id="L547">    }</span>
+<span class="nc" id="L548">    throw new IllegalArgumentException(&quot;Column &quot; + columnName + &quot; not found in &quot; + td);</span>
   }
 
   public static int getColumnIndex(final TableDef td, final String columnName) {
-<span class="nc" id="L326">    int i = 0;</span>
-<span class="nc bnc" id="L327" title="All 2 branches missed.">    for (ColumnDef cdef : td.getColumns()) {</span>
-<span class="nc bnc" id="L328" title="All 2 branches missed.">      if (Strings.equals(columnName, cdef.getName())) {</span>
-<span class="nc" id="L329">        return i;</span>
+<span class="nc" id="L552">    int i = 0;</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">    for (ColumnDef cdef : td.getColumns()) {</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">      if (columnName.equals(cdef.getName())) {</span>
+<span class="nc" id="L555">        return i;</span>
       }
-<span class="nc" id="L331">      i++;</span>
-<span class="nc" id="L332">    }</span>
-<span class="nc" id="L333">    return -1;</span>
+<span class="nc" id="L557">      i++;</span>
+<span class="nc" id="L558">    }</span>
+<span class="nc" id="L559">    return -1;</span>
   }
 
   public static String[] getColumnNames(final TableDef td) {
-<span class="nc" id="L337">    List&lt;ColumnDef&gt; columns = td.getColumns();</span>
-<span class="nc" id="L338">    String[] result = new String[columns.size()];</span>
-<span class="nc" id="L339">    int i = 0;</span>
-<span class="nc bnc" id="L340" title="All 2 branches missed.">    for (ColumnDef cd : columns) {</span>
-<span class="nc" id="L341">      result[i++] = cd.getName();</span>
-<span class="nc" id="L342">    }</span>
-<span class="nc" id="L343">    return result;</span>
+<span class="nc" id="L563">    List&lt;ColumnDef&gt; columns = td.getColumns();</span>
+<span class="nc" id="L564">    String[] result = new String[columns.size()];</span>
+<span class="nc" id="L565">    int i = 0;</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">    for (ColumnDef cd : columns) {</span>
+<span class="nc" id="L567">      result[i++] = cd.getName();</span>
+<span class="nc" id="L568">    }</span>
+<span class="nc" id="L569">    return result;</span>
   }
 
   public static String[] getColumnUnitsOfMeasurement(final TableDef td) {
-<span class="nc" id="L347">    List&lt;ColumnDef&gt; columns = td.getColumns();</span>
-<span class="nc" id="L348">    String[] result = new String[columns.size()];</span>
-<span class="nc" id="L349">    int i = 0;</span>
-<span class="nc bnc" id="L350" title="All 2 branches missed.">    for (ColumnDef cd : columns) {</span>
-<span class="nc" id="L351">      result[i++] = cd.getUnitOfMeasurement();</span>
-<span class="nc" id="L352">    }</span>
-<span class="nc" id="L353">    return result;</span>
+<span class="nc" id="L573">    List&lt;ColumnDef&gt; columns = td.getColumns();</span>
+<span class="nc" id="L574">    String[] result = new String[columns.size()];</span>
+<span class="nc" id="L575">    int i = 0;</span>
+<span class="nc bnc" id="L576" title="All 2 branches missed.">    for (ColumnDef cd : columns) {</span>
+<span class="nc" id="L577">      result[i++] = cd.getUnitOfMeasurement();</span>
+<span class="nc" id="L578">    }</span>
+<span class="nc" id="L579">    return result;</span>
   }
 
 }

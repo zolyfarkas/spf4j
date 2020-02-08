@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TObjectHash.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">TObjectHash.java</span></div><h1>TObjectHash.java</h1><pre class="source lang-java linenums">//CHECKSTYLE:OFF
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+package org.spf4j.stackmonitor;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.procedure.TObjectProcedure;
+
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
+
+/**
+ * An open addressed hashing implementation for Object types.
+ * &lt;p/&gt;
+ * Created: Sun Nov  4 08:56:06 2001
+ *
+ * @author Eric D. Friedman
+ * @author Rob Eden
+ * @author Jeff Randall
+ * @version $Id: TObjectHash.java,v 1.1.2.6 2009/11/07 03:36:44 robeden Exp $
+ */
+@SuppressFBWarnings
+abstract public class TObjectHash&lt;T&gt; extends THash {
+
+    @SuppressWarnings({&quot;UnusedDeclaration&quot;})
+    static final long serialVersionUID = 1L;
+
+
+    /**
+     * the set of Objects
+     */
+    public transient Object[] _set;
+
+<span class="fc" id="L57">    public static final Object REMOVED = new Object(), FREE = new Object();</span>
+
+
+    /**
+     * Creates a new &lt;code&gt;TObjectHash&lt;/code&gt; instance with the
+     * default capacity and load factor.
+     */
+    public TObjectHash() {
+<span class="nc" id="L65">        super();</span>
+<span class="nc" id="L66">    }</span>
+
+
+    /**
+     * Creates a new &lt;code&gt;TObjectHash&lt;/code&gt; instance whose capacity
+     * is the next highest prime above &lt;tt&gt;initialCapacity + 1&lt;/tt&gt;
+     * unless that value is already prime.
+     *
+     * @param initialCapacity an &lt;code&gt;int&lt;/code&gt; value
+     */
+    public TObjectHash(int initialCapacity) {
+<span class="fc" id="L77">        super(initialCapacity);</span>
+<span class="fc" id="L78">    }</span>
+
+
+    public int capacity() {
+<span class="fc" id="L82">        return _set.length;</span>
+    }
+
+
+    protected void removeAt(int index) {
+<span class="nc" id="L87">        _set[index] = REMOVED;</span>
+<span class="nc" id="L88">        super.removeAt(index);</span>
+<span class="nc" id="L89">    }</span>
+
+
+    /**
+     * initializes the Object set of this hash table.
+     *
+     * @param initialCapacity an &lt;code&gt;int&lt;/code&gt; value
+     * @return an &lt;code&gt;int&lt;/code&gt; value
+     */
+    public int setUp(int initialCapacity) {
+        int capacity;
+<span class="fc" id="L100">        capacity = super.setUp(initialCapacity);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">        if (capacity == 0) {</span>
+<span class="fc" id="L102">          _set = org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L103">          return 0;</span>
+        } else {
+<span class="fc" id="L105">          _set = new Object[capacity];</span>
+        }
+<span class="fc" id="L107">        Arrays.fill(_set, FREE);</span>
+<span class="fc" id="L108">        return capacity;</span>
+    }
+
+
+    /**
+     * Executes &lt;tt&gt;procedure&lt;/tt&gt; for each element in the set.
+     *
+     * @param procedure a &lt;code&gt;TObjectProcedure&lt;/code&gt; value
+     * @return false if the loop over the set terminated because
+     *         the procedure returned false for some value.
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    public boolean forEach(TObjectProcedure&lt;? super T&gt; procedure) {
+<span class="fc" id="L121">        Object[] set = _set;</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        for (int i = set.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L123" title="All 4 branches missed.">            if (set[i] != FREE</span>
+                    &amp;&amp; set[i] != REMOVED
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                    &amp;&amp; !procedure.execute((T) set[i])) {</span>
+<span class="nc" id="L126">                return false;</span>
+            }
+        }
+<span class="fc" id="L129">        return true;</span>
+    }
+
+
+    /**
+     * Searches the set for &lt;tt&gt;obj&lt;/tt&gt;
+     *
+     * @param obj an &lt;code&gt;Object&lt;/code&gt; value
+     * @return a &lt;code&gt;boolean&lt;/code&gt; value
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    public boolean contains(Object obj) {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">        return index(obj) &gt;= 0;</span>
+    }
+
+
+    /**
+     * Locates the index of &lt;tt&gt;obj&lt;/tt&gt;.
+     *
+     * @param obj an &lt;code&gt;Object&lt;/code&gt; value
+     * @return the index of &lt;tt&gt;obj&lt;/tt&gt; or -1 if it isn't in the set.
+     */
+    protected int index(Object obj) {
+<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (obj == null)</span>
+<span class="fc" id="L153">            return indexForNull();</span>
+
+<span class="fc bfc" id="L155" title="All 2 branches covered.">        if (_set.length == 0) {</span>
+<span class="fc" id="L156">          return -1;</span>
+        }
+
+        // From here on we know obj to be non-null
+<span class="fc" id="L160">        final int hash = hash(obj) &amp; 0x7fffffff;</span>
+<span class="fc" id="L161">        int index = hash % _set.length;</span>
+<span class="fc" id="L162">        Object cur = _set[index];</span>
+
+
+<span class="fc bfc" id="L165" title="All 2 branches covered.">        if (cur == FREE) {</span>
+<span class="fc" id="L166">            return -1;</span>
+        }
+
+<span class="fc bfc" id="L169" title="All 4 branches covered.">        if (cur == obj || equals(obj, cur)) {</span>
+<span class="fc" id="L170">            return index;</span>
+        }
+
+<span class="fc" id="L173">        return indexRehashed(obj, index, hash, cur);</span>
+    }
+
+    /**
+     * Locates the index of non-null &lt;tt&gt;obj&lt;/tt&gt;.
+     *
+     * @param obj   target key, know to be non-null
+     * @param index we start from
+     * @param hash
+     * @param cur
+     * @return
+     */
+    private int indexRehashed(Object obj, int index, int hash, Object cur) {
+<span class="fc" id="L186">        final Object[] set = _set;</span>
+<span class="fc" id="L187">        final int length = set.length;</span>
+
+        // NOTE: here it has to be REMOVED or FULL (some user-given value)
+        // see Knuth, p. 529
+<span class="fc" id="L191">        int probe = 1 + (hash % (length - 2));</span>
+
+<span class="fc" id="L193">        final int loopIndex = index;</span>
+
+        do {
+<span class="fc" id="L196">            index -= probe;</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">            if (index &lt; 0) {</span>
+<span class="fc" id="L198">                index += length;</span>
+            }
+<span class="fc" id="L200">            cur = set[index];</span>
+            //
+<span class="fc bfc" id="L202" title="All 2 branches covered.">            if (cur == FREE)</span>
+<span class="fc" id="L203">                return -1;</span>
+
+            //
+<span class="fc bfc" id="L206" title="All 4 branches covered.">            if ((cur == obj || equals(obj, cur)))</span>
+<span class="fc" id="L207">                return index;</span>
+<span class="pc bpc" id="L208" title="1 of 2 branches missed.">        } while (index != loopIndex);</span>
+
+<span class="nc" id="L210">        return -1;</span>
+    }
+
+    /**
+     * Locates the index &lt;tt&gt;null&lt;/tt&gt;.
+     * &lt;p/&gt;
+     * null specific loop exploiting several properties to simplify the iteration logic
+     * - the null value hashes to 0 we so we can iterate from the beginning.
+     * - the probe value is 1 for this case
+     * - object identity can be used to match this case
+     * &lt;p/&gt;
+     * --&gt; this result a simpler loop
+     *
+     * @return
+     */
+    private int indexForNull() {
+<span class="fc" id="L226">        int index = 0;</span>
+<span class="pc bpc" id="L227" title="1 of 2 branches missed.">        for (Object o : _set) {</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">            if (o == null)</span>
+<span class="nc" id="L229">                return index;</span>
+
+<span class="nc bnc" id="L231" title="All 2 branches missed.">            if (o == FREE)</span>
+<span class="nc" id="L232">                return -1;</span>
+
+<span class="nc" id="L234">            index++;</span>
+        }
+
+<span class="fc" id="L237">        return -1;</span>
+    }
+
+    /**
+     * Alias introduced to avoid breaking the API. The new method name insertKey() reflects the
+     * changes made to the logic.
+     *
+     * @param obj
+     * @return
+     * @deprecated use {@link #insertKey} instead
+     */
+    @Deprecated
+    protected int insertionIndex(T obj) {
+<span class="nc" id="L250">        return insertKey(obj);</span>
+    }
+
+    /**
+     * Locates the index at which &lt;tt&gt;key&lt;/tt&gt; can be inserted.  if
+     * there is already a value equal()ing &lt;tt&gt;key&lt;/tt&gt; in the set,
+     * returns that value's index as &lt;tt&gt;-index - 1&lt;/tt&gt;.
+     * &lt;p/&gt;
+     * If a slot is found the value is inserted. When a FREE slot is used the consumeFreeSlot field is
+     * set to true. This field should be used in the method invoking insertKey() to pass to postInsertHook()
+     *
+     * @param key an &lt;code&gt;Object&lt;/code&gt; value
+     * @return the index of a FREE slot at which key can be inserted
+     *         or, if key is already stored in the hash, the negative value of
+     *         that index, minus 1: -index -1.
+     */
+    protected int insertKey(T key) {
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">        if (key == null)</span>
+<span class="nc" id="L268">            return insertKeyForNull();</span>
+
+<span class="fc" id="L270">        final int hash = hash(key) &amp; 0x7fffffff;</span>
+<span class="fc" id="L271">        int index = hash % _set.length;</span>
+<span class="fc" id="L272">        Object cur = _set[index];</span>
+
+<span class="fc bfc" id="L274" title="All 2 branches covered.">        if (cur == FREE) {</span>
+<span class="fc" id="L275">            _set[index] = key;  // insert value</span>
+<span class="fc" id="L276">            return index;       // empty, all done</span>
+        }
+
+<span class="pc bpc" id="L279" title="1 of 4 branches missed.">        if (cur == key || equals(key, cur)) {</span>
+<span class="fc" id="L280">            return -index - 1;   // already stored</span>
+        }
+
+<span class="fc" id="L283">        return insertKeyRehash(key, index, hash, cur);</span>
+    }
+
+    /**
+     * Looks for a slot using double hashing for a non-null key values and inserts the value
+     * in the slot
+     *
+     * @param key   non-null key value
+     * @param index natural index
+     * @param hash
+     * @param cur   value of first matched slot
+     * @return
+     */
+    private int insertKeyRehash(T key, int index, int hash, Object cur) {
+<span class="fc" id="L297">        final Object[] set = _set;</span>
+<span class="fc" id="L298">        final int length = set.length;</span>
+        // already FULL or REMOVED, must probe
+        // compute the double hash
+<span class="fc" id="L301">        final int probe = 1 + (hash % (length - 2));</span>
+
+<span class="fc" id="L303">        final int loopIndex = index;</span>
+<span class="fc" id="L304">        int firstRemoved = -1;</span>
+
+        /**
+         * Look until FREE slot or we start to loop
+         */
+        do {
+            // Identify first removed slot
+<span class="pc bpc" id="L311" title="3 of 4 branches missed.">            if (cur == REMOVED &amp;&amp; firstRemoved == -1)</span>
+<span class="nc" id="L312">                firstRemoved = index;</span>
+
+<span class="fc" id="L314">            index -= probe;</span>
+<span class="fc bfc" id="L315" title="All 2 branches covered.">            if (index &lt; 0) {</span>
+<span class="fc" id="L316">                index += length;</span>
+            }
+<span class="fc" id="L318">            cur = set[index];</span>
+
+            // A FREE slot stops the search
+<span class="fc bfc" id="L321" title="All 2 branches covered.">            if (cur == FREE) {</span>
+<span class="pc bpc" id="L322" title="1 of 2 branches missed.">                if (firstRemoved != -1) {</span>
+<span class="nc" id="L323">                    _set[firstRemoved] = key;</span>
+<span class="nc" id="L324">                    return firstRemoved;</span>
+                } else {
+<span class="fc" id="L326">                    _set[index] = key;  // insert value</span>
+<span class="fc" id="L327">                    return index;</span>
+                }
+            }
+
+<span class="pc bpc" id="L331" title="2 of 4 branches missed.">            if (cur == key || equals(key, cur)) {</span>
+<span class="nc" id="L332">                return -index - 1;</span>
+            }
+
+            // Detect loop
+<span class="pc bpc" id="L336" title="1 of 2 branches missed.">        } while (index != loopIndex);</span>
+
+        // We inspected all reachable slots and did not find a FREE one
+        // If we found a REMOVED slot we return the first one found
+<span class="nc bnc" id="L340" title="All 2 branches missed.">        if (firstRemoved != -1) {</span>
+<span class="nc" id="L341">            _set[firstRemoved] = key;</span>
+<span class="nc" id="L342">            return firstRemoved;</span>
+        }
+
+        // Can a resizing strategy be found that resizes the set?
+<span class="nc" id="L346">        throw new IllegalStateException(&quot;No free or removed slots available. Key set full?!!&quot;);</span>
+    }
+
+    /**
+     * Looks for a slot using double hashing for a null key value and inserts the value.
+     * &lt;p/&gt;
+     * null specific loop exploiting several properties to simplify the iteration logic
+     * - the null value hashes to 0 we so we can iterate from the beginning.
+     * - the probe value is 1 for this case
+     * - object identity can be used to match this case
+     *
+     * @return
+     */
+    private int insertKeyForNull() {
+<span class="nc" id="L360">        int index = 0;</span>
+<span class="nc" id="L361">        int firstRemoved = -1;</span>
+
+        // Look for a slot containing the 'null' value as key
+<span class="nc bnc" id="L364" title="All 2 branches missed.">        for (Object o : _set) {</span>
+            // Locate first removed
+<span class="nc bnc" id="L366" title="All 4 branches missed.">            if (o == REMOVED &amp;&amp; firstRemoved == -1)</span>
+<span class="nc" id="L367">                firstRemoved = index;</span>
+
+<span class="nc bnc" id="L369" title="All 2 branches missed.">            if (o == FREE) {</span>
+<span class="nc bnc" id="L370" title="All 2 branches missed.">                if (firstRemoved != -1) {</span>
+<span class="nc" id="L371">                    _set[firstRemoved] = null;</span>
+<span class="nc" id="L372">                    return firstRemoved;</span>
+                } else {
+<span class="nc" id="L374">                    _set[index] = null;  // insert value</span>
+<span class="nc" id="L375">                    return index;</span>
+                }
+            }
+
+<span class="nc bnc" id="L379" title="All 2 branches missed.">            if (o == null) {</span>
+<span class="nc" id="L380">                return -index - 1;</span>
+            }
+
+<span class="nc" id="L383">            index++;</span>
+        }
+
+        // We inspected all reachable slots and did not find a FREE one
+        // If we found a REMOVED slot we return the first one found
+<span class="nc bnc" id="L388" title="All 2 branches missed.">        if (firstRemoved != -1) {</span>
+<span class="nc" id="L389">            _set[firstRemoved] = null;</span>
+<span class="nc" id="L390">            return firstRemoved;</span>
+        }
+
+        // We scanned the entire key set and found nothing, is set full?
+        // Can a resizing strategy be found that resizes the set?
+<span class="nc" id="L395">        throw new IllegalStateException(&quot;Could not find insertion index for null key. Key set full!?!!&quot;);</span>
+    }
+
+
+    /**
+     * Convenience methods for subclasses to use in throwing exceptions about
+     * badly behaved user objects employed as keys.  We have to throw an
+     * IllegalArgumentException with a rather verbose message telling the
+     * user that they need to fix their object implementation to conform
+     * to the general contract for java.lang.Object.
+     *
+     *
+     * @param o1 the first of the equal elements with unequal hash codes.
+     * @param o2 the second of the equal elements with unequal hash codes.
+     * @throws IllegalArgumentException the whole point of this method.
+     */
+    protected final void throwObjectContractViolation(Object o1, Object o2)
+            throws IllegalArgumentException {
+<span class="nc" id="L413">        throw buildObjectContractViolation(o1, o2, &quot;&quot;);</span>
+    }
+
+    /**
+     * Convenience methods for subclasses to use in throwing exceptions about
+     * badly behaved user objects employed as keys.  We have to throw an
+     * IllegalArgumentException with a rather verbose message telling the
+     * user that they need to fix their object implementation to conform
+     * to the general contract for java.lang.Object.
+     *
+     *
+     * @param o1 the first of the equal elements with unequal hash codes.
+     * @param o2 the second of the equal elements with unequal hash codes.
+     * @param size
+     *@param oldSize
+     * @param oldKeys @throws IllegalArgumentException the whole point of this method.
+     */
+    protected final void throwObjectContractViolation(Object o1, Object o2, int size, int oldSize, Object[] oldKeys)
+            throws IllegalArgumentException {
+<span class="nc" id="L432">        String extra = dumpExtraInfo(o1, o2, size(), oldSize, oldKeys);</span>
+
+
+<span class="nc" id="L435">        throw buildObjectContractViolation(o1, o2, extra);</span>
+    }
+
+    /**
+     * Convenience methods for subclasses to use in throwing exceptions about
+     * badly behaved user objects employed as keys.  We have to throw an
+     * IllegalArgumentException with a rather verbose message telling the
+     * user that they need to fix their object implementation to conform
+     * to the general contract for java.lang.Object.
+     *
+     *
+     * @param o1 the first of the equal elements with unequal hash codes.
+     * @param o2 the second of the equal elements with unequal hash codes.
+     * @throws IllegalArgumentException the whole point of this method.
+     */
+    protected final IllegalArgumentException buildObjectContractViolation(Object o1, Object o2, String extra ) {
+<span class="nc" id="L451">        return new IllegalArgumentException(&quot;Equal objects must have equal hashcodes. &quot; +</span>
+                &quot;During rehashing, Trove discovered that the following two objects claim &quot; +
+                &quot;to be equal (as in java.lang.Object.equals()) but their hashCodes (or &quot; +
+                &quot;those calculated by your TObjectHashingStrategy) are not equal.&quot; +
+                &quot;This violates the general contract of java.lang.Object.hashCode().  See &quot; +
+<span class="nc" id="L456">                &quot;bullet point two in that method's documentation. object #1 =&quot; + objectInfo(o1) +</span>
+<span class="nc" id="L457">                &quot;; object #2 =&quot; + objectInfo(o2) + &quot;\n&quot; + extra);</span>
+    }
+
+
+    protected boolean equals(Object notnull, Object two) {
+<span class="nc bnc" id="L462" title="All 4 branches missed.">        if (two == null || two == REMOVED)</span>
+<span class="nc" id="L463">            return false;</span>
+
+<span class="nc" id="L465">        return notnull.equals(two);</span>
+    }
+
+    protected int hash(Object notnull) {
+<span class="nc" id="L469">        return notnull.hashCode();</span>
+    }
+
+    protected static String reportPotentialConcurrentMod(int newSize, int oldSize) {
+        // Note that we would not be able to detect concurrent paired of put()-remove()
+        // operations with this simple check
+<span class="pc bpc" id="L475" title="1 of 2 branches missed.">        if (newSize != oldSize)</span>
+<span class="nc" id="L476">            return &quot;[Warning] apparent concurrent modification of the key set. &quot; +</span>
+                    &quot;Size before and after rehash() do not match &quot; + oldSize + &quot; vs &quot; + newSize;
+
+<span class="fc" id="L479">        return &quot;&quot;;</span>
+    }
+
+    /**
+     *
+     * @param newVal the key being inserted
+     * @param oldVal the key already stored at that position
+     * @param currentSize size of the key set during rehashing
+     * @param oldSize size of the key set before rehashing
+     * @param oldKeys the old key set
+     */
+    protected String dumpExtraInfo(Object newVal, Object oldVal, int currentSize, int oldSize, Object[] oldKeys) {
+<span class="nc" id="L491">        StringBuilder b = new StringBuilder();</span>
+        //
+<span class="nc" id="L493">        b.append(dumpKeyTypes(newVal, oldVal));</span>
+
+<span class="nc" id="L495">        b.append(reportPotentialConcurrentMod(currentSize, oldSize));</span>
+<span class="nc" id="L496">        b.append(detectKeyLoss(oldKeys, oldSize));</span>
+
+        // Is de same object already present? Double insert?
+<span class="nc bnc" id="L499" title="All 2 branches missed.">        if (newVal == oldVal) {</span>
+<span class="nc" id="L500">            b.append(&quot;Inserting same object twice, rehashing bug. Object= &quot;).append(oldVal);</span>
+        }
+
+<span class="nc" id="L503">        return b.toString();</span>
+    }
+
+    /**
+     * Detect inconsistent hashCode() and/or equals() methods
+     *
+     * @param keys
+     * @param oldSize
+     * @return
+     */
+    private static String detectKeyLoss(Object[] keys, int oldSize) {
+<span class="nc" id="L514">        StringBuilder buf = new StringBuilder();</span>
+<span class="nc" id="L515">        Set&lt;Object&gt; k = makeKeySet(keys);</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">        if (k.size() != oldSize) {</span>
+<span class="nc" id="L517">            buf.append(&quot;\nhashCode() and/or equals() have inconsistent implementation&quot;);</span>
+<span class="nc" id="L518">            buf.append(&quot;\nKey set lost entries, now got &quot;).append(k.size()).append(&quot; instead of &quot;).append(oldSize);</span>
+<span class="nc" id="L519">            buf.append(&quot;. This can manifest itself as an apparent duplicate key.&quot;);</span>
+        }
+
+<span class="nc" id="L522">        return buf.toString();</span>
+    }
+
+    private static Set&lt;Object&gt; makeKeySet(Object[] keys) {
+<span class="nc" id="L526">        Set&lt;Object&gt; types = new HashSet&lt;Object&gt;();</span>
+<span class="nc bnc" id="L527" title="All 2 branches missed.">        for (Object o : keys) {</span>
+<span class="nc bnc" id="L528" title="All 4 branches missed.">            if (o != FREE &amp;&amp; o != REMOVED) {</span>
+<span class="nc" id="L529">                    types.add(o);</span>
+            }
+        }
+
+<span class="nc" id="L533">        return types;</span>
+    }
+
+    private static String equalsSymmetryInfo(Object a, Object b) {
+<span class="nc" id="L537">        StringBuilder buf = new StringBuilder();</span>
+<span class="nc bnc" id="L538" title="All 2 branches missed.">        if (a == b) {</span>
+<span class="nc" id="L539">            return  &quot;a == b&quot;;</span>
+        }
+
+<span class="nc bnc" id="L542" title="All 2 branches missed.">        if (a.getClass() != b.getClass()) {</span>
+<span class="nc" id="L543">            buf.append(&quot;Class of objects differ a=&quot;).append(a.getClass()).append(&quot; vs b=&quot;).append(b.getClass());</span>
+
+<span class="nc" id="L545">            boolean aEb = a.equals(b);</span>
+<span class="nc" id="L546">            boolean bEa = b.equals(a);</span>
+<span class="nc bnc" id="L547" title="All 2 branches missed.">            if (aEb != bEa) {</span>
+<span class="nc" id="L548">                buf.append(&quot;\nequals() of a or b object are asymmetric&quot;);</span>
+<span class="nc" id="L549">                buf.append(&quot;\na.equals(b) =&quot;).append(aEb);</span>
+<span class="nc" id="L550">                buf.append(&quot;\nb.equals(a) =&quot;).append(bEa);</span>
+            }
+        }
+
+<span class="nc" id="L554">        return buf.toString();</span>
+    }
+
+    protected static String objectInfo(Object o) {
+<span class="nc bnc" id="L558" title="All 4 branches missed.">        return (o == null ? &quot;class null&quot; : o.getClass()) + &quot; id= &quot; + System.identityHashCode(o)</span>
+<span class="nc" id="L559">                + &quot; hashCode= &quot; + (o == null ? 0 : o.hashCode()) + &quot; toString= &quot; + String.valueOf(o);</span>
+    }
+
+    private String dumpKeyTypes(Object newVal, Object oldVal) {
+<span class="nc" id="L563">        StringBuilder buf = new StringBuilder();</span>
+<span class="nc" id="L564">        Set&lt;Class&lt;?&gt;&gt; types = new HashSet&lt;Class&lt;?&gt;&gt;();</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">        for (Object o : _set) {</span>
+<span class="nc bnc" id="L566" title="All 4 branches missed.">            if (o != FREE &amp;&amp; o != REMOVED) {</span>
+<span class="nc bnc" id="L567" title="All 2 branches missed.">                if (o != null)</span>
+<span class="nc" id="L568">                    types.add(o.getClass());</span>
+                else
+<span class="nc" id="L570">                    types.add(null);</span>
+            }
+        }
+
+<span class="nc bnc" id="L574" title="All 2 branches missed.">        if (types.size() &gt; 1) {</span>
+<span class="nc" id="L575">            buf.append(&quot;\nMore than one type used for keys. Watch out for asymmetric equals(). &quot; +</span>
+                    &quot;Read about the 'Liskov substitution principle' and the implications for equals() in java.&quot;);
+
+<span class="nc" id="L578">            buf.append(&quot;\nKey types: &quot;).append(types);</span>
+<span class="nc" id="L579">            buf.append(equalsSymmetryInfo(newVal, oldVal));</span>
+        }
+
+<span class="nc" id="L582">        return buf.toString();</span>
+    }
+
+
+    @Override
+    public void writeExternal(ObjectOutput out) throws IOException {
+        // VERSION
+<span class="fc" id="L589">        out.writeByte(0);</span>
+
+        // SUPER
+<span class="fc" id="L592">        super.writeExternal(out);</span>
+<span class="fc" id="L593">    }</span>
+
+
+    @Override
+    public void readExternal(ObjectInput in)
+            throws IOException, ClassNotFoundException {
+
+        // VERSION
+<span class="fc" id="L601">        in.readByte();</span>
+
+        // SUPER
+<span class="fc" id="L604">        super.readExternal(in);</span>
+<span class="fc" id="L605">    }</span>
+} // TObjectHash
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -74,7 +74,7 @@ public final class ExecutionContexts {
 
   };
 
-<span class="fc" id="L77">  private static final ThreadLocalContextAttacher DEFAULT_TL_ATTACHER = new ThreadLocalScopeImpl();</span>
+<span class="fc" id="L77">  private static final ThreadLocalContextAttacher DEFAULT_TL_ATTACHER = new ThreadLocalContextAttacherImpl();</span>
 
 <span class="fc" id="L79">  private static final ExecutionContextFactory&lt;ExecutionContext&gt; CTX_FACTORY = initFactory();</span>
 
@@ -253,18 +253,18 @@ public final class ExecutionContexts {
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final ExecutionContext parent, final long startTimeNanos, final long deadlineNanos) {
-<span class="nc" id="L256">    return createDetached(name, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);</span>
+<span class="fc" id="L256">    return createDetached(name, parent, Relation.CHILD_OF, startTimeNanos, deadlineNanos);</span>
   }
 
   public static ExecutionContext createDetached(final String name, @Nullable final ExecutionContext parent,
           final Relation relation, final long startTimeNanos, final long deadlineNanos) {
-<span class="nc" id="L261">    return createDetached(name, null, parent, relation, startTimeNanos, deadlineNanos);</span>
+<span class="fc" id="L261">    return createDetached(name, null, parent, relation, startTimeNanos, deadlineNanos);</span>
   }
 
   public static ExecutionContext createDetached(final String name,
           @Nullable final CharSequence id, @Nullable final ExecutionContext parent,
           final Relation relation, final long startTimeNanos, final long deadlineNanos) {
-<span class="nc" id="L267">    return CTX_FACTORY.start(name, id, parent, relation, startTimeNanos, deadlineNanos);</span>
+<span class="fc" id="L267">    return CTX_FACTORY.start(name, id, parent, relation, startTimeNanos, deadlineNanos);</span>
   }
 
   public static long getContextDeadlineNanos() {
@@ -347,7 +347,7 @@ public final class ExecutionContexts {
   @Deprecated
   public static long computeDeadline(@Nullable final ExecutionContext current,
            final TimeUnit unit, final long timeout) {
-<span class="fc" id="L350">    return computeDeadline(current, timeout, unit);</span>
+<span class="nc" id="L350">    return computeDeadline(current, timeout, unit);</span>
   }
 
   public static long computeDeadline(@Nullable final ExecutionContext current,
@@ -358,7 +358,7 @@ public final class ExecutionContexts {
 <span class="fc" id="L358">    long nanoTime = TimeSource.nanoTime();</span>
 <span class="fc" id="L359">    long ctxDeadlinenanos = current.getDeadlineNanos();</span>
 <span class="fc" id="L360">    long timeoutNanos = unit.toNanos(timeout);</span>
-<span class="pc bpc" id="L361" title="1 of 2 branches missed.">    return (ctxDeadlinenanos - nanoTime &lt; timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;</span>
+<span class="fc bfc" id="L361" title="All 2 branches covered.">    return (ctxDeadlinenanos - nanoTime &lt; timeoutNanos) ? ctxDeadlinenanos : nanoTime + timeoutNanos;</span>
   }
 
   public static long computeDeadline(final long startTimeNanos, @Nullable final ExecutionContext current,
@@ -759,7 +759,7 @@ private static final class PropagatingSupplier&lt;X&gt; implements Supplier&lt;X
     }
   }
 
-  private static class ThreadLocalScopeImpl implements ThreadLocalContextAttacher {
+  private static class ThreadLocalContextAttacherImpl implements ThreadLocalContextAttacher {
 
     @Override
     public Attached attach(final ExecutionContext ctx) {

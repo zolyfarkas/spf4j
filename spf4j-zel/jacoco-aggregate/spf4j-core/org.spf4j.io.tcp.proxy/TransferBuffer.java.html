@@ -89,14 +89,14 @@ public final class TransferBuffer {
 <span class="fc bfc" id="L89" title="All 4 branches covered.">      if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
 <span class="fc" id="L90">        nrRead = incomingSniffer.received(buffer, nrRead);</span>
       }
-<span class="fc" id="L92">    } catch (IOException ex) {</span>
-<span class="fc" id="L93">      oex = ex;</span>
-<span class="pc bpc" id="L94" title="1 of 2 branches missed.">      if (incomingSniffer == null) {</span>
-<span class="fc" id="L95">        readException = ex;</span>
+<span class="nc" id="L92">    } catch (IOException ex) {</span>
+<span class="nc" id="L93">      oex = ex;</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">      if (incomingSniffer == null) {</span>
+<span class="nc" id="L95">        readException = ex;</span>
       } else {
 <span class="nc" id="L97">        readException = incomingSniffer.received(ex);</span>
       }
-<span class="pc bpc" id="L99" title="1 of 2 branches missed.">      if (readException != null) {</span>
+<span class="nc bnc" id="L99" title="All 2 branches missed.">      if (readException != null) {</span>
 <span class="nc" id="L100">        LOG.debug(&quot;Exception while reading from {}&quot;, channel, ex);</span>
 <span class="nc" id="L101">        nrRead = -1;</span>
       } else {
@@ -122,7 +122,7 @@ public final class TransferBuffer {
 <span class="pc bpc" id="L122" title="2 of 4 branches missed.">    } else if (oex == null &amp;&amp; buffer.hasRemaining()) {</span>
 <span class="fc" id="L123">      isRoomInBufferHook.run();</span>
     }
-<span class="pc bpc" id="L125" title="1 of 4 branches missed.">    if (buffer.position() &gt; 0 || isEof) {</span>
+<span class="pc bpc" id="L125" title="3 of 4 branches missed.">    if (buffer.position() &gt; 0 || isEof) {</span>
 <span class="fc" id="L126">      isDataInBufferHook.run();</span>
     }
 <span class="fc" id="L128">    return nrRead;</span>

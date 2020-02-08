@@ -68,7 +68,7 @@
 <a class="jxr_linenumber" name="L60" href="#L60">60</a>  
 <a class="jxr_linenumber" name="L61" href="#L61">61</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(ExecutionContextTest.<strong class="jxr_keyword">class</strong>);
 <a class="jxr_linenumber" name="L62" href="#L62">62</a>  
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ExecutionContext.Tag&lt;String&gt; KEY_TAG = <strong class="jxr_keyword">new</strong> ExecutionContext.Tag&lt;String&gt;() {
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> ExecutionContext.Tag&lt;String, Void&gt; KEY_TAG = <strong class="jxr_keyword">new</strong> ExecutionContext.Tag&lt;String, Void&gt;() {
 <a class="jxr_linenumber" name="L64" href="#L64">64</a>      @Override
 <a class="jxr_linenumber" name="L65" href="#L65">65</a>      <strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="L66" href="#L66">66</a>        <strong class="jxr_keyword">return</strong> <span class="jxr_string">"KEY"</span>;
@@ -140,7 +140,7 @@
 <a class="jxr_linenumber" name="L132" href="#L132">132</a> 
 <a class="jxr_linenumber" name="L133" href="#L133">133</a>      <strong class="jxr_keyword">try</strong> (ExecutionContext start = ExecutionContexts.start(10, TimeUnit.SECONDS)) {
 <a class="jxr_linenumber" name="L134" href="#L134">134</a> 
-<a class="jxr_linenumber" name="L135" href="#L135">135</a>       Tag&lt;String&gt; tag = <strong class="jxr_keyword">new</strong> ExecutionContext.Tag&lt;String&gt;() {
+<a class="jxr_linenumber" name="L135" href="#L135">135</a>       Tag&lt;String, Void&gt; tag = <strong class="jxr_keyword">new</strong> ExecutionContext.Tag&lt;String, Void&gt;() {
 <a class="jxr_linenumber" name="L136" href="#L136">136</a>         @Override
 <a class="jxr_linenumber" name="L137" href="#L137">137</a>         <strong class="jxr_keyword">public</strong> String toString() {
 <a class="jxr_linenumber" name="L138" href="#L138">138</a>           <strong class="jxr_keyword">return</strong>  <span class="jxr_string">"mine"</span>;
@@ -171,11 +171,22 @@
 <a class="jxr_linenumber" name="L163" href="#L163">163</a> 
 <a class="jxr_linenumber" name="L164" href="#L164">164</a>   }
 <a class="jxr_linenumber" name="L165" href="#L165">165</a> 
-<a class="jxr_linenumber" name="L166" href="#L166">166</a> 
-<a class="jxr_linenumber" name="L167" href="#L167">167</a> 
-<a class="jxr_linenumber" name="L168" href="#L168">168</a> }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>   @Test
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testContextInheritance() {
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>     <strong class="jxr_keyword">try</strong> (ExecutionContext start = ExecutionContexts.start(<span class="jxr_string">"test"</span>, 10, TimeUnit.SECONDS)) {
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>       start.put(KEY_TAG, <span class="jxr_string">"bla"</span>);
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>       ExecutionContext detachedChild = start.detachedChild(<span class="jxr_string">"detached"</span>);
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>       <strong class="jxr_keyword">try</strong> (ExecutionContext start2 = ExecutionContexts.start(<span class="jxr_string">"test"</span>, detachedChild, 10, TimeUnit.SECONDS)) {
+<a class="jxr_linenumber" name="L172" href="#L172">172</a>         Assert.assertEquals(<span class="jxr_string">"bla"</span>, start2.get(KEY_TAG));
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>       }
+<a class="jxr_linenumber" name="L174" href="#L174">174</a>     }
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>   }
+<a class="jxr_linenumber" name="L176" href="#L176">176</a> 
+<a class="jxr_linenumber" name="L177" href="#L177">177</a> 
+<a class="jxr_linenumber" name="L178" href="#L178">178</a> 
+<a class="jxr_linenumber" name="L179" href="#L179">179</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

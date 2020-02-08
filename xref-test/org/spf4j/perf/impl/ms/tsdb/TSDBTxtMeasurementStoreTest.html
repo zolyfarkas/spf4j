@@ -52,37 +52,38 @@
 <a class="jxr_linenumber" name="L44" href="#L44">44</a>  <strong class="jxr_keyword">import</strong> org.slf4j.Logger;
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  <strong class="jxr_keyword">import</strong> org.slf4j.LoggerFactory;
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>  <strong class="jxr_keyword">import</strong> org.spf4j.perf.impl.MeasurementsInfoImpl;
-<a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>  <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
-<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment"> */</em>
-<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/spf4j/perf/impl/ms/tsdb/TSDBTxtMeasurementStoreTest.html">TSDBTxtMeasurementStoreTest</a> {
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>  
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(TSDBTxtMeasurementStoreTest.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>  
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>    @Test
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCreateAppend() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>      Path tmpFile = Paths.get(org.spf4j.base.Runtime.TMP_FOLDER, <span class="jxr_string">"testM.txt"</span>);
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>      File file = tmpFile.toFile();
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>      TSDBTxtMeasurementStore store = <strong class="jxr_keyword">new</strong> TSDBTxtMeasurementStore(file);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>      <strong class="jxr_keyword">long</strong> id = store.alocateMeasurements(<strong class="jxr_keyword">new</strong> MeasurementsInfoImpl(<span class="jxr_string">"test"</span>, <span class="jxr_string">"bla"</span>,
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>              <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>}, <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"ms"</span>, <span class="jxr_string">"ms"</span>}), 10000);
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>      store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>      store.close();
-<a class="jxr_linenumber" name="L64" href="#L64">64</a>      String content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
-<a class="jxr_linenumber" name="L65" href="#L65">65</a>      LOG.debug(<span class="jxr_string">"File Content: {}"</span>, content);
-<a class="jxr_linenumber" name="L66" href="#L66">66</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,3,b,4"</span>));
-<a class="jxr_linenumber" name="L67" href="#L67">67</a>      TSDBTxtMeasurementStore store2 = <strong class="jxr_keyword">new</strong> TSDBTxtMeasurementStore(file);
-<a class="jxr_linenumber" name="L68" href="#L68">68</a>      store2.saveMeasurements(id, System.currentTimeMillis(), 5L, 6L);
-<a class="jxr_linenumber" name="L69" href="#L69">69</a>      store2.close();
-<a class="jxr_linenumber" name="L70" href="#L70">70</a>      content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
-<a class="jxr_linenumber" name="L71" href="#L71">71</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,3,b,4"</span>));
-<a class="jxr_linenumber" name="L72" href="#L72">72</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,5,b,6"</span>));
-<a class="jxr_linenumber" name="L73" href="#L73">73</a>    }
-<a class="jxr_linenumber" name="L74" href="#L74">74</a>  
-<a class="jxr_linenumber" name="L75" href="#L75">75</a>  }
+<a class="jxr_linenumber" name="L47" href="#L47">47</a>  <strong class="jxr_keyword">import</strong> org.spf4j.tsdb2.avro.MeasurementType;
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>  
+<a class="jxr_linenumber" name="L49" href="#L49">49</a>  <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L50" href="#L50">50</a>  <em class="jxr_javadoccomment"> * @author zoly</em>
+<a class="jxr_linenumber" name="L51" href="#L51">51</a>  <em class="jxr_javadoccomment"> */</em>
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">class</strong> <a href="../../../../../../org/spf4j/perf/impl/ms/tsdb/TSDBTxtMeasurementStoreTest.html">TSDBTxtMeasurementStoreTest</a> {
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>  
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>    <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Logger LOG = LoggerFactory.getLogger(TSDBTxtMeasurementStoreTest.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>  
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>    @Test
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testCreateAppend() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>      Path tmpFile = Paths.get(org.spf4j.base.Runtime.TMP_FOLDER, <span class="jxr_string">"testM.txt"</span>);
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>      File file = tmpFile.toFile();
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>      TSDBTxtMeasurementStore store = <strong class="jxr_keyword">new</strong> TSDBTxtMeasurementStore(file);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>      <strong class="jxr_keyword">long</strong> id = store.alocateMeasurements(<strong class="jxr_keyword">new</strong> MeasurementsInfoImpl(<span class="jxr_string">"test"</span>, <span class="jxr_string">"bla"</span>,
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>              <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"a"</span>, <span class="jxr_string">"b"</span>}, <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"ms"</span>, <span class="jxr_string">"ms"</span>}, MeasurementType.GAUGE), 10000);
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>      store.saveMeasurements(id, System.currentTimeMillis(), 3L, 4L);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>      store.close();
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      String content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>      LOG.debug(<span class="jxr_string">"File Content: {}"</span>, content);
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,3,b,4"</span>));
+<a class="jxr_linenumber" name="L68" href="#L68">68</a>      TSDBTxtMeasurementStore store2 = <strong class="jxr_keyword">new</strong> TSDBTxtMeasurementStore(file);
+<a class="jxr_linenumber" name="L69" href="#L69">69</a>      store2.saveMeasurements(id, System.currentTimeMillis(), 5L, 6L);
+<a class="jxr_linenumber" name="L70" href="#L70">70</a>      store2.close();
+<a class="jxr_linenumber" name="L71" href="#L71">71</a>      content = Files.lines(tmpFile, StandardCharsets.UTF_8).collect(Collectors.joining(<span class="jxr_string">"\n"</span>));
+<a class="jxr_linenumber" name="L72" href="#L72">72</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,3,b,4"</span>));
+<a class="jxr_linenumber" name="L73" href="#L73">73</a>      Assert.assertThat(content, Matchers.containsString(<span class="jxr_string">"a,5,b,6"</span>));
+<a class="jxr_linenumber" name="L74" href="#L74">74</a>    }
+<a class="jxr_linenumber" name="L75" href="#L75">75</a>  
+<a class="jxr_linenumber" name="L76" href="#L76">76</a>  }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

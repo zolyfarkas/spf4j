@@ -154,7 +154,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
 
     private final List&lt;TimedSupplier&lt;? extends PartialExceptionRetryPredicate&lt;T, C&gt;&gt;&gt; exceptionPredicates;
 
-    private int nrInitialRetries;
+    private int nrInitialImmediateRetries;
 
     private long startDelayNanos;
 
@@ -165,7 +165,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
     private Logger log;
 
 <span class="fc" id="L167">    private Builder() {</span>
-<span class="fc" id="L168">      this.nrInitialRetries = DEFAULT_INITIAL_NODELAY_RETRIES;</span>
+<span class="fc" id="L168">      this.nrInitialImmediateRetries = DEFAULT_INITIAL_NODELAY_RETRIES;</span>
 <span class="fc" id="L169">      this.startDelayNanos = DEFAULT_INITIAL_DELAY_NANOS;</span>
 <span class="fc" id="L170">      this.maxDelayNanos = DEFAULT_MAX_DELAY_NANOS;</span>
 <span class="fc" id="L171">      this.jitterFactor = 0.2;</span>
@@ -175,7 +175,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
 <span class="fc" id="L175">    }</span>
 
 <span class="nc" id="L177">    private Builder(final Builder from) {</span>
-<span class="nc" id="L178">      this.nrInitialRetries = from.nrInitialRetries;</span>
+<span class="nc" id="L178">      this.nrInitialImmediateRetries = from.nrInitialImmediateRetries;</span>
 <span class="nc" id="L179">      this.startDelayNanos = from.startDelayNanos;</span>
 <span class="nc" id="L180">      this.maxDelayNanos = from.maxDelayNanos;</span>
 <span class="nc" id="L181">      this.jitterFactor = from.jitterFactor;</span>
@@ -342,50 +342,59 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
 <span class="nc" id="L342">      return this;</span>
     }
 
+    /**
+     * @deprecated use withInitialImmediateRetries instead.
+     */
+    @Deprecated
     public Builder&lt;T, C&gt; withInitialRetries(final int retries) {
-<span class="nc" id="L346">      this.nrInitialRetries = retries;</span>
-<span class="nc" id="L347">      return this;</span>
+<span class="nc" id="L350">      this.nrInitialImmediateRetries = retries;</span>
+<span class="nc" id="L351">      return this;</span>
+    }
+
+    public Builder&lt;T, C&gt; withInitialImmediateRetries(final int retries) {
+<span class="nc" id="L355">      this.nrInitialImmediateRetries = retries;</span>
+<span class="nc" id="L356">      return this;</span>
     }
 
     public Builder&lt;T, C&gt; withInitialDelay(final long delay, final TimeUnit unit) {
-<span class="nc" id="L351">      this.startDelayNanos = unit.toNanos(delay);</span>
-<span class="nc" id="L352">      return this;</span>
+<span class="nc" id="L360">      this.startDelayNanos = unit.toNanos(delay);</span>
+<span class="nc" id="L361">      return this;</span>
     }
 
     public Builder&lt;T, C&gt; withMaxDelay(final long delay, final TimeUnit unit) {
-<span class="nc" id="L356">      this.maxDelayNanos = unit.toNanos(delay);</span>
-<span class="nc" id="L357">      return this;</span>
+<span class="nc" id="L365">      this.maxDelayNanos = unit.toNanos(delay);</span>
+<span class="nc" id="L366">      return this;</span>
     }
 
     public Builder&lt;T, C&gt; withMaxExceptionChain(final int maxExChain) {
-<span class="nc" id="L361">      maxExceptionChain = maxExChain;</span>
-<span class="nc" id="L362">      return this;</span>
+<span class="nc" id="L370">      maxExceptionChain = maxExChain;</span>
+<span class="nc" id="L371">      return this;</span>
     }
 
     @CheckReturnValue
     public Builder&lt;T, C&gt; copy() {
-<span class="nc" id="L367">      return new Builder&lt;&gt;(this);</span>
+<span class="nc" id="L376">      return new Builder&lt;&gt;(this);</span>
     }
 
     @CheckReturnValue
     public RetryPolicy&lt;T, C&gt; build() {
-<span class="fc" id="L372">      TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);</span>
-<span class="fc" id="L373">      TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);</span>
-<span class="fc" id="L374">      TimedSupplier&lt;RetryPredicate&lt;T, C&gt;&gt; retryPredicate</span>
-<span class="fc" id="L375">              = (s, e) -&gt; new DefaultRetryPredicate(log, s, e, () -&gt; new TypeBasedRetryDelaySupplier&lt;&gt;(</span>
-<span class="fc" id="L376">              (x) -&gt; new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialRetries,</span>
+<span class="fc" id="L381">      TimedSupplier[] rps = resultPredicates.toArray(new TimedSupplier[resultPredicates.size()]);</span>
+<span class="fc" id="L382">      TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);</span>
+<span class="fc" id="L383">      TimedSupplier&lt;RetryPredicate&lt;T, C&gt;&gt; retryPredicate</span>
+<span class="fc" id="L384">              = (s, e) -&gt; new DefaultRetryPredicate(log, s, e, () -&gt; new TypeBasedRetryDelaySupplier&lt;&gt;(</span>
+<span class="fc" id="L385">              (x) -&gt; new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialImmediateRetries,</span>
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
-<span class="fc" id="L378">      return new RetryPolicy&lt;&gt;(retryPredicate, maxExceptionChain);</span>
+<span class="fc" id="L387">      return new RetryPolicy&lt;&gt;(retryPredicate, maxExceptionChain);</span>
     }
 
     @CheckReturnValue
     public AsyncRetryExecutor&lt;T, C&gt; buildAsync() {
-<span class="fc" id="L383">      return buildAsync(DefaultFailSafeExecutor.instance());</span>
+<span class="fc" id="L392">      return buildAsync(DefaultFailSafeExecutor.instance());</span>
     }
 
     @CheckReturnValue
     public AsyncRetryExecutor&lt;T, C&gt; buildAsync(final FailSafeExecutor es) {
-<span class="fc" id="L388">       return build().async(es);</span>
+<span class="fc" id="L397">       return build().async(es);</span>
     }
 
   }
@@ -399,7 +408,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
    */
   @CheckReturnValue
   public static &lt;T, C extends Callable&lt;? extends T&gt;&gt; Builder&lt;T, C&gt; newBuilder() {
-<span class="fc" id="L402">    return new Builder&lt;&gt;();</span>
+<span class="fc" id="L411">    return new Builder&lt;&gt;();</span>
   }
 
   /**
@@ -411,7 +420,7 @@ public class RetryPolicy&lt;T, C extends Callable&lt;? extends T&gt;&gt; impleme
    */
   @CheckReturnValue
   public static &lt;T, C extends Callable&lt;? extends T&gt;&gt; Builder&lt;T, C&gt; newBuilder(final Builder&lt;T, C&gt; builder) {
-<span class="nc" id="L414">    return new Builder&lt;&gt;(builder);</span>
+<span class="nc" id="L423">    return new Builder&lt;&gt;(builder);</span>
   }
 
 }

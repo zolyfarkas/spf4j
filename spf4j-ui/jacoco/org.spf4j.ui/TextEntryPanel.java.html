@@ -24,6 +24,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
@@ -63,13 +64,13 @@ public class TextEntryPanel extends javax.swing.JPanel {
    * Creates new form TextEntryPanel
    */
   public TextEntryPanel(final BiConsumer&lt;String, SampleNode&gt; nodeConsumer,
-<span class="nc" id="L66">          final Consumer&lt;Exception&gt; errorConsumer) {</span>
-<span class="nc" id="L67">    initComponents();</span>
-<span class="nc" id="L68">    this.nodeConsumer = nodeConsumer;</span>
-<span class="nc" id="L69">    this.errorConsumer = errorConsumer;</span>
-<span class="nc" id="L70">    TextTransferHandler th = new TextTransferHandler();</span>
-<span class="nc" id="L71">    jTextPane1.setTransferHandler(th);</span>
-<span class="nc" id="L72">  }</span>
+<span class="nc" id="L67">          final Consumer&lt;Exception&gt; errorConsumer) {</span>
+<span class="nc" id="L68">    initComponents();</span>
+<span class="nc" id="L69">    this.nodeConsumer = nodeConsumer;</span>
+<span class="nc" id="L70">    this.errorConsumer = errorConsumer;</span>
+<span class="nc" id="L71">    TextTransferHandler th = new TextTransferHandler();</span>
+<span class="nc" id="L72">    jTextPane1.setTransferHandler(th);</span>
+<span class="nc" id="L73">  }</span>
 
   /**
    * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
@@ -79,98 +80,98 @@ public class TextEntryPanel extends javax.swing.JPanel {
   // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
   private void initComponents() {
 
-<span class="nc" id="L82">    jScrollPane1 = new javax.swing.JScrollPane();</span>
-<span class="nc" id="L83">    jTextPane1 = new javax.swing.JTextPane();</span>
-<span class="nc" id="L84">    javax.swing.JButton display = new javax.swing.JButton();</span>
+<span class="nc" id="L83">    jScrollPane1 = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L84">    jTextPane1 = new javax.swing.JTextPane();</span>
+<span class="nc" id="L85">    javax.swing.JButton display = new javax.swing.JButton();</span>
 
-<span class="nc" id="L86">    jTextPane1.setText(&quot;Enter stack sample json represetation or url to retrieve Log Records containing stack samples ( https://demo.spf4j.org/logs/cluster?filter=log.stackSamples.length!=0 )&quot;);</span>
-<span class="nc" id="L87">    jTextPane1.setName(&quot;textBox&quot;); // NOI18N</span>
-<span class="nc" id="L88">    jTextPane1.setOpaque(false);</span>
-<span class="nc" id="L89">    jTextPane1.setRequestFocusEnabled(false);</span>
-<span class="nc" id="L90">    jScrollPane1.setViewportView(jTextPane1);</span>
+<span class="nc" id="L87">    jTextPane1.setText(&quot;Enter stack sample json represetation or url to retrieve Log Records containing stack samples ( https://demo.spf4j.org/logs/cluster?filter=log.stackSamples.length!=0 )&quot;);</span>
+<span class="nc" id="L88">    jTextPane1.setName(&quot;textBox&quot;); // NOI18N</span>
+<span class="nc" id="L89">    jTextPane1.setOpaque(false);</span>
+<span class="nc" id="L90">    jTextPane1.setRequestFocusEnabled(false);</span>
+<span class="nc" id="L91">    jScrollPane1.setViewportView(jTextPane1);</span>
 
-<span class="nc" id="L92">    display.setText(&quot;Display&quot;);</span>
-<span class="nc" id="L93">    display.setName(&quot;display&quot;); // NOI18N</span>
-<span class="nc" id="L94">    display.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L93">    display.setText(&quot;Display&quot;);</span>
+<span class="nc" id="L94">    display.setName(&quot;display&quot;); // NOI18N</span>
+<span class="nc" id="L95">    display.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L96">        displayActionPerformed(evt);</span>
-<span class="nc" id="L97">      }</span>
+<span class="nc" id="L97">        displayActionPerformed(evt);</span>
+<span class="nc" id="L98">      }</span>
     });
 
-<span class="nc" id="L100">    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);</span>
-<span class="nc" id="L101">    this.setLayout(layout);</span>
-<span class="nc" id="L102">    layout.setHorizontalGroup(</span>
-<span class="nc" id="L103">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
-<span class="nc" id="L104">      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()</span>
-<span class="nc" id="L105">        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)</span>
-<span class="nc" id="L106">        .addContainerGap())</span>
-<span class="nc" id="L107">      .addGroup(layout.createSequentialGroup()</span>
-<span class="nc" id="L108">        .addGap(152, 152, 152)</span>
-<span class="nc" id="L109">        .addComponent(display)</span>
-<span class="nc" id="L110">        .addContainerGap(186, Short.MAX_VALUE))</span>
+<span class="nc" id="L101">    javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);</span>
+<span class="nc" id="L102">    this.setLayout(layout);</span>
+<span class="nc" id="L103">    layout.setHorizontalGroup(</span>
+<span class="nc" id="L104">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
+<span class="nc" id="L105">      .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()</span>
+<span class="nc" id="L106">        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)</span>
+<span class="nc" id="L107">        .addContainerGap())</span>
+<span class="nc" id="L108">      .addGroup(layout.createSequentialGroup()</span>
+<span class="nc" id="L109">        .addGap(152, 152, 152)</span>
+<span class="nc" id="L110">        .addComponent(display)</span>
+<span class="nc" id="L111">        .addContainerGap(186, Short.MAX_VALUE))</span>
     );
-<span class="nc" id="L112">    layout.setVerticalGroup(</span>
-<span class="nc" id="L113">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
-<span class="nc" id="L114">      .addGroup(layout.createSequentialGroup()</span>
-<span class="nc" id="L115">        .addContainerGap()</span>
-<span class="nc" id="L116">        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)</span>
-<span class="nc" id="L117">        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
-<span class="nc" id="L118">        .addComponent(display)</span>
-<span class="nc" id="L119">        .addContainerGap())</span>
+<span class="nc" id="L113">    layout.setVerticalGroup(</span>
+<span class="nc" id="L114">      layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)</span>
+<span class="nc" id="L115">      .addGroup(layout.createSequentialGroup()</span>
+<span class="nc" id="L116">        .addContainerGap()</span>
+<span class="nc" id="L117">        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L118">        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
+<span class="nc" id="L119">        .addComponent(display)</span>
+<span class="nc" id="L120">        .addContainerGap())</span>
     );
-<span class="nc" id="L121">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+<span class="nc" id="L122">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
 
   public static Object readAvroBin(final InputStream input, final Schema writerSchema)
           throws IOException {
-<span class="nc" id="L125">    DatumReader reader = new SpecificDatumReader(writerSchema);</span>
-<span class="nc" id="L126">    DecoderFactory decoderFactory = DecoderFactory.get();</span>
-<span class="nc" id="L127">    Decoder decoder = decoderFactory.binaryDecoder(input, null);</span>
-<span class="nc" id="L128">    return reader.read(null, decoder);</span>
+<span class="nc" id="L126">    DatumReader reader = new SpecificDatumReader(writerSchema);</span>
+<span class="nc" id="L127">    DecoderFactory decoderFactory = DecoderFactory.get();</span>
+<span class="nc" id="L128">    Decoder decoder = decoderFactory.binaryDecoder(input, null);</span>
+<span class="nc" id="L129">    return reader.read(null, decoder);</span>
   }
 
 
   @SuppressFBWarnings({&quot;UP_UNUSED_PARAMETER&quot;, &quot;URLCONNECTION_SSRF_FD&quot;})
   private void displayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayActionPerformed
     try {
-<span class="nc" id="L135">      String text = jTextPane1.getText().trim();</span>
-<span class="nc bnc" id="L136" title="All 2 branches missed.">      if (text.startsWith(&quot;http&quot;)) {</span>
-<span class="nc" id="L137">        URL url = new URL(text);</span>
-<span class="nc" id="L138">        URLConnection conn = url.openConnection();</span>
-<span class="nc" id="L139">        conn.setRequestProperty(&quot;Accept&quot;, &quot;application/avro&quot;);</span>
-<span class="nc" id="L140">        conn.connect();</span>
-<span class="nc" id="L141">        String contentType = conn.getContentType();</span>
-<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (!&quot;application/avro&quot;.equals(contentType)) {</span>
-<span class="nc" id="L143">          throw new IOException(&quot;Unsupported content type &quot; + contentType);</span>
+<span class="nc" id="L136">      String text = jTextPane1.getText().trim();</span>
+<span class="nc bnc" id="L137" title="All 2 branches missed.">      if (text.startsWith(&quot;http&quot;)) {</span>
+<span class="nc" id="L138">        URL url = new URL(text);</span>
+<span class="nc" id="L139">        URLConnection conn = url.openConnection();</span>
+<span class="nc" id="L140">        conn.setRequestProperty(&quot;Accept&quot;, &quot;application/avro&quot;);</span>
+<span class="nc" id="L141">        conn.connect();</span>
+<span class="nc" id="L142">        String contentType = conn.getContentType();</span>
+<span class="nc bnc" id="L143" title="All 2 branches missed.">        if (!&quot;application/avro&quot;.equals(contentType)) {</span>
+<span class="nc" id="L144">          throw new IOException(&quot;Unsupported content type &quot; + contentType);</span>
         }
-<span class="nc" id="L145">        try (InputStream is = new BufferedInputStream(conn.getInputStream())) {</span>
-<span class="nc" id="L146">          List&lt;LogRecord&gt; recs =</span>
-<span class="nc" id="L147">                  (List&lt;LogRecord&gt;) readAvroBin(is, Schema.createArray(LogRecord.SCHEMA$));</span>
-<span class="nc bnc" id="L148" title="All 2 branches missed.">          for (LogRecord rec : recs) {</span>
-<span class="nc" id="L149">            List&lt;StackSampleElement&gt; stackSamples = rec.getStackSamples();</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">            if (!stackSamples.isEmpty()) {</span>
-<span class="nc" id="L151">              nodeConsumer.accept(rec.getMsg() + &quot;; with trId=&quot; + rec.getTrId(),</span>
-<span class="nc" id="L152">                      Converter.convert(stackSamples.iterator()));</span>
+<span class="nc" id="L146">        try (InputStream is = new BufferedInputStream(conn.getInputStream())) {</span>
+<span class="nc" id="L147">          List&lt;LogRecord&gt; recs =</span>
+<span class="nc" id="L148">                  (List&lt;LogRecord&gt;) readAvroBin(is, Schema.createArray(LogRecord.SCHEMA$));</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">          for (LogRecord rec : recs) {</span>
+<span class="nc" id="L150">            List&lt;StackSampleElement&gt; stackSamples = rec.getStackSamples();</span>
+<span class="nc bnc" id="L151" title="All 2 branches missed.">            if (!stackSamples.isEmpty()) {</span>
+<span class="nc" id="L152">              nodeConsumer.accept(rec.getMsg() + &quot;; with trId=&quot; + rec.getTrId(),</span>
+<span class="nc" id="L153">                      Converter.convert(stackSamples.iterator()));</span>
             }
-<span class="nc" id="L154">          }</span>
+<span class="nc" id="L155">          }</span>
         }
-<span class="nc bnc" id="L156" title="All 2 branches missed.">      } else if (text.startsWith(&quot;[&quot;)) {</span>
-<span class="nc" id="L157">        Schema schema = Schema.createArray(StackSampleElement.getClassSchema());</span>
-<span class="nc" id="L158">        DatumReader reader = new SpecificDatumReader(schema);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">      } else if (text.startsWith(&quot;[&quot;)) {</span>
+<span class="nc" id="L158">        Schema schema = Schema.createArray(StackSampleElement.getClassSchema());</span>
+<span class="nc" id="L159">        DatumReader reader = new SpecificDatumReader(schema);</span>
         List&lt;StackSampleElement&gt; samples;
         try {
-<span class="nc" id="L161">          Decoder decoder = DecoderFactory.get().jsonDecoder(schema, text);</span>
-<span class="nc" id="L162">          samples = (List&lt;StackSampleElement&gt;) reader.read(null, decoder);</span>
-<span class="nc" id="L163">        } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L164">          throw new RuntimeException(&quot;Unable to read samples: &quot; + text, ex);</span>
-<span class="nc" id="L165">        }</span>
-<span class="nc" id="L166">        nodeConsumer.accept(&quot;SampleNode Array&quot;, Converter.convert(samples.iterator()));</span>
-<span class="nc" id="L167">      } else {</span>
-<span class="nc" id="L168">        nodeConsumer.accept(&quot;SampleNode Tree&quot;, SampleNode.parse(new StringReader(text)).getSecond());</span>
+<span class="nc" id="L162">          Decoder decoder = DecoderFactory.get().jsonDecoder(schema, text);</span>
+<span class="nc" id="L163">          samples = (List&lt;StackSampleElement&gt;) reader.read(null, decoder);</span>
+<span class="nc" id="L164">        } catch (IOException ex) {</span>
+<span class="nc" id="L165">          throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L166">        }</span>
+<span class="nc" id="L167">        nodeConsumer.accept(&quot;SampleNode Array&quot;, Converter.convert(samples.iterator()));</span>
+<span class="nc" id="L168">      } else {</span>
+<span class="nc" id="L169">        nodeConsumer.accept(&quot;SampleNode Tree&quot;, SampleNode.parse(new StringReader(text)).getSecond());</span>
       }
-<span class="nc" id="L170">    } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L171">      errorConsumer.accept(ex);</span>
-<span class="nc" id="L172">    }</span>
-<span class="nc" id="L173">  }//GEN-LAST:event_displayActionPerformed</span>
+<span class="nc" id="L171">    } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L172">      errorConsumer.accept(ex);</span>
+<span class="nc" id="L173">    }</span>
+<span class="nc" id="L174">  }//GEN-LAST:event_displayActionPerformed</span>
 
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -178,35 +179,35 @@ public class TextEntryPanel extends javax.swing.JPanel {
   private javax.swing.JTextPane jTextPane1;
   // End of variables declaration//GEN-END:variables
 
-<span class="nc" id="L181">  private static final class TextTransferHandler extends TransferHandler {</span>
+<span class="nc" id="L182">  private static final class TextTransferHandler extends TransferHandler {</span>
     // Start and end position in the source text.
     // We need this information when performing a MOVE
     // in order to remove the dragged text from the source.
 
-<span class="nc" id="L186">    Position p0 = null, p1 = null;</span>
+<span class="nc" id="L187">    Position p0 = null, p1 = null;</span>
 
     /**
      * Perform the actual import. This method supports both drag and drop and cut/copy/paste.
      */
     public boolean importData(TransferHandler.TransferSupport support) {
       // If we can't handle the import, bail now.
-<span class="nc bnc" id="L193" title="All 2 branches missed.">      if (!canImport(support)) {</span>
-<span class="nc" id="L194">        return false;</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">      if (!canImport(support)) {</span>
+<span class="nc" id="L195">        return false;</span>
       }
 
       // Fetch the data -- bail if this fails
       String data;
       try {
-<span class="nc" id="L200">        data = (String) support.getTransferable().getTransferData(</span>
+<span class="nc" id="L201">        data = (String) support.getTransferable().getTransferData(</span>
                 DataFlavor.stringFlavor);
-<span class="nc" id="L202">      } catch (UnsupportedFlavorException | IOException e) {</span>
-<span class="nc" id="L203">        Logger.getLogger(TextEntryPanel.class.getName()).log(Level.WARNING, &quot;Exception encountered&quot;, e);</span>
-<span class="nc" id="L204">        return false;</span>
-<span class="nc" id="L205">      }</span>
+<span class="nc" id="L203">      } catch (UnsupportedFlavorException | IOException e) {</span>
+<span class="nc" id="L204">        Logger.getLogger(TextEntryPanel.class.getName()).log(Level.WARNING, &quot;Exception encountered&quot;, e);</span>
+<span class="nc" id="L205">        return false;</span>
+<span class="nc" id="L206">      }</span>
 
-<span class="nc" id="L207">      javax.swing.JTextPane tc = (javax.swing.JTextPane) support.getComponent();</span>
-<span class="nc" id="L208">      tc.replaceSelection(data);</span>
-<span class="nc" id="L209">      return true;</span>
+<span class="nc" id="L208">      javax.swing.JTextPane tc = (javax.swing.JTextPane) support.getComponent();</span>
+<span class="nc" id="L209">      tc.replaceSelection(data);</span>
+<span class="nc" id="L210">      return true;</span>
     }
 
     /**
@@ -214,58 +215,58 @@ public class TextEntryPanel extends javax.swing.JPanel {
      */
     @Nullable
     protected Transferable createTransferable(JComponent c) {
-<span class="nc" id="L217">      javax.swing.JTextPane source = (javax.swing.JTextPane) c;</span>
-<span class="nc" id="L218">      int start = source.getSelectionStart();</span>
-<span class="nc" id="L219">      int end = source.getSelectionEnd();</span>
-<span class="nc" id="L220">      Document doc = source.getDocument();</span>
-<span class="nc bnc" id="L221" title="All 2 branches missed.">      if (start == end) {</span>
-<span class="nc" id="L222">        return null;</span>
+<span class="nc" id="L218">      javax.swing.JTextPane source = (javax.swing.JTextPane) c;</span>
+<span class="nc" id="L219">      int start = source.getSelectionStart();</span>
+<span class="nc" id="L220">      int end = source.getSelectionEnd();</span>
+<span class="nc" id="L221">      Document doc = source.getDocument();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">      if (start == end) {</span>
+<span class="nc" id="L223">        return null;</span>
       }
       try {
-<span class="nc" id="L225">        p0 = doc.createPosition(start);</span>
-<span class="nc" id="L226">        p1 = doc.createPosition(end);</span>
-<span class="nc" id="L227">      } catch (BadLocationException e) {</span>
-<span class="nc" id="L228">        throw new RuntimeException(e);</span>
-<span class="nc" id="L229">      }</span>
-<span class="nc" id="L230">      String data = source.getSelectedText();</span>
-<span class="nc" id="L231">      return new StringSelection(data);</span>
+<span class="nc" id="L226">        p0 = doc.createPosition(start);</span>
+<span class="nc" id="L227">        p1 = doc.createPosition(end);</span>
+<span class="nc" id="L228">      } catch (BadLocationException e) {</span>
+<span class="nc" id="L229">        throw new RuntimeException(e);</span>
+<span class="nc" id="L230">      }</span>
+<span class="nc" id="L231">      String data = source.getSelectedText();</span>
+<span class="nc" id="L232">      return new StringSelection(data);</span>
     }
 
     /**
      * These text fields handle both copy and move actions.
      */
     public int getSourceActions(JComponent c) {
-<span class="nc" id="L238">      return COPY_OR_MOVE;</span>
+<span class="nc" id="L239">      return COPY_OR_MOVE;</span>
     }
 
     /**
      * When the export is complete, remove the old text if the action was a move.
      */
     protected void exportDone(JComponent c, Transferable data, int action) {
-<span class="nc bnc" id="L245" title="All 2 branches missed.">      if (action != MOVE) {</span>
-<span class="nc" id="L246">        return;</span>
+<span class="nc bnc" id="L246" title="All 2 branches missed.">      if (action != MOVE) {</span>
+<span class="nc" id="L247">        return;</span>
       }
 
-<span class="nc bnc" id="L249" title="All 6 branches missed.">      if ((p0 != null) &amp;&amp; (p1 != null) &amp;&amp; (p0.getOffset() != p1.getOffset())) {</span>
+<span class="nc bnc" id="L250" title="All 6 branches missed.">      if ((p0 != null) &amp;&amp; (p1 != null) &amp;&amp; (p0.getOffset() != p1.getOffset())) {</span>
         try {
-<span class="nc" id="L251">          JTextComponent tc = (JTextComponent) c;</span>
-<span class="nc" id="L252">          tc.getDocument()</span>
-<span class="nc" id="L253">                  .remove(p0.getOffset(), p1.getOffset() - p0.getOffset());</span>
-<span class="nc" id="L254">        } catch (BadLocationException e) {</span>
-<span class="nc" id="L255">          throw new RuntimeException(e);</span>
-<span class="nc" id="L256">        }</span>
+<span class="nc" id="L252">          JTextComponent tc = (JTextComponent) c;</span>
+<span class="nc" id="L253">          tc.getDocument()</span>
+<span class="nc" id="L254">                  .remove(p0.getOffset(), p1.getOffset() - p0.getOffset());</span>
+<span class="nc" id="L255">        } catch (BadLocationException e) {</span>
+<span class="nc" id="L256">          throw new RuntimeException(e);</span>
+<span class="nc" id="L257">        }</span>
       }
-<span class="nc" id="L258">    }</span>
+<span class="nc" id="L259">    }</span>
 
     /**
      * We only support importing strings.
      */
     public boolean canImport(TransferHandler.TransferSupport support) {
       // we only import Strings
-<span class="nc bnc" id="L265" title="All 2 branches missed.">      if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {</span>
-<span class="nc" id="L266">        return false;</span>
+<span class="nc bnc" id="L266" title="All 2 branches missed.">      if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {</span>
+<span class="nc" id="L267">        return false;</span>
       }
-<span class="nc" id="L268">      return true;</span>
+<span class="nc" id="L269">      return true;</span>
     }
   }
 

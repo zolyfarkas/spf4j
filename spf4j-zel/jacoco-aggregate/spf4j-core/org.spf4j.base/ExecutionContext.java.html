@@ -66,52 +66,46 @@ import org.spf4j.log.Slf4jLogRecord;
 @ParametersAreNonnullByDefault
 public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
-  public interface Tag&lt;T&gt; {
+  public interface SimpleTag&lt;T&gt; extends Tag&lt;T, Void&gt; {
+  }
+
+  public interface Tag&lt;T, A&gt; {
 
     String toString();
 
-    default boolean pushOnClose(final Relation relation) {
-<span class="fc" id="L74">      return false;</span>
+    /**
+     * if true, a child execution context will check parent execution contexts
+     * for tag values if not local values exist.
+     */
+    default boolean isInherited(final Relation relation) {
+<span class="fc" id="L81">      return true;</span>
     }
 
-    default T combine(@Nullable final T existing, final T current) {
-<span class="fc" id="L78">      return current;</span>
+    /**
+     * push this tag/values to the parent context when current context is closed.
+     * only child -&gt; parent will be pushed, follows relationships will not be considered.
+     */
+    default boolean pushOnClose() {
+<span class="fc" id="L89">      return false;</span>
+    }
+
+
+    default T accumulate(@Nullable final T existing, final T newVal) {
+<span class="fc" id="L94">      return newVal;</span>
+    }
+
+    default T accumulateComponent(@Nullable final T existing, final A component) {
+<span class="nc" id="L98">      throw new UnsupportedOperationException();</span>
     }
 
   }
 
-<span class="fc" id="L83">  enum Relation {</span>
-<span class="fc" id="L84">    CHILD_OF, FOLLOWS</span>
+<span class="fc" id="L103">  enum Relation {</span>
+<span class="fc" id="L104">    CHILD_OF, FOLLOWS</span>
   }
 
   @DischargesObligation
   void close();
-
-  default void closeAll() {
-<span class="nc" id="L91">    close();</span>
-<span class="nc" id="L92">    ExecutionContext current = this;</span>
-    ExecutionContext notClosedParent;
-<span class="nc bnc" id="L94" title="All 2 branches missed.">    while ((notClosedParent = current.getNotClosedParent()) != null) {</span>
-<span class="nc" id="L95">      notClosedParent.close();</span>
-<span class="nc" id="L96">      current = notClosedParent;</span>
-    }
-<span class="nc" id="L98">  }</span>
-
-  default void closeAllButRoot() {
-<span class="nc bnc" id="L101" title="All 2 branches missed.">    if (this.getSource() == null) {</span>
-<span class="nc" id="L102">      return;</span>
-    }
-<span class="nc" id="L104">    close();</span>
-<span class="nc" id="L105">    ExecutionContext current = this;</span>
-    ExecutionContext notClosedParent;
-<span class="nc bnc" id="L107" title="All 2 branches missed.">    while ((notClosedParent = current.getNotClosedParent()) != null) {</span>
-<span class="nc bnc" id="L108" title="All 2 branches missed.">      if (notClosedParent.getSource() == null) {</span>
-<span class="nc" id="L109">        return;</span>
-      }
-<span class="nc" id="L111">      notClosedParent.close();</span>
-<span class="nc" id="L112">      current = notClosedParent;</span>
-    }
-<span class="nc" id="L114">  }</span>
 
   @Nonnull
   String getName();
@@ -130,12 +124,12 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    * will follow all relationship types.
    */
   default ExecutionContext getRoot() {
-<span class="nc" id="L133">    ExecutionContext curr = this;</span>
+<span class="nc" id="L127">    ExecutionContext curr = this;</span>
     ExecutionContext parent;
-<span class="nc bnc" id="L135" title="All 2 branches missed.">    while ((parent = curr.getSource()) != null) {</span>
-<span class="nc" id="L136">      curr = parent;</span>
+<span class="nc bnc" id="L129" title="All 2 branches missed.">    while ((parent = curr.getSource()) != null) {</span>
+<span class="nc" id="L130">      curr = parent;</span>
     }
-<span class="nc" id="L138">    return curr;</span>
+<span class="nc" id="L132">    return curr;</span>
   }
 
   /**
@@ -143,12 +137,12 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    * follows only CHILD_OF relationships.
    */
   default ExecutionContext getRootParent() {
-<span class="nc" id="L146">    ExecutionContext curr = this;</span>
+<span class="nc" id="L140">    ExecutionContext curr = this;</span>
     ExecutionContext parent;
-<span class="nc bnc" id="L148" title="All 4 branches missed.">    while (curr.getRelationToSource() == Relation.CHILD_OF &amp;&amp; (parent = curr.getSource()) != null) {</span>
-<span class="nc" id="L149">      curr = parent;</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">    while (curr.getRelationToSource() == Relation.CHILD_OF &amp;&amp; (parent = curr.getSource()) != null) {</span>
+<span class="nc" id="L143">      curr = parent;</span>
     }
-<span class="nc" id="L151">    return curr;</span>
+<span class="nc" id="L145">    return curr;</span>
   }
 
   /**
@@ -156,19 +150,19 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   default ExecutionContext getNotClosedParent() {
-<span class="fc" id="L159">    ExecutionContext curr = this;</span>
+<span class="fc" id="L153">    ExecutionContext curr = this;</span>
     ExecutionContext parent;
     do {
-<span class="pc bpc" id="L162" title="1 of 2 branches missed.">      if (curr.getRelationToSource() != Relation.CHILD_OF) {</span>
-<span class="nc" id="L163">        return null;</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">      if (curr.getRelationToSource() != Relation.CHILD_OF) {</span>
+<span class="nc" id="L157">        return null;</span>
       }
-<span class="fc" id="L165">      parent = curr.getSource();</span>
-<span class="pc bpc" id="L166" title="1 of 4 branches missed.">      if (parent == null || !parent.isClosed()) {</span>
-<span class="fc" id="L167">        break;</span>
+<span class="fc" id="L159">      parent = curr.getSource();</span>
+<span class="pc bpc" id="L160" title="1 of 4 branches missed.">      if (parent == null || !parent.isClosed()) {</span>
+<span class="fc" id="L161">        break;</span>
       }
-<span class="nc" id="L169">      curr = parent;</span>
-<span class="nc" id="L170">    } while (true);</span>
-<span class="fc" id="L171">    return parent;</span>
+<span class="nc" id="L163">      curr = parent;</span>
+<span class="nc" id="L164">    } while (true);</span>
+<span class="fc" id="L165">    return parent;</span>
   }
 
   @Beta
@@ -194,7 +188,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   Level getContextMinLogLevel(String loggerName);
 
   default Level getContextMinLogLevel() {
-<span class="nc" id="L197">    return getContextMinLogLevel(&quot;&quot;);</span>
+<span class="nc" id="L191">    return getContextMinLogLevel(&quot;&quot;);</span>
   }
 
   /**
@@ -208,7 +202,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @Nullable
   default Level getBackendMinLogLevel() {
-<span class="fc" id="L211">    return getBackendMinLogLevel(&quot;&quot;);</span>
+<span class="fc" id="L205">    return getBackendMinLogLevel(&quot;&quot;);</span>
   }
 
   @Beta
@@ -217,7 +211,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   @Nullable
   default Level setBackendMinLogLevel(Level level) {
-<span class="nc" id="L220">    return setBackendMinLogLevel(&quot;&quot;, level);</span>
+<span class="nc" id="L214">    return setBackendMinLogLevel(&quot;&quot;, level);</span>
   }
 
   @Beta
@@ -227,55 +221,68 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   void attach();
 
+  boolean isAttached();
 
   @Nonnegative
   default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L233">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L234" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L235">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="fc" id="L228">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L229" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L230">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L237">     return result;</span>
+<span class="fc" id="L232">     return result;</span>
   }
 
   @Nonnegative
   default long getUncheckedTimeToDeadline(final TimeUnit unit) {
-<span class="fc" id="L242">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L243" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L244">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="fc" id="L237">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L238" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L239">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L246">     return result;</span>
+<span class="fc" id="L241">     return result;</span>
   }
 
   @Signed
   default long getTimeRelativeToDeadline(final TimeUnit unit)  {
-<span class="fc" id="L251">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L246">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
   @Nonnegative
   default long getMillisToDeadline() throws TimeoutException {
-<span class="nc" id="L256">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L251">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   @Nonnegative
   default int getSecondsToDeadline() throws TimeoutException {
-<span class="fc" id="L261">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
-<span class="pc bpc" id="L262" title="1 of 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L263">      return Integer.MAX_VALUE;</span>
+<span class="fc" id="L256">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="pc bpc" id="L257" title="1 of 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L258">      return Integer.MAX_VALUE;</span>
     } else {
-<span class="fc" id="L265">      return (int) secondsToDeadline;</span>
+<span class="fc" id="L260">      return (int) secondsToDeadline;</span>
     }
   }
 
   /**
    * Method to get context associated data.
-   * if current context does not have baggage, the parent context is queried.
+   * if current context does not have baggage, the parent context is queried if tag is inherited.
+   * This is done recursively.
    * @param &lt;T&gt; type of data.
    * @param key key of data.
    * @return the data
    */
   @Nullable
   @Beta
-  &lt;T&gt; T get(Tag&lt;T&gt; key);
+  &lt;T&gt; T get(Tag&lt;T, ?&gt; key);
+
+  /**
+   * Method to get context associated data.
+   * will ignore inheritance tag attribute.
+   * @param &lt;T&gt; type of data.
+   * @param key key of data.
+   * @return the data
+   */
+  @Nullable
+  @Beta
+  &lt;T&gt; T getLocal(Tag&lt;T, ?&gt; key);
 
 
   /**
@@ -287,16 +294,25 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  &lt;T&gt; T put(Tag&lt;T&gt; tag, T data);
+  &lt;T&gt; T put(Tag&lt;T, ?&gt; tag, T data);
+
+  /**
+   * @deprecated use accumulate.
+   */
+  @Deprecated
+  default &lt;T&gt; void combine(Tag&lt;T, ?&gt; tag, T data) {
+<span class="fc" id="L304">    accumulate(tag, data);</span>
+<span class="fc" id="L305">  }</span>
 
   @Beta
-  default &lt;T&gt; void combine(Tag&lt;T&gt; tag, T data) {
-<span class="fc" id="L294">    T existing = put(tag, data);</span>
-<span class="fc" id="L295">    T combined = tag.combine(existing, data);</span>
-<span class="pc bpc" id="L296" title="1 of 2 branches missed.">    if (data != combined) {</span>
-<span class="nc" id="L297">      put(tag, combined);</span>
-    }
-<span class="fc" id="L299">  }</span>
+  default &lt;T&gt; void accumulate(Tag&lt;T, ?&gt; tag, T data) {
+<span class="fc" id="L309">    compute(tag, (t, v) -&gt; t.accumulate(v, data));</span>
+<span class="fc" id="L310">  }</span>
+
+  @Beta
+  default &lt;T, A&gt; void accumulateComponent(Tag&lt;T, A&gt; tag, A data) {
+<span class="nc" id="L314">    compute(tag, (t, v) -&gt; t.accumulateComponent(v, data));</span>
+<span class="nc" id="L315">  }</span>
 
   /**
    * Method to put context associated data to the root context.
@@ -307,8 +323,8 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Nullable
   @Beta
-  default &lt;T&gt; T putToRootParent(final Tag&lt;T&gt; key, final T data) {
-<span class="nc" id="L311">    return getRootParent().put(key, data);</span>
+  default &lt;T&gt; T putToRootParent(final Tag&lt;T, ?&gt; key, final T data) {
+<span class="nc" id="L327">    return getRootParent().put(key, data);</span>
   }
 
   /**
@@ -321,50 +337,38 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Beta
   @Nullable
-  &lt;V&gt; V compute(Tag&lt;V&gt; key, BiFunction&lt;Tag&lt;V&gt;, V, V&gt; compute);
+  &lt;V, A&gt; V compute(Tag&lt;V, A&gt; key, BiFunction&lt;Tag&lt;V, A&gt;, V, V&gt; compute);
 
 
   @Nullable
   @Beta
-  default &lt;T&gt; List&lt;T&gt; add(final Tag&lt;List&lt;T&gt;&gt; tag, final T data) {
-<span class="nc" id="L330">    return compute(tag, (k, v) -&gt; {</span>
-<span class="nc bnc" id="L331" title="All 2 branches missed.">      if (v == null)  {</span>
-<span class="nc" id="L332">        v = new ArrayList&lt;&gt;(2);</span>
+  default &lt;T&gt; List&lt;T&gt; addToRootParent(final Tag&lt;List&lt;T&gt;, T&gt; tag, final T data) {
+<span class="nc" id="L346">    ExecutionContext ctx = getRootParent();</span>
+<span class="nc" id="L347">    return ctx.compute(tag, (k, v) -&gt; {</span>
+<span class="nc bnc" id="L348" title="All 2 branches missed.">      if (v == null)  {</span>
+<span class="nc" id="L349">        v = new ArrayList&lt;&gt;(2);</span>
       }
-<span class="nc" id="L334">      v.add(data);</span>
-<span class="nc" id="L335">      return v;</span>
-    });
-  }
-
-  @Nullable
-  @Beta
-  default &lt;T&gt; List&lt;T&gt; addToRootParent(final Tag&lt;List&lt;T&gt;&gt; tag, final T data) {
-<span class="nc" id="L342">    ExecutionContext ctx = getRootParent();</span>
-<span class="nc" id="L343">    return ctx.compute(tag, (k, v) -&gt; {</span>
-<span class="nc bnc" id="L344" title="All 2 branches missed.">      if (v == null)  {</span>
-<span class="nc" id="L345">        v = new ArrayList&lt;&gt;(2);</span>
-      }
-<span class="nc" id="L347">      v.add(data);</span>
-<span class="nc" id="L348">      return v;</span>
+<span class="nc" id="L351">      v.add(data);</span>
+<span class="nc" id="L352">      return v;</span>
     });
   }
 
   default ExecutionContext startChild(final String operationName,
           final long timeout, final TimeUnit tu) {
-<span class="fc" id="L354">    return ExecutionContexts.start(operationName, this, timeout, tu);</span>
+<span class="fc" id="L358">    return ExecutionContexts.start(operationName, this, timeout, tu);</span>
   }
 
   default ExecutionContext startChild(final String operationName) {
-<span class="nc" id="L358">    return ExecutionContexts.start(operationName, this);</span>
+<span class="nc" id="L362">    return ExecutionContexts.start(operationName, this);</span>
   }
 
   default ExecutionContext detachedChild(final String operationName,
           final long timeout, final TimeUnit tu) {
-<span class="nc" id="L363">    return ExecutionContexts.createDetached(operationName, this, timeout, tu);</span>
+<span class="nc" id="L367">    return ExecutionContexts.createDetached(operationName, this, timeout, tu);</span>
   }
 
   default ExecutionContext detachedChild(final String operationName) {
-<span class="nc" id="L367">    return ExecutionContexts.createDetached(operationName, this, TimeSource.nanoTime(), this.getDeadlineNanos());</span>
+<span class="fc" id="L371">    return ExecutionContexts.createDetached(operationName, this, TimeSource.nanoTime(), this.getDeadlineNanos());</span>
   }
 
   long nextChildId();
@@ -386,32 +390,32 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable) {
-<span class="nc" id="L389">    return getDebugDetail(origin, throwable, true);</span>
+<span class="nc" id="L393">    return getDebugDetail(origin, throwable, true);</span>
   }
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
           boolean addStackSamples) {
-<span class="nc" id="L394">    List&lt;Slf4jLogRecord&gt; ctxLogs = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L395">    ExecutionContext curr = this;</span>
-<span class="nc bnc" id="L396" title="All 2 branches missed.">    while (curr != null) {</span>
-<span class="nc" id="L397">      curr.streamLogs((log) -&gt; {</span>
-<span class="nc" id="L398">        ctxLogs.add(log);</span>
-<span class="nc" id="L399">      });</span>
-<span class="nc" id="L400">      curr = curr.getSource();</span>
+<span class="nc" id="L398">    List&lt;Slf4jLogRecord&gt; ctxLogs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L399">    ExecutionContext curr = this;</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">    while (curr != null) {</span>
+<span class="nc" id="L401">      curr.streamLogs((log) -&gt; {</span>
+<span class="nc" id="L402">        ctxLogs.add(log);</span>
+<span class="nc" id="L403">      });</span>
+<span class="nc" id="L404">      curr = curr.getSource();</span>
     }
-<span class="nc" id="L402">    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);</span>
-<span class="nc bnc" id="L403" title="All 2 branches missed.">    if (addStackSamples) {</span>
-<span class="nc" id="L404">      StackSamples ss = this.getAndClearStackSamples();</span>
-<span class="nc" id="L405">      List&lt;StackSampleElement&gt; sses = Converters.convert(ss);</span>
-<span class="nc" id="L406">      return new DebugDetail(origin + '/' + this.getName(),</span>
-<span class="nc bnc" id="L407" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
-<span class="nc" id="L408">              throwable == null ? null : Converters.convert(throwable),</span>
+<span class="nc" id="L406">    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">    if (addStackSamples) {</span>
+<span class="nc" id="L408">      StackSamples ss = this.getAndClearStackSamples();</span>
+<span class="nc" id="L409">      List&lt;StackSampleElement&gt; sses = Converters.convert(ss);</span>
+<span class="nc" id="L410">      return new DebugDetail(origin + '/' + this.getName(),</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
+<span class="nc" id="L412">              throwable == null ? null : Converters.convert(throwable),</span>
               sses);
     } else {
-<span class="nc" id="L411">            return new DebugDetail(origin + '/' + this.getName(),</span>
-<span class="nc bnc" id="L412" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
-<span class="nc" id="L413">              throwable == null ? null : Converters.convert(throwable),</span>
-<span class="nc" id="L414">              Collections.emptyList());</span>
+<span class="nc" id="L415">            return new DebugDetail(origin + '/' + this.getName(),</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
+<span class="nc" id="L417">              throwable == null ? null : Converters.convert(throwable),</span>
+<span class="nc" id="L418">              Collections.emptyList());</span>
     }
 
   }

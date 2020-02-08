@@ -36,6 +36,7 @@ import javax.annotation.concurrent.Immutable;
 import javax.management.openmbean.CompositeType;
 import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -60,20 +61,22 @@ public interface MeasurementsInfo {
 
   int getNumberOfMeasurements();
 
+  MeasurementType getMeasurementType();
+
   default CompositeType toCompositeType() {
-<span class="fc" id="L64">    OpenType&lt;?&gt;[] types = new OpenType[getNumberOfMeasurements()];</span>
-<span class="fc bfc" id="L65" title="All 2 branches covered.">    for (int i = 0; i &lt; types.length; i++) {</span>
-<span class="fc" id="L66">      types[i] = javax.management.openmbean.SimpleType.LONG;</span>
+<span class="fc" id="L67">    OpenType&lt;?&gt;[] types = new OpenType[getNumberOfMeasurements()];</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">    for (int i = 0; i &lt; types.length; i++) {</span>
+<span class="fc" id="L69">      types[i] = javax.management.openmbean.SimpleType.LONG;</span>
     }
     try {
-<span class="fc" id="L69">      String entityName = getMeasuredEntity().toString();</span>
-<span class="fc" id="L70">      String description = getDescription();</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">      if (description.isEmpty()) {</span>
-<span class="fc" id="L72">        description = entityName;</span>
+<span class="fc" id="L72">      String entityName = getMeasuredEntity().toString();</span>
+<span class="fc" id="L73">      String description = getDescription();</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">      if (description.isEmpty()) {</span>
+<span class="fc" id="L75">        description = entityName;</span>
       }
-<span class="fc" id="L74">      return new CompositeType(entityName, description, getMeasurementNames(), getMeasurementUnits(), types);</span>
-<span class="nc" id="L75">    } catch (OpenDataException ex) {</span>
-<span class="nc" id="L76">      throw new IllegalArgumentException(&quot;Cannot convert to composite data &quot; + this, ex);</span>
+<span class="fc" id="L77">      return new CompositeType(entityName, description, getMeasurementNames(), getMeasurementUnits(), types);</span>
+<span class="nc" id="L78">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L79">      throw new IllegalArgumentException(&quot;Cannot convert to composite data &quot; + this, ex);</span>
     }
   }
 

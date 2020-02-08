@@ -25,6 +25,9 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.log.Level;
+import org.spf4j.log.SLf4jXLogAdapter;
+import org.spf4j.log.XLog;
 
 /**
  * @author Zoltan Farkas
@@ -33,11 +36,14 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 final class DefaultRetryPredicate&lt;T&gt; implements RetryPredicate&lt;T, Callable&lt;T&gt;&gt; {
 
-<span class="fc" id="L36">  private static final PartialResultRetryPredicate[] NO_RP = new PartialResultRetryPredicate[0];</span>
+<span class="fc" id="L39">  private static final Level RETRY_LOG_LEVEL =</span>
+<span class="fc" id="L40">          Level.valueOf(System.getProperty(&quot;spf4j.failsafe.retryLogLevel&quot;, &quot;WARN&quot;));</span>
 
-<span class="fc" id="L38">  private static final PartialExceptionRetryPredicate[] NO_EP = new PartialExceptionRetryPredicate[0];</span>
+<span class="fc" id="L42">  private static final PartialResultRetryPredicate[] NO_RP = new PartialResultRetryPredicate[0];</span>
 
-<span class="fc" id="L40">  private static final Logger LOG = LoggerFactory.getLogger(DefaultRetryPredicate.class);</span>
+<span class="fc" id="L44">  private static final PartialExceptionRetryPredicate[] NO_EP = new PartialExceptionRetryPredicate[0];</span>
+
+<span class="fc" id="L46">  private static final Logger LOG =  LoggerFactory.getLogger(DefaultRetryPredicate.class);</span>
 
   private final Function&lt;Object, RetryDelaySupplier&gt; defaultBackoffSupplier;
 
@@ -45,82 +51,83 @@ final class DefaultRetryPredicate&lt;T&gt; implements RetryPredicate&lt;T, Calla
 
   private final PartialExceptionRetryPredicate&lt;T, Callable&lt;T&gt;&gt;[] exceptionPredicates;
 
-  private final Logger log;
+  private final XLog log;
 
   @SuppressFBWarnings(&quot;LO_SUSPECT_LOG_PARAMETER&quot;) // not suspect if you want to customize logging behavior.
   DefaultRetryPredicate(@Nullable final Logger log, final long startNanos, final long deadlineNanos,
           final Supplier&lt;Function&lt;Object, RetryDelaySupplier&gt;&gt; defaultBackoffSupplierSupplier,
           final TimedSupplier&lt;PartialResultRetryPredicate&lt;T, Callable&lt;T&gt;&gt;&gt;[] resultPredicates,
-<span class="fc" id="L54">          final TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, Callable&lt;T&gt;&gt;&gt;... exceptionPredicates) {</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">    this.log = log == null ? LOG : log;</span>
-<span class="fc" id="L56">    this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();</span>
-<span class="fc" id="L57">    int rpl = resultPredicates.length;</span>
-<span class="fc bfc" id="L58" title="All 2 branches covered.">    if (rpl &gt; 0) {</span>
-<span class="fc" id="L59">      this.resultPredicates = new PartialResultRetryPredicate[rpl];</span>
-<span class="fc bfc" id="L60" title="All 2 branches covered.">      for (int i = 0; i &lt; rpl; i++) {</span>
-<span class="fc" id="L61">        this.resultPredicates[i] = resultPredicates[i].get(startNanos, deadlineNanos);</span>
+<span class="fc" id="L60">          final TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, Callable&lt;T&gt;&gt;&gt;... exceptionPredicates) {</span>
+<span class="pc bpc" id="L61" title="1 of 2 branches missed.">    this.log = new SLf4jXLogAdapter(log == null ? LOG : log);</span>
+<span class="fc" id="L62">    this.defaultBackoffSupplier = defaultBackoffSupplierSupplier.get();</span>
+<span class="fc" id="L63">    int rpl = resultPredicates.length;</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (rpl &gt; 0) {</span>
+<span class="fc" id="L65">      this.resultPredicates = new PartialResultRetryPredicate[rpl];</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">      for (int i = 0; i &lt; rpl; i++) {</span>
+<span class="fc" id="L67">        this.resultPredicates[i] = resultPredicates[i].get(startNanos, deadlineNanos);</span>
       }
     } else {
-<span class="fc" id="L64">      this.resultPredicates = NO_RP;</span>
+<span class="fc" id="L70">      this.resultPredicates = NO_RP;</span>
     }
-<span class="fc" id="L66">    int epl = exceptionPredicates.length;</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">    if (epl &gt; 0) {</span>
-<span class="fc" id="L68">      this.exceptionPredicates = new PartialExceptionRetryPredicate[epl];</span>
-<span class="fc bfc" id="L69" title="All 2 branches covered.">      for (int i = 0; i &lt; epl; i++) {</span>
-<span class="fc" id="L70">        this.exceptionPredicates[i] = exceptionPredicates[i].get(startNanos, deadlineNanos);</span>
+<span class="fc" id="L72">    int epl = exceptionPredicates.length;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">    if (epl &gt; 0) {</span>
+<span class="fc" id="L74">      this.exceptionPredicates = new PartialExceptionRetryPredicate[epl];</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">      for (int i = 0; i &lt; epl; i++) {</span>
+<span class="fc" id="L76">        this.exceptionPredicates[i] = exceptionPredicates[i].get(startNanos, deadlineNanos);</span>
       }
     } else {
-<span class="fc" id="L73">      this.exceptionPredicates = NO_EP;</span>
+<span class="fc" id="L79">      this.exceptionPredicates = NO_EP;</span>
     }
-<span class="fc" id="L75">  }</span>
+<span class="fc" id="L81">  }</span>
 
   @Override
   @Nonnull
   public RetryDecision&lt;T, Callable&lt;T&gt;&gt; getDecision(final T value, final Callable&lt;T&gt; what) {
 
-<span class="fc bfc" id="L81" title="All 2 branches covered.">    for (PartialResultRetryPredicate&lt;T, Callable&lt;T&gt;&gt; predicate : resultPredicates) {</span>
-<span class="fc" id="L82">      RetryDecision&lt;T, Callable&lt;T&gt;&gt; decision = predicate.getDecision(value, what);</span>
-<span class="fc bfc" id="L83" title="All 2 branches covered.">      if (decision != null) {</span>
-<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
-<span class="fc" id="L85">          Callable&lt;?&gt; newCallable = decision.getNewCallable();</span>
-<span class="fc bfc" id="L86" title="All 2 branches covered.">          if (decision.getDelayNanos() &lt; 0) {</span>
-<span class="fc" id="L87">            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);</span>
-<span class="fc" id="L88">            decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);</span>
+<span class="fc bfc" id="L87" title="All 2 branches covered.">    for (PartialResultRetryPredicate&lt;T, Callable&lt;T&gt;&gt; predicate : resultPredicates) {</span>
+<span class="fc" id="L88">      RetryDecision&lt;T, Callable&lt;T&gt;&gt; decision = predicate.getDecision(value, what);</span>
+<span class="fc bfc" id="L89" title="All 2 branches covered.">      if (decision != null) {</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
+<span class="fc" id="L91">          Callable&lt;?&gt; newCallable = decision.getNewCallable();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">          if (decision.getDelayNanos() &lt; 0) {</span>
+<span class="fc" id="L93">            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);</span>
+<span class="fc" id="L94">            decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);</span>
           }
-<span class="fc" id="L90">          log.debug(&quot;Result {}, retrying {} with {}&quot;, value,  newCallable, decision);</span>
+<span class="fc" id="L96">          log.log(null, RETRY_LOG_LEVEL, &quot;Result {}, retrying {} with {}&quot;, value,  newCallable, decision);</span>
         }
-<span class="fc" id="L92">        return decision;</span>
+<span class="fc" id="L98">        return decision;</span>
       }
     }
-<span class="fc" id="L95">    return RetryDecision.abort();</span>
+<span class="fc" id="L101">    return RetryDecision.abort();</span>
   }
 
   @Override
   @Nonnull
   public RetryDecision&lt;T, Callable&lt;T&gt;&gt; getExceptionDecision(final Throwable value, final Callable&lt;T&gt; what) {
-<span class="fc bfc" id="L101" title="All 2 branches covered.">    for (PartialExceptionRetryPredicate&lt;T, Callable&lt;T&gt;&gt; predicate : exceptionPredicates) {</span>
-<span class="fc" id="L102">      RetryDecision&lt;T, Callable&lt;T&gt;&gt; decision = predicate.getExceptionDecision(value, what);</span>
-<span class="fc bfc" id="L103" title="All 2 branches covered.">      if (decision != null) {</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">        if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
-<span class="fc" id="L105">          Callable&lt;?&gt; newCallable = decision.getNewCallable();</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">          if (decision.getDelayNanos() &lt; 0) {</span>
-<span class="fc" id="L107">            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);</span>
-<span class="fc" id="L108">            decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">    for (PartialExceptionRetryPredicate&lt;T, Callable&lt;T&gt;&gt; predicate : exceptionPredicates) {</span>
+<span class="fc" id="L108">      RetryDecision&lt;T, Callable&lt;T&gt;&gt; decision = predicate.getExceptionDecision(value, what);</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">      if (decision != null) {</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">        if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
+<span class="fc" id="L111">          Callable&lt;?&gt; newCallable = decision.getNewCallable();</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">          if (decision.getDelayNanos() &lt; 0) {</span>
+<span class="fc" id="L113">            RetryDelaySupplier backoff = defaultBackoffSupplier.apply(value);</span>
+<span class="fc" id="L114">            decision = (RetryDecision) RetryDecision.retry(backoff.nextDelay(), newCallable);</span>
           }
-<span class="fc" id="L110">          LOG.debug(&quot;Result {}, retrying {} with {}&quot;, value.getClass().getName(), newCallable, decision, value);</span>
+<span class="fc" id="L116">          log.log(null, RETRY_LOG_LEVEL,</span>
+<span class="fc" id="L117">                  &quot;Result {}, retrying {} with {}&quot;, value.getClass().getName(), newCallable, decision, value);</span>
         }
-<span class="fc" id="L112">        return decision;</span>
+<span class="fc" id="L119">        return decision;</span>
       }
     }
-<span class="fc" id="L115">    return RetryDecision.abort();</span>
+<span class="fc" id="L122">    return RetryDecision.abort();</span>
 
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L121">    return &quot;DefaultRetryPredicate{&quot; + &quot;defaultBackoffSupplier=&quot; + defaultBackoffSupplier</span>
-<span class="nc" id="L122">            + &quot;, resultPredicates=&quot; + Arrays.toString(resultPredicates)</span>
-<span class="nc" id="L123">            + &quot;, exceptionPredicates=&quot; + Arrays.toString(exceptionPredicates) + '}';</span>
+<span class="nc" id="L128">    return &quot;DefaultRetryPredicate{&quot; + &quot;defaultBackoffSupplier=&quot; + defaultBackoffSupplier</span>
+<span class="nc" id="L129">            + &quot;, resultPredicates=&quot; + Arrays.toString(resultPredicates)</span>
+<span class="nc" id="L130">            + &quot;, exceptionPredicates=&quot; + Arrays.toString(exceptionPredicates) + '}';</span>
   }
 
 }

@@ -391,23 +391,24 @@
 <a class="jxr_linenumber" name="L383" href="#L383">383</a>         });
 <a class="jxr_linenumber" name="L384" href="#L384">384</a>         record.setFields(bfields);
 <a class="jxr_linenumber" name="L385" href="#L385">385</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>         List&lt;CharSequence&gt; list = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>         reader.readRow((cs) -&gt; list.add(cs.toString()));
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>         record = Schemas.project(readerSchema.getElementType(), list.toArray(<strong class="jxr_keyword">new</strong> CharSequence[list.size()]));
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>       }
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>       Schema arraySchema = Schema.createArray(record);
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/avro/DecodedSchema.html">DecodedSchema</a>(arraySchema, <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/avro/csv/CsvDecoder.html">CsvDecoder</a>(reader, arraySchema));
-<a class="jxr_linenumber" name="L392" href="#L392">392</a>     } <strong class="jxr_keyword">catch</strong> (CsvParseException ex) {
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L394" href="#L394">394</a>     }
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>   }
-<a class="jxr_linenumber" name="L396" href="#L396">396</a> 
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>         Schema elementType = readerSchema.getElementType();
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>         List&lt;CharSequence&gt; list = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(elementType.getFields().size());
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>         reader.readRow((cs) -&gt; list.add(cs.toString()));
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>         record = Schemas.project(elementType, list);
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>       }
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>       Schema arraySchema = Schema.createArray(record);
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/avro/DecodedSchema.html">DecodedSchema</a>(arraySchema, <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/avro/csv/CsvDecoder.html">CsvDecoder</a>(reader, arraySchema));
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>     } <strong class="jxr_keyword">catch</strong> (CsvParseException ex) {
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>     }
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>   }
 <a class="jxr_linenumber" name="L397" href="#L397">397</a> 
 <a class="jxr_linenumber" name="L398" href="#L398">398</a> 
 <a class="jxr_linenumber" name="L399" href="#L399">399</a> 
-<a class="jxr_linenumber" name="L400" href="#L400">400</a> }
+<a class="jxr_linenumber" name="L400" href="#L400">400</a> 
+<a class="jxr_linenumber" name="L401" href="#L401">401</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

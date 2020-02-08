@@ -1,0 +1,1056 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>THashMap.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">THashMap.java</span></div><h1>THashMap.java</h1><pre class="source lang-java linenums">//CHECKSTYLE:OFF
+///////////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2001, Eric D. Friedman All Rights Reserved.
+// Copyright (c) 2009, Rob Eden All Rights Reserved.
+// Copyright (c) 2009, Jeff Randall All Rights Reserved.
+//
+// This library is free software; you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 2.1 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this program; if not, write to the Free Software
+// Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+///////////////////////////////////////////////////////////////////////////////
+
+package org.spf4j.stackmonitor;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.function.TObjectFunction;
+import gnu.trove.impl.HashFunctions;
+import gnu.trove.iterator.TIterator;
+
+import gnu.trove.map.TMap;
+import gnu.trove.procedure.TObjectObjectProcedure;
+import gnu.trove.procedure.TObjectProcedure;
+
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import java.util.*;
+
+
+/**
+ * An implementation of the Map interface which uses an open addressed
+ * hash table to store its contents.
+ * &lt;p/&gt;
+ * Created: Sun Nov  4 08:52:45 2001
+ *
+ * @author Eric D. Friedman
+ * @author Rob Eden
+ * @author Jeff Randall
+ * @version $Id: THashMap.java,v 1.1.2.8 2010/03/02 04:09:50 robeden Exp $
+ */
+@SuppressFBWarnings
+public class THashMap&lt;K, V&gt; extends TObjectHash&lt;K&gt; implements TMap&lt;K, V&gt;, Externalizable {
+
+    static final long serialVersionUID = 1L;
+
+    /**
+     * the values of the  map
+     */
+    protected transient V[] _values;
+
+
+    /**
+     * Creates a new &lt;code&gt;THashMap&lt;/code&gt; instance with the default
+     * capacity and load factor.
+     */
+    public THashMap() {
+<span class="nc" id="L67">        super();</span>
+<span class="nc" id="L68">    }</span>
+
+
+    /**
+     * Creates a new &lt;code&gt;THashMap&lt;/code&gt; instance with a prime
+     * capacity equal to or greater than &lt;tt&gt;initialCapacity&lt;/tt&gt; and
+     * with the default load factor.
+     *
+     * @param initialCapacity an &lt;code&gt;int&lt;/code&gt; value
+     */
+    public THashMap(int initialCapacity) {
+<span class="fc" id="L79">        super(initialCapacity);</span>
+<span class="fc" id="L80">    }</span>
+
+
+    /**
+     * Creates a new &lt;code&gt;THashMap&lt;/code&gt; instance which contains the
+     * key/value pairs in &lt;tt&gt;map&lt;/tt&gt;.
+     *
+     * @param map a &lt;code&gt;Map&lt;/code&gt; value
+     */
+    public THashMap(Map&lt;? extends K, ? extends V&gt; map) {
+<span class="nc" id="L90">        this(map.size());</span>
+<span class="nc" id="L91">        putAll(map);</span>
+<span class="nc" id="L92">    }</span>
+
+
+    /**
+     * Creates a new &lt;code&gt;THashMap&lt;/code&gt; instance which contains the
+     * key/value pairs in &lt;tt&gt;map&lt;/tt&gt;.
+     *
+     * @param map a &lt;code&gt;Map&lt;/code&gt; value
+     */
+    public THashMap(THashMap&lt;? extends K, ? extends V&gt; map) {
+<span class="nc" id="L102">        this(map.size());</span>
+<span class="nc" id="L103">        putAll(map);</span>
+<span class="nc" id="L104">    }</span>
+
+
+    /**
+     * initialize the value array of the map.
+     *
+     * @param initialCapacity an &lt;code&gt;int&lt;/code&gt; value
+     * @return an &lt;code&gt;int&lt;/code&gt; value
+     */
+    public int setUp(int initialCapacity) {
+        int capacity;
+
+<span class="fc" id="L116">        capacity = super.setUp(initialCapacity);</span>
+        //noinspection unchecked
+<span class="fc bfc" id="L118" title="All 2 branches covered.">        if (capacity == 0) {</span>
+<span class="fc" id="L119">          _values = (V[]) org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+        } else {
+<span class="fc" id="L121">          _values = (V[]) new Object[capacity];</span>
+        }
+<span class="fc" id="L123">        return capacity;</span>
+    }
+
+
+    /**
+     * Inserts a key/value pair into the map.
+     *
+     * @param key   an &lt;code&gt;Object&lt;/code&gt; value
+     * @param value an &lt;code&gt;Object&lt;/code&gt; value
+     * @return the previous value associated with &lt;tt&gt;key&lt;/tt&gt;,
+     *         or {@code null} if none was found.
+     */
+    public V put(K key, V value) {
+        // insertKey() inserts the key if a slot if found and returns the index
+<span class="fc" id="L137">        ensureCapacity(1);</span>
+<span class="fc" id="L138">        return putKnownToFit(key, value);</span>
+    }
+
+    private V putKnownToFit(K key, V value) {
+        // insertKey() inserts the key if a slot if found and returns the index
+<span class="fc" id="L143">        int index = insertKey(key);</span>
+<span class="fc" id="L144">        return doPut(value, index);</span>
+    }
+
+
+    /**
+     * Inserts a key/value pair into the map if the specified key is not already
+     * associated with a value.
+     *
+     * @param key   an &lt;code&gt;Object&lt;/code&gt; value
+     * @param value an &lt;code&gt;Object&lt;/code&gt; value
+     * @return the previous value associated with &lt;tt&gt;key&lt;/tt&gt;,
+     *         or {@code null} if none was found.
+     */
+    public V putIfAbsent(K key, V value) {
+        // insertKey() inserts the key if a slot if found and returns the index
+<span class="nc" id="L159">        ensureCapacity(1);</span>
+<span class="nc" id="L160">        int index = insertKey(key);</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">        if (index &lt; 0) {</span>
+<span class="nc" id="L162">            return _values[-index - 1];</span>
+        }
+<span class="nc" id="L164">        return doPut(value, index);</span>
+    }
+
+
+    private V doPut(V value, int index) {
+<span class="fc" id="L169">        V previous = null;</span>
+<span class="fc" id="L170">        boolean isNewMapping = true;</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (index &lt; 0) {</span>
+<span class="fc" id="L172">            index = -index - 1;</span>
+<span class="fc" id="L173">            previous = _values[index];</span>
+<span class="fc" id="L174">            isNewMapping = false;</span>
+        }
+<span class="fc" id="L176">        _values[index] = value;</span>
+<span class="fc bfc" id="L177" title="All 2 branches covered.">        if (isNewMapping) {</span>
+<span class="fc" id="L178">            postInsertHook();</span>
+        }
+
+<span class="fc" id="L181">        return previous;</span>
+    }
+
+
+    /**
+     * Compares this map with another map for equality of their stored
+     * entries.
+     *
+     * @param other an &lt;code&gt;Object&lt;/code&gt; value
+     * @return a &lt;code&gt;boolean&lt;/code&gt; value
+     */
+    @SuppressWarnings({&quot;unchecked&quot;, &quot;SimplifiableIfStatement&quot;})
+    public boolean equals(Object other) {
+<span class="pc bpc" id="L194" title="1 of 2 branches missed.">        if (!(other instanceof Map)) {</span>
+<span class="nc" id="L195">            return false;</span>
+        }
+<span class="fc" id="L197">        Map&lt;K, V&gt; that = (Map&lt;K, V&gt;) other;</span>
+<span class="pc bpc" id="L198" title="1 of 2 branches missed.">        if (that.size() != this.size()) {</span>
+<span class="nc" id="L199">            return false;</span>
+        }
+<span class="fc" id="L201">        return forEachEntry(new EqProcedure&lt;K, V&gt;(that));</span>
+    }
+
+
+    public int hashCode() {
+<span class="nc" id="L206">        HashProcedure p = new HashProcedure();</span>
+<span class="nc" id="L207">        forEachEntry(p);</span>
+<span class="nc" id="L208">        return p.getHashCode();</span>
+    }
+
+
+    public String toString() {
+<span class="nc" id="L213">        final StringBuilder buf = new StringBuilder(&quot;{&quot;);</span>
+<span class="nc" id="L214">        forEachEntry(new TObjectObjectProcedure&lt;K, V&gt;() {</span>
+<span class="nc" id="L215">            private boolean first = true;</span>
+
+
+            public boolean execute(K key, V value) {
+<span class="nc bnc" id="L219" title="All 2 branches missed.">                if (first) {</span>
+<span class="nc" id="L220">                    first = false;</span>
+                } else {
+<span class="nc" id="L222">                    buf.append(&quot;, &quot;);</span>
+                }
+
+<span class="nc" id="L225">                buf.append(key);</span>
+<span class="nc" id="L226">                buf.append(&quot;=&quot;);</span>
+<span class="nc" id="L227">                buf.append(value);</span>
+<span class="nc" id="L228">                return true;</span>
+            }
+        });
+<span class="nc" id="L231">        buf.append(&quot;}&quot;);</span>
+<span class="nc" id="L232">        return buf.toString();</span>
+    }
+
+
+<span class="nc" id="L236">    private final class HashProcedure implements TObjectObjectProcedure&lt;K, V&gt; {</span>
+<span class="nc" id="L237">        private int h = 0;</span>
+
+        public int getHashCode() {
+<span class="nc" id="L240">            return h;</span>
+        }
+
+        public final boolean execute(K key, V value) {
+<span class="nc bnc" id="L244" title="All 2 branches missed.">            h += HashFunctions.hash(key) ^ (value == null ? 0 : value.hashCode());</span>
+<span class="nc" id="L245">            return true;</span>
+        }
+    }
+
+
+    private final class EqProcedure&lt;K, V&gt; implements TObjectObjectProcedure&lt;K, V&gt; {
+        private final Map&lt;K, V&gt; _otherMap;
+
+<span class="fc" id="L253">        EqProcedure(Map&lt;K, V&gt; otherMap) {</span>
+<span class="fc" id="L254">            _otherMap = otherMap;</span>
+<span class="fc" id="L255">        }</span>
+
+
+        public final boolean execute(K key, V value) {
+            // Check to make sure the key is there. This avoids problems that come up with
+            // null values. Since it is only caused in that cause, only do this when the
+            // value is null (to avoid extra work).
+<span class="pc bpc" id="L262" title="3 of 4 branches missed.">            if (value == null &amp;&amp; !_otherMap.containsKey(key)) {</span>
+<span class="nc" id="L263">                return false;</span>
+            }
+
+<span class="fc" id="L266">            V oValue = _otherMap.get(key);</span>
+<span class="pc bpc" id="L267" title="2 of 4 branches missed.">            return oValue == value || (oValue != null &amp;&amp;</span>
+<span class="pc bpc" id="L268" title="1 of 2 branches missed.">                    THashMap.this.equals(oValue, value));</span>
+        }
+    }
+
+
+    /**
+     * Executes &lt;tt&gt;procedure&lt;/tt&gt; for each key in the map.
+     *
+     * @param procedure a &lt;code&gt;TObjectProcedure&lt;/code&gt; value
+     * @return false if the loop over the keys terminated because
+     *         the procedure returned false for some key.
+     */
+    public boolean forEachKey(TObjectProcedure&lt;? super K&gt; procedure) {
+<span class="fc" id="L281">        return forEach(procedure);</span>
+    }
+
+
+    /**
+     * Executes &lt;tt&gt;procedure&lt;/tt&gt; for each value in the map.
+     *
+     * @param procedure a &lt;code&gt;TObjectProcedure&lt;/code&gt; value
+     * @return false if the loop over the values terminated because
+     *         the procedure returned false for some value.
+     */
+    public boolean forEachValue(TObjectProcedure&lt;? super V&gt; procedure) {
+<span class="fc" id="L293">        V[] values = _values;</span>
+<span class="fc" id="L294">        Object[] set = _set;</span>
+<span class="pc bpc" id="L295" title="1 of 2 branches missed.">        for (int i = values.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L296" title="All 4 branches missed.">            if (set[i] != FREE</span>
+                    &amp;&amp; set[i] != REMOVED
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                    &amp;&amp; !procedure.execute(values[i])) {</span>
+<span class="nc" id="L299">                return false;</span>
+            }
+        }
+<span class="fc" id="L302">        return true;</span>
+    }
+
+
+    /**
+     * Executes &lt;tt&gt;procedure&lt;/tt&gt; for each key/value entry in the
+     * map.
+     *
+     * @param procedure a &lt;code&gt;TObjectObjectProcedure&lt;/code&gt; value
+     * @return false if the loop over the entries terminated because
+     *         the procedure returned false for some entry.
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    public boolean forEachEntry(TObjectObjectProcedure&lt;? super K, ? super V&gt; procedure) {
+<span class="fc" id="L316">        Object[] keys = _set;</span>
+<span class="fc" id="L317">        V[] values = _values;</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">        for (int i = keys.length; i-- &gt; 0;) {</span>
+<span class="pc bpc" id="L319" title="1 of 4 branches missed.">            if (keys[i] != FREE</span>
+                    &amp;&amp; keys[i] != REMOVED
+<span class="pc bpc" id="L321" title="1 of 2 branches missed.">                    &amp;&amp; !procedure.execute((K) keys[i], values[i])) {</span>
+<span class="nc" id="L322">                return false;</span>
+            }
+        }
+<span class="fc" id="L325">        return true;</span>
+    }
+
+
+    /**
+     * Retains only those entries in the map for which the procedure
+     * returns a true value.
+     *
+     * @param procedure determines which entries to keep
+     * @return true if the map was modified.
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    public boolean retainEntries(TObjectObjectProcedure&lt;? super K, ? super V&gt; procedure) {
+<span class="nc" id="L338">        boolean modified = false;</span>
+<span class="nc" id="L339">        Object[] keys = _set;</span>
+<span class="nc" id="L340">        V[] values = _values;</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">        for (int i = keys.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L342" title="All 4 branches missed.">          if (keys[i] != FREE</span>
+                  &amp;&amp; keys[i] != REMOVED
+<span class="nc bnc" id="L344" title="All 2 branches missed.">                  &amp;&amp; !procedure.execute((K) keys[i], values[i])) {</span>
+<span class="nc" id="L345">            removeAt(i);</span>
+<span class="nc" id="L346">            modified = true;</span>
+          }
+        }
+<span class="nc" id="L349">        return modified;</span>
+    }
+
+
+    /**
+     * Transform the values in this map using &lt;tt&gt;function&lt;/tt&gt;.
+     *
+     * @param function a &lt;code&gt;TObjectFunction&lt;/code&gt; value
+     */
+    public void transformValues(TObjectFunction&lt;V, V&gt; function) {
+<span class="nc" id="L359">        V[] values = _values;</span>
+<span class="nc" id="L360">        Object[] set = _set;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        for (int i = values.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L362" title="All 4 branches missed.">            if (set[i] != FREE &amp;&amp; set[i] != REMOVED) {</span>
+<span class="nc" id="L363">                values[i] = function.execute(values[i]);</span>
+            }
+        }
+<span class="nc" id="L366">    }</span>
+
+
+    /**
+     * rehashes the map to the new capacity.
+     *
+     * @param newCapacity an &lt;code&gt;int&lt;/code&gt; value
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    protected void rehash(int newCapacity) {
+<span class="fc" id="L376">        int oldCapacity = _set.length;</span>
+<span class="fc" id="L377">        int oldSize = size();</span>
+<span class="fc" id="L378">        Object oldKeys[] = _set;</span>
+<span class="fc" id="L379">        V oldVals[] = _values;</span>
+
+<span class="fc" id="L381">        _set = new Object[newCapacity];</span>
+<span class="fc" id="L382">        Arrays.fill(_set, FREE);</span>
+<span class="fc" id="L383">        _values = (V[]) new Object[newCapacity];</span>
+
+        // Process entries from the old array, skipping free and removed slots. Put the
+        // values into the appropriate place in the new array.
+<span class="fc" id="L387">        int count = 0;</span>
+<span class="fc bfc" id="L388" title="All 2 branches covered.">        for (int i = oldCapacity; i-- &gt; 0;) {</span>
+<span class="fc" id="L389">            Object o = oldKeys[i];</span>
+
+<span class="pc bpc" id="L391" title="1 of 4 branches missed.">            if (o == FREE || o == REMOVED) continue;</span>
+
+<span class="fc" id="L393">            int index = insertKey((K) o);</span>
+<span class="pc bpc" id="L394" title="1 of 2 branches missed.">            if (index &lt; 0) {</span>
+<span class="nc" id="L395">                throwObjectContractViolation(_set[(-index - 1)], o, size(), oldSize, oldKeys);</span>
+            }
+<span class="fc" id="L397">            _values[index] = oldVals[i];</span>
+            //
+<span class="fc" id="L399">            count++;</span>
+<span class="fc" id="L400">        }</span>
+
+        // Last check: size before and after should be the same
+<span class="fc" id="L403">        reportPotentialConcurrentMod(size(), oldSize);</span>
+<span class="fc" id="L404">    }</span>
+
+
+    /**
+     * retrieves the value for &lt;tt&gt;key&lt;/tt&gt;
+     *
+     * @param key an &lt;code&gt;Object&lt;/code&gt; value
+     * @return the value of &lt;tt&gt;key&lt;/tt&gt; or null if no such mapping exists.
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    public V get(Object key) {
+<span class="fc" id="L415">        int index = index(key);</span>
+<span class="fc bfc" id="L416" title="All 2 branches covered.">        return index &lt; 0 ? null : _values[index];</span>
+    }
+
+
+    /**
+     * Empties the map.
+     */
+    public void clear() {
+<span class="nc bnc" id="L424" title="All 2 branches missed.">        if (size() == 0) {</span>
+<span class="nc" id="L425">            return; // optimization</span>
+        }
+
+<span class="nc" id="L428">        super.clear();</span>
+
+<span class="nc" id="L430">        Arrays.fill(_set, 0, _set.length, FREE);</span>
+<span class="nc" id="L431">        Arrays.fill(_values, 0, _values.length, null);</span>
+<span class="nc" id="L432">    }</span>
+
+
+    /**
+     * Deletes a key/value pair from the map.
+     *
+     * @param key an &lt;code&gt;Object&lt;/code&gt; value
+     * @return an &lt;code&gt;Object&lt;/code&gt; value
+     */
+    @SuppressWarnings({&quot;unchecked&quot;})
+    public V remove(Object key) {
+<span class="nc" id="L443">        V prev = null;</span>
+<span class="nc" id="L444">        int index = index(key);</span>
+<span class="nc bnc" id="L445" title="All 2 branches missed.">        if (index &gt;= 0) {</span>
+<span class="nc" id="L446">            prev = _values[index];</span>
+<span class="nc" id="L447">            removeAt(index);    // clear key,state; adjust size</span>
+        }
+<span class="nc" id="L449">        return prev;</span>
+    }
+
+
+    /**
+     * removes the mapping at &lt;tt&gt;index&lt;/tt&gt; from the map.
+     *
+     * @param index an &lt;code&gt;int&lt;/code&gt; value
+     */
+    public void removeAt(int index) {
+<span class="nc" id="L459">        _values[index] = null;</span>
+<span class="nc" id="L460">        super.removeAt(index);  // clear key, state; adjust size</span>
+<span class="nc" id="L461">    }</span>
+
+
+    /**
+     * Returns a view on the values of the map.
+     *
+     * @return a &lt;code&gt;Collection&lt;/code&gt; value
+     */
+    public Collection&lt;V&gt; values() {
+<span class="fc" id="L470">        return new ValueView();</span>
+    }
+
+
+    /**
+     * returns a Set view on the keys of the map.
+     *
+     * @return a &lt;code&gt;Set&lt;/code&gt; value
+     */
+    public Set&lt;K&gt; keySet() {
+<span class="fc" id="L480">        return new KeyView();</span>
+    }
+
+
+    /**
+     * Returns a Set view on the entries of the map.
+     *
+     * @return a &lt;code&gt;Set&lt;/code&gt; value
+     */
+    public Set&lt;Map.Entry&lt;K, V&gt;&gt; entrySet() {
+<span class="fc" id="L490">        return new EntryView();</span>
+    }
+
+
+    /**
+     * checks for the presence of &lt;tt&gt;val&lt;/tt&gt; in the values of the map.
+     *
+     * @param val an &lt;code&gt;Object&lt;/code&gt; value
+     * @return a &lt;code&gt;boolean&lt;/code&gt; value
+     */
+    public boolean containsValue(Object val) {
+<span class="nc" id="L501">        Object[] set = _set;</span>
+<span class="nc" id="L502">        V[] vals = _values;</span>
+
+        // special case null values so that we don't have to
+        // perform null checks before every call to equals()
+<span class="nc bnc" id="L506" title="All 2 branches missed.">        if (null == val) {</span>
+<span class="nc bnc" id="L507" title="All 2 branches missed.">            for (int i = vals.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L508" title="All 6 branches missed.">                if ((set[i] != FREE &amp;&amp; set[i] != REMOVED) &amp;&amp;</span>
+                        val == vals[i]) {
+<span class="nc" id="L510">                    return true;</span>
+                }
+            }
+        } else {
+<span class="nc bnc" id="L514" title="All 2 branches missed.">            for (int i = vals.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L515" title="All 6 branches missed.">                if ((set[i] != FREE &amp;&amp; set[i] != REMOVED) &amp;&amp;</span>
+<span class="nc bnc" id="L516" title="All 2 branches missed.">                        (val == vals[i] || equals(val, vals[i]))) {</span>
+<span class="nc" id="L517">                    return true;</span>
+                }
+            }
+        } // end of else
+<span class="nc" id="L521">        return false;</span>
+    }
+
+
+    /**
+     * checks for the present of &lt;tt&gt;key&lt;/tt&gt; in the keys of the map.
+     *
+     * @param key an &lt;code&gt;Object&lt;/code&gt; value
+     * @return a &lt;code&gt;boolean&lt;/code&gt; value
+     */
+    public boolean containsKey(Object key) {
+        //noinspection unchecked
+<span class="nc" id="L533">        return contains(key);</span>
+    }
+
+
+    /**
+     * copies the key/value mappings in &lt;tt&gt;map&lt;/tt&gt; into this map.
+     *
+     * @param map a &lt;code&gt;Map&lt;/code&gt; value
+     */
+    public void putAll(Map&lt;? extends K, ? extends V&gt; map) {
+<span class="nc" id="L543">        ensureCapacity(map.size());</span>
+        // could optimize this for cases when map instanceof THashMap
+<span class="nc bnc" id="L545" title="All 2 branches missed.">        for (Map.Entry&lt;? extends K, ? extends V&gt; e : map.entrySet()) {</span>
+<span class="nc" id="L546">            putKnownToFit(e.getKey(), e.getValue());</span>
+<span class="nc" id="L547">        }</span>
+<span class="nc" id="L548">    }</span>
+
+
+    /**
+     * a view onto the values of the map.
+     */
+<span class="fc" id="L554">    protected class ValueView extends MapBackedView&lt;V&gt; {</span>
+
+        @SuppressWarnings({&quot;unchecked&quot;})
+        public Iterator&lt;V&gt; iterator() {
+<span class="fc" id="L558">            return new TObjectHashIterator(THashMap.this) {</span>
+                protected V objectAtIndex(int index) {
+<span class="fc" id="L560">                    return _values[index];</span>
+                }
+            };
+        }
+
+
+        public boolean containsElement(V value) {
+<span class="nc" id="L567">            return containsValue(value);</span>
+        }
+
+
+        public boolean removeElement(V value) {
+<span class="nc" id="L572">            Object[] values = _values;</span>
+<span class="nc" id="L573">            Object[] set = _set;</span>
+
+<span class="nc bnc" id="L575" title="All 2 branches missed.">            for (int i = values.length; i-- &gt; 0;) {</span>
+<span class="nc bnc" id="L576" title="All 8 branches missed.">                if ((set[i] != FREE &amp;&amp; set[i] != REMOVED) &amp;&amp;</span>
+                        value == values[i] ||
+<span class="nc bnc" id="L578" title="All 2 branches missed.">                        (null != values[i] &amp;&amp; THashMap.this.equals(values[i], value))) {</span>
+
+<span class="nc" id="L580">                    removeAt(i);</span>
+<span class="nc" id="L581">                    return true;</span>
+                }
+            }
+
+<span class="nc" id="L585">            return false;</span>
+        }
+    }
+
+    /**
+     * a view onto the entries of the map.
+     */
+<span class="fc" id="L592">    protected class EntryView extends MapBackedView&lt;Map.Entry&lt;K, V&gt;&gt; {</span>
+
+        private final class EntryIterator extends TObjectHashIterator {
+
+<span class="fc" id="L596">            EntryIterator(THashMap&lt;K, V&gt; map) {</span>
+<span class="fc" id="L597">                super(map);</span>
+<span class="fc" id="L598">            }</span>
+
+
+            @SuppressWarnings({&quot;unchecked&quot;})
+            public Entry objectAtIndex(final int index) {
+<span class="fc" id="L603">                return new Entry((K) _set[index], _values[index], index);</span>
+            }
+        }
+
+
+        @SuppressWarnings({&quot;unchecked&quot;})
+        public Iterator&lt;Map.Entry&lt;K, V&gt;&gt; iterator() {
+<span class="fc" id="L610">            return new EntryIterator(THashMap.this);</span>
+        }
+
+
+        public boolean removeElement(Map.Entry&lt;K, V&gt; entry) {
+<span class="nc bnc" id="L615" title="All 2 branches missed.">            if (entry == null) return false;</span>
+
+            // have to effectively reimplement Map.remove here
+            // because we need to return true/false depending on
+            // whether the removal took place.  Since the Entry's
+            // value can be null, this means that we can't rely
+            // on the value of the object returned by Map.remove()
+            // to determine whether a deletion actually happened.
+            //
+            // Note also that the deletion is only legal if
+            // both the key and the value match.
+            V val;
+            int index;
+
+<span class="nc" id="L629">            K key = keyForEntry(entry);</span>
+<span class="nc" id="L630">            index = index(key);</span>
+<span class="nc bnc" id="L631" title="All 2 branches missed.">            if (index &gt;= 0) {</span>
+<span class="nc" id="L632">                val = valueForEntry(entry);</span>
+<span class="nc bnc" id="L633" title="All 4 branches missed.">                if (val == _values[index] ||</span>
+<span class="nc bnc" id="L634" title="All 2 branches missed.">                        (null != val &amp;&amp; THashMap.this.equals(val, _values[index]))) {</span>
+<span class="nc" id="L635">                    removeAt(index);    // clear key,state; adjust size</span>
+<span class="nc" id="L636">                    return true;</span>
+                }
+            }
+<span class="nc" id="L639">            return false;</span>
+        }
+
+
+        public boolean containsElement(Map.Entry&lt;K, V&gt; entry) {
+<span class="nc" id="L644">            V val = get(keyForEntry(entry));</span>
+<span class="nc" id="L645">            V entryValue = entry.getValue();</span>
+<span class="nc bnc" id="L646" title="All 4 branches missed.">            return entryValue == val ||</span>
+<span class="nc bnc" id="L647" title="All 2 branches missed.">                    (null != val &amp;&amp; THashMap.this.equals(val, entryValue));</span>
+        }
+
+
+        protected V valueForEntry(Map.Entry&lt;K, V&gt; entry) {
+<span class="nc" id="L652">            return entry.getValue();</span>
+        }
+
+
+        protected K keyForEntry(Map.Entry&lt;K, V&gt; entry) {
+<span class="nc" id="L657">            return entry.getKey();</span>
+        }
+    }
+
+<span class="fc" id="L661">    private abstract class MapBackedView&lt;E&gt; extends AbstractSet&lt;E&gt;</span>
+            implements Set&lt;E&gt;, Iterable&lt;E&gt; {
+
+        public abstract Iterator&lt;E&gt; iterator();
+
+
+        public abstract boolean removeElement(E key);
+
+
+        public abstract boolean containsElement(E key);
+
+
+        @SuppressWarnings({&quot;unchecked&quot;})
+        public boolean contains(Object key) {
+<span class="nc" id="L675">            return containsElement((E) key);</span>
+        }
+
+
+        @SuppressWarnings({&quot;unchecked&quot;})
+        public boolean remove(Object o) {
+            try {
+<span class="nc" id="L682">                return removeElement((E) o);</span>
+<span class="nc" id="L683">            } catch (ClassCastException ex) {</span>
+<span class="nc" id="L684">                return false;</span>
+            }
+        }
+
+        public void clear() {
+<span class="nc" id="L689">            THashMap.this.clear();</span>
+<span class="nc" id="L690">        }</span>
+
+
+        public boolean add(E obj) {
+<span class="nc" id="L694">            throw new UnsupportedOperationException();</span>
+        }
+
+
+        public int size() {
+<span class="nc" id="L699">            return THashMap.this.size();</span>
+        }
+
+
+        public Object[] toArray() {
+<span class="nc" id="L704">            Object[] result = new Object[size()];</span>
+<span class="nc" id="L705">            Iterator&lt;E&gt; e = iterator();</span>
+<span class="nc bnc" id="L706" title="All 2 branches missed.">            for (int i = 0; e.hasNext(); i++) {</span>
+<span class="nc" id="L707">                result[i] = e.next();</span>
+            }
+<span class="nc" id="L709">            return result;</span>
+        }
+
+
+        @SuppressWarnings({&quot;unchecked&quot;})
+        public &lt;T&gt; T[] toArray(T[] a) {
+<span class="nc" id="L715">            int size = size();</span>
+<span class="nc bnc" id="L716" title="All 2 branches missed.">            if (a.length &lt; size) {</span>
+<span class="nc" id="L717">                a = (T[]) java.lang.reflect.Array.newInstance(a.getClass().getComponentType(), size);</span>
+            }
+
+<span class="nc" id="L720">            Iterator&lt;E&gt; it = iterator();</span>
+<span class="nc" id="L721">            Object[] result = a;</span>
+<span class="nc bnc" id="L722" title="All 2 branches missed.">            for (int i = 0; i &lt; size; i++) {</span>
+<span class="nc" id="L723">                result[i] = it.next();</span>
+            }
+
+<span class="nc bnc" id="L726" title="All 2 branches missed.">            if (a.length &gt; size) {</span>
+<span class="nc" id="L727">                a[size] = null;</span>
+            }
+
+<span class="nc" id="L730">            return a;</span>
+        }
+
+
+        public boolean isEmpty() {
+<span class="fc" id="L735">            return THashMap.this.isEmpty();</span>
+        }
+
+
+        public boolean addAll(Collection&lt;? extends E&gt; collection) {
+<span class="nc" id="L740">            throw new UnsupportedOperationException();</span>
+        }
+
+
+        @SuppressWarnings({&quot;SuspiciousMethodCalls&quot;})
+        public boolean retainAll(Collection&lt;?&gt; collection) {
+<span class="nc" id="L746">            boolean changed = false;</span>
+<span class="nc" id="L747">            Iterator&lt;E&gt; i = iterator();</span>
+<span class="nc bnc" id="L748" title="All 2 branches missed.">            while (i.hasNext()) {</span>
+<span class="nc bnc" id="L749" title="All 2 branches missed.">                if (!collection.contains(i.next())) {</span>
+<span class="nc" id="L750">                    i.remove();</span>
+<span class="nc" id="L751">                    changed = true;</span>
+                }
+            }
+<span class="nc" id="L754">            return changed;</span>
+        }
+
+        public String toString() {
+<span class="nc" id="L758">            Iterator&lt;E&gt; i = iterator();</span>
+<span class="nc bnc" id="L759" title="All 2 branches missed.">            if (!i.hasNext()) return &quot;{}&quot;;</span>
+
+<span class="nc" id="L761">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L762">            sb.append('{');</span>
+            for (; ;) {
+<span class="nc" id="L764">                E e = i.next();</span>
+<span class="nc bnc" id="L765" title="All 2 branches missed.">                sb.append(e == this ? &quot;(this Collection)&quot; : e);</span>
+<span class="nc bnc" id="L766" title="All 2 branches missed.">                if (!i.hasNext()) return sb.append('}').toString();</span>
+<span class="nc" id="L767">                sb.append(&quot;, &quot;);</span>
+<span class="nc" id="L768">            }</span>
+        }
+    }
+
+    /**
+     * a view onto the keys of the map.
+     */
+<span class="fc" id="L775">    protected class KeyView extends MapBackedView&lt;K&gt; {</span>
+
+        @SuppressWarnings({&quot;unchecked&quot;})
+        public Iterator&lt;K&gt; iterator() {
+<span class="nc" id="L779">            return new TObjectHashIterator&lt;K&gt;(THashMap.this);</span>
+        }
+
+
+        public boolean removeElement(K key) {
+<span class="nc bnc" id="L784" title="All 2 branches missed.">            return null != THashMap.this.remove(key);</span>
+        }
+
+
+        public boolean containsElement(K key) {
+<span class="nc" id="L789">            return THashMap.this.contains(key);</span>
+        }
+    }
+
+    final class Entry implements Map.Entry&lt;K, V&gt; {
+
+        private K key;
+        private V val;
+        private final int index;
+
+
+<span class="fc" id="L800">        Entry(final K key, V value, final int index) {</span>
+<span class="fc" id="L801">            this.key = key;</span>
+<span class="fc" id="L802">            this.val = value;</span>
+<span class="fc" id="L803">            this.index = index;</span>
+<span class="fc" id="L804">        }</span>
+
+
+        public K getKey() {
+<span class="fc" id="L808">            return key;</span>
+        }
+
+
+        public V getValue() {
+<span class="fc" id="L813">            return val;</span>
+        }
+
+
+        public V setValue(V o) {
+<span class="nc bnc" id="L818" title="All 2 branches missed.">            if (_values[index] != val) {</span>
+<span class="nc" id="L819">                throw new ConcurrentModificationException();</span>
+            }
+            // need to return previous value
+<span class="nc" id="L822">            V retval = val;</span>
+            // update this entry's value, in case setValue is called again
+<span class="nc" id="L824">            _values[index] = o;</span>
+<span class="nc" id="L825">            val = o;</span>
+<span class="nc" id="L826">            return retval;</span>
+        }
+
+
+        public boolean equals(Object o) {
+<span class="nc bnc" id="L831" title="All 2 branches missed.">            if (o instanceof Map.Entry) {</span>
+<span class="nc" id="L832">                Map.Entry&lt;K, V&gt; e1 = this;</span>
+<span class="nc" id="L833">                Map.Entry e2 = (Map.Entry) o;</span>
+<span class="nc bnc" id="L834" title="All 2 branches missed.">                return (THashMap.this.equals(e1.getKey(), e2.getKey()))</span>
+<span class="nc bnc" id="L835" title="All 2 branches missed.">                        &amp;&amp; (THashMap.this.equals(e1.getValue(), e1.getValue()));</span>
+            }
+<span class="nc" id="L837">            return false;</span>
+        }
+
+
+        public int hashCode() {
+<span class="nc bnc" id="L842" title="All 4 branches missed.">            return (getKey() == null ? 0 : getKey().hashCode()) ^ (getValue() == null ? 0 : getValue().hashCode());</span>
+        }
+
+
+        @Override
+        public String toString() {
+<span class="nc" id="L848">            return key + &quot;=&quot; + val;</span>
+        }
+    }
+
+
+    public void writeExternal(ObjectOutput out) throws IOException {
+        // VERSION
+<span class="fc" id="L855">        out.writeByte(1);</span>
+
+        // NOTE: Super was not written in version 0
+<span class="fc" id="L858">        super.writeExternal(out);</span>
+
+        // NUMBER OF ENTRIES
+<span class="fc" id="L861">        out.writeInt(_size);</span>
+
+        // ENTRIES
+<span class="fc bfc" id="L864" title="All 2 branches covered.">        for (int i = _set.length; i-- &gt; 0;) {</span>
+<span class="pc bpc" id="L865" title="1 of 4 branches missed.">            if (_set[i] != REMOVED &amp;&amp; _set[i] != FREE) {</span>
+<span class="fc" id="L866">                out.writeObject(_set[i]);</span>
+<span class="fc" id="L867">                out.writeObject(_values[i]);</span>
+            }
+        }
+<span class="fc" id="L870">    }</span>
+
+
+    public void readExternal(ObjectInput in)
+            throws IOException, ClassNotFoundException {
+
+        // VERSION
+<span class="fc" id="L877">        byte version = in.readByte();</span>
+
+        // NOTE: super was not written in version 0
+<span class="pc bpc" id="L880" title="1 of 2 branches missed.">        if (version != 0) {</span>
+<span class="fc" id="L881">            super.readExternal(in);</span>
+        }
+
+        // NUMBER OF ENTRIES
+<span class="fc" id="L885">        int size = in.readInt();</span>
+<span class="fc" id="L886">        setUp(size);</span>
+
+        // ENTRIES
+<span class="fc bfc" id="L889" title="All 2 branches covered.">        while (size-- &gt; 0) {</span>
+            //noinspection unchecked
+<span class="fc" id="L891">            K key = (K) in.readObject();</span>
+            //noinspection unchecked
+<span class="fc" id="L893">            V val = (V) in.readObject();</span>
+<span class="fc" id="L894">            put(key, val);</span>
+<span class="fc" id="L895">        }</span>
+<span class="fc" id="L896">    }</span>
+
+
+/**
+ * Iterator for hashtables that use open addressing to resolve collisions.
+ *
+ * @author Eric D. Friedman
+ * @author Rob Eden
+ * @author Jeff Randall
+ * @version $Id: TObjectHashIterator.java,v 1.1.2.4 2009/10/09 01:44:34 robeden Exp $
+ */
+
+private static class TObjectHashIterator&lt;E&gt; extends THashIterator&lt;E&gt; {
+
+    protected final TObjectHash _objectHash;
+
+
+    public TObjectHashIterator(TObjectHash&lt;E&gt; hash ) {
+<span class="fc" id="L914">        super( hash );</span>
+<span class="fc" id="L915">        _objectHash = hash;</span>
+<span class="fc" id="L916">    }</span>
+
+
+    @SuppressWarnings(&quot;unchecked&quot;)
+    protected E objectAtIndex( int index ) {
+<span class="nc" id="L921">        Object obj = _objectHash._set[index];</span>
+<span class="nc bnc" id="L922" title="All 4 branches missed.">        if ( obj == TObjectHash.FREE || obj == TObjectHash.REMOVED ) {</span>
+<span class="nc" id="L923">            return null;</span>
+        }
+<span class="nc" id="L925">        return (E) obj;</span>
+    }
+
+} // TObjectHashIterator
+
+private static abstract class THashIterator&lt;V&gt; implements TIterator, Iterator&lt;V&gt; {
+
+
+    private final TObjectHash&lt;V&gt; _object_hash;
+
+    /** the data structure this iterator traverses */
+    protected final THash _hash;
+
+    /**
+     * the number of elements this iterator believes are in the
+     * data structure it accesses.
+     */
+    protected int _expectedSize;
+
+    /** the index used for iteration. */
+    protected int _index;
+
+
+    /**
+     * Create an instance of THashIterator over the values of the TObjectHash
+     *
+     * @param hash the object
+     */
+<span class="fc" id="L953">    protected THashIterator( TObjectHash&lt;V&gt; hash ) {</span>
+<span class="fc" id="L954">        _hash = hash;</span>
+<span class="fc" id="L955">        _expectedSize = _hash.size();</span>
+<span class="fc" id="L956">        _index = _hash.capacity();</span>
+<span class="fc" id="L957">        _object_hash = hash;</span>
+<span class="fc" id="L958">    }</span>
+
+
+    /**
+     * Moves the iterator to the next Object and returns it.
+     *
+     * @return an &lt;code&gt;Object&lt;/code&gt; value
+     * @throws ConcurrentModificationException
+     *                                if the structure
+     *                                was changed using a method that isn't on this iterator.
+     * @throws NoSuchElementException if this is called on an
+     *                                exhausted iterator.
+     */
+    public V next() {
+<span class="fc" id="L972">        moveToNextIndex();</span>
+<span class="fc" id="L973">        return objectAtIndex( _index );</span>
+    }
+
+
+    /**
+     * Returns true if the iterator can be advanced past its current
+     * location.
+     *
+     * @return a &lt;code&gt;boolean&lt;/code&gt; value
+     */
+    public boolean hasNext() {
+<span class="fc bfc" id="L984" title="All 2 branches covered.">        return nextIndex() &gt;= 0;</span>
+    }
+
+
+    /**
+     * Removes the last entry returned by the iterator.
+     * Invoking this method more than once for a single entry
+     * will leave the underlying data structure in a confused
+     * state.
+     */
+    public void remove() {
+<span class="nc bnc" id="L995" title="All 2 branches missed.">        if ( _expectedSize != _hash.size() ) {</span>
+<span class="nc" id="L996">            throw new ConcurrentModificationException();</span>
+        }
+<span class="nc" id="L998">        _hash.removeAt( _index );</span>
+
+<span class="nc" id="L1000">        _expectedSize--;</span>
+<span class="nc" id="L1001">    }</span>
+
+
+    /**
+     * Sets the internal &lt;tt&gt;index&lt;/tt&gt; so that the `next' object
+     * can be returned.
+     */
+    protected final void moveToNextIndex() {
+        // doing the assignment &amp;&amp; &lt; 0 in one line shaves
+        // 3 opcodes...
+<span class="pc bpc" id="L1011" title="1 of 2 branches missed.">        if ( ( _index = nextIndex() ) &lt; 0 ) {</span>
+<span class="nc" id="L1012">            throw new NoSuchElementException();</span>
+        }
+<span class="fc" id="L1014">    }</span>
+
+
+    /**
+     * Returns the index of the next value in the data structure
+     * or a negative value if the iterator is exhausted.
+     *
+     * @return an &lt;code&gt;int&lt;/code&gt; value
+     * @throws ConcurrentModificationException
+     *          if the underlying
+     *          collection's size has been modified since the iterator was
+     *          created.
+     */
+    protected final int nextIndex() {
+<span class="pc bpc" id="L1028" title="1 of 2 branches missed.">        if ( _expectedSize != _hash.size() ) {</span>
+<span class="nc" id="L1029">            throw new ConcurrentModificationException();</span>
+        }
+
+<span class="fc" id="L1032">        Object[] set = _object_hash._set;</span>
+<span class="fc" id="L1033">        int i = _index;</span>
+<span class="pc bpc" id="L1034" title="1 of 6 branches missed.">        while ( i-- &gt; 0 &amp;&amp; ( set[i] == TObjectHash.FREE || set[i] == TObjectHash.REMOVED ) ) {</span>
+            ;
+        }
+<span class="fc" id="L1037">        return i;</span>
+    }
+
+
+    /**
+     * Returns the object at the specified index.  Subclasses should
+     * implement this to return the appropriate object for the given
+     * index.
+     *
+     * @param index the index of the value to return.
+     * @return an &lt;code&gt;Object&lt;/code&gt; value
+     */
+    abstract protected V objectAtIndex( int index );
+} // THashIterator
+
+
+
+
+} // THashMap
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

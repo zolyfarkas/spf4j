@@ -31,49 +31,50 @@
  */
 package org.spf4j.stackmonitor;
 
-import gnu.trove.map.hash.THashMap;
 import org.spf4j.base.avro.Method;
 
 /**
  * A custom hashcode and eequals map implementation
  * @author Zoltan Farkas
  */
-public final class MethodMap&lt;T&gt; extends THashMap&lt;Method, T&gt; {
+public class MethodMap&lt;T&gt; extends THashMap&lt;Method, T&gt; {
 
   public MethodMap() {
-<span class="fc" id="L44">    super(5, 0.7f);</span>
-<span class="fc" id="L45">  }</span>
+<span class="nc" id="L43">    super(2);</span>
+<span class="nc" id="L44">  }</span>
 
   public MethodMap(final int initialCapacity) {
-<span class="fc" id="L48">    super(initialCapacity, 0.7f);</span>
-<span class="fc" id="L49">  }</span>
+<span class="fc" id="L47">    super(initialCapacity);</span>
+<span class="fc" id="L48">  }</span>
 
-  public MethodMap(final int initialCapacity, final float loadFactor) {
-<span class="nc" id="L52">    super(initialCapacity, loadFactor);</span>
-<span class="nc" id="L53">  }</span>
-
-
-
+  /**
+   * optimized hashing.
+   */
   @Override
   protected int hash(final Object notnull) {
-<span class="fc" id="L59">    Method m = (Method) notnull;</span>
-<span class="fc" id="L60">    return m.getName().hashCode() + m.getDeclaringClass().hashCode() * 7;</span>
+<span class="fc" id="L55">    Method m = (Method) notnull;</span>
+<span class="fc" id="L56">    return m.getName().hashCode();</span>
   }
 
+  /** equals is used for both keys and values. */
   @Override
   protected boolean equals(final Object notnull, final Object two) {
-<span class="pc bpc" id="L65" title="1 of 2 branches missed.">    if (notnull == two) {</span>
-<span class="nc" id="L66">      return true;</span>
+<span class="pc bpc" id="L62" title="1 of 2 branches missed.">    if (notnull == two) {</span>
+<span class="nc" id="L63">      return true;</span>
     }
-<span class="fc bfc" id="L68" title="All 2 branches covered.">    if (notnull instanceof Method) {</span>
-<span class="fc" id="L69">      Method m1 = (Method) notnull;</span>
-<span class="fc" id="L70">      Method m2 = (Method) two;</span>
-<span class="fc bfc" id="L71" title="All 2 branches covered.">      if (!m1.getName().equals(m2.getName())) {</span>
-<span class="fc" id="L72">        return false;</span>
-      }
-<span class="fc" id="L74">      return m1.getDeclaringClass().equals(m2.getDeclaringClass());</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">    if (two == null) {</span>
+<span class="nc" id="L66">      return false;</span>
+    }
+<span class="fc" id="L68">    Class&lt;? extends Object&gt; fClass = notnull.getClass();</span>
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (fClass != two.getClass()) {</span>
+<span class="nc" id="L70">      return false;</span>
+    }
+<span class="fc bfc" id="L72" title="All 2 branches covered.">    if (fClass == Method.class) {</span>
+<span class="fc" id="L73">      Method m1 = (Method) notnull;</span>
+<span class="fc" id="L74">      Method m2 = (Method) two;</span>
+<span class="fc bfc" id="L75" title="All 4 branches covered.">      return m1.getName().equals(m2.getName()) &amp;&amp; m1.getDeclaringClass().equals(m2.getDeclaringClass());</span>
     } else {
-<span class="fc" id="L76">      return notnull.equals(two);</span>
+<span class="fc" id="L77">      return notnull.equals(two);</span>
     }
   }
 

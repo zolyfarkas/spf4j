@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -43,90 +44,90 @@ import org.spf4j.perf.MeasurementsInfo;
 public final class CountingAccumulator
         extends AbstractMeasurementAccumulator {
 
-<span class="fc" id="L46">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
+<span class="fc" id="L47">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;};</span>
 
     private long counter;
     private long total;
     private final MeasurementsInfo info;
 
     private CountingAccumulator(final Object measuredEntity, final String description,
-<span class="fc" id="L53">            final String unitOfMeasurement, final long counter, final long total) {</span>
-<span class="fc" id="L54">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
-                MEASUREMENTS, new String[]{&quot;count&quot;, unitOfMeasurement});
-<span class="fc" id="L56">        this.counter = counter;</span>
-<span class="fc" id="L57">        this.total = total;</span>
-<span class="fc" id="L58">    }</span>
+<span class="fc" id="L54">            final String unitOfMeasurement, final long counter, final long total) {</span>
+<span class="fc" id="L55">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+                MEASUREMENTS, new String[]{&quot;count&quot;, unitOfMeasurement}, MeasurementType.COUNTER);
+<span class="fc" id="L57">        this.counter = counter;</span>
+<span class="fc" id="L58">        this.total = total;</span>
+<span class="fc" id="L59">    }</span>
 
     public CountingAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
-<span class="fc" id="L61">        this(measuredEntity, description, unitOfMeasurement, 0, 0);</span>
-<span class="fc" id="L62">    }</span>
+<span class="fc" id="L62">        this(measuredEntity, description, unitOfMeasurement, 0, 0);</span>
+<span class="fc" id="L63">    }</span>
 
     public String getUnitOfMeasurement() {
-<span class="fc" id="L65">        return info.getMeasurementUnit(1);</span>
+<span class="fc" id="L66">        return info.getMeasurementUnit(1);</span>
     }
 
     @Override
     public synchronized void record(final long measurement) {
-<span class="fc" id="L70">        total += measurement;</span>
-<span class="fc" id="L71">        counter++;</span>
-<span class="fc" id="L72">    }</span>
+<span class="fc" id="L71">        total += measurement;</span>
+<span class="fc" id="L72">        counter++;</span>
+<span class="fc" id="L73">    }</span>
 
     @Override
     @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
     @Nullable
     public synchronized long[] get() {
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">        if (counter == 0) {</span>
-<span class="nc" id="L79">            return null;</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc" id="L80">            return null;</span>
         } else {
-<span class="fc" id="L81">            return new long[]{counter, total};</span>
+<span class="fc" id="L82">            return new long[]{counter, total};</span>
         }
     }
 
     @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
     @Override
     public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (mSource instanceof CountingAccumulator) {</span>
-<span class="fc" id="L89">            CountingAccumulator other = (CountingAccumulator) mSource;</span>
-<span class="fc" id="L90">            long[] measurements = other.get();</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (measurements != null) {</span>
-<span class="fc" id="L92">              synchronized (this) {</span>
-<span class="fc" id="L93">                  return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
-<span class="fc" id="L94">                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        if (mSource instanceof CountingAccumulator) {</span>
+<span class="fc" id="L90">            CountingAccumulator other = (CountingAccumulator) mSource;</span>
+<span class="fc" id="L91">            long[] measurements = other.get();</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">            if (measurements != null) {</span>
+<span class="fc" id="L93">              synchronized (this) {</span>
+<span class="fc" id="L94">                  return new CountingAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+<span class="fc" id="L95">                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);</span>
               }
             } else {
-<span class="nc" id="L97">              return this.createClone();</span>
+<span class="nc" id="L98">              return this.createClone();</span>
             }
         } else {
-<span class="nc" id="L100">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+<span class="nc" id="L101">            throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
         }
     }
 
     @Override
     public synchronized CountingAccumulator createClone() {
-<span class="fc" id="L106">        return new CountingAccumulator(this.info.getMeasuredEntity(),</span>
-<span class="fc" id="L107">                this.info.getDescription(), getUnitOfMeasurement(), counter, total);</span>
+<span class="fc" id="L107">        return new CountingAccumulator(this.info.getMeasuredEntity(),</span>
+<span class="fc" id="L108">                this.info.getDescription(), getUnitOfMeasurement(), counter, total);</span>
     }
 
     @Override
     public CountingAccumulator createLike(final Object entity) {
-<span class="fc" id="L112">        return new CountingAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
+<span class="fc" id="L113">        return new CountingAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
     }
 
     @Override
     public MeasurementsInfo getInfo() {
-<span class="fc" id="L117">        return info;</span>
+<span class="fc" id="L118">        return info;</span>
     }
 
     @Override
     @Nullable
     public synchronized MeasurementAccumulator reset() {
-<span class="fc bfc" id="L123" title="All 2 branches covered.">        if (counter == 0) {</span>
-<span class="fc" id="L124">            return null;</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">        if (counter == 0) {</span>
+<span class="fc" id="L125">            return null;</span>
         } else {
-<span class="fc" id="L126">            MeasurementAccumulator result = this.createClone();</span>
-<span class="fc" id="L127">            counter = 0;</span>
-<span class="fc" id="L128">            total = 0;</span>
-<span class="fc" id="L129">            return result;</span>
+<span class="fc" id="L127">            MeasurementAccumulator result = this.createClone();</span>
+<span class="fc" id="L128">            counter = 0;</span>
+<span class="fc" id="L129">            total = 0;</span>
+<span class="fc" id="L130">            return result;</span>
         }
     }
 
@@ -134,17 +135,17 @@ public final class CountingAccumulator
     @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
     @Nullable
     public long[] getThenReset() {
-<span class="fc" id="L137">        final MeasurementAccumulator vals = reset();</span>
-<span class="pc bpc" id="L138" title="1 of 2 branches missed.">        if (vals == null) {</span>
-<span class="nc" id="L139">            return null;</span>
+<span class="fc" id="L138">        final MeasurementAccumulator vals = reset();</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">        if (vals == null) {</span>
+<span class="nc" id="L140">            return null;</span>
         } else {
-<span class="fc" id="L141">            return vals.get();</span>
+<span class="fc" id="L142">            return vals.get();</span>
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L147">        return &quot;CountingAccumulator{&quot; + &quot;counter=&quot; + counter + &quot;, total=&quot; + total + &quot;, info=&quot; + info + '}';</span>
+<span class="nc" id="L148">        return &quot;CountingAccumulator{&quot; + &quot;counter=&quot; + counter + &quot;, total=&quot; + total + &quot;, info=&quot; + info + '}';</span>
     }
 
 }

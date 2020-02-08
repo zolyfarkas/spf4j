@@ -185,438 +185,438 @@
 <a class="jxr_linenumber" name="L177" href="#L177">177</a> 
 <a class="jxr_linenumber" name="L178" href="#L178">178</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String getAppVersionString() {
 <a class="jxr_linenumber" name="L179" href="#L179">179</a>     Class&lt;?&gt; mainClass = getMainClass();
-<a class="jxr_linenumber" name="L180" href="#L180">180</a>     <strong class="jxr_keyword">return</strong> mainClass.getPackage().getImplementationVersion();
-<a class="jxr_linenumber" name="L181" href="#L181">181</a>   }
-<a class="jxr_linenumber" name="L182" href="#L182">182</a> 
-<a class="jxr_linenumber" name="L183" href="#L183">183</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L184" href="#L184">184</a> <em class="jxr_javadoccomment">   * Returns application information.</em>
-<a class="jxr_linenumber" name="L185" href="#L185">185</a> <em class="jxr_javadoccomment">   * Information is retrieved from the app jar manifest.</em>
-<a class="jxr_linenumber" name="L186" href="#L186">186</a> <em class="jxr_javadoccomment">   * Manifest can be generated with maven like:</em>
-<a class="jxr_linenumber" name="L187" href="#L187">187</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L188" href="#L188">188</a> <em class="jxr_javadoccomment">   * &lt;pre&gt;</em>
-<a class="jxr_linenumber" name="L189" href="#L189">189</a> <em class="jxr_javadoccomment">   * {@code</em>
-<a class="jxr_linenumber" name="L190" href="#L190">190</a> <em class="jxr_javadoccomment">   *   &lt;plugin&gt;</em>
-<a class="jxr_linenumber" name="L191" href="#L191">191</a> <em class="jxr_javadoccomment">   *     &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;</em>
-<a class="jxr_linenumber" name="L192" href="#L192">192</a> <em class="jxr_javadoccomment">   *     &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;</em>
-<a class="jxr_linenumber" name="L193" href="#L193">193</a> <em class="jxr_javadoccomment">   *     &lt;version&gt;3.1.1&lt;/version&gt;</em>
-<a class="jxr_linenumber" name="L194" href="#L194">194</a> <em class="jxr_javadoccomment">   *     &lt;configuration&gt;</em>
-<a class="jxr_linenumber" name="L195" href="#L195">195</a> <em class="jxr_javadoccomment">   *       &lt;archive&gt;</em>
-<a class="jxr_linenumber" name="L196" href="#L196">196</a> <em class="jxr_javadoccomment">   *         &lt;index&gt;true&lt;/index&gt;</em>
-<a class="jxr_linenumber" name="L197" href="#L197">197</a> <em class="jxr_javadoccomment">   *         &lt;manifest&gt;</em>
-<a class="jxr_linenumber" name="L198" href="#L198">198</a> <em class="jxr_javadoccomment">   *           &lt;addDefaultSpecificationEntries&gt;true&lt;/addDefaultSpecificationEntries&gt;</em>
-<a class="jxr_linenumber" name="L199" href="#L199">199</a> <em class="jxr_javadoccomment">   *           &lt;addClasspath&gt;true&lt;/addClasspath&gt;</em>
-<a class="jxr_linenumber" name="L200" href="#L200">200</a> <em class="jxr_javadoccomment">   *           &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;</em>
-<a class="jxr_linenumber" name="L201" href="#L201">201</a> <em class="jxr_javadoccomment">   *           &lt;mainClass&gt;org.spf4j.demo.Main&lt;/mainClass&gt;</em>
-<a class="jxr_linenumber" name="L202" href="#L202">202</a> <em class="jxr_javadoccomment">   *         &lt;/manifest&gt;</em>
-<a class="jxr_linenumber" name="L203" href="#L203">203</a> <em class="jxr_javadoccomment">   *         &lt;manifestEntries&gt;</em>
-<a class="jxr_linenumber" name="L204" href="#L204">204</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Vendor&gt;${project.groupId}&lt;/Implementation-Vendor&gt;</em>
-<a class="jxr_linenumber" name="L205" href="#L205">205</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Vendor-Id&gt;${project.groupId}&lt;/Implementation-Vendor-Id&gt;</em>
-<a class="jxr_linenumber" name="L206" href="#L206">206</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Title&gt;${project.artifactId}&lt;/Implementation-Title&gt;</em>
-<a class="jxr_linenumber" name="L207" href="#L207">207</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Version&gt;${project.version}&lt;/Implementation-Version&gt;</em>
-<a class="jxr_linenumber" name="L208" href="#L208">208</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Description&gt;${project.description}&lt;/Implementation-Description&gt;</em>
-<a class="jxr_linenumber" name="L209" href="#L209">209</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Url&gt;${project.url}&lt;/Implementation-Url&gt;</em>
-<a class="jxr_linenumber" name="L210" href="#L210">210</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Org&gt;${project.organization.name}&lt;/Implementation-Org&gt;</em>
-<a class="jxr_linenumber" name="L211" href="#L211">211</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Org-Url&gt;${project.organization.url}&lt;/Implementation-Org-Url&gt;</em>
-<a class="jxr_linenumber" name="L212" href="#L212">212</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Build&gt;${buildNumber}&lt;/Implementation-Build&gt;</em>
-<a class="jxr_linenumber" name="L213" href="#L213">213</a> <em class="jxr_javadoccomment">   *           &lt;Build-Time&gt;${maven.build.timestamp}&lt;/Build-Time&gt;</em>
-<a class="jxr_linenumber" name="L214" href="#L214">214</a> <em class="jxr_javadoccomment">   *         &lt;/manifestEntries&gt;</em>
-<a class="jxr_linenumber" name="L215" href="#L215">215</a> <em class="jxr_javadoccomment">   *       &lt;/archive&gt;</em>
-<a class="jxr_linenumber" name="L216" href="#L216">216</a> <em class="jxr_javadoccomment">   *     &lt;/configuration&gt;</em>
-<a class="jxr_linenumber" name="L217" href="#L217">217</a> <em class="jxr_javadoccomment">   *   &lt;/plugin&gt;</em>
-<a class="jxr_linenumber" name="L218" href="#L218">218</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L219" href="#L219">219</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L220" href="#L220">220</a> <em class="jxr_javadoccomment">   * }</em>
-<a class="jxr_linenumber" name="L221" href="#L221">221</a> <em class="jxr_javadoccomment">   * &lt;/pre&gt;</em>
-<a class="jxr_linenumber" name="L222" href="#L222">222</a> <em class="jxr_javadoccomment">   * @return</em>
-<a class="jxr_linenumber" name="L223" href="#L223">223</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L224" href="#L224">224</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ApplicationInfo getApplicationInfo() {
-<a class="jxr_linenumber" name="L225" href="#L225">225</a>     Class&lt;?&gt; mainClass = getMainClass();
-<a class="jxr_linenumber" name="L226" href="#L226">226</a>     Package p = mainClass.getPackage();
-<a class="jxr_linenumber" name="L227" href="#L227">227</a>     <strong class="jxr_keyword">if</strong> (p == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L228" href="#L228">228</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L229" href="#L229">229</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(<span class="jxr_string">"N/A"</span>, <span class="jxr_string">"N/A"</span>, <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>), <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L230" href="#L230">230</a>       } <strong class="jxr_keyword">catch</strong> (MalformedURLException ex) {
-<a class="jxr_linenumber" name="L231" href="#L231">231</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L232" href="#L232">232</a>       }
-<a class="jxr_linenumber" name="L233" href="#L233">233</a>     }
-<a class="jxr_linenumber" name="L234" href="#L234">234</a>     URL jarSourceUrl = PackageInfo.getJarSourceUrl(mainClass);
-<a class="jxr_linenumber" name="L235" href="#L235">235</a>     <strong class="jxr_keyword">if</strong> (jarSourceUrl == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L236" href="#L236">236</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L237" href="#L237">237</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(p.getImplementationTitle(), <span class="jxr_string">"N/A"</span>,
-<a class="jxr_linenumber" name="L238" href="#L238">238</a>                 <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>), <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L239" href="#L239">239</a>       } <strong class="jxr_keyword">catch</strong> (MalformedURLException ex) {
-<a class="jxr_linenumber" name="L240" href="#L240">240</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L241" href="#L241">241</a>       }
-<a class="jxr_linenumber" name="L242" href="#L242">242</a>     }
-<a class="jxr_linenumber" name="L243" href="#L243">243</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L244" href="#L244">244</a>       Manifest manifest = Reflections.getManifest(jarSourceUrl);
-<a class="jxr_linenumber" name="L245" href="#L245">245</a>       Attributes mainAttributes = manifest.getMainAttributes();
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>       String appDescription = mainAttributes.getValue(<span class="jxr_string">"Implementation-Description"</span>);
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>       String appUrl = mainAttributes.getValue(<span class="jxr_string">"Implementation-Url"</span>);
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>       String org = mainAttributes.getValue(<span class="jxr_string">"Implementation-Org"</span>);
-<a class="jxr_linenumber" name="L249" href="#L249">249</a>       String orgUrl = mainAttributes.getValue(<span class="jxr_string">"Implementation-Org-Url"</span>);
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(p.getImplementationTitle(), appDescription == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : appDescription,
-<a class="jxr_linenumber" name="L251" href="#L251">251</a>               (appUrl == <strong class="jxr_keyword">null</strong> || appUrl.trim().isEmpty())
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>                       ? <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>) : <strong class="jxr_keyword">new</strong> URL(appUrl),
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>               (org != <strong class="jxr_keyword">null</strong> &amp;&amp; !org.trim().isEmpty()) ? <strong class="jxr_keyword">new</strong> Organization(org,
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>                         <strong class="jxr_keyword">new</strong> URL((orgUrl == <strong class="jxr_keyword">null</strong> || orgUrl.trim().isEmpty())
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>                                 ? <span class="jxr_string">"file://manifest/Implementation-Org-Url"</span> : orgUrl)) : <strong class="jxr_keyword">null</strong>);
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L180" href="#L180">180</a>     String version = mainClass.getPackage().getImplementationVersion();
+<a class="jxr_linenumber" name="L181" href="#L181">181</a>     <strong class="jxr_keyword">if</strong> (version == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L182" href="#L182">182</a>       <strong class="jxr_keyword">return</strong> <span class="jxr_string">"N/A"</span>;
+<a class="jxr_linenumber" name="L183" href="#L183">183</a>     } <strong class="jxr_keyword">else</strong>  {
+<a class="jxr_linenumber" name="L184" href="#L184">184</a>       <strong class="jxr_keyword">return</strong> version;
+<a class="jxr_linenumber" name="L185" href="#L185">185</a>     }
+<a class="jxr_linenumber" name="L186" href="#L186">186</a>   }
+<a class="jxr_linenumber" name="L187" href="#L187">187</a> 
+<a class="jxr_linenumber" name="L188" href="#L188">188</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L189" href="#L189">189</a> <em class="jxr_javadoccomment">   * Returns application information.</em>
+<a class="jxr_linenumber" name="L190" href="#L190">190</a> <em class="jxr_javadoccomment">   * Information is retrieved from the app jar manifest.</em>
+<a class="jxr_linenumber" name="L191" href="#L191">191</a> <em class="jxr_javadoccomment">   * Manifest can be generated with maven like:</em>
+<a class="jxr_linenumber" name="L192" href="#L192">192</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L193" href="#L193">193</a> <em class="jxr_javadoccomment">   * &lt;pre&gt;</em>
+<a class="jxr_linenumber" name="L194" href="#L194">194</a> <em class="jxr_javadoccomment">   * {@code</em>
+<a class="jxr_linenumber" name="L195" href="#L195">195</a> <em class="jxr_javadoccomment">   *   &lt;plugin&gt;</em>
+<a class="jxr_linenumber" name="L196" href="#L196">196</a> <em class="jxr_javadoccomment">   *     &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;</em>
+<a class="jxr_linenumber" name="L197" href="#L197">197</a> <em class="jxr_javadoccomment">   *     &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;</em>
+<a class="jxr_linenumber" name="L198" href="#L198">198</a> <em class="jxr_javadoccomment">   *     &lt;version&gt;3.1.1&lt;/version&gt;</em>
+<a class="jxr_linenumber" name="L199" href="#L199">199</a> <em class="jxr_javadoccomment">   *     &lt;configuration&gt;</em>
+<a class="jxr_linenumber" name="L200" href="#L200">200</a> <em class="jxr_javadoccomment">   *       &lt;archive&gt;</em>
+<a class="jxr_linenumber" name="L201" href="#L201">201</a> <em class="jxr_javadoccomment">   *         &lt;index&gt;true&lt;/index&gt;</em>
+<a class="jxr_linenumber" name="L202" href="#L202">202</a> <em class="jxr_javadoccomment">   *         &lt;manifest&gt;</em>
+<a class="jxr_linenumber" name="L203" href="#L203">203</a> <em class="jxr_javadoccomment">   *           &lt;addDefaultSpecificationEntries&gt;true&lt;/addDefaultSpecificationEntries&gt;</em>
+<a class="jxr_linenumber" name="L204" href="#L204">204</a> <em class="jxr_javadoccomment">   *           &lt;addClasspath&gt;true&lt;/addClasspath&gt;</em>
+<a class="jxr_linenumber" name="L205" href="#L205">205</a> <em class="jxr_javadoccomment">   *           &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;</em>
+<a class="jxr_linenumber" name="L206" href="#L206">206</a> <em class="jxr_javadoccomment">   *           &lt;mainClass&gt;org.spf4j.demo.Main&lt;/mainClass&gt;</em>
+<a class="jxr_linenumber" name="L207" href="#L207">207</a> <em class="jxr_javadoccomment">   *         &lt;/manifest&gt;</em>
+<a class="jxr_linenumber" name="L208" href="#L208">208</a> <em class="jxr_javadoccomment">   *         &lt;manifestEntries&gt;</em>
+<a class="jxr_linenumber" name="L209" href="#L209">209</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Vendor&gt;${project.groupId}&lt;/Implementation-Vendor&gt;</em>
+<a class="jxr_linenumber" name="L210" href="#L210">210</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Vendor-Id&gt;${project.groupId}&lt;/Implementation-Vendor-Id&gt;</em>
+<a class="jxr_linenumber" name="L211" href="#L211">211</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Title&gt;${project.artifactId}&lt;/Implementation-Title&gt;</em>
+<a class="jxr_linenumber" name="L212" href="#L212">212</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Version&gt;${project.version}&lt;/Implementation-Version&gt;</em>
+<a class="jxr_linenumber" name="L213" href="#L213">213</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Description&gt;${project.description}&lt;/Implementation-Description&gt;</em>
+<a class="jxr_linenumber" name="L214" href="#L214">214</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Url&gt;${project.url}&lt;/Implementation-Url&gt;</em>
+<a class="jxr_linenumber" name="L215" href="#L215">215</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Org&gt;${project.organization.name}&lt;/Implementation-Org&gt;</em>
+<a class="jxr_linenumber" name="L216" href="#L216">216</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Org-Url&gt;${project.organization.url}&lt;/Implementation-Org-Url&gt;</em>
+<a class="jxr_linenumber" name="L217" href="#L217">217</a> <em class="jxr_javadoccomment">   *           &lt;Implementation-Build&gt;${buildNumber}&lt;/Implementation-Build&gt;</em>
+<a class="jxr_linenumber" name="L218" href="#L218">218</a> <em class="jxr_javadoccomment">   *           &lt;Build-Time&gt;${maven.build.timestamp}&lt;/Build-Time&gt;</em>
+<a class="jxr_linenumber" name="L219" href="#L219">219</a> <em class="jxr_javadoccomment">   *         &lt;/manifestEntries&gt;</em>
+<a class="jxr_linenumber" name="L220" href="#L220">220</a> <em class="jxr_javadoccomment">   *       &lt;/archive&gt;</em>
+<a class="jxr_linenumber" name="L221" href="#L221">221</a> <em class="jxr_javadoccomment">   *     &lt;/configuration&gt;</em>
+<a class="jxr_linenumber" name="L222" href="#L222">222</a> <em class="jxr_javadoccomment">   *   &lt;/plugin&gt;</em>
+<a class="jxr_linenumber" name="L223" href="#L223">223</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L224" href="#L224">224</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L225" href="#L225">225</a> <em class="jxr_javadoccomment">   * }</em>
+<a class="jxr_linenumber" name="L226" href="#L226">226</a> <em class="jxr_javadoccomment">   * &lt;/pre&gt;</em>
+<a class="jxr_linenumber" name="L227" href="#L227">227</a> <em class="jxr_javadoccomment">   * @return</em>
+<a class="jxr_linenumber" name="L228" href="#L228">228</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L229" href="#L229">229</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> ApplicationInfo getApplicationInfo() {
+<a class="jxr_linenumber" name="L230" href="#L230">230</a>     Class&lt;?&gt; mainClass = getMainClass();
+<a class="jxr_linenumber" name="L231" href="#L231">231</a>     <strong class="jxr_keyword">if</strong> (mainClass == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L232" href="#L232">232</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L233" href="#L233">233</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(<span class="jxr_string">"N/A"</span>, <span class="jxr_string">"N/A main class"</span>, <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>), <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L234" href="#L234">234</a>       } <strong class="jxr_keyword">catch</strong> (MalformedURLException ex) {
+<a class="jxr_linenumber" name="L235" href="#L235">235</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L236" href="#L236">236</a>       }
+<a class="jxr_linenumber" name="L237" href="#L237">237</a>     }
+<a class="jxr_linenumber" name="L238" href="#L238">238</a>     Package p = mainClass.getPackage();
+<a class="jxr_linenumber" name="L239" href="#L239">239</a>     <strong class="jxr_keyword">if</strong> (p == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L240" href="#L240">240</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L241" href="#L241">241</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(<span class="jxr_string">"N/A"</span>, <span class="jxr_string">"N/A package Info"</span>, <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>), <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L242" href="#L242">242</a>       } <strong class="jxr_keyword">catch</strong> (MalformedURLException ex) {
+<a class="jxr_linenumber" name="L243" href="#L243">243</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L244" href="#L244">244</a>       }
+<a class="jxr_linenumber" name="L245" href="#L245">245</a>     }
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>     URL jarSourceUrl = PackageInfo.getJarSourceUrl(mainClass);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>     String implementationTitle = p.getImplementationTitle();
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>     <strong class="jxr_keyword">if</strong> (implementationTitle == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>       implementationTitle = <span class="jxr_string">"N/A manifest:Implementation-Title"</span>;
+<a class="jxr_linenumber" name="L250" href="#L250">250</a>     }
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>     <strong class="jxr_keyword">if</strong> (jarSourceUrl == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(implementationTitle, <span class="jxr_string">"N/A jar"</span>,
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>                 <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>), <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>       } <strong class="jxr_keyword">catch</strong> (MalformedURLException ex) {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>       }
 <a class="jxr_linenumber" name="L258" href="#L258">258</a>     }
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>   }
-<a class="jxr_linenumber" name="L260" href="#L260">260</a> 
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isShuttingDown() {
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>         java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>         Thread dummy = <strong class="jxr_keyword">new</strong> Thread(AbstractRunnable.NOP);
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>         runtime.addShutdownHook(dummy);
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>         runtime.removeShutdownHook(dummy);
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>       } <strong class="jxr_keyword">catch</strong> (IllegalStateException e) {
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>       }
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>       <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>   }
-<a class="jxr_linenumber" name="L272" href="#L272">272</a> 
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> error(<strong class="jxr_keyword">final</strong> String message) {
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>     System.err.println(message);
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>   }
-<a class="jxr_linenumber" name="L277" href="#L277">277</a> 
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> error(<strong class="jxr_keyword">final</strong> String message, <strong class="jxr_keyword">final</strong> Throwable t) {
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>     System.err.println(message);
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>     Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>   }
-<a class="jxr_linenumber" name="L283" href="#L283">283</a> 
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> errorNoPackageDetail(<strong class="jxr_keyword">final</strong> String message, <strong class="jxr_keyword">final</strong> Throwable t) {
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>     System.err.println(message);
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>     Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>   }
-<a class="jxr_linenumber" name="L289" href="#L289">289</a> 
-<a class="jxr_linenumber" name="L290" href="#L290">290</a> 
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> goDownWithError(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/SysExits.html">SysExits</a> exitCode) {
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>     goDownWithError(<strong class="jxr_keyword">null</strong>, exitCode.exitCode());
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>   }
-<a class="jxr_linenumber" name="L294" href="#L294">294</a> 
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> goDownWithError(@Nullable <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/SysExits.html">SysExits</a> exitCode) {
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>     goDownWithError(t, exitCode.exitCode());
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>   }
-<a class="jxr_linenumber" name="L298" href="#L298">298</a> 
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>   <em class="jxr_comment">// Calling Halt is the only sensible thing to do when the JVM is hosed.</em>
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>   @SuppressFBWarnings(<span class="jxr_string">"MDM_RUNTIME_EXIT_OR_HALT"</span>)
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> goDownWithError(@Nullable <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> exitCode) {
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>       <strong class="jxr_keyword">if</strong> (t != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>         Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); <em class="jxr_comment">//High probability attempt to log first</em>
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>         error(<span class="jxr_string">"Error, going down with exit code "</span> + exitCode, t);
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         <em class="jxr_comment">//Now we are pushing it...</em>
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>         Logger logger = Logger.getLogger(Runtime.<strong class="jxr_keyword">class</strong>.getName());
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>         logger.log(Level.SEVERE, <span class="jxr_string">"Error, going down with exit code {0}"</span>, exitCode);
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>         logger.log(Level.SEVERE, <span class="jxr_string">"Exception detail"</span>, t);
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>         error(<span class="jxr_string">"Error, going down with exit code "</span> + exitCode);
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>         Logger.getLogger(Runtime.<strong class="jxr_keyword">class</strong>.getName())
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>                 .log(Level.SEVERE, <span class="jxr_string">"Error, going down with exit code {0}"</span>, exitCode);
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>       }
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>     } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>       JAVA_RUNTIME.halt(exitCode);
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>     }
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>   }
-<a class="jxr_linenumber" name="L319" href="#L319">319</a> 
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L321" href="#L321">321</a> <em class="jxr_javadoccomment">   * @return true on macosx.</em>
-<a class="jxr_linenumber" name="L322" href="#L322">322</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem</em>
-<a class="jxr_linenumber" name="L323" href="#L323">323</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>   @Deprecated
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isMacOsx() {
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.isMacOsx();
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>   }
-<a class="jxr_linenumber" name="L328" href="#L328">328</a> 
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L330" href="#L330">330</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L331" href="#L331">331</a> <em class="jxr_javadoccomment">   * @return true on windows.</em>
-<a class="jxr_linenumber" name="L332" href="#L332">332</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem</em>
-<a class="jxr_linenumber" name="L333" href="#L333">333</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>   @Deprecated
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isWindows() {
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.isWindows();
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>   }
-<a class="jxr_linenumber" name="L338" href="#L338">338</a> 
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isTestFramework() {
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>     StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>     <strong class="jxr_keyword">for</strong> (StackTraceElement[] sts : stackTraces) {
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>       <strong class="jxr_keyword">if</strong> (sts != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>         <strong class="jxr_keyword">for</strong> (StackTraceElement ste : sts) {
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>           String className = ste.getClassName();
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>           <strong class="jxr_keyword">if</strong> (className.startsWith(<span class="jxr_string">"org.junit"</span>) || className.startsWith(<span class="jxr_string">"org.openjdk.jmh"</span>)) {
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>           }
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>         }
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>       }
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>     }
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>     <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>   }
-<a class="jxr_linenumber" name="L353" href="#L353">353</a> 
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L355" href="#L355">355</a> <em class="jxr_javadoccomment">   * @return true if jna platform is present.</em>
-<a class="jxr_linenumber" name="L356" href="#L356">356</a> <em class="jxr_javadoccomment">   * @deprecated use JNA instead</em>
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>       Manifest manifest = Reflections.getManifest(jarSourceUrl);
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>       <strong class="jxr_keyword">if</strong> (manifest == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(implementationTitle, <span class="jxr_string">"N/A jar manifest"</span>,
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>                   <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>), <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         } <strong class="jxr_keyword">catch</strong> (MalformedURLException ex) {
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         }
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>       }
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>       Attributes mainAttributes = manifest.getMainAttributes();
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>       String appDescription = mainAttributes.getValue(<span class="jxr_string">"Implementation-Description"</span>);
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>       String appUrl = mainAttributes.getValue(<span class="jxr_string">"Implementation-Url"</span>);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>       String org = mainAttributes.getValue(<span class="jxr_string">"Implementation-Org"</span>);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>       String orgUrl = mainAttributes.getValue(<span class="jxr_string">"Implementation-Org-Url"</span>);
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> ApplicationInfo(implementationTitle, appDescription == <strong class="jxr_keyword">null</strong> ? <span class="jxr_string">""</span> : appDescription,
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>               (appUrl == <strong class="jxr_keyword">null</strong> || appUrl.trim().isEmpty())
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>                       ? <strong class="jxr_keyword">new</strong> URL(<span class="jxr_string">"file://manifest/Implementation-Url"</span>) : <strong class="jxr_keyword">new</strong> URL(appUrl),
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>               (org != <strong class="jxr_keyword">null</strong> &amp;&amp; !org.trim().isEmpty()) ? <strong class="jxr_keyword">new</strong> Organization(org,
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>                         <strong class="jxr_keyword">new</strong> URL((orgUrl == <strong class="jxr_keyword">null</strong> || orgUrl.trim().isEmpty())
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>                                 ? <span class="jxr_string">"file://manifest/Implementation-Org-Url"</span> : orgUrl)) : <strong class="jxr_keyword">null</strong>);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>     }
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>   }
+<a class="jxr_linenumber" name="L284" href="#L284">284</a> 
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isShuttingDown() {
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>         java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>         Thread dummy = <strong class="jxr_keyword">new</strong> Thread(AbstractRunnable.NOP);
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>         runtime.addShutdownHook(dummy);
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>         runtime.removeShutdownHook(dummy);
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>       } <strong class="jxr_keyword">catch</strong> (IllegalStateException e) {
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>       }
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>       <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>   }
+<a class="jxr_linenumber" name="L296" href="#L296">296</a> 
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> error(<strong class="jxr_keyword">final</strong> String message) {
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>     System.err.println(message);
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>   }
+<a class="jxr_linenumber" name="L301" href="#L301">301</a> 
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> error(<strong class="jxr_keyword">final</strong> String message, <strong class="jxr_keyword">final</strong> Throwable t) {
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     System.err.println(message);
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>     Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>   }
+<a class="jxr_linenumber" name="L307" href="#L307">307</a> 
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>   @SuppressWarnings(<span class="jxr_string">"checkstyle:regexp"</span>)
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> errorNoPackageDetail(<strong class="jxr_keyword">final</strong> String message, <strong class="jxr_keyword">final</strong> Throwable t) {
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     System.err.println(message);
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>   }
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> 
+<a class="jxr_linenumber" name="L314" href="#L314">314</a> 
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> goDownWithError(<strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/SysExits.html">SysExits</a> exitCode) {
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     goDownWithError(<strong class="jxr_keyword">null</strong>, exitCode.exitCode());
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>   }
+<a class="jxr_linenumber" name="L318" href="#L318">318</a> 
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> goDownWithError(@Nullable <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/SysExits.html">SysExits</a> exitCode) {
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>     goDownWithError(t, exitCode.exitCode());
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>   }
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>   <em class="jxr_comment">// Calling Halt is the only sensible thing to do when the JVM is hosed.</em>
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>   @SuppressFBWarnings(<span class="jxr_string">"MDM_RUNTIME_EXIT_OR_HALT"</span>)
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> goDownWithError(@Nullable <strong class="jxr_keyword">final</strong> Throwable t, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> exitCode) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>       <strong class="jxr_keyword">if</strong> (t != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>         Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); <em class="jxr_comment">//High probability attempt to log first</em>
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         error(<span class="jxr_string">"Error, going down with exit code "</span> + exitCode, t);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         <em class="jxr_comment">//Now we are pushing it...</em>
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>         Logger logger = Logger.getLogger(Runtime.<strong class="jxr_keyword">class</strong>.getName());
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>         logger.log(Level.SEVERE, <span class="jxr_string">"Error, going down with exit code {0}"</span>, exitCode);
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>         logger.log(Level.SEVERE, <span class="jxr_string">"Exception detail"</span>, t);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>         error(<span class="jxr_string">"Error, going down with exit code "</span> + exitCode);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         Logger.getLogger(Runtime.<strong class="jxr_keyword">class</strong>.getName())
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>                 .log(Level.SEVERE, <span class="jxr_string">"Error, going down with exit code {0}"</span>, exitCode);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>       }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>       JAVA_RUNTIME.halt(exitCode);
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>     }
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>   }
+<a class="jxr_linenumber" name="L343" href="#L343">343</a> 
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L345" href="#L345">345</a> <em class="jxr_javadoccomment">   * @return true on macosx.</em>
+<a class="jxr_linenumber" name="L346" href="#L346">346</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem</em>
+<a class="jxr_linenumber" name="L347" href="#L347">347</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>   @Deprecated
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isMacOsx() {
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.isMacOsx();
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>   }
+<a class="jxr_linenumber" name="L352" href="#L352">352</a> 
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L354" href="#L354">354</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L355" href="#L355">355</a> <em class="jxr_javadoccomment">   * @return true on windows.</em>
+<a class="jxr_linenumber" name="L356" href="#L356">356</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem</em>
 <a class="jxr_linenumber" name="L357" href="#L357">357</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L358" href="#L358">358</a>   @Deprecated
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> haveJnaPlatform() {
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>     <strong class="jxr_keyword">return</strong> JNA.haveJnaPlatform();
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isWindows() {
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.isWindows();
 <a class="jxr_linenumber" name="L361" href="#L361">361</a>   }
 <a class="jxr_linenumber" name="L362" href="#L362">362</a> 
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L364" href="#L364">364</a> <em class="jxr_javadoccomment">   * @return true if jna platform clib is present.</em>
-<a class="jxr_linenumber" name="L365" href="#L365">365</a> <em class="jxr_javadoccomment">   * @deprecated use JNA instead.</em>
-<a class="jxr_linenumber" name="L366" href="#L366">366</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>   @Deprecated
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> haveJnaPlatformClib() {
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>     <strong class="jxr_keyword">return</strong> JNA.haveJnaPlatformClib();
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>   }
-<a class="jxr_linenumber" name="L371" href="#L371">371</a> 
-<a class="jxr_linenumber" name="L372" href="#L372">372</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L373" href="#L373">373</a> <em class="jxr_javadoccomment">   * get the number of open files by current java process.</em>
-<a class="jxr_linenumber" name="L374" href="#L374">374</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L375" href="#L375">375</a> <em class="jxr_javadoccomment">   * @return -1 if cannot get nr of open files</em>
-<a class="jxr_linenumber" name="L376" href="#L376">376</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.getOpenFileDescriptorCount() instead</em>
-<a class="jxr_linenumber" name="L377" href="#L377">377</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>   @CheckReturnValue
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>   @Deprecated
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> getNrOpenFiles() {
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>     <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) OperatingSystem.getOpenFileDescriptorCount();
-<a class="jxr_linenumber" name="L382" href="#L382">382</a>   }
-<a class="jxr_linenumber" name="L383" href="#L383">383</a> 
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L385" href="#L385">385</a> <em class="jxr_javadoccomment">   * @deprecated use Lsof.getLsofOutput instead.</em>
-<a class="jxr_linenumber" name="L386" href="#L386">386</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>   @Nullable
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>   @CheckReturnValue
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>   @Deprecated
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence getLsofOutput() {
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>     <strong class="jxr_keyword">return</strong> Lsof.getLsofOutput();
-<a class="jxr_linenumber" name="L392" href="#L392">392</a>   }
-<a class="jxr_linenumber" name="L393" href="#L393">393</a> 
-<a class="jxr_linenumber" name="L394" href="#L394">394</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L395" href="#L395">395</a> <em class="jxr_javadoccomment">   * @deprecated use Processhandler</em>
-<a class="jxr_linenumber" name="L396" href="#L396">396</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>   @Deprecated
-<a class="jxr_linenumber" name="L398" href="#L398">398</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a href="../../../org/spf4j/base/Runtime.html">ProcOutputHandler</a> {
-<a class="jxr_linenumber" name="L399" href="#L399">399</a> 
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>     <strong class="jxr_keyword">void</strong> handleStdOut(byte[] bytes, <strong class="jxr_keyword">int</strong> length);
-<a class="jxr_linenumber" name="L401" href="#L401">401</a> 
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>     <strong class="jxr_keyword">void</strong> stdOutDone();
-<a class="jxr_linenumber" name="L403" href="#L403">403</a> 
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>     <strong class="jxr_keyword">void</strong> handleStdErr(byte[] bytes, <strong class="jxr_keyword">int</strong> length);
-<a class="jxr_linenumber" name="L405" href="#L405">405</a> 
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>     <strong class="jxr_keyword">void</strong> stdErrDone();
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>   }
-<a class="jxr_linenumber" name="L408" href="#L408">408</a> 
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L410" href="#L410">410</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.forkExec.</em>
-<a class="jxr_linenumber" name="L411" href="#L411">411</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>   @Deprecated
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence run(<strong class="jxr_keyword">final</strong> String[] command,
-<a class="jxr_linenumber" name="L414" href="#L414">414</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis) <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.forkExec(command, timeoutMillis);
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> isTestFramework() {
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>     StackTraceElement[][] stackTraces = Threads.getStackTraces(Threads.getThreads());
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>     <strong class="jxr_keyword">for</strong> (StackTraceElement[] sts : stackTraces) {
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>       <strong class="jxr_keyword">if</strong> (sts != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         <strong class="jxr_keyword">for</strong> (StackTraceElement ste : sts) {
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>           String className = ste.getClassName();
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>           <strong class="jxr_keyword">if</strong> (className.startsWith(<span class="jxr_string">"org.junit"</span>) || className.startsWith(<span class="jxr_string">"org.openjdk.jmh"</span>)) {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>             <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>           }
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>         }
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>       }
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>     }
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>     <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>   }
+<a class="jxr_linenumber" name="L377" href="#L377">377</a> 
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L379" href="#L379">379</a> <em class="jxr_javadoccomment">   * @return true if jna platform is present.</em>
+<a class="jxr_linenumber" name="L380" href="#L380">380</a> <em class="jxr_javadoccomment">   * @deprecated use JNA instead</em>
+<a class="jxr_linenumber" name="L381" href="#L381">381</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>   @Deprecated
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> haveJnaPlatform() {
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>     <strong class="jxr_keyword">return</strong> JNA.haveJnaPlatform();
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>   }
+<a class="jxr_linenumber" name="L386" href="#L386">386</a> 
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> <em class="jxr_javadoccomment">   * @return true if jna platform clib is present.</em>
+<a class="jxr_linenumber" name="L389" href="#L389">389</a> <em class="jxr_javadoccomment">   * @deprecated use JNA instead.</em>
+<a class="jxr_linenumber" name="L390" href="#L390">390</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>   @Deprecated
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> haveJnaPlatformClib() {
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>     <strong class="jxr_keyword">return</strong> JNA.haveJnaPlatformClib();
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>   }
+<a class="jxr_linenumber" name="L395" href="#L395">395</a> 
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L397" href="#L397">397</a> <em class="jxr_javadoccomment">   * get the number of open files by current java process.</em>
+<a class="jxr_linenumber" name="L398" href="#L398">398</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L399" href="#L399">399</a> <em class="jxr_javadoccomment">   * @return -1 if cannot get nr of open files</em>
+<a class="jxr_linenumber" name="L400" href="#L400">400</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.getOpenFileDescriptorCount() instead</em>
+<a class="jxr_linenumber" name="L401" href="#L401">401</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>   @CheckReturnValue
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>   @Deprecated
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> getNrOpenFiles() {
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>     <strong class="jxr_keyword">return</strong> (<strong class="jxr_keyword">int</strong>) OperatingSystem.getOpenFileDescriptorCount();
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>   }
+<a class="jxr_linenumber" name="L407" href="#L407">407</a> 
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L409" href="#L409">409</a> <em class="jxr_javadoccomment">   * @deprecated use Lsof.getLsofOutput instead.</em>
+<a class="jxr_linenumber" name="L410" href="#L410">410</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>   @Nullable
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>   @CheckReturnValue
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>   @Deprecated
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence getLsofOutput() {
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>     <strong class="jxr_keyword">return</strong> Lsof.getLsofOutput();
 <a class="jxr_linenumber" name="L416" href="#L416">416</a>   }
 <a class="jxr_linenumber" name="L417" href="#L417">417</a> 
 <a class="jxr_linenumber" name="L418" href="#L418">418</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.killProcess.</em>
+<a class="jxr_linenumber" name="L419" href="#L419">419</a> <em class="jxr_javadoccomment">   * @deprecated use Processhandler</em>
 <a class="jxr_linenumber" name="L420" href="#L420">420</a> <em class="jxr_javadoccomment">   */</em>
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>   @Deprecated
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> killProcess(<strong class="jxr_keyword">final</strong> Process proc, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> terminateTimeoutMillis,
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> forceTerminateTimeoutMillis)
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>           <strong class="jxr_keyword">throws</strong> InterruptedException, TimeoutException {
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>   }
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">interface</strong> <a href="../../../org/spf4j/base/Runtime.html">ProcOutputHandler</a> {
+<a class="jxr_linenumber" name="L423" href="#L423">423</a> 
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>     <strong class="jxr_keyword">void</strong> handleStdOut(byte[] bytes, <strong class="jxr_keyword">int</strong> length);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a> 
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>     <strong class="jxr_keyword">void</strong> stdOutDone();
 <a class="jxr_linenumber" name="L427" href="#L427">427</a> 
-<a class="jxr_linenumber" name="L428" href="#L428">428</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L429" href="#L429">429</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.forkExec instead.</em>
-<a class="jxr_linenumber" name="L430" href="#L430">430</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> run(<strong class="jxr_keyword">final</strong> String[] command, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Runtime.html">ProcOutputHandler</a> handler,
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis)
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>     <strong class="jxr_keyword">return</strong> run(command, handler, timeoutMillis, 60000);
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>   }
-<a class="jxr_linenumber" name="L436" href="#L436">436</a> 
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L438" href="#L438">438</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.forkExec instead.</em>
-<a class="jxr_linenumber" name="L439" href="#L439">439</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>   @SuppressFBWarnings(<span class="jxr_string">"COMMAND_INJECTION"</span>)
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>   @Deprecated
-<a class="jxr_linenumber" name="L442" href="#L442">442</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> run(<strong class="jxr_keyword">final</strong> String[] command, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Runtime.html">ProcOutputHandler</a> handler,
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> terminationTimeoutMillis)
-<a class="jxr_linenumber" name="L444" href="#L444">444</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L445" href="#L445">445</a>     ProcessResponse&lt;Void, Void&gt; resp = OperatingSystem.forkExec(command,
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>             <strong class="jxr_keyword">new</strong> ProcessHandler&lt;Void, Void&gt;() {
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>       @Override
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>       <strong class="jxr_keyword">public</strong> Void handleStdOut(<strong class="jxr_keyword">final</strong> InputStream is) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>         <strong class="jxr_keyword">int</strong> cos;
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>         byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>           <strong class="jxr_keyword">while</strong> ((cos = is.read(buffer)) &gt;= 0) {
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>             handler.handleStdOut(buffer, cos);
-<a class="jxr_linenumber" name="L454" href="#L454">454</a>           }
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>         } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L456" href="#L456">456</a>           ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>           handler.stdOutDone();
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>         }
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>       }
-<a class="jxr_linenumber" name="L461" href="#L461">461</a> 
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>       @Override
-<a class="jxr_linenumber" name="L463" href="#L463">463</a>       <strong class="jxr_keyword">public</strong> Void handleStdErr(<strong class="jxr_keyword">final</strong> InputStream stderr) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>         <strong class="jxr_keyword">int</strong> cos;
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>         byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>           <strong class="jxr_keyword">while</strong> ((cos = stderr.read(buffer)) &gt;= 0) {
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>             handler.handleStdErr(buffer, cos);
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>           }
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>         } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>           ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>           handler.stdErrDone();
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>         }
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L475" href="#L475">475</a>       }
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>     }, timeoutMillis, terminationTimeoutMillis);
-<a class="jxr_linenumber" name="L477" href="#L477">477</a>     <strong class="jxr_keyword">return</strong> resp.getResponseCode();
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>   }
-<a class="jxr_linenumber" name="L479" href="#L479">479</a> 
-<a class="jxr_linenumber" name="L480" href="#L480">480</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> queueHookAtBeginning(<strong class="jxr_keyword">final</strong> Runnable runnable) {
-<a class="jxr_linenumber" name="L481" href="#L481">481</a>     <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>       queueHook(Integer.MIN_VALUE, runnable);
-<a class="jxr_linenumber" name="L483" href="#L483">483</a>     }
-<a class="jxr_linenumber" name="L484" href="#L484">484</a>   }
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>     <strong class="jxr_keyword">void</strong> handleStdErr(byte[] bytes, <strong class="jxr_keyword">int</strong> length);
+<a class="jxr_linenumber" name="L429" href="#L429">429</a> 
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>     <strong class="jxr_keyword">void</strong> stdErrDone();
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>   }
+<a class="jxr_linenumber" name="L432" href="#L432">432</a> 
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L434" href="#L434">434</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.forkExec.</em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>   @Deprecated
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence run(<strong class="jxr_keyword">final</strong> String[] command,
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis) <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.forkExec(command, timeoutMillis);
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>   }
+<a class="jxr_linenumber" name="L441" href="#L441">441</a> 
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L443" href="#L443">443</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.killProcess.</em>
+<a class="jxr_linenumber" name="L444" href="#L444">444</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>   @Deprecated
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> killProcess(<strong class="jxr_keyword">final</strong> Process proc, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> terminateTimeoutMillis,
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> forceTerminateTimeoutMillis)
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>           <strong class="jxr_keyword">throws</strong> InterruptedException, TimeoutException {
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.killProcess(proc, terminateTimeoutMillis, forceTerminateTimeoutMillis);
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>   }
+<a class="jxr_linenumber" name="L451" href="#L451">451</a> 
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L453" href="#L453">453</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.forkExec instead.</em>
+<a class="jxr_linenumber" name="L454" href="#L454">454</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> run(<strong class="jxr_keyword">final</strong> String[] command, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Runtime.html">ProcOutputHandler</a> handler,
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis)
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>     <strong class="jxr_keyword">return</strong> run(command, handler, timeoutMillis, 60000);
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>   }
+<a class="jxr_linenumber" name="L460" href="#L460">460</a> 
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L462" href="#L462">462</a> <em class="jxr_javadoccomment">   * @deprecated use OperatingSystem.forkExec instead.</em>
+<a class="jxr_linenumber" name="L463" href="#L463">463</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>   @SuppressFBWarnings(<span class="jxr_string">"COMMAND_INJECTION"</span>)
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>   @Deprecated
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">int</strong> run(<strong class="jxr_keyword">final</strong> String[] command, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/base/Runtime.html">ProcOutputHandler</a> handler,
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> terminationTimeoutMillis)
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>     ProcessResponse&lt;Void, Void&gt; resp = OperatingSystem.forkExec(command,
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>             <strong class="jxr_keyword">new</strong> ProcessHandler&lt;Void, Void&gt;() {
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>       @Override
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>       <strong class="jxr_keyword">public</strong> Void handleStdOut(<strong class="jxr_keyword">final</strong> InputStream is) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>         <strong class="jxr_keyword">int</strong> cos;
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>         byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>           <strong class="jxr_keyword">while</strong> ((cos = is.read(buffer)) &gt;= 0) {
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>             handler.handleStdOut(buffer, cos);
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>           }
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>           ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>           handler.stdOutDone();
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>         }
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>       }
 <a class="jxr_linenumber" name="L485" href="#L485">485</a> 
-<a class="jxr_linenumber" name="L486" href="#L486">486</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> queueHookAtEnd(<strong class="jxr_keyword">final</strong> Runnable runnable) {
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>     queueHook(Integer.MAX_VALUE, runnable);
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>   }
-<a class="jxr_linenumber" name="L489" href="#L489">489</a> 
-<a class="jxr_linenumber" name="L490" href="#L490">490</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> queueHook(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> priority, <strong class="jxr_keyword">final</strong> Runnable runnable) {
-<a class="jxr_linenumber" name="L491" href="#L491">491</a>     <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
-<a class="jxr_linenumber" name="L492" href="#L492">492</a>       Integer pr = priority;
-<a class="jxr_linenumber" name="L493" href="#L493">493</a>       Set&lt;Runnable&gt; runnables = SHUTDOWN_HOOKS.get(pr);
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>       <strong class="jxr_keyword">if</strong> (runnables == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>         runnables = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;();
-<a class="jxr_linenumber" name="L496" href="#L496">496</a>         SHUTDOWN_HOOKS.put(pr, runnables);
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>       }
-<a class="jxr_linenumber" name="L498" href="#L498">498</a>       runnables.add(runnable);
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>     }
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>   }
-<a class="jxr_linenumber" name="L501" href="#L501">501</a> 
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> removeQueuedShutdownHook(<strong class="jxr_keyword">final</strong> Runnable runnable) {
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>     <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"spf4j queued shutdown"</span>.equals(Thread.currentThread().getName())) {
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>       <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L505" href="#L505">505</a>     }
-<a class="jxr_linenumber" name="L506" href="#L506">506</a>     <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
-<a class="jxr_linenumber" name="L507" href="#L507">507</a>       <strong class="jxr_keyword">for</strong> (Set&lt;Runnable&gt; entry : SHUTDOWN_HOOKS.values()) {
-<a class="jxr_linenumber" name="L508" href="#L508">508</a>         <strong class="jxr_keyword">if</strong> (entry.remove(runnable)) {
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>         }
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>       }
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>     }
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>     <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>   }
-<a class="jxr_linenumber" name="L515" href="#L515">515</a> 
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L517" href="#L517">517</a> <em class="jxr_javadoccomment">   * @return returns the deadline as millis since epoch.</em>
-<a class="jxr_linenumber" name="L518" href="#L518">518</a> <em class="jxr_javadoccomment">   * @deprecated see ExecutionContexts.</em>
-<a class="jxr_linenumber" name="L519" href="#L519">519</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>   @Deprecated
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">long</strong> getDeadline() {
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>     <strong class="jxr_keyword">return</strong> Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ExecutionContexts.getContextDeadlineNanos());
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>   }
-<a class="jxr_linenumber" name="L524" href="#L524">524</a> 
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L526" href="#L526">526</a> <em class="jxr_javadoccomment">   * @return milliseconds until deadline.</em>
-<a class="jxr_linenumber" name="L527" href="#L527">527</a> <em class="jxr_javadoccomment">   * @deprecated see ExecutionContexts.</em>
-<a class="jxr_linenumber" name="L528" href="#L528">528</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L529" href="#L529">529</a>   @Deprecated
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">long</strong> millisToDeadline() <strong class="jxr_keyword">throws</strong> TimeoutException {
-<a class="jxr_linenumber" name="L531" href="#L531">531</a>     <strong class="jxr_keyword">return</strong> ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>   }
-<a class="jxr_linenumber" name="L533" href="#L533">533</a> 
-<a class="jxr_linenumber" name="L534" href="#L534">534</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L535" href="#L535">535</a> <em class="jxr_javadoccomment">   * Attempts to run the GC in a verifiable way.</em>
-<a class="jxr_linenumber" name="L536" href="#L536">536</a> <em class="jxr_javadoccomment">   *</em>
-<a class="jxr_linenumber" name="L537" href="#L537">537</a> <em class="jxr_javadoccomment">   * @param timeoutMillis - timeout for GC attempt</em>
-<a class="jxr_linenumber" name="L538" href="#L538">538</a> <em class="jxr_javadoccomment">   * @return true if GC executed for sure, false otherwise, gc might have been executed though, but we cannot be sure.</em>
-<a class="jxr_linenumber" name="L539" href="#L539">539</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L540" href="#L540">540</a>   @SuppressFBWarnings
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> gc(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis) {
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>     WeakReference&lt;Object&gt; ref = <strong class="jxr_keyword">new</strong> WeakReference&lt;&gt;(<strong class="jxr_keyword">new</strong> Object());
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>     <strong class="jxr_keyword">long</strong> deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>     <strong class="jxr_keyword">do</strong> {
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>       System.gc();
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>     } <strong class="jxr_keyword">while</strong> (ref.get() != <strong class="jxr_keyword">null</strong> &amp;&amp; TimeSource.nanoTime() &lt; deadline);
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>     <strong class="jxr_keyword">return</strong> ref.get() == <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>   }
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence jrun(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain,
-<a class="jxr_linenumber" name="L550" href="#L550">550</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis, <strong class="jxr_keyword">final</strong> String... arguments)
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L552" href="#L552">552</a>     <strong class="jxr_keyword">final</strong> String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>     <strong class="jxr_keyword">return</strong> jrun(classWithMain, classPath, timeoutMillis, arguments);
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>   }
-<a class="jxr_linenumber" name="L555" href="#L555">555</a> 
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence jrun(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>     String[] arr = getJvmArgsNoJMXNoDebug();
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>     <strong class="jxr_keyword">return</strong> jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>   }
-<a class="jxr_linenumber" name="L561" href="#L561">561</a> 
-<a class="jxr_linenumber" name="L562" href="#L562">562</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String[] getJvmArgsNoJMXNoDebug() {
-<a class="jxr_linenumber" name="L563" href="#L563">563</a>     List&lt;String&gt; jvmInputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
-<a class="jxr_linenumber" name="L564" href="#L564">564</a>     String[] arr;
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>     <strong class="jxr_keyword">if</strong> (jvmInputArgs.isEmpty()) {
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>       arr = Arrays.EMPTY_STRING_ARRAY;
-<a class="jxr_linenumber" name="L567" href="#L567">567</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L568" href="#L568">568</a>       <a href="../../../org/spf4j/unix/JVMArguments.html">JVMArguments</a> inputArguments = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/unix/JVMArguments.html">JVMArguments</a>(jvmInputArgs);
-<a class="jxr_linenumber" name="L569" href="#L569">569</a>       inputArguments.removeAllSystemPropertiesStartingWith(<span class="jxr_string">"com.sun.management.jmxremote"</span>);
-<a class="jxr_linenumber" name="L570" href="#L570">570</a>       inputArguments.removeVMArgumentStartingWith(<span class="jxr_string">"-agentlib:jdwp"</span>);
-<a class="jxr_linenumber" name="L571" href="#L571">571</a>       arr = inputArguments.toArray();
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>     }
-<a class="jxr_linenumber" name="L573" href="#L573">573</a>     <strong class="jxr_keyword">return</strong> arr;
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>   }
-<a class="jxr_linenumber" name="L575" href="#L575">575</a> 
-<a class="jxr_linenumber" name="L576" href="#L576">576</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> setCurrentDir(<strong class="jxr_keyword">final</strong> String sourceAbsolutePath) {
-<a class="jxr_linenumber" name="L577" href="#L577">577</a>     <strong class="jxr_keyword">if</strong> (haveJnaPlatformClib()) {
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>       CLibrary.INSTANCE.chdir(sourceAbsolutePath);
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>     }
-<a class="jxr_linenumber" name="L580" href="#L580">580</a>     System.setProperty(<span class="jxr_string">"user.dir"</span>, sourceAbsolutePath);
-<a class="jxr_linenumber" name="L581" href="#L581">581</a>   }
-<a class="jxr_linenumber" name="L582" href="#L582">582</a> 
-<a class="jxr_linenumber" name="L583" href="#L583">583</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> String getCurrentDir() {
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>     <strong class="jxr_keyword">return</strong> System.getProperty(<span class="jxr_string">"user.dir"</span>);
-<a class="jxr_linenumber" name="L585" href="#L585">585</a>   }
-<a class="jxr_linenumber" name="L586" href="#L586">586</a> 
-<a class="jxr_linenumber" name="L587" href="#L587">587</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence jrun(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
-<a class="jxr_linenumber" name="L588" href="#L588">588</a>           <strong class="jxr_keyword">final</strong> String[] jvmArgs,
-<a class="jxr_linenumber" name="L589" href="#L589">589</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
-<a class="jxr_linenumber" name="L590" href="#L590">590</a>     <strong class="jxr_keyword">final</strong> String jvmPath = JAVA_HOME + File.separatorChar + <span class="jxr_string">"bin"</span> + File.separatorChar + <span class="jxr_string">"java"</span>;
-<a class="jxr_linenumber" name="L591" href="#L591">591</a>     String[] command = Arrays.concat(<strong class="jxr_keyword">new</strong> String[]{jvmPath},
-<a class="jxr_linenumber" name="L592" href="#L592">592</a>             jvmArgs,
-<a class="jxr_linenumber" name="L593" href="#L593">593</a>             <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-cp"</span>, classPath, classWithMain.getName()},
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>             arguments);
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.forkExec(command, timeoutMillis);
-<a class="jxr_linenumber" name="L596" href="#L596">596</a>   }
-<a class="jxr_linenumber" name="L597" href="#L597">597</a> 
-<a class="jxr_linenumber" name="L598" href="#L598">598</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> jrunAndLog(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain,
-<a class="jxr_linenumber" name="L599" href="#L599">599</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis, <strong class="jxr_keyword">final</strong> String... arguments)
-<a class="jxr_linenumber" name="L600" href="#L600">600</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
-<a class="jxr_linenumber" name="L601" href="#L601">601</a>     <strong class="jxr_keyword">final</strong> String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
-<a class="jxr_linenumber" name="L602" href="#L602">602</a>     jrunAndLog(classWithMain, classPath, timeoutMillis, arguments);
-<a class="jxr_linenumber" name="L603" href="#L603">603</a>   }
-<a class="jxr_linenumber" name="L604" href="#L604">604</a> 
-<a class="jxr_linenumber" name="L605" href="#L605">605</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> jrunAndLog(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
-<a class="jxr_linenumber" name="L606" href="#L606">606</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
-<a class="jxr_linenumber" name="L607" href="#L607">607</a>     String[] arr = getJvmArgsNoJMXNoDebug();
-<a class="jxr_linenumber" name="L608" href="#L608">608</a>     jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>       @Override
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>       <strong class="jxr_keyword">public</strong> Void handleStdErr(<strong class="jxr_keyword">final</strong> InputStream stderr) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>         <strong class="jxr_keyword">int</strong> cos;
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         byte[] buffer = ArraySuppliers.Bytes.TL_SUPPLIER.get(8192);
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>           <strong class="jxr_keyword">while</strong> ((cos = stderr.read(buffer)) &gt;= 0) {
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>             handler.handleStdErr(buffer, cos);
+<a class="jxr_linenumber" name="L493" href="#L493">493</a>           }
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>         } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>           ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>           handler.stdErrDone();
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>         }
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>       }
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>     }, timeoutMillis, terminationTimeoutMillis);
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>     <strong class="jxr_keyword">return</strong> resp.getResponseCode();
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>   }
+<a class="jxr_linenumber" name="L503" href="#L503">503</a> 
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> queueHookAtBeginning(<strong class="jxr_keyword">final</strong> Runnable runnable) {
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>     <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>       queueHook(Integer.MIN_VALUE, runnable);
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>     }
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>   }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a> 
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> queueHookAtEnd(<strong class="jxr_keyword">final</strong> Runnable runnable) {
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>     queueHook(Integer.MAX_VALUE, runnable);
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>   }
+<a class="jxr_linenumber" name="L513" href="#L513">513</a> 
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> queueHook(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">int</strong> priority, <strong class="jxr_keyword">final</strong> Runnable runnable) {
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>     <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>       Integer pr = priority;
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>       Set&lt;Runnable&gt; runnables = SHUTDOWN_HOOKS.get(pr);
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>       <strong class="jxr_keyword">if</strong> (runnables == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>         runnables = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;();
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>         SHUTDOWN_HOOKS.put(pr, runnables);
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>       }
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>       runnables.add(runnable);
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>     }
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>   }
+<a class="jxr_linenumber" name="L525" href="#L525">525</a> 
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> removeQueuedShutdownHook(<strong class="jxr_keyword">final</strong> Runnable runnable) {
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>     <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"spf4j queued shutdown"</span>.equals(Thread.currentThread().getName())) {
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>       <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>     }
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>     <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>       <strong class="jxr_keyword">for</strong> (Set&lt;Runnable&gt; entry : SHUTDOWN_HOOKS.values()) {
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>         <strong class="jxr_keyword">if</strong> (entry.remove(runnable)) {
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>           <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>         }
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>       }
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>     }
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>     <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>   }
+<a class="jxr_linenumber" name="L539" href="#L539">539</a> 
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L541" href="#L541">541</a> <em class="jxr_javadoccomment">   * @return returns the deadline as millis since epoch.</em>
+<a class="jxr_linenumber" name="L542" href="#L542">542</a> <em class="jxr_javadoccomment">   * @deprecated see ExecutionContexts.</em>
+<a class="jxr_linenumber" name="L543" href="#L543">543</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>   @Deprecated
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">long</strong> getDeadline() {
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>     <strong class="jxr_keyword">return</strong> Timing.getCurrentTiming().fromNanoTimeToEpochMillis(ExecutionContexts.getContextDeadlineNanos());
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>   }
+<a class="jxr_linenumber" name="L548" href="#L548">548</a> 
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L550" href="#L550">550</a> <em class="jxr_javadoccomment">   * @return milliseconds until deadline.</em>
+<a class="jxr_linenumber" name="L551" href="#L551">551</a> <em class="jxr_javadoccomment">   * @deprecated see ExecutionContexts.</em>
+<a class="jxr_linenumber" name="L552" href="#L552">552</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>   @Deprecated
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">long</strong> millisToDeadline() <strong class="jxr_keyword">throws</strong> TimeoutException {
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>     <strong class="jxr_keyword">return</strong> ExecutionContexts.getTimeToDeadline(TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>   }
+<a class="jxr_linenumber" name="L557" href="#L557">557</a> 
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L559" href="#L559">559</a> <em class="jxr_javadoccomment">   * Attempts to run the GC in a verifiable way.</em>
+<a class="jxr_linenumber" name="L560" href="#L560">560</a> <em class="jxr_javadoccomment">   *</em>
+<a class="jxr_linenumber" name="L561" href="#L561">561</a> <em class="jxr_javadoccomment">   * @param timeoutMillis - timeout for GC attempt</em>
+<a class="jxr_linenumber" name="L562" href="#L562">562</a> <em class="jxr_javadoccomment">   * @return true if GC executed for sure, false otherwise, gc might have been executed though, but we cannot be sure.</em>
+<a class="jxr_linenumber" name="L563" href="#L563">563</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>   @SuppressFBWarnings
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">boolean</strong> gc(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis) {
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>     WeakReference&lt;Object&gt; ref = <strong class="jxr_keyword">new</strong> WeakReference&lt;&gt;(<strong class="jxr_keyword">new</strong> Object());
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>     <strong class="jxr_keyword">long</strong> deadline = TimeSource.nanoTime() + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>     <strong class="jxr_keyword">do</strong> {
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>       System.gc();
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>     } <strong class="jxr_keyword">while</strong> (ref.get() != <strong class="jxr_keyword">null</strong> &amp;&amp; TimeSource.nanoTime() &lt; deadline);
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>     <strong class="jxr_keyword">return</strong> ref.get() == <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>   }
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence jrun(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain,
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis, <strong class="jxr_keyword">final</strong> String... arguments)
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>     <strong class="jxr_keyword">final</strong> String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>     <strong class="jxr_keyword">return</strong> jrun(classWithMain, classPath, timeoutMillis, arguments);
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>   }
+<a class="jxr_linenumber" name="L579" href="#L579">579</a> 
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence jrun(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>     String[] arr = getJvmArgsNoJMXNoDebug();
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>     <strong class="jxr_keyword">return</strong> jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>   }
+<a class="jxr_linenumber" name="L585" href="#L585">585</a> 
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> String[] getJvmArgsNoJMXNoDebug() {
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>     List&lt;String&gt; jvmInputArgs = ManagementFactory.getRuntimeMXBean().getInputArguments();
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>     String[] arr;
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>     <strong class="jxr_keyword">if</strong> (jvmInputArgs.isEmpty()) {
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>       arr = Arrays.EMPTY_STRING_ARRAY;
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>       <a href="../../../org/spf4j/unix/JVMArguments.html">JVMArguments</a> inputArguments = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/unix/JVMArguments.html">JVMArguments</a>(jvmInputArgs);
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>       inputArguments.removeAllSystemPropertiesStartingWith(<span class="jxr_string">"com.sun.management.jmxremote"</span>);
+<a class="jxr_linenumber" name="L594" href="#L594">594</a>       inputArguments.removeVMArgumentStartingWith(<span class="jxr_string">"-agentlib:jdwp"</span>);
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>       arr = inputArguments.toArray();
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>     }
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>     <strong class="jxr_keyword">return</strong> arr;
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>   }
+<a class="jxr_linenumber" name="L599" href="#L599">599</a> 
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">void</strong> setCurrentDir(<strong class="jxr_keyword">final</strong> String sourceAbsolutePath) {
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>     <strong class="jxr_keyword">if</strong> (haveJnaPlatformClib()) {
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>       CLibrary.INSTANCE.chdir(sourceAbsolutePath);
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>     }
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>     System.setProperty(<span class="jxr_string">"user.dir"</span>, sourceAbsolutePath);
+<a class="jxr_linenumber" name="L605" href="#L605">605</a>   }
+<a class="jxr_linenumber" name="L606" href="#L606">606</a> 
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">synchronized</strong> String getCurrentDir() {
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>     <strong class="jxr_keyword">return</strong> System.getProperty(<span class="jxr_string">"user.dir"</span>);
 <a class="jxr_linenumber" name="L609" href="#L609">609</a>   }
 <a class="jxr_linenumber" name="L610" href="#L610">610</a> 
-<a class="jxr_linenumber" name="L611" href="#L611">611</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> jrunAndLog(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> CharSequence jrun(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
 <a class="jxr_linenumber" name="L612" href="#L612">612</a>           <strong class="jxr_keyword">final</strong> String[] jvmArgs,
 <a class="jxr_linenumber" name="L613" href="#L613">613</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
 <a class="jxr_linenumber" name="L614" href="#L614">614</a>     <strong class="jxr_keyword">final</strong> String jvmPath = JAVA_HOME + File.separatorChar + <span class="jxr_string">"bin"</span> + File.separatorChar + <span class="jxr_string">"java"</span>;
@@ -624,169 +624,205 @@
 <a class="jxr_linenumber" name="L616" href="#L616">616</a>             jvmArgs,
 <a class="jxr_linenumber" name="L617" href="#L617">617</a>             <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-cp"</span>, classPath, classWithMain.getName()},
 <a class="jxr_linenumber" name="L618" href="#L618">618</a>             arguments);
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>     OperatingSystem.forkExecLog(command, timeoutMillis);
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>     <strong class="jxr_keyword">return</strong> OperatingSystem.forkExec(command, timeoutMillis);
 <a class="jxr_linenumber" name="L620" href="#L620">620</a>   }
 <a class="jxr_linenumber" name="L621" href="#L621">621</a> 
-<a class="jxr_linenumber" name="L622" href="#L622">622</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L623" href="#L623">623</a> <em class="jxr_javadoccomment">   * get the main Thread.</em>
-<a class="jxr_linenumber" name="L624" href="#L624">624</a> <em class="jxr_javadoccomment">   * @return null if there is no main thread (can happen when calling this is a shutdown hook)</em>
-<a class="jxr_linenumber" name="L625" href="#L625">625</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L626" href="#L626">626</a>   @Nullable
-<a class="jxr_linenumber" name="L627" href="#L627">627</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Thread getMainThread() {
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>     Thread[] threads = Threads.getThreads();
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>     <strong class="jxr_keyword">for</strong> (Thread t : threads) {
-<a class="jxr_linenumber" name="L630" href="#L630">630</a>       <strong class="jxr_keyword">if</strong> (t.getId() == 1L) {
-<a class="jxr_linenumber" name="L631" href="#L631">631</a>         <strong class="jxr_keyword">return</strong> t;
-<a class="jxr_linenumber" name="L632" href="#L632">632</a>       }
-<a class="jxr_linenumber" name="L633" href="#L633">633</a>     }
-<a class="jxr_linenumber" name="L634" href="#L634">634</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L635" href="#L635">635</a>   }
-<a class="jxr_linenumber" name="L636" href="#L636">636</a> 
-<a class="jxr_linenumber" name="L637" href="#L637">637</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L638" href="#L638">638</a> <em class="jxr_javadoccomment">   * @return null if main class cannot be found.</em>
-<a class="jxr_linenumber" name="L639" href="#L639">639</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L640" href="#L640">640</a>   @Nullable
-<a class="jxr_linenumber" name="L641" href="#L641">641</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Class&lt;?&gt; getMainClass() {
-<a class="jxr_linenumber" name="L642" href="#L642">642</a>     Thread mainThread = getMainThread();
-<a class="jxr_linenumber" name="L643" href="#L643">643</a>     <strong class="jxr_keyword">if</strong> (mainThread == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L644" href="#L644">644</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L645" href="#L645">645</a>     }
-<a class="jxr_linenumber" name="L646" href="#L646">646</a>     StackTraceElement[] stackTrace = mainThread.getStackTrace();
-<a class="jxr_linenumber" name="L647" href="#L647">647</a>     <strong class="jxr_keyword">if</strong> (stackTrace.length == 0) {
-<a class="jxr_linenumber" name="L648" href="#L648">648</a>       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L649" href="#L649">649</a>     }
-<a class="jxr_linenumber" name="L650" href="#L650">650</a>     String className = stackTrace[stackTrace.length - 1].getClassName();
-<a class="jxr_linenumber" name="L651" href="#L651">651</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L652" href="#L652">652</a>       <strong class="jxr_keyword">return</strong> Class.forName(className);
-<a class="jxr_linenumber" name="L653" href="#L653">653</a>     } <strong class="jxr_keyword">catch</strong> (ClassNotFoundException ex) {
-<a class="jxr_linenumber" name="L654" href="#L654">654</a>       NoClassDefFoundError tex = <strong class="jxr_keyword">new</strong> NoClassDefFoundError(<span class="jxr_string">"Cannot find "</span> + className);
-<a class="jxr_linenumber" name="L655" href="#L655">655</a>       tex.initCause(ex);
-<a class="jxr_linenumber" name="L656" href="#L656">656</a>       <strong class="jxr_keyword">throw</strong> tex;
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>  <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> jrunAndLog(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain,
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis, <strong class="jxr_keyword">final</strong> String... arguments)
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>           <strong class="jxr_keyword">throws</strong> IOException, InterruptedException, ExecutionException, TimeoutException {
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>     <strong class="jxr_keyword">final</strong> String classPath = ManagementFactory.getRuntimeMXBean().getClassPath();
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>     jrunAndLog(classWithMain, classPath, timeoutMillis, arguments);
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>   }
+<a class="jxr_linenumber" name="L628" href="#L628">628</a> 
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> jrunAndLog(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>     String[] arr = getJvmArgsNoJMXNoDebug();
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     jrun(classWithMain, classPath, timeoutMillis, arr, arguments);
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>   }
+<a class="jxr_linenumber" name="L634" href="#L634">634</a> 
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> jrunAndLog(<strong class="jxr_keyword">final</strong> Class&lt;?&gt; classWithMain, <strong class="jxr_keyword">final</strong> String classPath, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">long</strong> timeoutMillis,
+<a class="jxr_linenumber" name="L636" href="#L636">636</a>           <strong class="jxr_keyword">final</strong> String[] jvmArgs,
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>           <strong class="jxr_keyword">final</strong> String... arguments) <strong class="jxr_keyword">throws</strong> InterruptedException, ExecutionException, TimeoutException, IOException {
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>     <strong class="jxr_keyword">final</strong> String jvmPath = JAVA_HOME + File.separatorChar + <span class="jxr_string">"bin"</span> + File.separatorChar + <span class="jxr_string">"java"</span>;
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>     String[] command = Arrays.concat(<strong class="jxr_keyword">new</strong> String[]{jvmPath},
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>             jvmArgs,
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>             <strong class="jxr_keyword">new</strong> String[]{<span class="jxr_string">"-cp"</span>, classPath, classWithMain.getName()},
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>             arguments);
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>     OperatingSystem.forkExecLog(command, timeoutMillis);
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>   }
+<a class="jxr_linenumber" name="L645" href="#L645">645</a> 
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L647" href="#L647">647</a> <em class="jxr_javadoccomment">   * get the main Thread.</em>
+<a class="jxr_linenumber" name="L648" href="#L648">648</a> <em class="jxr_javadoccomment">   * @return null if there is no main thread (can happen when calling this is a shutdown hook)</em>
+<a class="jxr_linenumber" name="L649" href="#L649">649</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>   @Nullable
+<a class="jxr_linenumber" name="L651" href="#L651">651</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Thread getMainThread() {
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>     Thread[] threads = Threads.getThreads();
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>     <strong class="jxr_keyword">for</strong> (Thread t : threads) {
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>       <strong class="jxr_keyword">if</strong> (t.getId() == 1L) {
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>         <strong class="jxr_keyword">return</strong> t;
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>       }
 <a class="jxr_linenumber" name="L657" href="#L657">657</a>     }
-<a class="jxr_linenumber" name="L658" href="#L658">658</a>   }
-<a class="jxr_linenumber" name="L659" href="#L659">659</a> 
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>   }
 <a class="jxr_linenumber" name="L660" href="#L660">660</a> 
-<a class="jxr_linenumber" name="L661" href="#L661">661</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">Jmx</a> {
-<a class="jxr_linenumber" name="L662" href="#L662">662</a> 
-<a class="jxr_linenumber" name="L663" href="#L663">663</a>     @JmxExport
-<a class="jxr_linenumber" name="L664" href="#L664">664</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> org.spf4j.base.avro.PackageInfo getPackageInfo(@JmxExport(<span class="jxr_string">"className"</span>) <strong class="jxr_keyword">final</strong> String className) {
-<a class="jxr_linenumber" name="L665" href="#L665">665</a>       <strong class="jxr_keyword">return</strong> PackageInfo.getPackageInfo(className);
-<a class="jxr_linenumber" name="L666" href="#L666">666</a>     }
-<a class="jxr_linenumber" name="L667" href="#L667">667</a> 
-<a class="jxr_linenumber" name="L668" href="#L668">668</a>     @JmxExport
-<a class="jxr_linenumber" name="L669" href="#L669">669</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> restart() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L670" href="#L670">670</a>       UnixRuntime.restart();
-<a class="jxr_linenumber" name="L671" href="#L671">671</a>     }
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L662" href="#L662">662</a> <em class="jxr_javadoccomment">   * Method will figure out the main class and cache the result for successive invocations.</em>
+<a class="jxr_linenumber" name="L663" href="#L663">663</a> <em class="jxr_javadoccomment">   * You should call this method prior to the main thread's termination.</em>
+<a class="jxr_linenumber" name="L664" href="#L664">664</a> <em class="jxr_javadoccomment">   * @return null if main class cannot be found.</em>
+<a class="jxr_linenumber" name="L665" href="#L665">665</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>   @Nullable
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Class&lt;?&gt; getMainClass() {
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>     <strong class="jxr_keyword">return</strong> LazyMain.MAIN_CLASS;
+<a class="jxr_linenumber" name="L669" href="#L669">669</a>   }
+<a class="jxr_linenumber" name="L670" href="#L670">670</a> 
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">LazyMain</a> {
 <a class="jxr_linenumber" name="L672" href="#L672">672</a> 
-<a class="jxr_linenumber" name="L673" href="#L673">673</a>   }
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> Class&lt;?&gt; MAIN_CLASS = getMainClass();
 <a class="jxr_linenumber" name="L674" href="#L674">674</a> 
-<a class="jxr_linenumber" name="L675" href="#L675">675</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">ShutdownRunnable</a> <strong class="jxr_keyword">extends</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a> {
-<a class="jxr_linenumber" name="L676" href="#L676">676</a> 
-<a class="jxr_linenumber" name="L677" href="#L677">677</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> dumpNonDaemonThreadInfoOnShutdown;
-<a class="jxr_linenumber" name="L678" href="#L678">678</a> 
-<a class="jxr_linenumber" name="L679" href="#L679">679</a>     <a href="../../../org/spf4j/base/Runtime.html">ShutdownRunnable</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> lenient, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> dumpNonDaemonThreadInfoOnShutdown) {
-<a class="jxr_linenumber" name="L680" href="#L680">680</a>       <strong class="jxr_keyword">super</strong>(lenient);
-<a class="jxr_linenumber" name="L681" href="#L681">681</a>       <strong class="jxr_keyword">this</strong>.dumpNonDaemonThreadInfoOnShutdown = dumpNonDaemonThreadInfoOnShutdown;
-<a class="jxr_linenumber" name="L682" href="#L682">682</a>     }
-<a class="jxr_linenumber" name="L683" href="#L683">683</a> 
-<a class="jxr_linenumber" name="L684" href="#L684">684</a>     @Override
-<a class="jxr_linenumber" name="L685" href="#L685">685</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> Exception {
-<a class="jxr_linenumber" name="L686" href="#L686">686</a>       Exception rex = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L687" href="#L687">687</a>       SortedMap&lt;Integer, Set&lt;Runnable&gt;&gt; hooks;
-<a class="jxr_linenumber" name="L688" href="#L688">688</a>       <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
-<a class="jxr_linenumber" name="L689" href="#L689">689</a>         hooks = <strong class="jxr_keyword">new</strong> TreeMap&lt;&gt;(SHUTDOWN_HOOKS);
-<a class="jxr_linenumber" name="L690" href="#L690">690</a>         <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Integer, Set&lt;Runnable&gt;&gt; entry : hooks.entrySet()) {
-<a class="jxr_linenumber" name="L691" href="#L691">691</a>           entry.setValue(<strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(entry.getValue()));
-<a class="jxr_linenumber" name="L692" href="#L692">692</a>         }
-<a class="jxr_linenumber" name="L693" href="#L693">693</a>       }
-<a class="jxr_linenumber" name="L694" href="#L694">694</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Integer, Set&lt;Runnable&gt;&gt; runnables : hooks.entrySet()) {
-<a class="jxr_linenumber" name="L695" href="#L695">695</a>         <strong class="jxr_keyword">final</strong> Set&lt;Runnable&gt; values = runnables.getValue();
-<a class="jxr_linenumber" name="L696" href="#L696">696</a>         <strong class="jxr_keyword">if</strong> (values.size() &lt;= 1) {
-<a class="jxr_linenumber" name="L697" href="#L697">697</a>           <strong class="jxr_keyword">for</strong> (Runnable runnable : values) {
-<a class="jxr_linenumber" name="L698" href="#L698">698</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L699" href="#L699">699</a>               runnable.run();
-<a class="jxr_linenumber" name="L700" href="#L700">700</a>             } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
-<a class="jxr_linenumber" name="L701" href="#L701">701</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L702" href="#L702">702</a>                 rex = ex;
-<a class="jxr_linenumber" name="L703" href="#L703">703</a>               } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L704" href="#L704">704</a>                 rex.addSuppressed(ex);
-<a class="jxr_linenumber" name="L705" href="#L705">705</a>               }
-<a class="jxr_linenumber" name="L706" href="#L706">706</a>             }
-<a class="jxr_linenumber" name="L707" href="#L707">707</a>           }
-<a class="jxr_linenumber" name="L708" href="#L708">708</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (((<strong class="jxr_keyword">int</strong>) runnables.getKey()) &gt;= Integer.MAX_VALUE) {
-<a class="jxr_linenumber" name="L709" href="#L709">709</a>           Thread[] threads = <strong class="jxr_keyword">new</strong> Thread[values.size()];
-<a class="jxr_linenumber" name="L710" href="#L710">710</a>           <strong class="jxr_keyword">int</strong> i = 0;
-<a class="jxr_linenumber" name="L711" href="#L711">711</a>           <strong class="jxr_keyword">for</strong> (Runnable runnable : values) {
-<a class="jxr_linenumber" name="L712" href="#L712">712</a>             Thread thread = <strong class="jxr_keyword">new</strong> Thread(runnable);
-<a class="jxr_linenumber" name="L713" href="#L713">713</a>             thread.start();
-<a class="jxr_linenumber" name="L714" href="#L714">714</a>             threads[i++] = thread;
-<a class="jxr_linenumber" name="L715" href="#L715">715</a>           }
-<a class="jxr_linenumber" name="L716" href="#L716">716</a>           <strong class="jxr_keyword">long</strong> deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
-<a class="jxr_linenumber" name="L717" href="#L717">717</a>           <strong class="jxr_keyword">for</strong> (Thread thread : threads) {
-<a class="jxr_linenumber" name="L718" href="#L718">718</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L719" href="#L719">719</a>               thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
-<a class="jxr_linenumber" name="L720" href="#L720">720</a>             } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
-<a class="jxr_linenumber" name="L721" href="#L721">721</a>               Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L722" href="#L722">722</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L723" href="#L723">723</a>                 rex = ex;
-<a class="jxr_linenumber" name="L724" href="#L724">724</a>               } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L725" href="#L725">725</a>                 rex.addSuppressed(ex);
-<a class="jxr_linenumber" name="L726" href="#L726">726</a>               }
-<a class="jxr_linenumber" name="L727" href="#L727">727</a>               <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L728" href="#L728">728</a>             }
-<a class="jxr_linenumber" name="L729" href="#L729">729</a>           }
-<a class="jxr_linenumber" name="L730" href="#L730">730</a>         } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L731" href="#L731">731</a>           List&lt;Future&lt;?&gt;&gt; futures = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(values.size());
-<a class="jxr_linenumber" name="L732" href="#L732">732</a>           <strong class="jxr_keyword">for</strong> (Runnable runnable : values) {
-<a class="jxr_linenumber" name="L733" href="#L733">733</a>             futures.add(DefaultExecutor.INSTANCE.submit(runnable));
-<a class="jxr_linenumber" name="L734" href="#L734">734</a>           }
-<a class="jxr_linenumber" name="L735" href="#L735">735</a>           <strong class="jxr_keyword">for</strong> (Future&lt;?&gt; future : futures) {
-<a class="jxr_linenumber" name="L736" href="#L736">736</a>             <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L737" href="#L737">737</a>               future.get();
-<a class="jxr_linenumber" name="L738" href="#L738">738</a>             }  <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
-<a class="jxr_linenumber" name="L739" href="#L739">739</a>               Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L740" href="#L740">740</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L741" href="#L741">741</a>                 rex = ex;
-<a class="jxr_linenumber" name="L742" href="#L742">742</a>               } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L743" href="#L743">743</a>                 rex.addSuppressed(ex);
-<a class="jxr_linenumber" name="L744" href="#L744">744</a>               }
-<a class="jxr_linenumber" name="L745" href="#L745">745</a>               <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L746" href="#L746">746</a>             } <strong class="jxr_keyword">catch</strong> (ExecutionException | RuntimeException ex) {
-<a class="jxr_linenumber" name="L747" href="#L747">747</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L748" href="#L748">748</a>                 rex = ex;
-<a class="jxr_linenumber" name="L749" href="#L749">749</a>               } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L750" href="#L750">750</a>                 rex.addSuppressed(ex);
-<a class="jxr_linenumber" name="L751" href="#L751">751</a>               }
-<a class="jxr_linenumber" name="L752" href="#L752">752</a>             }
-<a class="jxr_linenumber" name="L753" href="#L753">753</a>           }
-<a class="jxr_linenumber" name="L754" href="#L754">754</a>         }
-<a class="jxr_linenumber" name="L755" href="#L755">755</a>       }
-<a class="jxr_linenumber" name="L756" href="#L756">756</a>       <em class="jxr_comment">// print out info on all remaining non daemon threads.</em>
-<a class="jxr_linenumber" name="L757" href="#L757">757</a>       <strong class="jxr_keyword">if</strong> (dumpNonDaemonThreadInfoOnShutdown) {
-<a class="jxr_linenumber" name="L758" href="#L758">758</a>         Thread[] threads = Threads.getThreads();
-<a class="jxr_linenumber" name="L759" href="#L759">759</a>         Thread current = Thread.currentThread();
-<a class="jxr_linenumber" name="L760" href="#L760">760</a>         <strong class="jxr_keyword">boolean</strong> first = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L761" href="#L761">761</a>         <strong class="jxr_keyword">for</strong> (Thread thread : threads) {
-<a class="jxr_linenumber" name="L762" href="#L762">762</a>           <strong class="jxr_keyword">if</strong> (thread.isAlive() &amp;&amp; !thread.isDaemon() &amp;&amp; !thread.equals(current)
-<a class="jxr_linenumber" name="L763" href="#L763">763</a>                   &amp;&amp; !thread.getName().contains(<span class="jxr_string">"DestroyJavaVM"</span>)) {
-<a class="jxr_linenumber" name="L764" href="#L764">764</a>             <strong class="jxr_keyword">if</strong> (first) {
-<a class="jxr_linenumber" name="L765" href="#L765">765</a>               error(<span class="jxr_string">"Non daemon threads still running:"</span>);
-<a class="jxr_linenumber" name="L766" href="#L766">766</a>               first = false;
-<a class="jxr_linenumber" name="L767" href="#L767">767</a>             }
-<a class="jxr_linenumber" name="L768" href="#L768">768</a>             error(<span class="jxr_string">"Non daemon thread "</span> + thread + <span class="jxr_string">", stackTrace = "</span>
-<a class="jxr_linenumber" name="L769" href="#L769">769</a>                     + java.util.Arrays.toString(thread.getStackTrace()));
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>     @Nullable
+<a class="jxr_linenumber" name="L676" href="#L676">676</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> Class&lt;?&gt; getMainClass() {
+<a class="jxr_linenumber" name="L677" href="#L677">677</a>       Thread mainThread = getMainThread();
+<a class="jxr_linenumber" name="L678" href="#L678">678</a>       <strong class="jxr_keyword">if</strong> (mainThread == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L679" href="#L679">679</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L680" href="#L680">680</a>       }
+<a class="jxr_linenumber" name="L681" href="#L681">681</a>       StackTraceElement[] stackTrace = mainThread.getStackTrace();
+<a class="jxr_linenumber" name="L682" href="#L682">682</a>       <strong class="jxr_keyword">if</strong> (stackTrace.length == 0) {
+<a class="jxr_linenumber" name="L683" href="#L683">683</a>         <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L684" href="#L684">684</a>       }
+<a class="jxr_linenumber" name="L685" href="#L685">685</a>       String className = stackTrace[stackTrace.length - 1].getClassName();
+<a class="jxr_linenumber" name="L686" href="#L686">686</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L687" href="#L687">687</a>         <strong class="jxr_keyword">return</strong> Class.forName(className);
+<a class="jxr_linenumber" name="L688" href="#L688">688</a>       } <strong class="jxr_keyword">catch</strong> (ClassNotFoundException ex) {
+<a class="jxr_linenumber" name="L689" href="#L689">689</a>         NoClassDefFoundError tex = <strong class="jxr_keyword">new</strong> NoClassDefFoundError(<span class="jxr_string">"Cannot find "</span> + className);
+<a class="jxr_linenumber" name="L690" href="#L690">690</a>         tex.initCause(ex);
+<a class="jxr_linenumber" name="L691" href="#L691">691</a>         <strong class="jxr_keyword">throw</strong> tex;
+<a class="jxr_linenumber" name="L692" href="#L692">692</a>       }
+<a class="jxr_linenumber" name="L693" href="#L693">693</a>     }
+<a class="jxr_linenumber" name="L694" href="#L694">694</a>   }
+<a class="jxr_linenumber" name="L695" href="#L695">695</a> 
+<a class="jxr_linenumber" name="L696" href="#L696">696</a> 
+<a class="jxr_linenumber" name="L697" href="#L697">697</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">Jmx</a> {
+<a class="jxr_linenumber" name="L698" href="#L698">698</a> 
+<a class="jxr_linenumber" name="L699" href="#L699">699</a>     @JmxExport
+<a class="jxr_linenumber" name="L700" href="#L700">700</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> org.spf4j.base.avro.PackageInfo getPackageInfo(@JmxExport(<span class="jxr_string">"className"</span>) <strong class="jxr_keyword">final</strong> String className) {
+<a class="jxr_linenumber" name="L701" href="#L701">701</a>       <strong class="jxr_keyword">return</strong> PackageInfo.getPackageInfo(className);
+<a class="jxr_linenumber" name="L702" href="#L702">702</a>     }
+<a class="jxr_linenumber" name="L703" href="#L703">703</a> 
+<a class="jxr_linenumber" name="L704" href="#L704">704</a>     @JmxExport
+<a class="jxr_linenumber" name="L705" href="#L705">705</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> restart() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L706" href="#L706">706</a>       UnixRuntime.restart();
+<a class="jxr_linenumber" name="L707" href="#L707">707</a>     }
+<a class="jxr_linenumber" name="L708" href="#L708">708</a> 
+<a class="jxr_linenumber" name="L709" href="#L709">709</a>   }
+<a class="jxr_linenumber" name="L710" href="#L710">710</a> 
+<a class="jxr_linenumber" name="L711" href="#L711">711</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">class</strong> <a href="../../../org/spf4j/base/Runtime.html">ShutdownRunnable</a> <strong class="jxr_keyword">extends</strong> <a href="../../../org/spf4j/base/AbstractRunnable.html">AbstractRunnable</a> {
+<a class="jxr_linenumber" name="L712" href="#L712">712</a> 
+<a class="jxr_linenumber" name="L713" href="#L713">713</a>     <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> dumpNonDaemonThreadInfoOnShutdown;
+<a class="jxr_linenumber" name="L714" href="#L714">714</a> 
+<a class="jxr_linenumber" name="L715" href="#L715">715</a>     <a href="../../../org/spf4j/base/Runtime.html">ShutdownRunnable</a>(<strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> lenient, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> dumpNonDaemonThreadInfoOnShutdown) {
+<a class="jxr_linenumber" name="L716" href="#L716">716</a>       <strong class="jxr_keyword">super</strong>(lenient);
+<a class="jxr_linenumber" name="L717" href="#L717">717</a>       <strong class="jxr_keyword">this</strong>.dumpNonDaemonThreadInfoOnShutdown = dumpNonDaemonThreadInfoOnShutdown;
+<a class="jxr_linenumber" name="L718" href="#L718">718</a>     }
+<a class="jxr_linenumber" name="L719" href="#L719">719</a> 
+<a class="jxr_linenumber" name="L720" href="#L720">720</a>     @Override
+<a class="jxr_linenumber" name="L721" href="#L721">721</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> Exception {
+<a class="jxr_linenumber" name="L722" href="#L722">722</a>       Exception rex = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L723" href="#L723">723</a>       SortedMap&lt;Integer, Set&lt;Runnable&gt;&gt; hooks;
+<a class="jxr_linenumber" name="L724" href="#L724">724</a>       <strong class="jxr_keyword">synchronized</strong> (SHUTDOWN_HOOKS) {
+<a class="jxr_linenumber" name="L725" href="#L725">725</a>         hooks = <strong class="jxr_keyword">new</strong> TreeMap&lt;&gt;(SHUTDOWN_HOOKS);
+<a class="jxr_linenumber" name="L726" href="#L726">726</a>         <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Integer, Set&lt;Runnable&gt;&gt; entry : hooks.entrySet()) {
+<a class="jxr_linenumber" name="L727" href="#L727">727</a>           entry.setValue(<strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(entry.getValue()));
+<a class="jxr_linenumber" name="L728" href="#L728">728</a>         }
+<a class="jxr_linenumber" name="L729" href="#L729">729</a>       }
+<a class="jxr_linenumber" name="L730" href="#L730">730</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;Integer, Set&lt;Runnable&gt;&gt; runnables : hooks.entrySet()) {
+<a class="jxr_linenumber" name="L731" href="#L731">731</a>         <strong class="jxr_keyword">final</strong> Set&lt;Runnable&gt; values = runnables.getValue();
+<a class="jxr_linenumber" name="L732" href="#L732">732</a>         <strong class="jxr_keyword">if</strong> (values.size() &lt;= 1) {
+<a class="jxr_linenumber" name="L733" href="#L733">733</a>           <strong class="jxr_keyword">for</strong> (Runnable runnable : values) {
+<a class="jxr_linenumber" name="L734" href="#L734">734</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L735" href="#L735">735</a>               runnable.run();
+<a class="jxr_linenumber" name="L736" href="#L736">736</a>             } <strong class="jxr_keyword">catch</strong> (RuntimeException ex) {
+<a class="jxr_linenumber" name="L737" href="#L737">737</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L738" href="#L738">738</a>                 rex = ex;
+<a class="jxr_linenumber" name="L739" href="#L739">739</a>               } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L740" href="#L740">740</a>                 rex.addSuppressed(ex);
+<a class="jxr_linenumber" name="L741" href="#L741">741</a>               }
+<a class="jxr_linenumber" name="L742" href="#L742">742</a>             }
+<a class="jxr_linenumber" name="L743" href="#L743">743</a>           }
+<a class="jxr_linenumber" name="L744" href="#L744">744</a>         } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (((<strong class="jxr_keyword">int</strong>) runnables.getKey()) &gt;= Integer.MAX_VALUE) {
+<a class="jxr_linenumber" name="L745" href="#L745">745</a>           Thread[] threads = <strong class="jxr_keyword">new</strong> Thread[values.size()];
+<a class="jxr_linenumber" name="L746" href="#L746">746</a>           <strong class="jxr_keyword">int</strong> i = 0;
+<a class="jxr_linenumber" name="L747" href="#L747">747</a>           <strong class="jxr_keyword">for</strong> (Runnable runnable : values) {
+<a class="jxr_linenumber" name="L748" href="#L748">748</a>             Thread thread = <strong class="jxr_keyword">new</strong> Thread(runnable);
+<a class="jxr_linenumber" name="L749" href="#L749">749</a>             thread.start();
+<a class="jxr_linenumber" name="L750" href="#L750">750</a>             threads[i++] = thread;
+<a class="jxr_linenumber" name="L751" href="#L751">751</a>           }
+<a class="jxr_linenumber" name="L752" href="#L752">752</a>           <strong class="jxr_keyword">long</strong> deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
+<a class="jxr_linenumber" name="L753" href="#L753">753</a>           <strong class="jxr_keyword">for</strong> (Thread thread : threads) {
+<a class="jxr_linenumber" name="L754" href="#L754">754</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L755" href="#L755">755</a>               thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
+<a class="jxr_linenumber" name="L756" href="#L756">756</a>             } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
+<a class="jxr_linenumber" name="L757" href="#L757">757</a>               Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L758" href="#L758">758</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L759" href="#L759">759</a>                 rex = ex;
+<a class="jxr_linenumber" name="L760" href="#L760">760</a>               } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L761" href="#L761">761</a>                 rex.addSuppressed(ex);
+<a class="jxr_linenumber" name="L762" href="#L762">762</a>               }
+<a class="jxr_linenumber" name="L763" href="#L763">763</a>               <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L764" href="#L764">764</a>             }
+<a class="jxr_linenumber" name="L765" href="#L765">765</a>           }
+<a class="jxr_linenumber" name="L766" href="#L766">766</a>         } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L767" href="#L767">767</a>           List&lt;Future&lt;?&gt;&gt; futures = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;(values.size());
+<a class="jxr_linenumber" name="L768" href="#L768">768</a>           <strong class="jxr_keyword">for</strong> (Runnable runnable : values) {
+<a class="jxr_linenumber" name="L769" href="#L769">769</a>             futures.add(DefaultExecutor.INSTANCE.submit(runnable));
 <a class="jxr_linenumber" name="L770" href="#L770">770</a>           }
-<a class="jxr_linenumber" name="L771" href="#L771">771</a>         }
-<a class="jxr_linenumber" name="L772" href="#L772">772</a>       }
-<a class="jxr_linenumber" name="L773" href="#L773">773</a>       <strong class="jxr_keyword">if</strong> (rex != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L774" href="#L774">774</a>         <strong class="jxr_keyword">throw</strong> rex;
-<a class="jxr_linenumber" name="L775" href="#L775">775</a>       }
-<a class="jxr_linenumber" name="L776" href="#L776">776</a>     }
-<a class="jxr_linenumber" name="L777" href="#L777">777</a>   }
-<a class="jxr_linenumber" name="L778" href="#L778">778</a> 
-<a class="jxr_linenumber" name="L779" href="#L779">779</a> }
+<a class="jxr_linenumber" name="L771" href="#L771">771</a>           <strong class="jxr_keyword">for</strong> (Future&lt;?&gt; future : futures) {
+<a class="jxr_linenumber" name="L772" href="#L772">772</a>             <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L773" href="#L773">773</a>               future.get();
+<a class="jxr_linenumber" name="L774" href="#L774">774</a>             }  <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
+<a class="jxr_linenumber" name="L775" href="#L775">775</a>               Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L776" href="#L776">776</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L777" href="#L777">777</a>                 rex = ex;
+<a class="jxr_linenumber" name="L778" href="#L778">778</a>               } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L779" href="#L779">779</a>                 rex.addSuppressed(ex);
+<a class="jxr_linenumber" name="L780" href="#L780">780</a>               }
+<a class="jxr_linenumber" name="L781" href="#L781">781</a>               <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L782" href="#L782">782</a>             } <strong class="jxr_keyword">catch</strong> (ExecutionException | RuntimeException ex) {
+<a class="jxr_linenumber" name="L783" href="#L783">783</a>               <strong class="jxr_keyword">if</strong> (rex == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L784" href="#L784">784</a>                 rex = ex;
+<a class="jxr_linenumber" name="L785" href="#L785">785</a>               } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L786" href="#L786">786</a>                 rex.addSuppressed(ex);
+<a class="jxr_linenumber" name="L787" href="#L787">787</a>               }
+<a class="jxr_linenumber" name="L788" href="#L788">788</a>             }
+<a class="jxr_linenumber" name="L789" href="#L789">789</a>           }
+<a class="jxr_linenumber" name="L790" href="#L790">790</a>         }
+<a class="jxr_linenumber" name="L791" href="#L791">791</a>       }
+<a class="jxr_linenumber" name="L792" href="#L792">792</a>       <em class="jxr_comment">// print out info on all remaining non daemon threads.</em>
+<a class="jxr_linenumber" name="L793" href="#L793">793</a>       <strong class="jxr_keyword">if</strong> (dumpNonDaemonThreadInfoOnShutdown) {
+<a class="jxr_linenumber" name="L794" href="#L794">794</a>         Thread[] threads = Threads.getThreads();
+<a class="jxr_linenumber" name="L795" href="#L795">795</a>         Thread current = Thread.currentThread();
+<a class="jxr_linenumber" name="L796" href="#L796">796</a>         <strong class="jxr_keyword">boolean</strong> first = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L797" href="#L797">797</a>         <strong class="jxr_keyword">for</strong> (Thread thread : threads) {
+<a class="jxr_linenumber" name="L798" href="#L798">798</a>           <strong class="jxr_keyword">if</strong> (thread.isAlive() &amp;&amp; !thread.isDaemon() &amp;&amp; !thread.equals(current)
+<a class="jxr_linenumber" name="L799" href="#L799">799</a>                   &amp;&amp; !thread.getName().contains(<span class="jxr_string">"DestroyJavaVM"</span>)) {
+<a class="jxr_linenumber" name="L800" href="#L800">800</a>             <strong class="jxr_keyword">if</strong> (first) {
+<a class="jxr_linenumber" name="L801" href="#L801">801</a>               error(<span class="jxr_string">"Non daemon threads still running:"</span>);
+<a class="jxr_linenumber" name="L802" href="#L802">802</a>               first = false;
+<a class="jxr_linenumber" name="L803" href="#L803">803</a>             }
+<a class="jxr_linenumber" name="L804" href="#L804">804</a>             error(<span class="jxr_string">"Non daemon thread "</span> + thread + <span class="jxr_string">", stackTrace = "</span>
+<a class="jxr_linenumber" name="L805" href="#L805">805</a>                     + java.util.Arrays.toString(thread.getStackTrace()));
+<a class="jxr_linenumber" name="L806" href="#L806">806</a>           }
+<a class="jxr_linenumber" name="L807" href="#L807">807</a>         }
+<a class="jxr_linenumber" name="L808" href="#L808">808</a>       }
+<a class="jxr_linenumber" name="L809" href="#L809">809</a>       <strong class="jxr_keyword">if</strong> (rex != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L810" href="#L810">810</a>         <strong class="jxr_keyword">throw</strong> rex;
+<a class="jxr_linenumber" name="L811" href="#L811">811</a>       }
+<a class="jxr_linenumber" name="L812" href="#L812">812</a>     }
+<a class="jxr_linenumber" name="L813" href="#L813">813</a>   }
+<a class="jxr_linenumber" name="L814" href="#L814">814</a> 
+<a class="jxr_linenumber" name="L815" href="#L815">815</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2019 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

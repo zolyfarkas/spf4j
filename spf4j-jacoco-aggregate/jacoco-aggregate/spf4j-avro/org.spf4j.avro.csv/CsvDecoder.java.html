@@ -383,14 +383,15 @@ public final class CsvDecoder extends ParsingDecoder {
 <span class="nc" id="L383">        });</span>
 <span class="nc" id="L384">        record.setFields(bfields);</span>
 <span class="nc" id="L385">      } else {</span>
-<span class="fc" id="L386">        List&lt;CharSequence&gt; list = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L387">        reader.readRow((cs) -&gt; list.add(cs.toString()));</span>
-<span class="fc" id="L388">        record = Schemas.project(readerSchema.getElementType(), list.toArray(new CharSequence[list.size()]));</span>
+<span class="fc" id="L386">        Schema elementType = readerSchema.getElementType();</span>
+<span class="fc" id="L387">        List&lt;CharSequence&gt; list = new ArrayList&lt;&gt;(elementType.getFields().size());</span>
+<span class="fc" id="L388">        reader.readRow((cs) -&gt; list.add(cs.toString()));</span>
+<span class="fc" id="L389">        record = Schemas.project(elementType, list);</span>
       }
-<span class="fc" id="L390">      Schema arraySchema = Schema.createArray(record);</span>
-<span class="fc" id="L391">      return new DecodedSchema(arraySchema, new CsvDecoder(reader, arraySchema));</span>
-<span class="nc" id="L392">    } catch (CsvParseException ex) {</span>
-<span class="nc" id="L393">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L391">      Schema arraySchema = Schema.createArray(record);</span>
+<span class="fc" id="L392">      return new DecodedSchema(arraySchema, new CsvDecoder(reader, arraySchema));</span>
+<span class="nc" id="L393">    } catch (CsvParseException ex) {</span>
+<span class="nc" id="L394">      throw new RuntimeException(ex);</span>
     }
   }
 

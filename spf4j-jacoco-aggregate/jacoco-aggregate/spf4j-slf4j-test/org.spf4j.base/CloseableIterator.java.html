@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CloseableIterator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">CloseableIterator.java</span></div><h1>CloseableIterator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.Closeable;
+import java.util.Iterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+/**
+ * need to extend java.io.Closeable so that jaxrs does not interfere.
+ * @author Zoltan Farkas
+ */
+@CleanupObligation
+public interface CloseableIterator&lt;T&gt; extends Iterator&lt;T&gt;, Closeable {
+
+  @DischargesObligation
+  void close();
+
+  static &lt;T&gt; CloseableIterator&lt;T&gt; from(final Iterator&lt;T&gt; it) {
+<span class="fc" id="L54">    return from(it, () -&gt; { });</span>
+  }
+
+  static &lt;T&gt; CloseableIterator&lt;T&gt; from(final Iterator&lt;T&gt; it, final AutoCloseable close) {
+<span class="fc" id="L58">    return new CloseableIterator&lt;T&gt;() {</span>
+      @Override
+      @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+      public void close() {
+        try {
+<span class="fc" id="L63">          close.close();</span>
+<span class="nc" id="L64">        } catch (RuntimeException | Error e) {</span>
+<span class="nc" id="L65">          throw e;</span>
+<span class="nc" id="L66">        } catch (Exception ex) {</span>
+<span class="nc" id="L67">          throw new RuntimeException(ex);</span>
+<span class="fc" id="L68">        }</span>
+<span class="fc" id="L69">      }</span>
+
+      @Override
+      public boolean hasNext() {
+<span class="fc" id="L73">        return it.hasNext();</span>
+      }
+
+      @Override
+      public T next() {
+<span class="fc" id="L78">        return it.next();</span>
+      }
+
+      @Override
+      public void remove() {
+<span class="nc" id="L83">        it.remove();</span>
+<span class="nc" id="L84">      }</span>
+
+    };
+  }
+
+  default Stream&lt;T&gt; toStreamRemaining() {
+<span class="nc" id="L90">    return toStreamRemaining(false);</span>
+  }
+
+  default Stream&lt;T&gt; toStreamRemaining(final boolean parallel) {
+<span class="nc" id="L94">    return StreamSupport.stream(Spliterators.spliteratorUnknownSize(this, 0), parallel).onClose(() -&gt; this.close());</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

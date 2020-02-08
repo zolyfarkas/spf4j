@@ -36,7 +36,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -75,22 +78,23 @@ public final class Sampler {
 
   private static Sampler instance;
 
-<span class="fc" id="L78">  public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty(&quot;spf4j.perf.ms.defaultSsdumpFolder&quot;,</span>
-<span class="fc" id="L79">          System.getProperty(&quot;java.io.tmpdir&quot;));</span>
+<span class="fc" id="L81">  public static final String DEFAULT_SS_DUMP_FOLDER = System.getProperty(&quot;spf4j.perf.ms.defaultSsdumpFolder&quot;,</span>
+<span class="fc" id="L82">          System.getProperty(&quot;java.io.tmpdir&quot;));</span>
 
-<span class="fc" id="L81">  public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(</span>
-<span class="fc" id="L82">          System.getProperty(&quot;spf4j.perf.ms.defaultSsdumpFilePrefix&quot;,</span>
-<span class="fc" id="L83">                  ManagementFactory.getRuntimeMXBean().getName()));</span>
+<span class="fc" id="L84">  public static final String DEFAULT_SS_DUMP_FILE_NAME_PREFIX = CharSequences.validatedFileName(</span>
+<span class="fc" id="L85">          System.getProperty(&quot;spf4j.perf.ms.defaultSsdumpFilePrefix&quot;,</span>
+<span class="fc" id="L86">                  ManagementFactory.getRuntimeMXBean().getName()));</span>
 
   @GuardedBy(&quot;sync&quot;)
   private boolean stopped;
 
+  private volatile boolean compressDumps;
   private volatile long sampleTimeNanos;
   private volatile long dumpTimeNanos;
   private final SamplerSupplier stackCollectorSupp;
   private volatile long lastDumpTimeNanos;
 
-<span class="fc" id="L93">  private final Object sync = new Object();</span>
+<span class="fc" id="L97">  private final Object sync = new Object();</span>
 
   @GuardedBy(&quot;sync&quot;)
   private ISampler stackCollector;
@@ -104,83 +108,79 @@ public final class Sampler {
 
   @Override
   public String toString() {
-<span class="nc" id="L107">    return &quot;Sampler{&quot; + &quot;stopped=&quot; + stopped + &quot;, sampleTimeNanos=&quot;</span>
+<span class="nc" id="L111">    return &quot;Sampler{&quot; + &quot;stopped=&quot; + stopped + &quot;, sampleTimeNanos=&quot;</span>
             + sampleTimeNanos + &quot;, dumpTimeNanos=&quot; + dumpTimeNanos + &quot;, lastDumpTimeNanos=&quot;
             + lastDumpTimeNanos + &quot;, dumpFolder=&quot; + dumpFolder + &quot;, filePrefix=&quot; + filePrefix + '}';
   }
 
   public Sampler() {
-<span class="nc" id="L113">    this(10, 3600000, (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}));</span>
-<span class="nc" id="L114">  }</span>
+<span class="nc" id="L117">    this(10, 3600000, (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}));</span>
+<span class="nc" id="L118">  }</span>
 
   public Sampler(final int sampleTimeMillis) {
-<span class="fc" id="L117">    this(sampleTimeMillis, 3600000, (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}));</span>
-<span class="fc" id="L118">  }</span>
-
-  public Sampler(final int sampleTimeMillis, final SamplerSupplier collector) {
-<span class="fc" id="L121">    this(sampleTimeMillis, 3600000, collector);</span>
+<span class="fc" id="L121">    this(sampleTimeMillis, 3600000, (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}));</span>
 <span class="fc" id="L122">  }</span>
 
-  public Sampler(final SamplerSupplier collector) {
-<span class="fc" id="L125">    this(10, 3600000, collector);</span>
+  public Sampler(final int sampleTimeMillis, final SamplerSupplier collector) {
+<span class="fc" id="L125">    this(sampleTimeMillis, 3600000, collector);</span>
 <span class="fc" id="L126">  }</span>
+
+  public Sampler(final SamplerSupplier collector) {
+<span class="fc" id="L129">    this(10, 3600000, collector);</span>
+<span class="fc" id="L130">  }</span>
 
   @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis) {
-<span class="fc" id="L130">    this(sampleTimeMillis, dumpTimeMillis, (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}),</span>
+<span class="fc" id="L134">    this(sampleTimeMillis, dumpTimeMillis, (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}),</span>
             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
-<span class="fc" id="L132">  }</span>
+<span class="fc" id="L136">  }</span>
 
   @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector) {
-<span class="fc" id="L136">    this(sampleTimeMillis, dumpTimeMillis, collector,</span>
+<span class="fc" id="L140">    this(sampleTimeMillis, dumpTimeMillis, collector,</span>
             DEFAULT_SS_DUMP_FOLDER, DEFAULT_SS_DUMP_FILE_NAME_PREFIX);
-<span class="fc" id="L138">  }</span>
+<span class="fc" id="L142">  }</span>
 
   @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
           final String dumpFolder, final String dumpFilePrefix) {
-<span class="fc" id="L143">    this(sampleTimeMillis, dumpTimeMillis, collector, new File(dumpFolder), dumpFilePrefix);</span>
-<span class="fc" id="L144">  }</span>
+<span class="fc" id="L147">    this(sampleTimeMillis, dumpTimeMillis, collector, new File(dumpFolder), dumpFilePrefix);</span>
+<span class="fc" id="L148">  }</span>
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
-<span class="fc" id="L147">          final File dumpFolder, final String dumpFilePrefix) {</span>
-<span class="fc" id="L148">    CharSequences.validatedFileName(dumpFilePrefix);</span>
-<span class="fc" id="L149">    stopped = true;</span>
-<span class="pc bpc" id="L150" title="1 of 2 branches missed.">    if (sampleTimeMillis &lt; 1) {</span>
-<span class="nc" id="L151">      throw new IllegalArgumentException(&quot;Invalid sample time &quot; + sampleTimeMillis);</span>
+          final File dumpFolder, final String dumpFilePrefix) {
+<span class="fc" id="L152">    this(sampleTimeMillis, dumpTimeMillis, collector, dumpFolder, dumpFilePrefix, true);</span>
+<span class="fc" id="L153">  }</span>
+
+  public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
+<span class="fc" id="L156">          final File dumpFolder, final String dumpFilePrefix, final boolean compressDumps) {</span>
+<span class="fc" id="L157">    CharSequences.validatedFileName(dumpFilePrefix);</span>
+<span class="fc" id="L158">    stopped = true;</span>
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">    if (sampleTimeMillis &lt; 1) {</span>
+<span class="nc" id="L160">      throw new IllegalArgumentException(&quot;Invalid sample time &quot; + sampleTimeMillis);</span>
     }
-<span class="fc" id="L153">    this.sampleTimeNanos = TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);</span>
-<span class="pc bpc" id="L154" title="1 of 2 branches missed.">    if (sampleTimeNanos &lt; 0) {</span>
-<span class="nc" id="L155">      throw new IllegalArgumentException(&quot;Invalid sample time &quot; + sampleTimeMillis);</span>
+<span class="fc" id="L162">    this.sampleTimeNanos = TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">    if (sampleTimeNanos &lt; 0) {</span>
+<span class="nc" id="L164">      throw new IllegalArgumentException(&quot;Invalid sample time &quot; + sampleTimeMillis);</span>
     }
-<span class="fc" id="L157">    this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);</span>
-<span class="fc" id="L158">    this.stackCollectorSupp = collector;</span>
-<span class="fc" id="L159">    this.filePrefix = dumpFilePrefix;</span>
-<span class="fc" id="L160">    this.dumpFolder = dumpFolder;</span>
-<span class="fc" id="L161">  }</span>
+<span class="fc" id="L166">    this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);</span>
+<span class="fc" id="L167">    this.stackCollectorSupp = collector;</span>
+<span class="fc" id="L168">    this.filePrefix = dumpFilePrefix;</span>
+<span class="fc" id="L169">    this.dumpFolder = dumpFolder;</span>
+<span class="fc" id="L170">    this.compressDumps = compressDumps;</span>
+<span class="fc" id="L171">  }</span>
 
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis,
           final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
-<span class="fc" id="L166">    return getSampler(sampleTimeMillis, dumpTimeMillis,</span>
-<span class="fc" id="L167">            (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}), dumpFolder, dumpFilePrefix);</span>
+<span class="fc" id="L176">    return getSampler(sampleTimeMillis, dumpTimeMillis,</span>
+<span class="fc" id="L177">            (t) -&gt; new FastStackCollector(false, true, new Thread[]{t}), dumpFolder, dumpFilePrefix);</span>
   }
 
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis, final SamplerSupplier collector,
           final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
-<span class="fc bfc" id="L173" title="All 2 branches covered.">    if (instance == null) {</span>
-      try {
-<span class="fc" id="L175">        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,</span>
-<span class="fc" id="L176">                dumpFolder.getCanonicalFile(), dumpFilePrefix);</span>
-<span class="nc" id="L177">      } catch (IOException ex) {</span>
-<span class="nc" id="L178">        throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L179">      }</span>
-<span class="fc" id="L180">      instance.registerJmx();</span>
-<span class="fc" id="L181">      return instance;</span>
-    } else {
-<span class="fc" id="L183">      instance.dispose();</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">    if (instance == null) {</span>
       try {
 <span class="fc" id="L185">        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,</span>
 <span class="fc" id="L186">                dumpFolder.getCanonicalFile(), dumpFilePrefix);</span>
@@ -189,230 +189,278 @@ public final class Sampler {
 <span class="fc" id="L189">      }</span>
 <span class="fc" id="L190">      instance.registerJmx();</span>
 <span class="fc" id="L191">      return instance;</span>
+    } else {
+<span class="fc" id="L193">      instance.dispose();</span>
+      try {
+<span class="fc" id="L195">        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,</span>
+<span class="fc" id="L196">                dumpFolder.getCanonicalFile(), dumpFilePrefix);</span>
+<span class="nc" id="L197">      } catch (IOException ex) {</span>
+<span class="nc" id="L198">        throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L199">      }</span>
+<span class="fc" id="L200">      instance.registerJmx();</span>
+<span class="fc" id="L201">      return instance;</span>
     }
   }
 
   public void registerJmx() {
-<span class="fc" id="L196">    Registry.export(this);</span>
-<span class="fc" id="L197">  }</span>
+<span class="fc" id="L206">    Registry.export(this);</span>
+<span class="fc" id="L207">  }</span>
 
   @JmxExport(description = &quot;start stack sampling&quot;)
   public void start() {
-<span class="fc" id="L201">    synchronized (sync) {</span>
-<span class="pc bpc" id="L202" title="1 of 2 branches missed.">      if (stopped) {</span>
-<span class="fc" id="L203">        stopped = false;</span>
-<span class="fc" id="L204">        final long stNanos = sampleTimeNanos;</span>
-<span class="fc" id="L205">        samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable(&quot;SPF4J-Sampling-Thread&quot;) {</span>
+<span class="fc" id="L211">    synchronized (sync) {</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">      if (stopped) {</span>
+<span class="fc" id="L213">        stopped = false;</span>
+<span class="fc" id="L214">        final long stNanos = sampleTimeNanos;</span>
+<span class="fc" id="L215">        samplerFuture = DefaultExecutor.INSTANCE.submit(new AbstractRunnable(&quot;SPF4J-Sampling-Thread&quot;) {</span>
 
           @SuppressWarnings(&quot;SleepWhileInLoop&quot;)
           @SuppressFBWarnings({&quot;MDM_THREAD_YIELD&quot;, &quot;PREDICTABLE_RANDOM&quot;})
           @Override
           public void doRun() {
-<span class="fc" id="L211">            lastDumpTimeNanos = TimeSource.nanoTime();</span>
-<span class="fc" id="L212">            synchronized (sync) {</span>
-<span class="fc" id="L213">              stackCollector = stackCollectorSupp.get(Thread.currentThread());</span>
-<span class="fc" id="L214">            }</span>
-<span class="fc" id="L215">            final long lDumpTimeNanos = dumpTimeNanos;</span>
-<span class="fc" id="L216">            final ThreadLocalRandom random = ThreadLocalRandom.current();</span>
-<span class="fc" id="L217">            long dumpCounterNanos = 0;</span>
-<span class="fc" id="L218">            long sleepTimeNanos = 0;</span>
-<span class="fc" id="L219">            long halfStNanos = stNanos / 2;</span>
-<span class="pc bpc" id="L220" title="1 of 2 branches missed.">            if (halfStNanos == 0) {</span>
-<span class="nc" id="L221">              halfStNanos = 1;</span>
+<span class="fc" id="L221">            lastDumpTimeNanos = TimeSource.nanoTime();</span>
+<span class="fc" id="L222">            synchronized (sync) {</span>
+<span class="fc" id="L223">              stackCollector = stackCollectorSupp.get(Thread.currentThread());</span>
+<span class="fc" id="L224">            }</span>
+<span class="fc" id="L225">            final long lDumpTimeNanos = dumpTimeNanos;</span>
+<span class="fc" id="L226">            final ThreadLocalRandom random = ThreadLocalRandom.current();</span>
+<span class="fc" id="L227">            long dumpCounterNanos = 0;</span>
+<span class="fc" id="L228">            long sleepTimeNanos = 0;</span>
+<span class="fc" id="L229">            long halfStNanos = stNanos / 2;</span>
+<span class="pc bpc" id="L230" title="1 of 2 branches missed.">            if (halfStNanos == 0) {</span>
+<span class="nc" id="L231">              halfStNanos = 1;</span>
             }
-<span class="fc" id="L223">            long maxSleeepNanos = stNanos + halfStNanos;</span>
+<span class="fc" id="L233">            long maxSleeepNanos = stNanos + halfStNanos;</span>
             while (true) {
               try {
-<span class="fc" id="L226">                synchronized (sync) {</span>
-<span class="fc" id="L227">                  stackCollector.sample();</span>
-<span class="fc bfc" id="L228" title="All 2 branches covered.">                  if (stopped) {</span>
-<span class="fc" id="L229">                    break;</span>
+<span class="fc" id="L236">                synchronized (sync) {</span>
+<span class="fc" id="L237">                  stackCollector.sample();</span>
+<span class="fc bfc" id="L238" title="All 2 branches covered.">                  if (stopped) {</span>
+<span class="fc" id="L239">                    break;</span>
                   }
-<span class="fc" id="L231">                }</span>
-<span class="fc" id="L232">                dumpCounterNanos += sleepTimeNanos;</span>
-<span class="fc bfc" id="L233" title="All 2 branches covered.">                if (dumpCounterNanos &gt;= lDumpTimeNanos) {</span>
-<span class="fc" id="L234">                  long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;</span>
-<span class="pc bpc" id="L235" title="1 of 2 branches missed.">                  if (nanosSinceLastDump &gt;= lDumpTimeNanos) {</span>
-<span class="fc" id="L236">                    dumpCounterNanos = 0;</span>
-<span class="fc" id="L237">                    File dumpFile = dumpToFile();</span>
-<span class="pc bpc" id="L238" title="1 of 2 branches missed.">                    if (dumpFile != null) {</span>
-<span class="fc" id="L239">                      Logger.getLogger(Sampler.class.getName())</span>
-<span class="fc" id="L240">                              .log(Level.INFO, &quot;Stack samples written to {0}&quot;, dumpFile);</span>
+<span class="fc" id="L241">                }</span>
+<span class="fc" id="L242">                dumpCounterNanos += sleepTimeNanos;</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">                if (dumpCounterNanos &gt;= lDumpTimeNanos) {</span>
+<span class="fc" id="L244">                  long nanosSinceLastDump = TimeSource.nanoTime() - lastDumpTimeNanos;</span>
+<span class="pc bpc" id="L245" title="1 of 2 branches missed.">                  if (nanosSinceLastDump &gt;= lDumpTimeNanos) {</span>
+<span class="fc" id="L246">                    dumpCounterNanos = 0;</span>
+<span class="fc" id="L247">                    File dumpFile = dumpToFile();</span>
+<span class="pc bpc" id="L248" title="1 of 2 branches missed.">                    if (dumpFile != null) {</span>
+<span class="fc" id="L249">                      Logger.getLogger(Sampler.class.getName())</span>
+<span class="fc" id="L250">                              .log(Level.INFO, &quot;Stack samples written to {0}&quot;, dumpFile);</span>
                     }
-<span class="fc" id="L242">                  } else {</span>
-<span class="nc" id="L243">                    dumpCounterNanos = nanosSinceLastDump;</span>
+<span class="fc" id="L252">                  } else {</span>
+<span class="nc" id="L253">                    dumpCounterNanos = nanosSinceLastDump;</span>
                   }
                 }
-<span class="fc" id="L246">                sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);</span>
-<span class="fc" id="L247">                TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);</span>
-<span class="nc" id="L248">              } catch (InterruptedException ex) {</span>
-<span class="nc" id="L249">                Thread.currentThread().interrupt();</span>
-<span class="nc" id="L250">                return;</span>
-<span class="nc" id="L251">              } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L252">                Logger.getLogger(Sampler.class.getName()).log(Level.SEVERE,</span>
+<span class="fc" id="L256">                sleepTimeNanos = random.nextLong(halfStNanos, maxSleeepNanos);</span>
+<span class="fc" id="L257">                TimeUnit.NANOSECONDS.sleep(sleepTimeNanos);</span>
+<span class="nc" id="L258">              } catch (InterruptedException ex) {</span>
+<span class="nc" id="L259">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L260">                return;</span>
+<span class="nc" id="L261">              } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L262">                Logger.getLogger(Sampler.class.getName()).log(Level.SEVERE,</span>
                         &quot;Exception encountered while samplig, will continue sampling&quot;, ex);
-<span class="pc" id="L254">              }</span>
+<span class="pc" id="L264">              }</span>
             }
-<span class="fc" id="L256">          }</span>
+<span class="fc" id="L266">          }</span>
         });
-<span class="fc" id="L258">      } else {</span>
-<span class="nc" id="L259">        throw new IllegalStateException(&quot;Sampling can only be started once for &quot; + this);</span>
+<span class="fc" id="L268">      } else {</span>
+<span class="nc" id="L269">        throw new IllegalStateException(&quot;Sampling can only be started once for &quot; + this);</span>
       }
-<span class="fc" id="L261">    }</span>
-<span class="fc" id="L262">  }</span>
+<span class="fc" id="L271">    }</span>
+<span class="fc" id="L272">  }</span>
+
+  @JmxExport
+  public boolean isCompressDumps() {
+<span class="nc" id="L276">    return compressDumps;</span>
+  }
+
+  @JmxExport
+  public void setCompressDumps(final boolean compressDumps) {
+<span class="nc" id="L281">    this.compressDumps = compressDumps;</span>
+<span class="nc" id="L282">  }</span>
+
 
   @JmxExport(description = &quot;save stack samples to file&quot;)
   @Nullable
   public File dumpToFile() throws IOException {
-<span class="fc" id="L267">    return dumpToFile((String) null);</span>
+<span class="fc" id="L288">    return dumpToFile((String) null);</span>
   }
 
   /**
    * Dumps the sampled stacks to file. the collected samples are reset
    *
    * @param id - id will be added to file name returns the name of the file.
-   * @return - the file name where the data was persisted or null if there was no data to persist.
+   * @return - the file name where the data was persisted or null if there was no data to persist. The file name
+   * will be of format: [filePrefix](_[id])?_[&quot;yyyyMMdd'T'HHmmssSSSz]_[&quot;yyyyMMdd'T'HHmmssSSSz]_[label].ssdump2(.gz)?
+   * or [filePrefix](_[id])?_[&quot;yyyyMMdd'T'HHmmssSSSz]_[&quot;yyyyMMdd'T'HHmmssSSSz].ssdump3(.gz)?
    * @throws IOException - io issues while persisting data.
    */
   @JmxExport(value = &quot;dumpToSpecificFile&quot;, description = &quot;save stack samples to file&quot;)
   @Nullable
-  @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // not possible the provided ID is validated for path separators.
   public File dumpToFile(
           @JmxExport(value = &quot;fileID&quot;, description = &quot;the ID that will be part of the file name&quot;)
           @Nullable final String id) throws IOException {
-<span class="fc bfc" id="L283" title="All 2 branches covered.">    String fileName = filePrefix + CharSequences.validatedFileName(((id == null) ? &quot;&quot; : '_' + id) + '_'</span>
-<span class="fc" id="L284">            + DateTimeFormats.COMPACT_TS_FORMAT.format(</span>
-<span class="fc" id="L285">                    Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))</span>
-<span class="fc" id="L286">            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now()));</span>
-<span class="fc" id="L287">    File file = new File(dumpFolder, fileName);</span>
-<span class="fc" id="L288">    return dumpToFile(file);</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">    String fileName = filePrefix + ((id == null) ? &quot;&quot; : '_' + id) + '_'</span>
+<span class="fc" id="L306">            + DateTimeFormats.COMPACT_TS_FORMAT.format(</span>
+<span class="fc" id="L307">                    Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))</span>
+<span class="fc" id="L308">            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now());</span>
+<span class="fc" id="L309">    return dumpToFile(dumpFolder, fileName);</span>
   }
 
+  /**
+   * Dump  collected samples to disk.
+   * @param destinationFolder the destination folder.
+   * @param baseFileName file name base, will be URLEncoded.
+   * The appropriate extension will be added depending on situation.
+   * either ssdump2 or ssdump3 will be used depending on the number of sample aggregate groups.
+   * additionally .gz will be added if compression is enabled.
+   * in case of ssdump2 the label will be appended to the file name like _[label].ssdump2
+   *
+   * @return the saved file, or null if no collected samples to save.
+   * @throws IOException
+   */
   @Nullable
   @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // not possible the provided ID is validated for path separators.
-  public File dumpToFile(@Nonnull final File pfile) throws IOException {
+  public File dumpToFile(@Nonnull final File destinationFolder, final String pbaseFileName) throws IOException {
+<span class="fc" id="L327">    CharSequences.validatedFileName(pbaseFileName);</span>
+<span class="fc" id="L328">    String baseFileName = URLEncoder.encode(pbaseFileName, StandardCharsets.UTF_8.name());</span>
     Map&lt;String, SampleNode&gt; collections;
-<span class="fc" id="L295">    synchronized (sync) {</span>
-<span class="fc bfc" id="L296" title="All 2 branches covered.">      if (stackCollector == null) {</span>
-<span class="fc" id="L297">        return null;</span>
+<span class="fc" id="L330">    synchronized (sync) {</span>
+<span class="fc bfc" id="L331" title="All 2 branches covered.">      if (stackCollector == null) {</span>
+<span class="fc" id="L332">        return null;</span>
       }
-<span class="fc" id="L299">      collections = stackCollector.getCollectionsAndReset();</span>
-<span class="fc" id="L300">      lastDumpTimeNanos = TimeSource.nanoTime();</span>
-<span class="fc" id="L301">    }</span>
-<span class="pc bpc" id="L302" title="1 of 2 branches missed.">    if (collections.isEmpty()) {</span>
-<span class="nc" id="L303">      return null;</span>
+<span class="fc" id="L334">      collections = stackCollector.getCollectionsAndReset();</span>
+<span class="fc" id="L335">      lastDumpTimeNanos = TimeSource.nanoTime();</span>
+<span class="fc" id="L336">    }</span>
+<span class="pc bpc" id="L337" title="1 of 2 branches missed.">    if (collections.isEmpty()) {</span>
+<span class="nc" id="L338">      return null;</span>
     }
-<span class="pc bpc" id="L305" title="1 of 2 branches missed.">    if (collections.size() == 1) {</span>
-<span class="fc" id="L306">      Map.Entry&lt;String, SampleNode&gt; es = collections.entrySet().iterator().next();</span>
-<span class="fc" id="L307">      SampleNode samples = es.getValue();</span>
-<span class="pc bpc" id="L308" title="1 of 2 branches missed.">      if (samples == null) {</span>
-<span class="nc" id="L309">        return null;</span>
+    String newFileName;
+<span class="pc bpc" id="L341" title="1 of 2 branches missed.">    if (collections.size() == 1) {</span>
+<span class="fc" id="L342">      Map.Entry&lt;String, SampleNode&gt; es = collections.entrySet().iterator().next();</span>
+<span class="fc" id="L343">      SampleNode samples = es.getValue();</span>
+<span class="pc bpc" id="L344" title="1 of 2 branches missed.">      if (samples == null) {</span>
+<span class="nc" id="L345">        return null;</span>
       }
-      File file;
-<span class="pc bpc" id="L312" title="1 of 2 branches missed.">      if (pfile.getName().endsWith(&quot;.ssdump2&quot;)) {</span>
-<span class="nc" id="L313">        file = pfile;</span>
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">      if (baseFileName.endsWith(&quot;.ssdump2&quot;)) {</span>
+<span class="nc" id="L348">        newFileName = baseFileName;</span>
       } else {
-<span class="fc" id="L315">        file = new File(pfile.getParentFile(), pfile.getName() + '_' + es.getKey() + &quot;.ssdump2&quot;);</span>
+<span class="fc" id="L350">        newFileName = Converter.createLabeledSsdump2FileName(baseFileName, es.getKey());</span>
       }
-<span class="fc" id="L317">      Converter.save(file, samples);</span>
-<span class="fc" id="L318">      return file;</span>
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">      if (this.compressDumps) {</span>
+<span class="fc" id="L353">        newFileName = newFileName + &quot;.gz&quot;;</span>
+      }
+<span class="fc" id="L355">      File file = new File(destinationFolder, newFileName);</span>
+<span class="fc" id="L356">      Converter.save(file, samples);</span>
+<span class="fc" id="L357">      return file;</span>
     } else {
-      File file;
-<span class="nc bnc" id="L321" title="All 2 branches missed.">      if (pfile.getName().endsWith(&quot;.ssdump3&quot;)) {</span>
-<span class="nc" id="L322">        file = pfile;</span>
+<span class="nc bnc" id="L359" title="All 2 branches missed.">      if (baseFileName.endsWith(&quot;.ssdump3&quot;)) {</span>
+<span class="nc" id="L360">        newFileName = baseFileName;</span>
       } else {
-<span class="nc" id="L324">        file = new File(pfile.getParentFile(), pfile.getName() + &quot;.ssdump3&quot;);</span>
+<span class="nc" id="L362">        newFileName = baseFileName + &quot;.ssdump3&quot;;</span>
       }
-<span class="nc" id="L326">      Converter.saveLabeledDumps(file, collections);</span>
-<span class="nc" id="L327">      return file;</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">      if (this.compressDumps) {</span>
+<span class="nc" id="L365">        newFileName = newFileName + &quot;.gz&quot;;</span>
+      }
+<span class="nc" id="L367">      File file = new File(destinationFolder, newFileName);</span>
+<span class="nc" id="L368">      Converter.saveLabeledDumps(file, collections);</span>
+<span class="nc" id="L369">      return file;</span>
     }
   }
 
   @JmxExport(description = &quot;stop stack sampling&quot;)
   public void stop() throws InterruptedException {
-<span class="fc" id="L333">    Future&lt;?&gt; toCancel = null;</span>
-<span class="fc" id="L334">    synchronized (sync) {</span>
-<span class="fc bfc" id="L335" title="All 2 branches covered.">      if (!stopped) {</span>
-<span class="fc" id="L336">        stopped = true;</span>
-<span class="fc" id="L337">        toCancel = samplerFuture;</span>
+<span class="fc" id="L375">    Future&lt;?&gt; toCancel = null;</span>
+<span class="fc" id="L376">    synchronized (sync) {</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">      if (!stopped) {</span>
+<span class="fc" id="L378">        stopped = true;</span>
+<span class="fc" id="L379">        toCancel = samplerFuture;</span>
       }
-<span class="fc" id="L339">    }</span>
-<span class="fc bfc" id="L340" title="All 2 branches covered.">    if (toCancel != null) {</span>
+<span class="fc" id="L381">    }</span>
+<span class="fc bfc" id="L382" title="All 2 branches covered.">    if (toCancel != null) {</span>
       try {
-<span class="fc" id="L342">        toCancel.get(dumpTimeNanos * 3, TimeUnit.NANOSECONDS);</span>
-<span class="nc" id="L343">      } catch (TimeoutException ex) {</span>
-<span class="nc" id="L344">        toCancel.cancel(true);</span>
-<span class="nc" id="L345">        throw new Spf4jProfilerException(ex);</span>
-<span class="nc" id="L346">      } catch (ExecutionException ex) {</span>
-<span class="nc" id="L347">        throw new Spf4jProfilerException(ex);</span>
-<span class="fc" id="L348">      }</span>
+<span class="fc" id="L384">        toCancel.get(dumpTimeNanos * 3, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L385">      } catch (TimeoutException ex) {</span>
+<span class="nc" id="L386">        toCancel.cancel(true);</span>
+<span class="nc" id="L387">        throw new Spf4jProfilerException(ex);</span>
+<span class="nc" id="L388">      } catch (ExecutionException ex) {</span>
+<span class="nc" id="L389">        throw new Spf4jProfilerException(ex);</span>
+<span class="fc" id="L390">      }</span>
     }
-<span class="fc" id="L350">  }</span>
+<span class="fc" id="L392">  }</span>
 
   @JmxExport(description = &quot;stack sample time in milliseconds&quot;)
   public int getSampleTimeMillis() {
-<span class="nc" id="L354">    return (int) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);</span>
+<span class="nc" id="L396">    return (int) TimeUnit.NANOSECONDS.toMillis(sampleTimeNanos);</span>
   }
 
   @JmxExport
   public void setSampleTimeMillis(final int sampleTimeMillis) {
-<span class="nc" id="L359">    this.sampleTimeNanos = (int) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);</span>
-<span class="nc" id="L360">  }</span>
+<span class="nc" id="L401">    this.sampleTimeNanos = (int) TimeUnit.MILLISECONDS.toNanos(sampleTimeMillis);</span>
+<span class="nc" id="L402">  }</span>
 
   @JmxExport(description = &quot;is the stack sampling stopped&quot;)
   public boolean isStopped() {
-<span class="nc" id="L364">    return stopped;</span>
+<span class="nc" id="L406">    return stopped;</span>
   }
 
   @JmxExport(description = &quot;clear in memory collected stack samples&quot;)
   public void clear() {
-<span class="nc" id="L369">    synchronized (sync) {</span>
-<span class="nc" id="L370">      stackCollector.getCollectionsAndReset();</span>
-<span class="nc" id="L371">    }</span>
-<span class="nc" id="L372">  }</span>
+<span class="nc" id="L411">    synchronized (sync) {</span>
+<span class="nc" id="L412">      stackCollector.getCollectionsAndReset();</span>
+<span class="nc" id="L413">    }</span>
+<span class="nc" id="L414">  }</span>
 
   public Map&lt;String, SampleNode&gt; getStackCollectionsAndReset() {
-<span class="fc" id="L375">    synchronized (sync) {</span>
-<span class="fc" id="L376">      return stackCollector.getCollectionsAndReset();</span>
+<span class="fc" id="L417">    synchronized (sync) {</span>
+<span class="pc bpc" id="L418" title="1 of 2 branches missed.">      if (stackCollector == null) {</span>
+<span class="nc" id="L419">        return Collections.EMPTY_MAP;</span>
+      }
+<span class="fc" id="L421">      return stackCollector.getCollectionsAndReset();</span>
     }
   }
 
   public Map&lt;String, SampleNode&gt; getStackCollections() {
-<span class="fc" id="L381">    synchronized (sync) {</span>
-<span class="fc" id="L382">      return stackCollector.getCollections();</span>
+<span class="fc" id="L426">    synchronized (sync) {</span>
+<span class="pc bpc" id="L427" title="1 of 2 branches missed.">      if (stackCollector == null) {</span>
+<span class="nc" id="L428">        return Collections.EMPTY_MAP;</span>
+      }
+<span class="fc" id="L430">      return stackCollector.getCollections();</span>
     }
   }
 
   @PreDestroy
   public void dispose() throws InterruptedException {
-<span class="fc" id="L388">    stop();</span>
-<span class="fc" id="L389">    Registry.unregister(this);</span>
-<span class="fc" id="L390">  }</span>
+<span class="fc" id="L436">    stop();</span>
+<span class="fc" id="L437">    Registry.unregister(this);</span>
+<span class="fc" id="L438">  }</span>
 
   @JmxExport(description = &quot;interval in milliseconds to save stack stamples periodically&quot;)
   public int getDumpTimeMillis() {
-<span class="fc" id="L394">    return (int) TimeUnit.NANOSECONDS.toMillis(dumpTimeNanos);</span>
+<span class="fc" id="L442">    return (int) TimeUnit.NANOSECONDS.toMillis(dumpTimeNanos);</span>
   }
 
   @JmxExport
   public void setDumpTimeMillis(final int dumpTimeMillis) {
-<span class="nc" id="L399">    this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);</span>
-<span class="nc" id="L400">  }</span>
+<span class="nc" id="L447">    this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);</span>
+<span class="nc" id="L448">  }</span>
 
   @JmxExport
   public String getFilePrefix() {
-<span class="nc" id="L404">    return filePrefix;</span>
+<span class="nc" id="L452">    return filePrefix;</span>
   }
 
   @JmxExport
   public String getDumpFolder() {
-<span class="nc" id="L409">    return dumpFolder.toString();</span>
+<span class="nc" id="L457">    return dumpFolder.toString();</span>
   }
 
   @JmxExport
   @SuppressForbiden // need to use an openType
   public Date getLastDumpTime() {
-<span class="nc" id="L415">    return new Date(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastDumpTimeNanos));</span>
+<span class="nc" id="L463">    return new Date(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastDumpTimeNanos));</span>
   }
 
 }

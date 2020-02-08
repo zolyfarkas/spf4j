@@ -34,6 +34,7 @@ package org.spf4j.perf.impl;
 import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -41,90 +42,94 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public final class MeasurementsInfoImpl implements MeasurementsInfo {
-    private final Object measuredEntity;
-    private final String description;
-    private final String[] measurementNames;
-    private final String[] measurementUnits;
 
+  private final Object measuredEntity;
+  private final String description;
+  private final String[] measurementNames;
+  private final String[] measurementUnits;
+  private final MeasurementType measurementType;
 
+  public MeasurementsInfoImpl(final Object measuredEntity, final String description,
+          final String[] measurementNames, final String[] measurementUnits,
+<span class="fc" id="L54">          final MeasurementType measurementType) {</span>
+<span class="fc" id="L55">    this.measuredEntity = measuredEntity;</span>
+<span class="fc" id="L56">    this.description = description;</span>
+<span class="fc" id="L57">    this.measurementNames = measurementNames.clone();</span>
+<span class="fc" id="L58">    this.measurementUnits = measurementUnits.clone();</span>
+<span class="fc" id="L59">    this.measurementType = measurementType;</span>
+<span class="fc" id="L60">  }</span>
 
-    public MeasurementsInfoImpl(final Object measuredEntity, final String description,
-<span class="fc" id="L52">            final String[] measurementNames, final String[] measurementUnits) {</span>
-<span class="fc" id="L53">        this.measuredEntity = measuredEntity;</span>
-<span class="fc" id="L54">        this.description = description;</span>
-<span class="fc" id="L55">        this.measurementNames = measurementNames.clone();</span>
-<span class="fc" id="L56">        this.measurementUnits = measurementUnits.clone();</span>
-<span class="fc" id="L57">    }</span>
+  public MeasurementType getMeasurementType() {
+<span class="fc" id="L63">    return measurementType;</span>
+  }
 
-    @Override
-    public Object getMeasuredEntity() {
-<span class="fc" id="L61">        return measuredEntity;</span>
+  @Override
+  public Object getMeasuredEntity() {
+<span class="fc" id="L68">    return measuredEntity;</span>
+  }
+
+  @Override
+  public String getDescription() {
+<span class="fc" id="L73">    return description;</span>
+  }
+
+  @Override
+  public String[] getMeasurementNames() {
+<span class="fc" id="L78">    return measurementNames.clone();</span>
+  }
+
+  @Override
+  public int hashCode() {
+<span class="fc" id="L83">    return measuredEntity.hashCode();</span>
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L89">      return false;</span>
     }
-
-    @Override
-    public String getDescription() {
-<span class="fc" id="L66">        return description;</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L92">      return false;</span>
     }
-
-    @Override
-    public String[] getMeasurementNames() {
-<span class="fc" id="L71">        return measurementNames.clone();</span>
+<span class="fc" id="L94">    final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;</span>
+<span class="pc bpc" id="L95" title="3 of 4 branches missed.">    if (this.measuredEntity != other.measuredEntity</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            &amp;&amp; (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {</span>
+<span class="nc" id="L97">      return false;</span>
     }
-
-    @Override
-    public int hashCode() {
-<span class="fc" id="L76">        return measuredEntity.hashCode();</span>
+<span class="pc bpc" id="L99" title="3 of 4 branches missed.">    if ((this.description == null)</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">            ? (other.description != null) : !this.description.equals(other.description)) {</span>
+<span class="nc" id="L101">      return false;</span>
     }
+<span class="fc" id="L103">    return Arrays.equals(this.measurementNames, other.measurementNames);</span>
+  }
 
-    @Override
-    public boolean equals(final Object obj) {
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L82">            return false;</span>
-        }
-<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L85">            return false;</span>
-        }
-<span class="fc" id="L87">        final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;</span>
-<span class="pc bpc" id="L88" title="3 of 4 branches missed.">        if (this.measuredEntity != other.measuredEntity</span>
-<span class="nc bnc" id="L89" title="All 2 branches missed.">                &amp;&amp; (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {</span>
-<span class="nc" id="L90">            return false;</span>
-        }
-<span class="pc bpc" id="L92" title="3 of 4 branches missed.">        if ((this.description == null)</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                ? (other.description != null) : !this.description.equals(other.description)) {</span>
-<span class="nc" id="L94">            return false;</span>
-        }
-<span class="fc" id="L96">        return Arrays.equals(this.measurementNames, other.measurementNames);</span>
-    }
+  @Override
+  public String toString() {
+<span class="fc" id="L108">    return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
+            + &quot;, description=&quot; + description + &quot;, measurementNames=&quot;
+<span class="fc" id="L110">            + Arrays.toString(measurementNames) + &quot;, measurementUnits=&quot;</span>
+<span class="fc" id="L111">            + Arrays.toString(measurementUnits) + '}';</span>
+  }
 
-    @Override
-    public String toString() {
-<span class="fc" id="L101">        return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
-                + &quot;, description=&quot; + description + &quot;, measurementNames=&quot;
-<span class="fc" id="L103">                + Arrays.toString(measurementNames) + &quot;, measurementUnits=&quot;</span>
-<span class="fc" id="L104">                + Arrays.toString(measurementUnits) + '}';</span>
-    }
+  @Override
+  public int getNumberOfMeasurements() {
+<span class="fc" id="L116">    return measurementNames.length;</span>
+  }
 
+  @Override
+  public String[] getMeasurementUnits() {
+<span class="fc" id="L121">    return measurementUnits.clone();</span>
+  }
 
-    @Override
-    public int getNumberOfMeasurements() {
-<span class="fc" id="L110">        return measurementNames.length;</span>
-    }
+  @Override
+  public String getMeasurementName(final int measurementNr) {
+<span class="fc" id="L126">    return measurementNames[measurementNr];</span>
+  }
 
-    @Override
-    public String[] getMeasurementUnits() {
-<span class="fc" id="L115">        return measurementUnits.clone();</span>
-    }
-
-    @Override
-    public String getMeasurementName(final int measurementNr) {
-<span class="fc" id="L120">        return measurementNames[measurementNr];</span>
-    }
-
-    @Override
-    public String getMeasurementUnit(final int measurementNr) {
-<span class="fc" id="L125">        return measurementUnits[measurementNr];</span>
-    }
-
+  @Override
+  public String getMeasurementUnit(final int measurementNr) {
+<span class="fc" id="L131">    return measurementUnits[measurementNr];</span>
+  }
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
