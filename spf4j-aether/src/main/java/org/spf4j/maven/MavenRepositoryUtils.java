@@ -127,7 +127,7 @@ public final class MavenRepositoryUtils {
 
   public static RemoteRepository getDefaultRepository() {
     return new RemoteRepository.Builder("central", "default",
-            System.getProperty("spf4j.jdiff.defaultMavenRepo", "http://central.maven.org/maven2/"))
+            System.getProperty("spf4j.aether.defaultMavenRepo", "https://repo.maven.apache.org/maven2/"))
             .build();
   }
 
