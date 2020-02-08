@@ -5,12 +5,14 @@
 
 Logging is a core aspect of every application.
 The recommended approach to logging is [structured logging](https://stackify.com/what-is-structured-logging-and-why-developers-need-it/).
+
 To have have efficient and structured logging, your application needs to log to files.
 (The console is not ideal for structured data due to various libraries, including JVM using it for messages in various formats...)
+One good approach is to log to avro binary files compressed with snappy. An additional benefit is that you can leverage your hadoop
+stack to analyze your logs. The log record schema is described [at](https://zolyfarkas.github.io/core-schema/avrodoc.html#/schema/org.spf4j.base.avro.LogRecord)
 
-Let's see how logging structured data is done:
 
-* Logging is done to avro binary files compressed with snappy. The log record schema is described [at](https://zolyfarkas.github.io/core-schema/avrodoc.html#/schema/org.spf4j.base.avro.LogRecord)
+Let's look at how logging structured data is done in detail:
 
 * Let's call the demo app endpoint with debug logging on:
 
@@ -68,13 +70,13 @@ curl -X POST "https://demo.spf4j.org/avql/query" -H "accept: application/json" -
   log.debug("returning", result);
 ```
 
- * The wrapping of the slf4j logger with ExecContextLogger allows us to enable debug logging at request level (-H "log-level: DEBUG").
+   * The wrapping of the slf4j logger with ExecContextLogger allows us to enable debug logging at request level (-H "log-level: DEBUG").
 
- * In the log.debug statement, the result object is not part of he message format as such instead
-   of being dropped by logback (by default), it is logged in json format.
-   Any parameter that is not an argument for the message format will be logged in json format. This is implemented using
-   [Slf4jMessageFormatter.java](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/Slf4jMessageFormatter.java)
-   and the and appender [from](https://github.com/zolyfarkas/spf4j-logback).
+   * In the log.debug statement, the result object is not part of he message format as such instead
+     of being dropped by logback (by default), it is logged in json format.
+     Any parameter that is not an argument for the message format will be logged in json format. This is implemented using
+     [Slf4jMessageFormatter.java](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/Slf4jMessageFormatter.java)
+     and the and appender [from](https://github.com/zolyfarkas/spf4j-logback).
 
 
 ## Components

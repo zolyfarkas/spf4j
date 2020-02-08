@@ -128,12 +128,15 @@ Usage:
 
 ## How to see the profile data?
 
- After the program finishes it will write the data to the {{{./stackSample.html}stackSample.html}} file
+ After the program finishes and during execution it will write the data to [ssdump](jaxrs-spf4j-demo_20200131T160810753Z_20200131T170850286Z.ssdump3.gz) files.
+
+ If you are running with the REST actuator, you can visualize your data like in this [live example](https://demo.spf4j.org/profiles/cluster/visualize/groups/GET).
+ (see the "How to profile your java REST service" section for more detail.)
 
  If you have a server application running and you started it with stack sampling, by default every 1 hour
- the collected stack data is dumped to the temp folder. You can also invoke Sampler.dumpToFile to dum the stack samples
+ the collected stack data is dumped to the temp folder. You can also invoke Sampler.dumpToFile to dump the stack samples
  at any time in your program allowing you to separate out samples at relevant times in your application.
- You can load and visualize this data with the library embeded ui:
+ You can load and visualize this data with the library embedded ui:
 
 ![Flame Graph](images/spf4j-flame-graph.png)
 

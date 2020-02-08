@@ -38,9 +38,10 @@
 
  ![Monitoring Architecture](images/MonitoringDiagram.svg)
 
- Architecture is similar on how air planes are being [monitored](http://787updates.newairplane.com/24-7-Customer-Support/Connected-Flight),
+ Architecture is similar to how air planes are being [monitored](http://787updates.newairplane.com/24-7-Customer-Support/Connected-Flight),
  where the local storage is the functional equivalent of the black box, and its goal is to keep high resolution observability data
  for a limited amount of time. Just as with airplanes, lower resolution observability data should be sent in real time to a monitoring system.
+ The monitoring system should be able to on demand "drill into" and get to the local detail(via /actuator).
 
  Observing a system changes the system. The goal of this library is to minimize the observer effect.
  The code in spf4j is carefully written to be as high performance and to provide minimum overhead / functionality.

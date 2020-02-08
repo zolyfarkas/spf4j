@@ -4,32 +4,20 @@
 
 ### Why another object pool implementation?
 
- In my(I am not alone) view current available object pool implementations are less than perfect. Beside the scalability issues and bugs, I don't like the following implementation choices found in other implementations:
+ In my(I am not alone) view current available object pool implementations are less than perfect.
+ Beside the scalability issues and bugs, this implementation improves upon:
 
    * Test on borrow is pointless, there is no guarantee that you will get a valid object even if you test on borrow.
      This encourages the developer to disregard handling of this case when it receives an invalid object.
-     This practice also often is a performance issue.
+     This practice also often is a performance issue, and it is not supported by the spf4j implementation.
 
    * Indiscriminate test on return is not optimal either.
      Test on return should be done only in the case where there is a suspicion that the object is invalid,
      otherwise the performance impact will be too high to be acceptable in most cases.
-     Pool client should be able to provide feedback on return for that case.
+     Pool client should be able to provide feedback on return for that case, and as such the client is able to provide
+     encountered error information to the pool on return. As such the pool can test the connection before making it available again to a borrower.
 
-   * NO exception swallowing.
-     If a exception happens with the pooled objects the pool user will know about it and will have to handle it.
-
- One of the most popular object pool implementations is apache commons-pool with dbcp-pool specialized
- in JDBC object based on it. A lot of people are unhappy with this implementation (including myself),
- so much that the apache tomcat developers wrote their own implementation.
- Here is a comparison of their implementation against dbcp pool:
-
- http://tomcat.apache.org/tomcat-7.0-doc/jdbc-pool.html
-
- A performance comparison between dbcp, c3p0, and tomcat jdbc pool :
-
- http://www.tomcatexpert.com/blog/2010/03/22/understanding-jdbc-pool-performance-improvements
-
- The goal of this implementation is to be more reliable and faster than any of the implementations out there.
+   * Exception swallowing and root cause loss. The spf4j connection pool makes sure errors  and root causes are not dropped.
 
 ### Use case
 
@@ -77,7 +65,7 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
  tracing information (Opentrace/Jaeger/...). In spf4j the main use case for something like this arised for
  the propagation of deadlines, which are fundamental when coding distributed systems.
 
- as such the ExecutionContext can be easilly created like:
+ as such the ExecutionContext can be easily created like:
 
  ```
  try (ExecutionContext ctx = ExecutionContexts.start("operation_name", timeout, timeUnit)) {
@@ -93,10 +81,10 @@ Template.doOnSupplied(new Handler<PooledObject, SomeException>() {
  ```
 
  Execution contexts are transfered across Thread boundaries with: ContextPropagatingExecutorService
- (can wrap any executorservice) or you can create context transfering Callables and Runnables with ExecutorContexts
- utility methods.
+ (can wrap any executorservice) or ContextPropagationgCompletableFuture or
+ you can create context transfering Callables and Runnables with ExecutorContexts utility methods.
 
- Execution contexts implementations are cutomizable with the system property: spf4j.execContentFactoryClass
+ Execution context implementations are customizeable with the system property: spf4j.execContentFactoryClass
  where you can specify your custom ExecutionContextFactory implementation.
 
 
