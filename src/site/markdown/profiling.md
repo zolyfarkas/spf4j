@@ -13,7 +13,6 @@
  One of the main advantages of spf4j is that it can be easily be used for continuous profiling.
  The captured profile data is persisted to ssdump files which can be opened and visualized with the spf4j UI.
 
-
  Over time the Spf4j Stack sampler has been integrated with the application
  [ExecutionContexts](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/ExecutionContext.java) enabling more granular profiling detail like
  described [at](https://github.com/zolyfarkas/jaxrs-spf4j-demo/wiki/ContinuousProfiling)
