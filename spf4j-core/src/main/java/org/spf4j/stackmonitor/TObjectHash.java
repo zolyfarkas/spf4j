@@ -46,13 +46,13 @@ import java.util.Set;
 abstract public class TObjectHash<T> extends THash {
 
     @SuppressWarnings({"UnusedDeclaration"})
-    static final long serialVersionUID = 1L;
+    public static final long serialVersionUID = 1L;
 
 
     /**
      * the set of Objects
      */
-    public transient Object[] _set;
+    protected transient Object[] _set;
 
     public static final Object REMOVED = new Object(), FREE = new Object();
 
