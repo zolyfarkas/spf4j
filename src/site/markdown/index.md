@@ -6,7 +6,7 @@
 
  The spf4j libraries is a collection of components designed to improve the observability and performance of java applications.
  The spf4j library covers the 3 pillars of observability [(Logging, Metrics, Tracing)](https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html)
- and adds a 4-th: [Profiling](profiling.html). The design goal is to have obtain the right balance between observability data and observer effect.
+ and adds a 4-th: [Profiling](profiling.html). The goal of spf4j is to help with the right balance between observability data and observer effect.
 
  Additionally this library contains useful components that are currently not available in
  the right form in other open source libraries ([Retry/Hedged execution](http://www.spf4j.org/spf4j-core/xref/index.html), object pool,
@@ -43,10 +43,9 @@
  for a limited amount of time. Just as with airplanes, lower resolution observability data should be sent in real time to a monitoring system.
  The monitoring system should be able to on demand "drill into" and get to the local detail(via /actuator).
 
- Observing a system changes the system. The goal of this library is to minimize the observer effect.
- The code in spf4j is carefully written to be as high performance and to provide minimum overhead / functionality.
+ Observing a system changes the system. The code in spf4j is carefully written to be high performance and to provide minimum overhead / functionality.
 
- To achieve the lowest overhead we utilize:
+ To achieve this we utilize:
 
  * Thread Local Counters for metrics, for a good evaluation see:
   [Concurrent counters by numbers](http://psy-lob-saw.blogspot.com/2013/06/java-concurrent-counters-by-numbers.html)
