@@ -4,14 +4,14 @@
 
 ## Overview
 
- The spf4j libraries is a collection of utilities and components for aiding in improving the Observability of java applications.
- The spf4j library covers the 3 pillars of of observability [(Logging, Metrics, Tracing)](https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html)
- and ads a 4-th: Profiling. The design goal is to have all the necessary information when something goes wrong, while keeping the
- observer effect small.
+ The spf4j libraries is a collection of components designed to improve the observability and performance of java applications.
+ The spf4j library covers the 3 pillars of observability [(Logging, Metrics, Tracing)](https://www.oreilly.com/library/view/distributed-systems-observability/9781492033431/ch04.html)
+ and adds a 4-th: [Profiling](profiling.html). The design goal is to have obtain the right balance between observability data and observer effect.
 
- Additionally this library contains useful  utilities and components that are currently not available in
- the right form in other open source libraries ([Retry/Hedged execution](http://www.spf4j.org/spf4j-core/xref/index.html), object pool, [test logging backend](http://www.spf4j.org/spf4j-slf4j-test/index.html) ...)
- This library also contains ZEL, a simple expression language that can be easily used in any java application.
+ Additionally this library contains useful components that are currently not available in
+ the right form in other open source libraries ([Retry/Hedged execution](http://www.spf4j.org/spf4j-core/xref/index.html), object pool,
+ [test logging backend](http://www.spf4j.org/spf4j-slf4j-test/index.html) ...)
+ This library also contains ZEL, a simple expression language that can be easily embedded in any java application.
  ZEL is easy to extend to your needs and also has some cool features like async functions, memorization...
  You can learn more by checking out the [spf4j-zel](http://www.spf4j.org/spf4j-zel/index.html) module.
 
@@ -20,27 +20,21 @@
  This library is [LGPL](http://www.gnu.org/licenses/lgpl.html)
  and [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0.txt) licensed.
 
- Contributions/Contributors to spf4j are welcome.
+ Contributions/Contributors to spf4j are welcome, join the community: [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j.png)](https://gitter.im/spf4j/Lobby).
 
 ## Code, Binaries, Build
 
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
- Available on: [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/)
-
- [![Gitter chat](https://badges.gitter.im/zolyfarkas/spf4j.png)](https://gitter.im/spf4j/Lobby)
-
+ [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/)
  [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
-
  [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=org.spf4j%3Aspf4j&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.spf4j%3Aspf4j)
-
  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/48b50176945242729f4386b05be8c8dc)](https://www.codacy.com/app/zolyfarkas/spf4j?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=zolyfarkas/spf4j&amp;utm_campaign=Badge_Grade)
-
  [![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)](https://travis-ci.org/zolyfarkas/spf4j)
 
 ## Architecture
 
- The goal is to be able to support Observability at any scale.
+ Observability at any scale.
 
  ![Monitoring Architecture](images/MonitoringDiagram.svg)
 
@@ -55,14 +49,15 @@
 
  * Thread Local Counters for metrics, for a good evaluation see:
   [Concurrent counters by numbers](http://psy-lob-saw.blogspot.com/2013/06/java-concurrent-counters-by-numbers.html)
- * Binary avro files for logs and optimized log formatters and bridges. [See](https://github.com/zolyfarkas/spf4j-logback) for more detail.
+ * Binary avro files for metrics. [see](metrics.html)
+ * Binary avro files for logs and optimized log formatters and bridges. [see](https://github.com/zolyfarkas/spf4j-logback) for more detail.
  * ExecutionContext attributed profiling, [see](https://github.com/zolyfarkas/jaxrs-spf4j-demo/wiki/ContinuousProfiling).
 
 ## Details
 
 ### [Metrics](metrics.html)
 
-### [Performance Profiling](profiling.html)
+### [Profiling](profiling.html)
 
 ### [Logging](logging.html)
 

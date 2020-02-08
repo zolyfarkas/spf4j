@@ -6,7 +6,7 @@
 Logging is a core aspect of every application.
 The recommended approach to logging is [structured logging](https://stackify.com/what-is-structured-logging-and-why-developers-need-it/).
 To have have efficient and structured logging, your application needs to log to files.
-(The console is not good for structured data since various libraries and the JVM write there messages in various formats)
+(The console is not ideal for structured data due to various libraries, including JVM using it for messages in various formats...)
 
 Let's see how logging structured data is done:
 
@@ -68,13 +68,13 @@ curl -X POST "https://demo.spf4j.org/avql/query" -H "accept: application/json" -
   log.debug("returning", result);
 ```
 
-** The wrapping of the slf4j logger with ExecContextLogger allows us to enable debug logging at request level (-H "log-level: DEBUG").
+ * The wrapping of the slf4j logger with ExecContextLogger allows us to enable debug logging at request level (-H "log-level: DEBUG").
 
-** In the log.debug statement, the result object is not part of he message format as such instead
-of being dropped by logback (by default), it is logged in json format.
-Any parameter that is not an argument for the message format will be logged in json format. This is implemented using
-[Slf4jMessageFormatter.java](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/Slf4jMessageFormatter.java)
-and the and appender [from](https://github.com/zolyfarkas/spf4j-logback).
+ * In the log.debug statement, the result object is not part of he message format as such instead
+   of being dropped by logback (by default), it is logged in json format.
+   Any parameter that is not an argument for the message format will be logged in json format. This is implemented using
+   [Slf4jMessageFormatter.java](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/Slf4jMessageFormatter.java)
+   and the and appender [from](https://github.com/zolyfarkas/spf4j-logback).
 
 
 ## Components
@@ -101,5 +101,5 @@ and the and appender [from](https://github.com/zolyfarkas/spf4j-logback).
 
 ### REST endpoints for serving your logs:
 
-  **  [process level log serving.](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator/src/main/java/org/spf4j/actuator/logs)
-  **  [cluster level log serving.](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator-cluster/src/main/java/org/spf4j/actuator/cluster/logs)
+  *  [process level log serving.](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator/src/main/java/org/spf4j/actuator/logs)
+  *  [cluster level log serving.](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator-cluster/src/main/java/org/spf4j/actuator/cluster/logs)

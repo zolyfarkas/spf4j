@@ -1,6 +1,17 @@
-#How to record measurements
+#Metrics
 
-## Via API
+## Overview
+
+ To reduce the observer effect [Thread Local Counters](http://psy-lob-saw.blogspot.com/2013/06/java-concurrent-counters-by-numbers.html)
+ are being used along with a optimized avro based binary file format.
+
+ This is how it works:
+
+ ![Metrics collection](images/MetricsFlow.svg)
+
+##How to record measurements
+
+### Via API
 
    * Low impact with log linear quantized recording for Gauge type of measurements:
 
@@ -50,7 +61,7 @@ Callable<?> monitoredCallable =
 ```
 
 
-## Via Annotations
+### Via Annotations
 
  Annotate a method you want to measure and monitor performance with the annotation:
 
@@ -83,7 +94,7 @@ Callable<?> monitoredCallable =
  and will also log (via spf4j) a message containing the call detail and execution time
  if the warn or error thresholds are exceeded. Dynamic quantized recorder source is used.
 
-## Where are measurements stored?
+### Where are measurements stored?
 
  You can configure where the measurements are stored via the "spf4j.perf.ms.config" system property like:
 
@@ -100,9 +111,24 @@ Callable<?> monitoredCallable =
  GRAPHITE_TCP - Graphite UDP appender.
 
 
-## How to see the recorded measurements?
+### How to see the recorded measurements?
 
-  * Via JMX
+ * REST actuator [/metrics](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator/src/main/java/org/spf4j/actuator/metrics)
+
+  This endpoint allows you to get to:
+
+  * Your [metrics](https://demo.spf4j.org/metrics/cluster),
+
+  * Their [detail](https://demo.spf4j.org/metrics/cluster/gc_time/schema)
+
+  You can get the metrics in any format you might need:
+
+  * [json](https://demo.spf4j.org/metrics/cluster/gc_time/data),
+  * [avro binary](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=application/avro)
+  * [csv](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=text/csv)
+  * [prometheus](https://demo.spf4j.org/metrics?_Accept=text/plain&from=-PT1H)
+
+ * Via JMX
 
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/flush to flush all measurements from memory to disk.
 
@@ -110,7 +136,7 @@ Callable<?> monitoredCallable =
 
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/writeTableAsCsv to write the data from a particular rsdb table to a csv file.
 
-  * spf4j-UI.
+ * spf4j-UI.
 
  The recorded measurements are saved to a TSDB file. Use the library provided UI (spf4j-ui module) to open the file
  and visualize the measurements.
@@ -120,20 +146,7 @@ Callable<?> monitoredCallable =
 ![Distribution Chart](images/spf4j_dist.png)
 
 
-## How does it work ?
-
- Measurements are recorded and stored in the Thread local storage.
- At scheduled intervals the measurements aare retrieved, aggregated and stored to a TSDB file.
- Charts are generated using jfreechart library.
- TSDB file can also be opened and measurements viewed with the library embeded UI.
-
-```
-
-[Code context] ---record(value)---> [Thread Local Storage] ----> [Aggregator/Persister] -----> [TSDB]
-
-```
-
-## Export any object attribute or operations via JMX
+### JMX support
 
  You can annotate with @JmxExport getters and setters of a attribute or any other method
  that you want to make available via JMX.
