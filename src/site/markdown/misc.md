@@ -6,16 +6,16 @@
 
  In my(I am not alone) view current available object pool implementations are less than perfect. Beside the scalability issues and bugs, I don't like the following implementation choices found in other implementations:
 
-   * 1. Test on borrow is pointless, there is no guarantee that you will get a valid object even if you test on borrow.
+   * Test on borrow is pointless, there is no guarantee that you will get a valid object even if you test on borrow.
      This encourages the developer to disregard handling of this case when it receives an invalid object.
      This practice also often is a performance issue.
 
-   * 2. Indiscriminate test on return is not optimal either.
+   * Indiscriminate test on return is not optimal either.
      Test on return should be done only in the case where there is a suspicion that the object is invalid,
      otherwise the performance impact will be too high to be acceptable in most cases.
      Pool client should be able to provide feedback on return for that case.
 
-   * 3. NO exception swallowing.
+   * NO exception swallowing.
      If a exception happens with the pooled objects the pool user will know about it and will have to handle it.
 
  One of the most popular object pool implementations is apache commons-pool with dbcp-pool specialized

@@ -113,22 +113,21 @@ Callable<?> monitoredCallable =
 
 ### How to see the recorded measurements?
 
- * REST actuator [/metrics](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator/src/main/java/org/spf4j/actuator/metrics)
+#### REST actuator [/metrics](https://github.com/zolyfarkas/spf4j-jaxrs/tree/master/spf4j-jaxrs-actuator/src/main/java/org/spf4j/actuator/metrics)
 
   This endpoint allows you to get to:
 
-  * Your [metrics](https://demo.spf4j.org/metrics/cluster),
-
-  * Their [detail](https://demo.spf4j.org/metrics/cluster/gc_time/schema)
+   * Your [metrics](https://demo.spf4j.org/metrics/cluster)
+   * Their [detail](https://demo.spf4j.org/metrics/cluster/gc_time/schema)
 
   You can get the metrics in any format you might need:
 
-  * [json](https://demo.spf4j.org/metrics/cluster/gc_time/data),
-  * [avro binary](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=application/avro)
-  * [csv](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=text/csv)
-  * [prometheus](https://demo.spf4j.org/metrics?_Accept=text/plain&from=-PT1H)
+   * [json](https://demo.spf4j.org/metrics/cluster/gc_time/data)
+   * [avro binary](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=application/avro)
+   * [csv](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=text/csv)
+   * [prometheus](https://demo.spf4j.org/metrics?_Accept=text/plain&from=-PT1H)
 
- * Via JMX
+#### Via JMX
 
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/flush to flush all measurements from memory to disk.
 
@@ -136,7 +135,7 @@ Callable<?> monitoredCallable =
 
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/writeTableAsCsv to write the data from a particular rsdb table to a csv file.
 
- * spf4j-UI.
+#### [spf4j-ui](https://search.maven.org/remotecontent?filepath=org/spf4j/spf4j-ui/8.7.4/spf4j-ui-8.7.4-uber.jar)
 
  The recorded measurements are saved to a TSDB file. Use the library provided UI (spf4j-ui module) to open the file
  and visualize the measurements.
@@ -146,7 +145,7 @@ Callable<?> monitoredCallable =
 ![Distribution Chart](images/spf4j_dist.png)
 
 
-### JMX support
+#### JMX support
 
  You can annotate with @JmxExport getters and setters of a attribute or any other method
  that you want to make available via JMX.

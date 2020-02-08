@@ -17,13 +17,16 @@
  [ExecutionContexts](https://github.com/zolyfarkas/spf4j/blob/master/spf4j-core/src/main/java/org/spf4j/base/ExecutionContext.java) enabling more granular profiling detail like
  described [at](https://github.com/zolyfarkas/jaxrs-spf4j-demo/wiki/ContinuousProfiling)
 
+## Context correlated profiling overview
+
+ ![Context correlated profiling](images/ContextCorelatedProfiling.svg)
+
+ Simpler approach of sampling all threads is available.
+
 ## When to profile your code?
 
  I recommend to deploy your code with profiling turned on as much as you can.
  In my case I have profiling data collection turned on in all environments (including productiton) all the time.
-
- If you are running a REST service, see a example [at](https://github.com/zolyfarkas/jaxrs-spf4j-demo). running live
- [at](https://demo.spf4j.org)
 
  Another good time to profile your code is during your JMH (http://openjdk.java.net/projects/code-tools/jmh/) benchmarks.
  A good practice is to have a benchmark module in your project, that will benchmark key functionality of your application.
@@ -35,9 +38,10 @@
 
 ## How to profile your code
 
-### How to profile your java REST Service.
+### How to profile your java REST service.
 
-For a example app [see](https://github.com/zolyfarkas/jaxrs-spf4j-demo).
+ If you are running a REST service, see a example [at](https://github.com/zolyfarkas/jaxrs-spf4j-demo). running live
+ [at](https://demo.spf4j.org)
 
 For details on request attributed profiling [see](https://github.com/zolyfarkas/jaxrs-spf4j-demo/wiki/ContinuousProfiling)
 
@@ -200,4 +204,4 @@ Usage:
 
  [Evaluating the accuracy of Java profilers](http://sape.inf.usi.ch/publications/pldi10)
 
- [Honest profiler](https://www.youtube.com/watch?v=Yg6_ulhwLw0, https://github.com/RichardWarburton/honest-profiler)
+ [Honest profiler](https://github.com/RichardWarburton/honest-profiler) also [see]((https://www.youtube.com/watch?v=Yg6_ulhwLw0))
