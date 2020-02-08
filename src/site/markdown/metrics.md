@@ -9,6 +9,8 @@
 
  ![Metrics collection](images/MetricsFlow.svg)
 
+ [See](https://zolyfarkas.github.io/core-schema/avrodoc.html#/schema/org.spf4j.tsdb2.avro.MeasurementType) for measurement types supported.
+
 ##How to record measurements
 
 ### Via API
