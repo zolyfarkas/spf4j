@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf.impl;
+package org.spf4j.perf.impl.acc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.beans.ConstructorProperties;
@@ -38,15 +38,16 @@ import java.io.UncheckedIOException;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.CloseableMeasurementRecorder;
+import org.spf4j.perf.JmxSupport;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.MeasurementsInfoImpl;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
- *
  * @author zoly
  */
-public final class DirectStoreAccumulator implements CloseableMeasurementRecorder {
+public final class DirectStoreAccumulator implements CloseableMeasurementRecorder, JmxSupport {
 
   private static final String[] MEASUREMENTS = {"value"};
 
@@ -63,7 +64,7 @@ public final class DirectStoreAccumulator implements CloseableMeasurementRecorde
     this(measuredEntity, description, unitOfMeasurement, sampleTimeMillis, measurementStore, MeasurementType.GAUGE);
   }
 
-  private DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+  public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
           final int sampleTimeMillis, final MeasurementStore measurementStore, final MeasurementType mType) {
     this.info = new MeasurementsInfoImpl(measuredEntity, description,
             MEASUREMENTS, new String[]{unitOfMeasurement}, mType);

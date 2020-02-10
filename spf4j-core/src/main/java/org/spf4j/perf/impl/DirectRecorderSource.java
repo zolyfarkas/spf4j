@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.impl;
 
+import org.spf4j.perf.impl.acc.DirectStoreAccumulator;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.spf4j.base.Pair;
@@ -38,6 +39,7 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
  /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
@@ -64,8 +66,14 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
 
     public DirectRecorderSource(final Object forWhat, final String description,
             final String uom, final int sampleTimeMillis, final MeasurementStore store) {
+      this(forWhat, description, uom, sampleTimeMillis, store, MeasurementType.UNTYPED);
+    }
+
+    public DirectRecorderSource(final Object forWhat, final String description,
+            final String uom, final int sampleTimeMillis, final MeasurementStore store,
+            final MeasurementType measurementType) {
         recorders = new UnboundedLoadingCache(16,
-                new CreateDirectRecorder(forWhat, description, uom, sampleTimeMillis, store));
+                new CreateDirectRecorder(forWhat, description, uom, sampleTimeMillis, store, measurementType));
     }
 
     @Override
@@ -81,20 +89,23 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
         private final String uom;
         private final int sampleTimeMillis;
         private final MeasurementStore store;
+        private final MeasurementType measurementType;
 
         CreateDirectRecorder(final Object forWhat, final String description,
-                final String uom, final int sampleTimeMillis, final MeasurementStore store) {
+                final String uom, final int sampleTimeMillis, final MeasurementStore store,
+                final MeasurementType measurementType) {
             this.forWhat = forWhat;
             this.description = description;
             this.uom = uom;
             this.sampleTimeMillis = sampleTimeMillis;
             this.store = store;
+            this.measurementType = measurementType;
         }
 
         @Override
         public MeasurementRecorder load(final Object key) {
             return new DirectStoreAccumulator(Pair.of(forWhat, key), description,
-                    uom, sampleTimeMillis, store);
+                    uom, sampleTimeMillis, store, measurementType);
         }
     }
 

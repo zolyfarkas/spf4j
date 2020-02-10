@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf.impl;
+package org.spf4j.perf.impl.acc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
@@ -38,6 +38,7 @@ import java.io.UncheckedIOException;
 import org.spf4j.base.Arrays;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.perf.JmxSupport;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MultiMeasurementRecorder;
@@ -47,7 +48,7 @@ import org.spf4j.perf.MultiMeasurementRecorder;
  * @author zoly
  */
 @SuppressFBWarnings("VO_VOLATILE_REFERENCE_TO_ARRAY")
-public final class DirectStoreMultiAccumulator implements MultiMeasurementRecorder, Closeable {
+public final class DirectStoreMultiAccumulator implements MultiMeasurementRecorder, Closeable, JmxSupport {
 
     private final MeasurementsInfo info;
     private final MeasurementStore measurementStore;

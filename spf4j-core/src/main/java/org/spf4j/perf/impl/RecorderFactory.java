@@ -31,6 +31,11 @@
  */
 package org.spf4j.perf.impl;
 
+import org.spf4j.perf.impl.acc.DirectStoreMultiAccumulator;
+import org.spf4j.perf.impl.acc.DirectStoreAccumulator;
+import org.spf4j.perf.impl.acc.QuantizedAccumulator;
+import org.spf4j.perf.impl.acc.AddAndCountAccumulator;
+import org.spf4j.perf.impl.acc.MinMaxAvgAccumulator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.impl.ms.StoreType;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
@@ -197,7 +202,7 @@ public final class RecorderFactory {
 
   public static MeasurementRecorder createScalableCountingRecorder(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
-    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new CountingAccumulator(forWhat, "",
+    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new AddAndCountAccumulator(forWhat, "",
             unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
     mr.registerJmx();
     return mr;
@@ -246,7 +251,7 @@ public final class RecorderFactory {
   public static MeasurementRecorderSource createScalableCountingRecorderSource(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
-            new CountingAccumulator(forWhat, "",
+            new AddAndCountAccumulator(forWhat, "",
                     unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
     mrs.registerJmx();
     return mrs;
@@ -255,7 +260,7 @@ public final class RecorderFactory {
   public static CloseableMeasurementRecorderSource createScalableCountingRecorderSource2(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
-            new CountingAccumulator(forWhat, "",
+            new AddAndCountAccumulator(forWhat, "",
                     unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, false);
     mrs.registerJmx();
     return mrs;

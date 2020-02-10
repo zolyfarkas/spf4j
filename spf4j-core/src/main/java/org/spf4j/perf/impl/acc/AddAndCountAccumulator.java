@@ -29,60 +29,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf.impl;
+package org.spf4j.perf.impl.acc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.perf.impl.MeasurementsInfoImpl;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
- *
  * @author zoly
  */
-public final class MinMaxAvgAccumulator
-    extends AbstractMeasurementAccumulator {
+public final class AddAndCountAccumulator
+        extends AbstractMeasurementAccumulator {
 
-    private static final String[] MEASUREMENTS = {"count", "total", "min", "max"};
+    private static final String[] MEASUREMENTS = {"count", "total"};
 
     private long counter;
     private long total;
-    private long min;
-    private long max;
     private final MeasurementsInfo info;
 
-    private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
-            final long counter, final long total, final long min, final long max) {
+    private AddAndCountAccumulator(final Object measuredEntity, final String description,
+            final String unitOfMeasurement, final long counter, final long total) {
         this.info = new MeasurementsInfoImpl(measuredEntity, description,
-                MEASUREMENTS, new String[] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement},
-                MeasurementType.SUMMARY);
+                MEASUREMENTS, new String[]{"count", unitOfMeasurement}, MeasurementType.SUMMARY);
         this.counter = counter;
         this.total = total;
-        this.min = min;
-        this.max = max;
     }
 
-    public MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
-        this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);
+    public AddAndCountAccumulator(final Object measuredEntity, final String description,
+            final String unitOfMeasurement) {
+        this(measuredEntity, description, unitOfMeasurement, 0, 0);
     }
-
 
     public String getUnitOfMeasurement() {
         return info.getMeasurementUnit(1);
     }
 
-
     @Override
     public synchronized void record(final long measurement) {
         total += measurement;
         counter++;
-        if (measurement < min) {
-            min = measurement;
-        }
-        if (measurement > max) {
-            max = measurement;
-        }
     }
 
     @Override
@@ -92,40 +80,38 @@ public final class MinMaxAvgAccumulator
         if (counter == 0) {
             return null;
         } else {
-            return new long[] {counter, total, min, max};
+            return new long[]{counter, total};
         }
     }
 
     @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION" })
     @Override
     public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-        if (mSource instanceof MinMaxAvgAccumulator) {
-            MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;
+        if (mSource instanceof AddAndCountAccumulator) {
+            AddAndCountAccumulator other = (AddAndCountAccumulator) mSource;
             long[] measurements = other.get();
             if (measurements != null) {
-                synchronized (this) {
-                return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
-                    getUnitOfMeasurement(),
-                    counter + measurements[0], total + measurements[1],
-                    Math.min(min, measurements[2]), Math.max(max, measurements[3]));
-                }
+              synchronized (this) {
+                  return new AddAndCountAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
+                          getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);
+              }
             } else {
-                return this.createClone();
+              return this.createClone();
             }
         } else {
-           throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
+            throw new IllegalArgumentException("Cannot aggregate " + this + " with " + mSource);
         }
     }
 
     @Override
-    public synchronized MinMaxAvgAccumulator createClone() {
-        return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(),
-                this.info.getDescription(), getUnitOfMeasurement(), counter, total, min, max);
+    public synchronized AddAndCountAccumulator createClone() {
+        return new AddAndCountAccumulator(this.info.getMeasuredEntity(),
+                this.info.getDescription(), getUnitOfMeasurement(), counter, total);
     }
 
     @Override
-    public MeasurementAccumulator createLike(final Object entity) {
-        return new MinMaxAvgAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());
+    public AddAndCountAccumulator createLike(final Object entity) {
+        return new AddAndCountAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());
     }
 
     @Override
@@ -135,15 +121,13 @@ public final class MinMaxAvgAccumulator
 
     @Override
     @Nullable
-    public synchronized MinMaxAvgAccumulator reset() {
+    public synchronized MeasurementAccumulator reset() {
         if (counter == 0) {
             return null;
         } else {
-            MinMaxAvgAccumulator result = createClone();
+            MeasurementAccumulator result = this.createClone();
             counter = 0;
             total = 0;
-            min = Long.MAX_VALUE;
-            max = Long.MIN_VALUE;
             return result;
         }
     }
@@ -152,7 +136,7 @@ public final class MinMaxAvgAccumulator
     @SuppressFBWarnings("PZLA_PREFER_ZERO_LENGTH_ARRAYS")
     @Nullable
     public long[] getThenReset() {
-        final MinMaxAvgAccumulator vals = reset();
+        final MeasurementAccumulator vals = reset();
         if (vals == null) {
             return null;
         } else {
@@ -162,8 +146,7 @@ public final class MinMaxAvgAccumulator
 
     @Override
     public String toString() {
-        return "MinMaxAvgAccumulator{" + "counter=" + counter + ", total=" + total + ", min=" + min
-                + ", max=" + max + ", info=" + info + '}';
+        return "CountingAccumulator{" + "counter=" + counter + ", total=" + total + ", info=" + info + '}';
     }
 
 }

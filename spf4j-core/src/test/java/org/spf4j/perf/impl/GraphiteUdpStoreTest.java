@@ -160,7 +160,9 @@ public final class GraphiteUdpStoreTest {
           bb.get(rba);
           String receivedString = new String(rba, StandardCharsets.UTF_8);
           String[] lines = receivedString.split("\n");
-          LOG.debug("Received = {}", lines);
+          for (int i = 0; i < lines.length; i++) {
+            LOG.debug("{}: {}", i, lines[i]);
+          }
           for (String line : lines) {
             QUEUE.put(line);
           }

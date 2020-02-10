@@ -58,6 +58,7 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.DynamicMBeanBuilder;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.CloseableMeasurementRecorderSource;
+import org.spf4j.perf.JmxSupport;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementsSource;
@@ -69,7 +70,7 @@ import org.spf4j.perf.MeasurementRecorderSource;
 // a recorder instance is tipically alive for the entire life of the process
 @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorderSource implements
-        MeasurementRecorderSource, MeasurementsSource, CloseableMeasurementRecorderSource {
+        MeasurementRecorderSource, MeasurementsSource, CloseableMeasurementRecorderSource, JmxSupport {
 
   private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);
 

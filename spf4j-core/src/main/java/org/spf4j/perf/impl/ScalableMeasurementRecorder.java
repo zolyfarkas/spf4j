@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.impl;
 
+import org.spf4j.perf.impl.acc.AbstractMeasurementAccumulator;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -53,6 +54,7 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.DynamicMBeanBuilder;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.CloseableMeasurementRecorder;
+import org.spf4j.perf.JmxSupport;
 
 /**
  *
@@ -62,7 +64,7 @@ import org.spf4j.perf.CloseableMeasurementRecorder;
 // a recorder instance is tipically alive for the entire life of the process
 @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator
-  implements CloseableMeasurementRecorder {
+  implements CloseableMeasurementRecorder, JmxSupport {
 
   private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
 

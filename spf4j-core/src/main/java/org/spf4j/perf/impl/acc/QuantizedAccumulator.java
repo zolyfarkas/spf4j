@@ -29,7 +29,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf.impl;
+package org.spf4j.perf.impl.acc;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.math.LongMath;
@@ -40,6 +40,7 @@ import java.util.Arrays;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
+import org.spf4j.perf.impl.MeasurementsInfoImpl;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
