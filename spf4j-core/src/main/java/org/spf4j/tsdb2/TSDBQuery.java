@@ -31,9 +31,12 @@
  */
 package org.spf4j.tsdb2;
 
+import com.google.common.annotations.Beta;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.primitives.Longs;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.list.TLongList;
@@ -58,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -120,7 +124,6 @@ public final class TSDBQuery {
     return MeasurementType.valueOf(mt);
   }
 
-
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static ListMultimap<String, TableDef> getAllTables(final File tsdbFile) throws IOException {
     ListMultimap<String, TableDef> result = ArrayListMultimap.create();
@@ -135,7 +138,6 @@ public final class TSDBQuery {
     }
     return result;
   }
-
 
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
   public static ListMultimap<String, TableDef> getTables(final File tsdbFile, final Set<String> tables)
@@ -257,9 +259,9 @@ public final class TSDBQuery {
     return new TimeSeries(timestamps.toArray(), metrics.toArray(new long[metrics.size()][]));
   }
 
- public static void getTimeSeries(final File tsdbFile, final long[] tableIds,
+  public static void getTimeSeries(final File tsdbFile, final long[] tableIds,
           final long startTimeMillis, final long endTimeMillis, final BiConsumer<Long, long[]> consumer)
-         throws IOException {
+          throws IOException {
     try (TSDBReader reader = new TSDBReader(tsdbFile, 8192)) {
       Either<TableDef, DataBlock> read;
       while ((read = reader.read()) != null) {
@@ -281,15 +283,101 @@ public final class TSDBQuery {
     }
   }
 
- /**
-  *
-  * @param tsdbFile
-  * @param tableName
-  * @param startTimeMillis
-  * @param endTimeMillis
-  * @return iterator through the results, null when not table found.
-  * @throws IOException
-  */
+  @Beta
+  public static void aggregate(final TimeSeriesRecord accumulator, final TimeSeriesRecord r2) {
+    Iterator<Schema.Field> it = accumulator.getSchema().getFields().iterator();
+    it.next();
+    accumulator.put(0, r2.get(0));
+    while (it.hasNext()) {
+      Schema.Field nf = it.next();
+      int pos = nf.pos();
+      switch (nf.name()) {
+        case "count":
+        case "total":
+          accumulator.put(pos, ((Long) accumulator.get(pos)) + ((Long) r2.get(pos)));
+          break;
+        case "min":
+          accumulator.put(pos, Math.min((Long) accumulator.get(pos), ((Long) r2.get(pos))));
+          break;
+        case "max":
+          accumulator.put(pos, Math.max((Long) accumulator.get(pos), ((Long) r2.get(pos))));
+          break;
+        default:
+          accumulator.put(pos, ((Long) r2.get(pos)));
+      }
+    }
+  }
+
+  @Beta
+  public static AvroCloseableIterable<TimeSeriesRecord> aggregate(
+          final AvroCloseableIterable<TimeSeriesRecord> dataStream,
+          final int freq, final TimeUnit tu) {
+    Schema schema = dataStream.getElementSchema();
+    long aggTime = tu.toMillis(freq);
+    return AvroCloseableIterable.from(() -> new AggregatingIterator(dataStream, aggTime), dataStream, schema);
+  }
+
+  private static class AggregatingIterator implements Iterator<TimeSeriesRecord> {
+
+    private final long aggTime;
+    private final PeekingIterator<TimeSeriesRecord> it;
+    private TimeSeriesRecord rec;
+    private long maxTime;
+
+    AggregatingIterator(final AvroCloseableIterable<TimeSeriesRecord> dataStream, final long aggTime) {
+      this.aggTime = aggTime;
+      it = Iterators.peekingIterator(dataStream.iterator());
+      aggNext();
+    }
+
+    private void aggNext() {
+      if (it.hasNext()) {
+        rec = it.next();
+        long recTime = rec.getTimeStamp().toEpochMilli();
+        maxTime = recTime + aggTime;
+        while (it.hasNext()) {
+          TimeSeriesRecord next = it.peek();
+          recTime = next.getTimeStamp().toEpochMilli();
+          if (recTime < maxTime) {
+            aggregate(rec, next);
+            it.next();
+          } else {
+            break;
+          }
+        }
+      } else {
+        rec = null;
+      }
+    }
+
+    @Override
+    public boolean hasNext() {
+      return rec != null;
+    }
+
+    @Override
+    public TimeSeriesRecord next() {
+      if (rec == null) {
+        throw new NoSuchElementException();
+      } else {
+        TimeSeriesRecord result = rec;
+        aggNext();
+        return result;
+      }
+    }
+  }
+
+
+
+  /**
+   *
+   * @param tsdbFile
+   * @param tableName
+   * @param startTimeMillis
+   * @param endTimeMillis
+   * @return iterator through the results, null when not table found.
+   * @throws IOException
+   */
   @Nullable
   public static AvroCloseableIterable<TimeSeriesRecord> getTimeSeriesData(final File tsdbFile, final String tableName,
           final long startTimeMillis, final long endTimeMillis)
@@ -349,13 +437,13 @@ public final class TSDBQuery {
           fields.add(AvroCompatUtils.createField(cd.getName(),
                   new Schema.Parser().parse("{\"type\":\"double\",\"unit\":\""
                           + cd.getUnitOfMeasurement() + "\"}"), cd.getDescription(), null, true, false,
-            Schema.Field.Order.IGNORE));
+                  Schema.Field.Order.IGNORE));
           break;
         case LONG:
           fields.add(AvroCompatUtils.createField(cd.getName(),
                   new Schema.Parser().parse("{\"type\":\"long\",\"unit\":\""
                           + cd.getUnitOfMeasurement() + "\"}"), cd.getDescription(), null, true, false,
-            Schema.Field.Order.IGNORE));
+                  Schema.Field.Order.IGNORE));
           break;
         default:
           throw new IllegalStateException("Invalid data type " + type);
@@ -371,6 +459,7 @@ public final class TSDBQuery {
   }
 
   private static class Row {
+
     Row(final long ts, final DataRow data) {
       this.timestamp = ts;
       this.data = data;
@@ -379,76 +468,71 @@ public final class TSDBQuery {
     private final DataRow data;
   }
 
+  private static class DataScan implements Iterable<Row> {
 
-    private static class DataScan implements Iterable<Row> {
+    private final TSDBReader reader;
 
-      private final TSDBReader reader;
+    DataScan(final TSDBReader tsdb) throws IOException {
+      reader = tsdb;
+    }
 
-      DataScan(final TSDBReader tsdb) throws IOException {
-        reader = tsdb;
-      }
+    @Override
+    public Iterator<Row> iterator() {
+      return new Iterator<Row>() {
 
+        private long baseTs;
+        private Iterator<DataRow> dataBlock;
 
-     @Override
-     public Iterator<Row> iterator() {
-       return new Iterator<Row>() {
+        {
+          nextBlock();
+        }
 
-         private long baseTs;
-         private Iterator<DataRow> dataBlock;
-         {
-           nextBlock();
-         }
-
-         private void nextBlock() {
-           Either<TableDef, DataBlock> read;
-           try {
+        private void nextBlock() {
+          Either<TableDef, DataBlock> read;
+          try {
             while ((read = reader.read()) != null) {
               if (read.isRight()) {
-                 DataBlock block = read.getRight();
-                 baseTs = block.getBaseTimestamp();
-                 dataBlock = block.getValues().iterator();
-                 return;
+                DataBlock block = read.getRight();
+                baseTs = block.getBaseTimestamp();
+                dataBlock = block.getValues().iterator();
+                return;
               }
             }
-           } catch (IOException ex) {
-             throw new UncheckedIOException(ex);
-           }
-           dataBlock = null;
-         }
+          } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+          }
+          dataBlock = null;
+        }
 
-         @Override
-         public boolean hasNext() {
-           while (true) {
-              if (dataBlock == null) {
-                return false;
-              }
-              if (dataBlock.hasNext()) {
-                return true;
-              }
-              nextBlock();
-           }
-         }
+        @Override
+        public boolean hasNext() {
+          while (true) {
+            if (dataBlock == null) {
+              return false;
+            }
+            if (dataBlock.hasNext()) {
+              return true;
+            }
+            nextBlock();
+          }
+        }
 
-         @Override
-         public Row next() {
-           while (true) {
-              if (dataBlock == null) {
-                throw new NoSuchElementException();
-              }
-              if (dataBlock.hasNext()) {
-                DataRow next = dataBlock.next();
-                return new Row(baseTs + next.getRelTimeStamp(), next);
-              }
-              nextBlock();
-           }
-         }
-       };
-     }
-   }
-
-
-
-
+        @Override
+        public Row next() {
+          while (true) {
+            if (dataBlock == null) {
+              throw new NoSuchElementException();
+            }
+            if (dataBlock.hasNext()) {
+              DataRow next = dataBlock.next();
+              return new Row(baseTs + next.getRelTimeStamp(), next);
+            }
+            nextBlock();
+          }
+        }
+      };
+    }
+  }
 
   public static long[] getIds(final Collection<TableDef> tableDefs) {
     long[] result = new long[tableDefs.size()];
