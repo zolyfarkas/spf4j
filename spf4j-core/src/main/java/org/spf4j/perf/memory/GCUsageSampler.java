@@ -44,6 +44,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
@@ -78,7 +79,7 @@ public final class GCUsageSampler {
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
     if (samplingFuture == null) {
       final MeasurementRecorder gcUsage
-              = RecorderFactory.createDirectRecorder("gc_time", "ms", sampleTime);
+              = RecorderFactory.createDirectRecorder("gc_time", "ms", sampleTime, MeasurementType.COUNTER);
       samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
         private final TObjectLongMap lastValues = new TObjectLongHashMap();
