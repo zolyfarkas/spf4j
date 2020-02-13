@@ -31,9 +31,12 @@
  */
 package org.spf4j.perf;
 
+import com.google.common.annotations.Beta;
 import java.time.Instant;
+import java.util.Iterator;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import static org.spf4j.tsdb2.TSDBQuery.MEASUREMENT_TYPE_PROP;
 
 /**
  * @author Zoltan Farkas
@@ -89,5 +92,46 @@ public interface TimeSeriesRecord extends GenericRecord {
       }
     };
   }
+
+/**
+   * A temporary hack, until we probably add the default agg method separately.
+   * @param accumulator
+   * @param r2
+   */
+  @Beta
+  default void accumulate(final TimeSeriesRecord r2) {
+    Schema recSchema = getSchema();
+    Iterator<Schema.Field> it = recSchema.getFields().iterator();
+    it.next();
+    put(0, r2.get(0));
+    while (it.hasNext()) {
+      Schema.Field nf = it.next();
+      int pos = nf.pos();
+      switch (nf.name()) {
+        case "count":
+        case "total":
+          put(pos, ((Long) get(pos)) + ((Long) r2.get(pos)));
+          break;
+        case "min":
+          put(pos, Math.min((Long) get(pos), ((Long) r2.get(pos))));
+          break;
+        case "max":
+          put(pos, Math.max((Long) get(pos), ((Long) r2.get(pos))));
+          break;
+        default:
+          String mType = recSchema.getProp(MEASUREMENT_TYPE_PROP);
+          switch (mType) {
+            case "COUNTER":
+            case "SUMMARY":
+              put(pos, ((Long) get(pos)) + ((Long) r2.get(pos)));
+            break;
+            default:
+             put(pos, ((Long) r2.get(pos)));
+          }
+      }
+    }
+  }
+
+
 
 }

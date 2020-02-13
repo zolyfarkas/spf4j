@@ -284,8 +284,24 @@ public final class RecorderFactory {
     return mr;
   }
 
+  public static MultiMeasurementRecorder createDirectRecorder(final Object measuredEntity, final String description,
+          final String[] measurementNames, final String[] measurementUnits, final MeasurementType type) {
+    DirectStoreMultiAccumulator mr = new DirectStoreMultiAccumulator(
+            new MeasurementsInfoImpl(measuredEntity, description,
+                    measurementNames, measurementUnits, type), MEASUREMENT_STORE);
+    mr.registerJmx();
+    return mr;
+  }
+
   public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
+    mr.registerJmx();
+    return mr;
+  }
+
+  public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement,
+          final MeasurementType type) {
+    DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE, type);
     mr.registerJmx();
     return mr;
   }
@@ -294,6 +310,14 @@ public final class RecorderFactory {
           final String unitOfMeasurement, final int sampleTimeMillis) {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(
             forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
+    mr.registerJmx();
+    return mr;
+  }
+
+  public static MeasurementRecorder createDirectRecorder(final Object forWhat,
+          final String unitOfMeasurement, final int sampleTimeMillis, final MeasurementType type) {
+    DirectStoreAccumulator mr = new DirectStoreAccumulator(
+            forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE, type);
     mr.registerJmx();
     return mr;
   }

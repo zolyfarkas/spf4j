@@ -283,30 +283,6 @@ public final class TSDBQuery {
     }
   }
 
-  @Beta
-  public static void aggregate(final TimeSeriesRecord accumulator, final TimeSeriesRecord r2) {
-    Iterator<Schema.Field> it = accumulator.getSchema().getFields().iterator();
-    it.next();
-    accumulator.put(0, r2.get(0));
-    while (it.hasNext()) {
-      Schema.Field nf = it.next();
-      int pos = nf.pos();
-      switch (nf.name()) {
-        case "count":
-        case "total":
-          accumulator.put(pos, ((Long) accumulator.get(pos)) + ((Long) r2.get(pos)));
-          break;
-        case "min":
-          accumulator.put(pos, Math.min((Long) accumulator.get(pos), ((Long) r2.get(pos))));
-          break;
-        case "max":
-          accumulator.put(pos, Math.max((Long) accumulator.get(pos), ((Long) r2.get(pos))));
-          break;
-        default:
-          accumulator.put(pos, ((Long) r2.get(pos)));
-      }
-    }
-  }
 
   @Beta
   public static AvroCloseableIterable<TimeSeriesRecord> aggregate(
@@ -339,7 +315,7 @@ public final class TSDBQuery {
           TimeSeriesRecord next = it.peek();
           recTime = next.getTimeStamp().toEpochMilli();
           if (recTime < maxTime) {
-            aggregate(rec, next);
+            rec.accumulate(next);
             it.next();
           } else {
             break;

@@ -41,6 +41,7 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.impl.RecorderFactory;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
  *
@@ -80,7 +81,7 @@ public final class CpuUsageSampler {
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
     if (samplingFuture == null) {
       final MeasurementRecorder cpuUsage
-              = RecorderFactory.createDirectRecorder("cpu_time", "ns", sampleTime);
+              = RecorderFactory.createDirectRecorder("cpu_time", "ns", sampleTime, MeasurementType.COUNTER);
       samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
         private long lastValue = 0;
