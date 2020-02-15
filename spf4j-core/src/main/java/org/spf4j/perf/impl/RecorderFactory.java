@@ -44,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,6 +63,7 @@ import org.spf4j.perf.impl.ms.Flusher;
 import org.spf4j.perf.impl.ms.MultiStore;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -277,18 +279,22 @@ public final class RecorderFactory {
 
   public static MultiMeasurementRecorder createDirectRecorder(final Object measuredEntity, final String description,
           final String[] measurementNames, final String[] measurementUnits) {
+    Aggregation[] aggs = new Aggregation[measurementNames.length];
+    Arrays.fill(aggs, Aggregation.UNKNOWN);
     DirectStoreMultiAccumulator mr = new DirectStoreMultiAccumulator(
             new MeasurementsInfoImpl(measuredEntity, description,
-                    measurementNames, measurementUnits, MeasurementType.UNTYPED), MEASUREMENT_STORE);
+                    measurementNames, measurementUnits, aggs, MeasurementType.UNTYPED), MEASUREMENT_STORE);
     mr.registerJmx();
     return mr;
   }
 
   public static MultiMeasurementRecorder createDirectRecorder(final Object measuredEntity, final String description,
           final String[] measurementNames, final String[] measurementUnits, final MeasurementType type) {
+    Aggregation[] aggs = new Aggregation[measurementNames.length];
+    Arrays.fill(aggs, Aggregation.UNKNOWN);
     DirectStoreMultiAccumulator mr = new DirectStoreMultiAccumulator(
             new MeasurementsInfoImpl(measuredEntity, description,
-                    measurementNames, measurementUnits, type), MEASUREMENT_STORE);
+                    measurementNames, measurementUnits, aggs, type), MEASUREMENT_STORE);
     mr.registerJmx();
     return mr;
   }

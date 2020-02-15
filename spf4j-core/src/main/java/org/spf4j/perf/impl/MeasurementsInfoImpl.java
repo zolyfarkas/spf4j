@@ -31,9 +31,11 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -47,15 +49,32 @@ public final class MeasurementsInfoImpl implements MeasurementsInfo {
   private final String description;
   private final String[] measurementNames;
   private final String[] measurementUnits;
+  private final Aggregation[] aggregations;
   private final MeasurementType measurementType;
 
   public MeasurementsInfoImpl(final Object measuredEntity, final String description,
           final String[] measurementNames, final String[] measurementUnits,
           final MeasurementType measurementType) {
+    this(measuredEntity, description, measurementNames, measurementUnits,
+            defaultAggs(measurementNames.length), measurementType);
+  }
+
+  private static Aggregation[] defaultAggs(final int nr) {
+     Aggregation[] result = new Aggregation[nr];
+     Arrays.fill(result, Aggregation.UNKNOWN);
+     return result;
+  }
+
+  @SuppressFBWarnings("EI_EXPOSE_REP2") //should be protected
+  public MeasurementsInfoImpl(final Object measuredEntity, final String description,
+          final String[] measurementNames, final String[] measurementUnits,
+          final Aggregation[] aggregations,
+          final MeasurementType measurementType) {
     this.measuredEntity = measuredEntity;
     this.description = description;
-    this.measurementNames = measurementNames.clone();
-    this.measurementUnits = measurementUnits.clone();
+    this.measurementNames = measurementNames;
+    this.measurementUnits = measurementUnits;
+    this.aggregations =  aggregations;
     this.measurementType = measurementType;
   }
 
@@ -129,6 +148,16 @@ public final class MeasurementsInfoImpl implements MeasurementsInfo {
   @Override
   public String getMeasurementUnit(final int measurementNr) {
     return measurementUnits[measurementNr];
+  }
+
+  @Override
+  public Aggregation[] getAggregations() {
+    return aggregations.clone();
+  }
+
+  @Override
+  public Aggregation getMeasurementAggregation(final int measurementNr) {
+    return aggregations[measurementNr];
   }
 
 }

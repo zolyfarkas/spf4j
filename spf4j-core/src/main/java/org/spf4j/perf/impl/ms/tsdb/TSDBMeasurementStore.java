@@ -72,7 +72,7 @@ public final class TSDBMeasurementStore
     for (int i = 0; i < numberOfMeasurements; i++) {
       String mname = measurement.getMeasurementName(i);
       String unit = measurement.getMeasurementUnit(i);
-      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "");
+      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "", measurement.getMeasurementAggregation(i));
       columns.add(cd);
     }
     return database.writeTableDef(new TableDef(-1,

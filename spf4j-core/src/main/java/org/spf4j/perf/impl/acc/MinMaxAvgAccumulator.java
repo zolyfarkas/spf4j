@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import org.spf4j.perf.MeasurementAccumulator;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -46,6 +47,7 @@ public final class MinMaxAvgAccumulator
     extends AbstractMeasurementAccumulator {
 
     private static final String[] MEASUREMENTS = {"count", "total", "min", "max"};
+    private static final Aggregation[] AGGS = {Aggregation.SUM, Aggregation.SUM, Aggregation.MIN, Aggregation.MAX};
 
     private long counter;
     private long total;
@@ -57,6 +59,7 @@ public final class MinMaxAvgAccumulator
             final long counter, final long total, final long min, final long max) {
         this.info = new MeasurementsInfoImpl(measuredEntity, description,
                 MEASUREMENTS, new String[] {"count", unitOfMeasurement, unitOfMeasurement, unitOfMeasurement},
+                AGGS,
                 MeasurementType.SUMMARY);
         this.counter = counter;
         this.total = total;

@@ -42,6 +42,7 @@ import org.spf4j.perf.JmxSupport;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -66,8 +67,15 @@ public final class DirectStoreAccumulator implements CloseableMeasurementRecorde
 
   public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
           final int sampleTimeMillis, final MeasurementStore measurementStore, final MeasurementType mType) {
+    this(measuredEntity, description, unitOfMeasurement, sampleTimeMillis,
+            measurementStore, mType, Aggregation.UNKNOWN);
+  }
+
+  public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+          final int sampleTimeMillis, final MeasurementStore measurementStore, final MeasurementType mType,
+          final Aggregation agg) {
     this.info = new MeasurementsInfoImpl(measuredEntity, description,
-            MEASUREMENTS, new String[]{unitOfMeasurement}, mType);
+            MEASUREMENTS, new String[]{unitOfMeasurement}, new Aggregation[] {agg}, mType);
     this.measurementStore = measurementStore;
     try {
       tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);

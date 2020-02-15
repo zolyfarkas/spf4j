@@ -41,6 +41,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -118,22 +119,28 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
     int nrm = l + 4;
     final String[] uom = new String[nrm];
     final String[] result = new String[nrm];
+    final Aggregation[] aggs = new Aggregation[nrm];
     int m = 0;
     result[m] = "total";
     uom[m] = unitOfMeasurement;
+    aggs[m] = Aggregation.SUM;
     m++;
     result[m] = "count";
     uom[m] = "count";
+    aggs[m] = Aggregation.SUM;
     m++;
     result[m] = "min";
     uom[m] = unitOfMeasurement;
+    aggs[m] = Aggregation.MIN;
     m++;
     result[m] = "max";
     uom[m] = unitOfMeasurement;
+    aggs[m] = Aggregation.MAX;
     m++;
     long lm = magnitudes[0];
     result[m] = "QNI_" + lm;
     uom[m] = "count";
+    aggs[m] = Aggregation.SUM;
     m++;
     bucketLimits[0] = lm;
     if (magnitudes.length > 0) {
@@ -153,6 +160,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
             sb.append(pval);
             result[m] = sb.toString();
             uom[m] = "count";
+            aggs[m] = Aggregation.SUM;
             m++;
             bucketLimits[k++] = pval;
           }
@@ -162,6 +170,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
           sb.append(pval);
           result[m] = sb.toString();
           uom[m] = "count";
+          aggs[m] = Aggregation.SUM;
           m++;
           bucketLimits[k++] = pval;
         } else {
@@ -174,6 +183,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
             sb.append(pval);
             result[m] = sb.toString();
             uom[m] = "count";
+            aggs[m] = Aggregation.SUM;
             m++;
             bucketLimits[k++] = pval;
             for (int j = 0; j < nrQ - 1; j++) {
@@ -183,6 +193,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
               sb.append(pval);
               result[m] = sb.toString();
               uom[m] = "count";
+              aggs[m] = Aggregation.SUM;
               m++;
               bucketLimits[k++] = pval;
             }
@@ -194,7 +205,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
               .append("_PI").toString();
       uom[m] = "count";
     }
-    info = new MeasurementsInfoImpl(measuredEntity, description, result, uom, MeasurementType.HISTOGRAM);
+    info = new MeasurementsInfoImpl(measuredEntity, description, result, uom, aggs, MeasurementType.HISTOGRAM);
 
   }
 
