@@ -157,6 +157,8 @@ public final class MemoryUsageSampler {
     public void close() {
       heapUsed.close();
       heapCommited.close();
+      nonHeapCommited.close();
+      nonHeapUsed.close();
     }
   }
 
