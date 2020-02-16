@@ -88,8 +88,6 @@ import org.spf4j.tsdb2.avro.Type;
  */
 public final class TSDBQuery {
 
-  public static final String MEASUREMENT_TYPE_PROP = "measurementType";
-
   private TSDBQuery() {
   }
 
@@ -117,7 +115,7 @@ public final class TSDBQuery {
   }
 
   public static MeasurementType getMeasurementType(final Schema schema) {
-    String mt = schema.getProp(MEASUREMENT_TYPE_PROP);
+    String mt = schema.getProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP);
     if (mt == null) {
       return MeasurementType.UNTYPED;
     }
@@ -411,15 +409,15 @@ public final class TSDBQuery {
       switch (type) {
         case DOUBLE:
           Schema schema = Schema.create(Schema.Type.DOUBLE);
-          schema.addProp("unit", cd.getUnitOfMeasurement());
-          schema.addProp("aggregation", cd.getAggregation().toString());
+          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());
+          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());
           fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
                   Schema.Field.Order.IGNORE));
           break;
         case LONG:
           schema = Schema.create(Schema.Type.LONG);
-          schema.addProp("unit", cd.getUnitOfMeasurement());
-          schema.addProp("aggregation", cd.getAggregation().toString());
+          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());
+          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());
           fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
                   Schema.Field.Order.IGNORE));
           break;
@@ -430,9 +428,9 @@ public final class TSDBQuery {
     recSchema.setFields(fields);
     int sampleTime = td.getSampleTime();
     if (sampleTime > 0) {
-      recSchema.addProp("frequencyMillis", sampleTime);
+      recSchema.addProp(TimeSeriesRecord.FREQ_MILLIS_REC_PROP, sampleTime);
     }
-    recSchema.addProp(MEASUREMENT_TYPE_PROP, getMeasurementType(td));
+    recSchema.addProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP, getMeasurementType(td));
     return recSchema;
   }
 

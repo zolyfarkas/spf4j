@@ -38,7 +38,6 @@ import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -164,7 +163,7 @@ public final class MultiStore implements MeasurementStore {
   }
 
   public List<MeasurementStore> getStores() {
-    return Collections.unmodifiableList(Arrays.asList(stores));
+    return Arrays.asList(stores);
   }
 
   @Override

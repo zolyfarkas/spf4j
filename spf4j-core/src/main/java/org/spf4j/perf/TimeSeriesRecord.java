@@ -36,12 +36,17 @@ import java.time.Instant;
 import java.util.Iterator;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
-import static org.spf4j.tsdb2.TSDBQuery.MEASUREMENT_TYPE_PROP;
+import org.spf4j.tsdb2.avro.Aggregation;
 
 /**
  * @author Zoltan Farkas
  */
 public interface TimeSeriesRecord extends GenericRecord {
+
+  String MEASUREMENT_TYPE_PROP = "measurementType";
+  String AGGREGATION_TYPE_PROP = "aggregation";
+  String UNIT_TYPE_PROP = "unit";
+  String FREQ_MILLIS_REC_PROP = "frequencyMillis";
 
   Instant getTimeStamp();
 
@@ -93,8 +98,8 @@ public interface TimeSeriesRecord extends GenericRecord {
     };
   }
 
-/**
-   * A temporary hack, until we probably add the default agg method separately.
+  /**
+   * Temporary, until better implementation.
    * @param accumulator
    * @param r2
    */
@@ -107,29 +112,66 @@ public interface TimeSeriesRecord extends GenericRecord {
     while (it.hasNext()) {
       Schema.Field nf = it.next();
       int pos = nf.pos();
-      switch (nf.name()) {
-        case "count":
-        case "total":
+      Aggregation agg;
+      String prop = nf.schema().getProp(AGGREGATION_TYPE_PROP);
+      if (prop != null) {
+        agg = Aggregation.valueOf(prop);
+      } else {
+        agg = inferAggregationFromName(nf, recSchema);
+      }
+      switch (agg) {
+        case SUM:
           put(pos, ((Long) get(pos)) + ((Long) r2.get(pos)));
           break;
-        case "min":
+        case MIN:
           put(pos, Math.min((Long) get(pos), ((Long) r2.get(pos))));
           break;
-        case "max":
+        case MAX:
           put(pos, Math.max((Long) get(pos), ((Long) r2.get(pos))));
           break;
+        case FIRST:
+          break;
+        case LAST:
+        case UNKNOWN:
+          put(pos, ((Long) r2.get(pos)));
+          break;
         default:
-          String mType = recSchema.getProp(MEASUREMENT_TYPE_PROP);
+          throw new UnsupportedOperationException("Unsupported aggregation: " + agg);
+      }
+    }
+  }
+
+
+
+  static Aggregation inferAggregationFromName(final Schema.Field nf, final Schema recSchema) {
+    Aggregation agg;
+    switch (nf.name()) {
+      case "count":
+      case "total":
+        agg = Aggregation.SUM;
+        break;
+      case "min":
+        agg = Aggregation.MIN;
+        break;
+      case "max":
+        agg = Aggregation.MAX;
+        break;
+      default:
+        String mType = recSchema.getProp(MEASUREMENT_TYPE_PROP);
+        if (mType != null) {
           switch (mType) {
             case "COUNTER":
             case "SUMMARY":
-              put(pos, ((Long) get(pos)) + ((Long) r2.get(pos)));
-            break;
+              agg = Aggregation.SUM;
+              break;
             default:
-             put(pos, ((Long) r2.get(pos)));
+              agg = Aggregation.LAST;
           }
-      }
+        } else {
+          agg = Aggregation.LAST;
+        }
     }
+    return agg;
   }
 
 
