@@ -46,6 +46,7 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBWriter;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
 import org.spf4j.tsdb2.avro.Type;
@@ -72,7 +73,8 @@ public final class TSDBMeasurementStore
     for (int i = 0; i < numberOfMeasurements; i++) {
       String mname = measurement.getMeasurementName(i);
       String unit = measurement.getMeasurementUnit(i);
-      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "", measurement.getMeasurementAggregation(i));
+      Aggregation aggregation = measurement.getMeasurementAggregation(i);
+      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "", aggregation);
       columns.add(cd);
     }
     return database.writeTableDef(new TableDef(-1,
