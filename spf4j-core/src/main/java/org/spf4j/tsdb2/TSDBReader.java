@@ -78,6 +78,8 @@ public final class TSDBReader implements Closeable {
 
   private static final boolean CORUPTION_LENIENT = Boolean.getBoolean("spf4j.tsdb2.lenientRead");
 
+  private static final Schema R_SCHEMA = Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$));
+
   private CountingInputStream bis;
   private final Header header;
   private long size;
@@ -91,6 +93,11 @@ public final class TSDBReader implements Closeable {
   private final SeekableByteChannel byteChannel;
 
   public TSDBReader(final File file, final int bufferSize) throws IOException {
+    this(file, bufferSize, 0L);
+  }
+
+
+  public TSDBReader(final File file, final int bufferSize, final long from) throws IOException {
     this.file = file;
     this.filePath = file.toPath();
     this.bufferSize = bufferSize;
@@ -103,15 +110,17 @@ public final class TSDBReader implements Closeable {
     size = Longs.fromByteArray(buff);
     header = reader.read(null, decoder);
     recordReader = new SpecificDatumReader<>(
-            new Schema.Parser().parse(header.getContentSchema()),
-            Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$)));
+            new Schema.Parser().parse(header.getContentSchema()), R_SCHEMA);
+    if (from > 0L) {
+      resetStream(from);
+    }
   }
 
   private void resetStream(final long position) throws IOException {
     byteChannel.position(position);
     bis = new CountingInputStream(new MemorizingBufferedInputStream(Channels.newInputStream(byteChannel),
             bufferSize), position);
-    decoder = DecoderFactory.get().directBinaryDecoder(bis, null);
+    decoder = DecoderFactory.get().directBinaryDecoder(bis, decoder);
   }
 
   /**

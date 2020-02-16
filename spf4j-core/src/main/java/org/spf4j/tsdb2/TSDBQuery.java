@@ -410,15 +410,17 @@ public final class TSDBQuery {
       Type type = cd.getType();
       switch (type) {
         case DOUBLE:
-          fields.add(AvroCompatUtils.createField(cd.getName(),
-                  new Schema.Parser().parse("{\"type\":\"double\",\"unit\":\""
-                          + cd.getUnitOfMeasurement() + "\"}"), cd.getDescription(), null, true, false,
+          Schema schema = Schema.create(Schema.Type.DOUBLE);
+          schema.addProp("unit", cd.getUnitOfMeasurement());
+          schema.addProp("aggregation", cd.getAggregation().toString());
+          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
                   Schema.Field.Order.IGNORE));
           break;
         case LONG:
-          fields.add(AvroCompatUtils.createField(cd.getName(),
-                  new Schema.Parser().parse("{\"type\":\"long\",\"unit\":\""
-                          + cd.getUnitOfMeasurement() + "\"}"), cd.getDescription(), null, true, false,
+          schema = Schema.create(Schema.Type.LONG);
+          schema.addProp("unit", cd.getUnitOfMeasurement());
+          schema.addProp("aggregation", cd.getAggregation().toString());
+          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
                   Schema.Field.Order.IGNORE));
           break;
         default:
