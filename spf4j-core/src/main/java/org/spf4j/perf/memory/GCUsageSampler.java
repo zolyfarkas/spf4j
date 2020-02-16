@@ -47,7 +47,7 @@ import org.spf4j.jmx.Registry;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
- * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
+ * This class allows you to poll and recordAt to a file the heap committed and heap used for your java process. start
  * data recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
  * startMemoryUsageSampling.
  *

@@ -46,11 +46,12 @@ import org.spf4j.base.Runtime;
 import org.spf4j.base.SysExits;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.perf.CloseableMeasurementRecorder;
+import org.spf4j.perf.MeasurementRecorder;
+import org.spf4j.tsdb2.avro.MeasurementType;
 import org.spf4j.unix.Lsof;
 
 /**
- * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
+ * This class allows you to poll and recordAt to a file the heap commitxted and heap used for your java process. start
  * data recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
  * startMemoryUsageSampling.
  *
@@ -111,17 +112,12 @@ public final class OpenFilesSampler {
     }
   }
 
-  public static void start(final long sampleTimeMillis,
-          final long warnThreshold, final long errorThreshold, final boolean shutdownOnError) {
-    start(sampleTimeMillis, warnThreshold, errorThreshold, shutdownOnError, (int) sampleTimeMillis * 10);
-  }
 
   public static synchronized void start(final long sampleTimeMillis,
-          final long warnThreshold, final long errorThreshold, final boolean shutdownOnError,
-          final int aggTimeMillis) {
+          final long warnThreshold, final long errorThreshold, final boolean shutdownOnError) {
     if (samplingFuture == null) {
       accumulator = new AccumulatorRunnable(errorThreshold, shutdownOnError,
-              warnThreshold, aggTimeMillis);
+              warnThreshold, (int) sampleTimeMillis);
       samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(accumulator,
               sampleTimeMillis, sampleTimeMillis, TimeUnit.MILLISECONDS);
     } else {
@@ -134,7 +130,6 @@ public final class OpenFilesSampler {
     if (samplingFuture != null) {
       samplingFuture.cancel(false);
       samplingFuture = null;
-      accumulator.close();
       accumulator = null;
     }
   }
@@ -177,19 +172,20 @@ public final class OpenFilesSampler {
   }
 
 
-  private static class AccumulatorRunnable extends AbstractRunnable implements AutoCloseable {
+  private static class AccumulatorRunnable extends AbstractRunnable {
 
     private final long errorThreshold;
     private final boolean shutdownOnError;
     private final long warnThreshold;
-    private final CloseableMeasurementRecorder nrOpenFiles;
+    private final MeasurementRecorder nrOpenFiles;
 
     AccumulatorRunnable(final long errorThreshold, final boolean shutdownOnError,
-            final long warnThreshold, final int aggMillis) {
+            final long warnThreshold, final int sampleMillis) {
       this.errorThreshold = errorThreshold;
       this.shutdownOnError = shutdownOnError;
       this.warnThreshold = warnThreshold;
-      this.nrOpenFiles = RecorderFactory.createScalableMinMaxAvgRecorder2("nr_open_files", "count", aggMillis);
+      this.nrOpenFiles = RecorderFactory.createDirectRecorder("nr_open_files", "count",
+              sampleMillis, MeasurementType.GAUGE);
     }
 
     @Override
@@ -232,10 +228,6 @@ public final class OpenFilesSampler {
       return warnThreshold;
     }
 
-    @Override
-    public void close() {
-      nrOpenFiles.close();
-    }
 
 
 
