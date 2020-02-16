@@ -129,12 +129,18 @@ public final class MemoryUsageSampler {
 
     private final CloseableMeasurementRecorder heapCommited;
     private final CloseableMeasurementRecorder heapUsed;
+    private final CloseableMeasurementRecorder nonHeapCommited;
+    private final CloseableMeasurementRecorder nonHeapUsed;
 
     AccumulatorRunnable(final int accumulationIntervalMillis) {
-      heapCommited
-              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_commited", "bytes", accumulationIntervalMillis);
-      heapUsed
-              = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_used", "bytes", accumulationIntervalMillis);
+      heapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_commited",
+                      "bytes", accumulationIntervalMillis);
+      heapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_used",
+                      "bytes", accumulationIntervalMillis);
+      nonHeapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2("non_heap_commited",
+                      "bytes", accumulationIntervalMillis);
+      nonHeapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2("non_heap_used",
+                      "bytes", accumulationIntervalMillis);
     }
 
     @Override
@@ -142,6 +148,9 @@ public final class MemoryUsageSampler {
       MemoryUsage usage = MBEAN.getHeapMemoryUsage();
       heapCommited.record(usage.getCommitted());
       heapUsed.record(usage.getUsed());
+      MemoryUsage nonHeapMemoryUsage = MBEAN.getNonHeapMemoryUsage();
+      nonHeapCommited.record(nonHeapMemoryUsage.getCommitted());
+      nonHeapUsed.record(nonHeapMemoryUsage.getUsed());
     }
 
     @Override

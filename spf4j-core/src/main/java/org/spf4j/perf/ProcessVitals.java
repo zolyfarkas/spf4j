@@ -55,7 +55,7 @@ public final class ProcessVitals implements AutoCloseable {
 
   public ProcessVitals() {
     this(Integer.getInteger("spf4j.vitals.openFilesSampleTimeMillis", 60000),
-         Integer.getInteger("spf4j.vitals.memoryUseSampleTimeMillis", 10000),
+         Integer.getInteger("spf4j.vitals.memoryUseSampleTimeMillis", 6000),
          Integer.getInteger("spf4j.vitals.gcUseSampleTimeMillis", 10000),
          Integer.getInteger("spf4j.vitals.threadUseSampleTimeMillis", 10000),
          Integer.getInteger("spf4j.vitals.cpuUseSampleTimeMillis", 10000));
