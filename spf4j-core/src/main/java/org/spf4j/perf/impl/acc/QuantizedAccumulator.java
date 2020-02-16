@@ -204,6 +204,7 @@ public final class QuantizedAccumulator extends AbstractMeasurementAccumulator {
       result[m] = sb.append('Q').append(prevVal)
               .append("_PI").toString();
       uom[m] = "count";
+      aggs[m] = Aggregation.SUM;
     }
     info = new MeasurementsInfoImpl(measuredEntity, description, result, uom, aggs, MeasurementType.HISTOGRAM);
 
