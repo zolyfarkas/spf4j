@@ -178,13 +178,14 @@ public class BasicExecutionContext implements ExecutionContext {
     Object res = baggage.get(key);
     ExecutionContext ctx = this;
     if (res == null && source != null && key.isInherited(relation)) {
-       ctx = source;
+       ExecutionContext src = source;
        Relation rel;
        do {
-          res = ctx.getLocal(key);
-          rel = ctx.getRelationToSource();
-          ctx = ctx.getSource();
-       } while (res == null && ctx != null && key.isInherited(rel));
+          res = src.getLocal(key);
+          rel = src.getRelationToSource();
+          ctx = src;
+          src = src.getSource();
+       } while (res == null && src != null && key.isInherited(rel));
     }
     return  res == null ? null : new ContextValue<T>(ctx, (T) res);
   }
