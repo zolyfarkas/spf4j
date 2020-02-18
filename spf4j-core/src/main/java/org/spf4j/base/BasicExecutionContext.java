@@ -172,6 +172,24 @@ public class BasicExecutionContext implements ExecutionContext {
     return (T) res;
   }
 
+  @Override
+  @SuppressWarnings("unchecked")
+  public final synchronized <T> ContextValue<T> getContextAndValue(final Tag<T, ?> key) {
+    Object res = baggage.get(key);
+    ExecutionContext ctx = this;
+    if (res == null && source != null && key.isInherited(relation)) {
+       ctx = source;
+       Relation rel;
+       do {
+          res = ctx.getLocal(key);
+          rel = ctx.getRelationToSource();
+          ctx = ctx.getSource();
+       } while (res == null && ctx != null && key.isInherited(rel));
+    }
+    return  res == null ? null : new ContextValue<T>(ctx, (T) res);
+  }
+
+
   @Nullable
   @Beta
   @Override

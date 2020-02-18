@@ -273,6 +273,19 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   <T> T get(Tag<T, ?> key);
 
+
+  /**
+   * Method to get context associated data.
+   * if current context does not have baggage, the parent context is queried if tag is inherited.
+   * This is done recursively, and both the context and the value are returned.
+   * @param <T> type of data.
+   * @param key key of data.
+   * @return the data
+   */
+  @Nullable
+  @Beta
+  <T> ContextValue<T> getContextAndValue(Tag<T, ?> key);
+
   /**
    * Method to get context associated data.
    * will ignore inheritance tag attribute.
