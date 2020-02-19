@@ -86,6 +86,7 @@ public final class NopMeasurementStore implements MeasurementStore {
   }
 
   @Override
+  @Nullable
   public Schema getMeasurementSchema(final String measurement) {
     return null;
   }

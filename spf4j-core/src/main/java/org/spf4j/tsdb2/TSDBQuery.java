@@ -32,6 +32,7 @@
 package org.spf4j.tsdb2;
 
 import com.google.common.annotations.Beta;
+import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
@@ -68,7 +69,6 @@ import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
-import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.DateTimeFormats;
 import org.spf4j.base.Either;
 import org.spf4j.base.Strings;
@@ -80,7 +80,6 @@ import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.DataRow;
 import org.spf4j.tsdb2.avro.MeasurementType;
 import org.spf4j.tsdb2.avro.TableDef;
-import org.spf4j.tsdb2.avro.Type;
 
 /**
  *
@@ -91,28 +90,6 @@ public final class TSDBQuery {
   private TSDBQuery() {
   }
 
-  @SuppressFBWarnings("STT_STRING_PARSING_A_FIELD")
-  public static MeasurementType getMeasurementType(final TableDef info) {
-    MeasurementType measurementType = info.getMeasurementType();
-    if (measurementType != MeasurementType.UNTYPED) {
-      return measurementType;
-    }
-    boolean hasCount = false;
-    for (ColumnDef colDef : info.getColumns()) {
-      String colName = colDef.getName();
-      if (colName.startsWith("Q") && colName.contains("_")) {
-        return MeasurementType.HISTOGRAM;
-      } else if ("sum".equals(colName)) {
-        return MeasurementType.SUMMARY;
-      } else if ("count".equals(colName)) {
-        hasCount = true;
-      }
-    }
-    if (hasCount) {
-      return MeasurementType.COUNTER;
-    }
-    return MeasurementType.UNTYPED;
-  }
 
   public static MeasurementType getMeasurementType(final Schema schema) {
     String mt = schema.getProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP);
@@ -362,7 +339,7 @@ public final class TSDBQuery {
     }
     TLongSet ids = new TLongHashSet(getIds(tableDef));
     TableDef td = tableDef.get(0);
-    Schema rSchema = createSchema(td);
+    Schema rSchema = TableDefs.createSchema(td);
     TSDBReader reader = new TSDBReader(tsdbFile, 8192);
     try {
       DataScan dataScan = new DataScan(reader);
@@ -370,26 +347,7 @@ public final class TSDBQuery {
               (x) -> x.timestamp >= startTimeMillis
               && x.timestamp <= endTimeMillis && ids.contains(x.data.getTableDefId()));
 
-      Iterable<TimeSeriesRecord> it = Iterables.transform(filtered, (x) -> {
-        GenericRecord rec = new GenericData.Record(rSchema);
-        rec.put(0, Instant.ofEpochMilli(x.timestamp));
-        List<Long> nrs = x.data.getData();
-        List<Schema.Field> fields = rSchema.getFields();
-        for (int i = 1, l = fields.size(); i < l; i++) {
-          Schema.Type type = fields.get(i).schema().getType();
-          switch (type) {
-            case DOUBLE:
-              rec.put(i, Double.longBitsToDouble(nrs.get(i - 1)));
-              break;
-            case LONG:
-              rec.put(i, nrs.get(i - 1));
-              break;
-            default:
-              throw new IllegalStateException("Unsupported data type: " + type);
-          }
-        }
-        return TimeSeriesRecord.from(rec);
-      });
+      Iterable<TimeSeriesRecord> it = Iterables.transform(filtered, toRecord(rSchema));
       return AvroCloseableIterable.from(it, reader, rSchema);
     } catch (RuntimeException | IOException ex) {
       reader.close();
@@ -397,41 +355,27 @@ public final class TSDBQuery {
     }
   }
 
-  public static Schema createSchema(final TableDef td) {
-    Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, false, false);
-    List<ColumnDef> columns = td.getColumns();
-    List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
-    Schema ts = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
-    fields.add(AvroCompatUtils.createField("ts", ts, "Measurement time stamp", null, true, false,
-            Schema.Field.Order.IGNORE));
-    for (ColumnDef cd : columns) {
-      Type type = cd.getType();
-      switch (type) {
-        case DOUBLE:
-          Schema schema = Schema.create(Schema.Type.DOUBLE);
-          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());
-          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());
-          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
-                  Schema.Field.Order.IGNORE));
-          break;
-        case LONG:
-          schema = Schema.create(Schema.Type.LONG);
-          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());
-          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());
-          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
-                  Schema.Field.Order.IGNORE));
-          break;
-        default:
-          throw new IllegalStateException("Invalid data type " + type);
+  public static Function<Row, TimeSeriesRecord> toRecord(final Schema rSchema) {
+    return (x) -> {
+      GenericRecord rec = new GenericData.Record(rSchema);
+      rec.put(0, Instant.ofEpochMilli(x.timestamp));
+      List<Long> nrs = x.data.getData();
+      List<Schema.Field> fields = rSchema.getFields();
+      for (int i = 1, l = fields.size(); i < l; i++) {
+        Schema.Type type = fields.get(i).schema().getType();
+        switch (type) {
+          case DOUBLE:
+            rec.put(i, Double.longBitsToDouble(nrs.get(i - 1)));
+            break;
+          case LONG:
+            rec.put(i, nrs.get(i - 1));
+            break;
+          default:
+            throw new IllegalStateException("Unsupported data type: " + type);
+        }
       }
-    }
-    recSchema.setFields(fields);
-    int sampleTime = td.getSampleTime();
-    if (sampleTime > 0) {
-      recSchema.addProp(TimeSeriesRecord.FREQ_MILLIS_REC_PROP, sampleTime);
-    }
-    recSchema.addProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP, getMeasurementType(td));
-    return recSchema;
+      return TimeSeriesRecord.from(rec);
+    };
   }
 
   private static class Row {

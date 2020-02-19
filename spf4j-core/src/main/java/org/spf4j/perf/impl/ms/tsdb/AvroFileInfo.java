@@ -29,48 +29,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf;
+package org.spf4j.perf.impl.ms.tsdb;
 
-import java.io.Closeable;
-import java.io.IOException;
+import java.nio.file.Path;
+import org.apache.avro.file.DataFileWriter;
 
 /**
- * A measurement store.
- *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public interface MeasurementStore extends MeasurementStoreQuery, Closeable {
+public final class AvroFileInfo<T> {
 
-  /**
-   * Make any allocations necessary for the following measurements.
-   *
-   * @param measurementInfo - the information about the measurement(s)
-   * @param sampleTimeMillis - the expected sample time. (interval between the stored measurements).
-   * @return - the id of the measurementInfo table.
-   * @throws IOException - IO issues.
-   */
-  long alocateMeasurements(MeasurementsInfo measurementInfo, int sampleTimeMillis)
-          throws IOException;
+  private final Path filePath;
 
-  /**
-   * Save measurements.
-   *
-   * @param tableId - the table ID to store measurements for.
-   * @param timeStampMillis - the timestamp of the measurement (milliseconds since Jan 1 1970 UTC)
-   * @param measurements - the measurements to persist. (same order as declared)
-   * @throws IOException - IO issues.
-   */
-  void saveMeasurements(long tableId, long timeStampMillis, long... measurements)
-          throws IOException;
+  private final DataFileWriter<T> fileWriter;
 
-  /**
-   * flush all data that might be buffered by this store.
-   *
-   * @throws IOException - IO issues.
-   */
-  void flush() throws IOException;
+  private final long fileEpoch;
 
-  boolean readable();
+  private final long initNrRecords;
+
+  public AvroFileInfo(final Path filePath, final DataFileWriter<T> fileWriter, final long fileEpoch,
+          final long initNrRecords) {
+    this.filePath = filePath;
+    this.fileWriter = fileWriter;
+    this.fileEpoch = fileEpoch;
+    this.initNrRecords = initNrRecords;
+  }
+
+  public Path getFilePath() {
+    return filePath;
+  }
+
+  public DataFileWriter<T> getFileWriter() {
+    return fileWriter;
+  }
+
+  public long getFileEpoch() {
+    return fileEpoch;
+  }
+
+  public long getInitNrRecords() {
+    return initNrRecords;
+  }
+
+  @Override
+  public String toString() {
+    return "AvroFileInfo{" + "filePath=" + filePath + ", fileWriter=" + fileWriter
+            + ", fileEpoch=" + fileEpoch + ", initNrRecords=" + initNrRecords + '}';
+  }
+
+
 
 
 }

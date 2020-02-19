@@ -31,46 +31,40 @@
  */
 package org.spf4j.perf;
 
-import java.io.Closeable;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Set;
+import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.spf4j.base.avro.AvroCloseableIterable;
 
 /**
- * A measurement store.
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public interface MeasurementStore extends MeasurementStoreQuery, Closeable {
+public interface MeasurementStoreQuery {
+
+  Set<String> getMeasurements() throws IOException;
 
   /**
-   * Make any allocations necessary for the following measurements.
-   *
-   * @param measurementInfo - the information about the measurement(s)
-   * @param sampleTimeMillis - the expected sample time. (interval between the stored measurements).
-   * @return - the id of the measurementInfo table.
-   * @throws IOException - IO issues.
+   * Query measurement data.
+   * @param measurement
+   * @param from
+   * @param to
+   * @return data iterable
+   * @throws IOException
    */
-  long alocateMeasurements(MeasurementsInfo measurementInfo, int sampleTimeMillis)
-          throws IOException;
+  @Nullable
+  AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(String measurement,
+          Instant from, Instant to) throws IOException;
+
 
   /**
-   * Save measurements.
-   *
-   * @param tableId - the table ID to store measurements for.
-   * @param timeStampMillis - the timestamp of the measurement (milliseconds since Jan 1 1970 UTC)
-   * @param measurements - the measurements to persist. (same order as declared)
-   * @throws IOException - IO issues.
+   * Query measurement schema.
+   * @param measurement
+   * @return measurement schema
    */
-  void saveMeasurements(long tableId, long timeStampMillis, long... measurements)
-          throws IOException;
-
-  /**
-   * flush all data that might be buffered by this store.
-   *
-   * @throws IOException - IO issues.
-   */
-  void flush() throws IOException;
-
-  boolean readable();
-
+  @Nullable
+  Schema getMeasurementSchema(String measurement) throws IOException;
 
 }

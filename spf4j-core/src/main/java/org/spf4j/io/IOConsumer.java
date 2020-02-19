@@ -29,48 +29,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.perf;
+package org.spf4j.io;
 
-import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.function.Consumer;
 
 /**
- * A measurement store.
  *
- * @author zoly
+ * @author Zoltan Farkas
  */
-public interface MeasurementStore extends MeasurementStoreQuery, Closeable {
+@FunctionalInterface
+public interface IOConsumer<T> extends Consumer<T> {
 
-  /**
-   * Make any allocations necessary for the following measurements.
-   *
-   * @param measurementInfo - the information about the measurement(s)
-   * @param sampleTimeMillis - the expected sample time. (interval between the stored measurements).
-   * @return - the id of the measurementInfo table.
-   * @throws IOException - IO issues.
-   */
-  long alocateMeasurements(MeasurementsInfo measurementInfo, int sampleTimeMillis)
-          throws IOException;
 
-  /**
-   * Save measurements.
-   *
-   * @param tableId - the table ID to store measurements for.
-   * @param timeStampMillis - the timestamp of the measurement (milliseconds since Jan 1 1970 UTC)
-   * @param measurements - the measurements to persist. (same order as declared)
-   * @throws IOException - IO issues.
-   */
-  void saveMeasurements(long tableId, long timeStampMillis, long... measurements)
-          throws IOException;
+  void acceptEx(T t) throws IOException;
 
-  /**
-   * flush all data that might be buffered by this store.
-   *
-   * @throws IOException - IO issues.
-   */
-  void flush() throws IOException;
 
-  boolean readable();
+  @Override
+  default void accept(final T t) {
+    try {
+      acceptEx(t);
+    } catch (IOException ex) {
+     throw new UncheckedIOException(ex);
+    }
+  }
+
 
 
 }
