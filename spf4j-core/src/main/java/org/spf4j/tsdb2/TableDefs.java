@@ -52,6 +52,9 @@ import org.spf4j.tsdb2.avro.Type;
  */
 public final class TableDefs {
 
+  private static final Schema INSTANT_SCHEMA
+          = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
+
   private TableDefs() {
   }
 
@@ -59,8 +62,7 @@ public final class TableDefs {
     Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, false, false);
     List<ColumnDef> columns = td.getColumns();
     List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
-    Schema ts = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
-    fields.add(AvroCompatUtils.createField("ts", ts, "Measurement time stamp", null, true, false,
+    fields.add(AvroCompatUtils.createField("ts", INSTANT_SCHEMA, "Measurement time stamp", null, true, false,
             Schema.Field.Order.IGNORE));
     for (ColumnDef cd : columns) {
       Type type = cd.getType();
