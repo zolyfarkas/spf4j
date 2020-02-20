@@ -31,13 +31,21 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
+import org.spf4j.base.Pair;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.perf.TimeSeriesRecord;
@@ -57,26 +65,38 @@ public final class TSDBMeasurementStoreReader implements MeasurementStoreQuery {
   }
 
   @Override
-  public Set<String> getMeasurements() throws IOException {
-    return TSDBQuery.getAllTables(dbFile).keySet();
-  }
-
-  @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
-          final Instant from, final Instant to) throws IOException {
-    return TSDBQuery.getTimeSeriesData(dbFile, measurement, from.toEpochMilli(), to.toEpochMilli());
-  }
-
-  @Override
-  @Nullable
-  public Schema getMeasurementSchema(final String measurement) throws IOException {
-    List<TableDef> tableDef;
-    tableDef = TSDBQuery.getTableDef(dbFile, measurement);
-    if (tableDef.isEmpty()) {
-      return null;
+  public Collection<Schema> getMeasurements(final Predicate<String> filter) throws IOException {
+    ListMultimap<String, TableDef> allTables = TSDBQuery.getAllTables(dbFile);
+    Map<String, Pair<Schema, Set<Long>>> schemas = Maps.newHashMapWithExpectedSize(allTables.size());
+    for (Map.Entry<String, TableDef> entry : allTables.entries()) {
+      String key = entry.getKey();
+      if (filter.test(key)) {
+        Pair<Schema, Set<Long>> exSch = schemas.get(key);
+        TableDef td = entry.getValue();
+        if (exSch == null) {
+          Schema sch = TableDefs.createSchema(td);
+          Set<Long> ids = new HashSet<>(2);
+          ids.add(td.getId());
+          exSch = Pair.of(sch, ids);
+          schemas.put(key, exSch);
+        } else {
+          exSch.getValue().add(td.getId());
+        }
+      }
     }
-    return TableDefs.createSchema(tableDef.get(0));
+    return schemas.values().stream().map((x) -> {
+      Schema sch = x.getKey();
+      sch.addProp("ids", x.getValue());
+      return sch;
+    }).collect(Collectors.toCollection(() -> new ArrayList<>(schemas.size())));
+  }
+
+  @Override
+  @Nullable
+  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final Schema measurement,
+          final Instant from, final Instant to) throws IOException {
+    return TSDBQuery.getTimeSeriesData(dbFile, from.toEpochMilli(), to.toEpochMilli(),
+            (Collection<Long>) measurement.getObjectProp("ids"), measurement);
   }
 
   @Override

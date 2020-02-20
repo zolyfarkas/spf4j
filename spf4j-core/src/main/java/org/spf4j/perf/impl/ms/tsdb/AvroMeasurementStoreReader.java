@@ -32,18 +32,23 @@
 package org.spf4j.perf.impl.ms.tsdb;
 
 import com.google.common.collect.Iterables;
-import gnu.trove.set.TLongSet;
-import gnu.trove.set.hash.THashSet;
-import gnu.trove.set.hash.TLongHashSet;
+import gnu.trove.map.hash.THashMap;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.Pair;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.perf.TimeSeriesRecord;
@@ -67,39 +72,39 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
   }
 
   @Override
-  public Set<String> getMeasurements() throws IOException {
-    Set<String> result = new THashSet<>();
+  public Collection<Schema> getMeasurements(final Predicate<String> filter) throws IOException {
+    Map<String, Pair<Schema, Set<Long>>> result = new THashMap<>();
     try (DataFileStream<TableDef> stream = new DataFileStream<TableDef>(Files.newInputStream(infoFile),
             new SpecificDatumReader<>(TableDef.class))) {
       for (TableDef td : stream) {
-        result.add(td.getName());
+        String name = td.getName();
+        if (filter.test(name)) {
+          Pair<Schema, Set<Long>> exSch = result.get(name);
+          if (exSch == null) {
+            Schema sch = TableDefs.createSchema(td);
+            Set<Long> ids = new HashSet<>(2);
+            ids.add(td.getId());
+            exSch = Pair.of(sch, ids);
+            result.put(name, exSch);
+          } else {
+            exSch.getValue().add(td.getId());
+          }
+        }
       }
     }
-    return result;
+    return result.values().stream().map((x) -> {
+      Schema sch = x.getKey();
+      sch.addProp("ids", x.getValue());
+      return sch;
+    }).collect(Collectors.toCollection(() -> new ArrayList<>(result.size())));
   }
 
   @Override
   @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
+  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final Schema measurement,
           final Instant from, final Instant to) throws IOException {
-    TLongSet mids = new TLongHashSet(4, 0.7f, -1L);
-    TableDef def = null;
-    try (DataFileStream<TableDef> stream = new DataFileStream<TableDef>(Files.newInputStream(infoFile),
-            new SpecificDatumReader<>(TableDef.class))) {
-      for (TableDef td : stream) {
-        if (measurement.equals(td.getName())) {
-          mids.add(td.getId());
-          if (def != null && !td.getColumns().equals(def.getColumns())) {
-            throw new IllegalStateException("Invalid measurement table redefinition " + def + " != " + td);
-          }
-          def = td;
-        }
-      }
-    }
-    if (def == null) {
-      return null;
-    }
-    Schema schema = TableDefs.createSchema(def);
+    Collection<Long> mids = (Collection<Long>) measurement.getObjectProp("ids");
+
     DataFileStream<Observation> stream = new DataFileStream<Observation>(Files.newInputStream(dataFile),
             new SpecificDatumReader<>(Observation.class));
     long fileTimeRef = stream.getMetaLong("timeRef");
@@ -110,30 +115,10 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
       return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
     });
     return AvroCloseableIterable.from(Iterables.transform(filtered,
-            (obs) -> TableDefs.toRecord(schema, fileTimeRef, obs)),
-            stream, schema);
+            (obs) -> TableDefs.toRecord(measurement, fileTimeRef, obs)),
+            stream, measurement);
   }
 
-  @Override
-  @Nullable
-  public Schema getMeasurementSchema(final String measurement) throws IOException {
-    TableDef def = null;
-    try (DataFileStream<TableDef> stream = new DataFileStream<TableDef>(Files.newInputStream(infoFile),
-            new SpecificDatumReader<>(TableDef.class))) {
-      for (TableDef td : stream) {
-        if (measurement.equals(td.getName())) {
-          if (def != null && !td.getColumns().equals(def.getColumns())) {
-            throw new IllegalStateException("Invalid measurement table redefinition " + def + " != " + td);
-          }
-          def = td;
-        }
-      }
-    }
-    if (def == null) {
-      return null;
-    }
-    return TableDefs.createSchema(def);
-  }
 
   @Override
   public String toString() {

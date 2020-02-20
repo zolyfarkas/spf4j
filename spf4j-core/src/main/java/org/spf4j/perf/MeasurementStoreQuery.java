@@ -33,7 +33,8 @@ package org.spf4j.perf;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Set;
+import java.util.Collection;
+import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
@@ -44,7 +45,7 @@ import org.spf4j.base.avro.AvroCloseableIterable;
  */
 public interface MeasurementStoreQuery {
 
-  Set<String> getMeasurements() throws IOException;
+  Collection<Schema> getMeasurements(Predicate<String> filter) throws IOException;
 
   /**
    * Query measurement data.
@@ -55,16 +56,7 @@ public interface MeasurementStoreQuery {
    * @throws IOException
    */
   @Nullable
-  AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(String measurement,
+  AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(Schema measurement,
           Instant from, Instant to) throws IOException;
-
-
-  /**
-   * Query measurement schema.
-   * @param measurement
-   * @return measurement schema
-   */
-  @Nullable
-  Schema getMeasurementSchema(String measurement) throws IOException;
 
 }

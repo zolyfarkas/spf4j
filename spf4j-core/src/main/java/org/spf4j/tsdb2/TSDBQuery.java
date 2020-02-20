@@ -44,8 +44,6 @@ import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
-import gnu.trove.set.TLongSet;
-import gnu.trove.set.hash.TLongHashSet;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +55,7 @@ import java.nio.file.Files;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -337,15 +336,21 @@ public final class TSDBQuery {
     if (tableDef.isEmpty()) {
       return null;
     }
-    TLongSet ids = new TLongHashSet(getIds(tableDef));
+    Set<Long> ids = new HashSet<>(Longs.asList(getIds(tableDef)));
     TableDef td = tableDef.get(0);
     Schema rSchema = TableDefs.createSchema(td);
+    return getTimeSeriesData(tsdbFile, startTimeMillis, endTimeMillis, ids, rSchema);
+  }
+
+  public static AvroCloseableIterable<TimeSeriesRecord> getTimeSeriesData(final File tsdbFile,
+          final long startTimeMillis,
+          final long endTimeMillis, final Collection<Long> ids, final Schema rSchema) throws IOException {
     TSDBReader reader = new TSDBReader(tsdbFile, 8192);
     try {
       DataScan dataScan = new DataScan(reader);
       Iterable<Row> filtered = Iterables.filter(dataScan,
               (x) -> x.timestamp >= startTimeMillis
-              && x.timestamp <= endTimeMillis && ids.contains(x.data.getTableDefId()));
+                      && x.timestamp <= endTimeMillis && ids.contains(x.data.getTableDefId()));
 
       Iterable<TimeSeriesRecord> it = Iterables.transform(filtered, toRecord(rSchema));
       return AvroCloseableIterable.from(it, reader, rSchema);

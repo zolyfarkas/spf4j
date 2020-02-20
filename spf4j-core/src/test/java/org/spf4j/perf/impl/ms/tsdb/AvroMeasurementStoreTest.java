@@ -34,9 +34,8 @@ package org.spf4j.perf.impl.ms.tsdb;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
-import java.util.Set;
+import java.util.Collection;
 import org.apache.avro.Schema;
-import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -76,11 +75,9 @@ public class AvroMeasurementStoreTest {
     store.flush();
 
     MeasurementStoreQuery query = store.query();
-    Set<String> measurements = query.getMeasurements();
-    Assert.assertThat(measurements, Matchers.contains("test"));
-    String metric = measurements.iterator().next();
-    Schema measurementSchema = query.getMeasurementSchema(metric);
-    Assert.assertNotNull(measurementSchema);
+    Collection<Schema> measurements = query.getMeasurements((x) -> true);
+    Schema metric = measurements.iterator().next();
+    Assert.assertEquals("test", metric.getName());
     try (AvroCloseableIterable<TimeSeriesRecord> data
             = query.getMeasurementData(metric, Instant.EPOCH, Instant.now())) {
       for (TimeSeriesRecord rec : data) {
