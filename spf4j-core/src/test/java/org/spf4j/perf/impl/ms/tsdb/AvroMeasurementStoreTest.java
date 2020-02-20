@@ -31,10 +31,14 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.apache.avro.Schema;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,6 +48,7 @@ import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -55,11 +60,14 @@ public class AvroMeasurementStoreTest {
   private static final Logger LOG = LoggerFactory.getLogger(AvroMeasurementStoreTest.class);
 
   @Test
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public void testStore() throws IOException {
     AvroMeasurementStore store = new AvroMeasurementStore(org.spf4j.base.Runtime.TMP_FOLDER_PATH,
           "testMetrics", false);
     long mid = store.alocateMeasurements(new MeasurementsInfoImpl("test", "test", new String[] {"v1", "v2"},
-            new String[] {"t1", "t2"}, MeasurementType.GAUGE), 1000);
+            new String[] {"t1", "t2"},
+            new Aggregation[] {Aggregation.SUM, Aggregation.LAST},
+            MeasurementType.GAUGE), 1000);
     store.saveMeasurements(mid, 0L, 1, 2);
 
     store.saveMeasurements(mid, 1000L, 3, 4);
@@ -78,16 +86,73 @@ public class AvroMeasurementStoreTest {
     Collection<Schema> measurements = query.getMeasurements((x) -> true);
     Schema metric = measurements.iterator().next();
     Assert.assertEquals("test", metric.getName());
-    try (AvroCloseableIterable<TimeSeriesRecord> data
-            = query.getMeasurementData(metric, Instant.EPOCH, Instant.now())) {
-      for (TimeSeriesRecord rec : data) {
-        LOG.debug("data", rec);
-      }
-    }
+    List<TimeSeriesRecord> results = getMetrics(query, metric, Instant.EPOCH, Instant.now());
+    Assert.assertEquals(6, results.size());
+    TimeSeriesRecord rec = results.get(0);
+    Assert.assertEquals(Instant.ofEpochMilli(0L), rec.getTimeStamp());
+    Assert.assertEquals(1L, rec.getLongValue("v1"));
+    Assert.assertEquals(2L, rec.getLongValue("v2"));
+    rec = results.get(5);
+    Assert.assertEquals(Instant.ofEpochMilli(4000L), rec.getTimeStamp());
+    Assert.assertEquals(11L, rec.getLongValue("v1"));
+    Assert.assertEquals(12L, rec.getLongValue("v2"));
+    results = getMetrics(query, metric, Instant.ofEpochMilli(2000L), Instant.ofEpochMilli(2000L));
+    Assert.assertEquals(2, results.size());
+    rec = results.get(0);
+    Assert.assertEquals(Instant.ofEpochMilli(2000L), rec.getTimeStamp());
+    Assert.assertEquals(5L, rec.getLongValue("v1"));
+    Assert.assertEquals(6L, rec.getLongValue("v2"));
+    rec = results.get(1);
+    Assert.assertEquals(Instant.ofEpochMilli(2000L), rec.getTimeStamp());
+    Assert.assertEquals(7L, rec.getLongValue("v1"));
+    Assert.assertEquals(8L, rec.getLongValue("v2"));
+
+
+    List<TimeSeriesRecord> aggr = getMetrics(query, metric, Instant.EPOCH, Instant.now(), 1000);
+    Assert.assertEquals(5, aggr.size());
+    rec = aggr.get(0);
+    Assert.assertEquals(Instant.ofEpochMilli(0L), rec.getTimeStamp());
+    Assert.assertEquals(1L, rec.getLongValue("v1"));
+    Assert.assertEquals(2L, rec.getLongValue("v2"));
+    rec = aggr.get(2);
+    Assert.assertEquals(Instant.ofEpochMilli(2000L), rec.getTimeStamp());
+    Assert.assertEquals(12L, rec.getLongValue("v1"));
+    Assert.assertEquals(8L, rec.getLongValue("v2"));
+
+    aggr = getMetrics(query, metric, Instant.EPOCH, Instant.now(), 1500);
+    Assert.assertEquals(3, aggr.size());
+    
+    aggr = getMetrics(query, metric, Instant.EPOCH, Instant.now(), 0);
+    Assert.assertEquals(6, aggr.size());
     store.close();
     Files.delete(store.getInfoFile());
     Files.delete(store.getDataFile());
 
+  }
+
+  public static List<TimeSeriesRecord> getMetrics(final MeasurementStoreQuery query,
+          final Schema metric, final Instant from, final Instant to) throws IOException {
+    List<TimeSeriesRecord> results = new ArrayList<>();
+    try (AvroCloseableIterable<TimeSeriesRecord> data = query.getMeasurementData(metric, from, to)) {
+      for (TimeSeriesRecord rec : data) {
+        LOG.debug("data", rec);
+        results.add(rec);
+      }
+    }
+    return results;
+  }
+
+  public static List<TimeSeriesRecord> getMetrics(final MeasurementStoreQuery query,
+          final Schema metric, final Instant from, final Instant to, final int aggMillis) throws IOException {
+    List<TimeSeriesRecord> results = new ArrayList<>();
+    try (AvroCloseableIterable<TimeSeriesRecord> data = query.getAggregatedMeasurementData(metric, from, to,
+            aggMillis, TimeUnit.MILLISECONDS)) {
+      for (TimeSeriesRecord rec : data) {
+        LOG.debug("agg", rec);
+        results.add(rec);
+      }
+    }
+    return results;
   }
 
 }

@@ -31,13 +31,10 @@
  */
 package org.spf4j.tsdb2;
 
-import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.PeekingIterator;
 import com.google.common.primitives.Longs;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.list.TLongList;
@@ -61,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -253,66 +249,6 @@ public final class TSDBQuery {
             }
           }
         }
-      }
-    }
-  }
-
-
-  @Beta
-  public static AvroCloseableIterable<TimeSeriesRecord> aggregate(
-          final AvroCloseableIterable<TimeSeriesRecord> dataStream,
-          final int freq, final TimeUnit tu) {
-    Schema schema = dataStream.getElementSchema();
-    long aggTime = tu.toMillis(freq);
-    return AvroCloseableIterable.from(() -> new AggregatingIterator(dataStream, aggTime), dataStream, schema);
-  }
-
-  private static class AggregatingIterator implements Iterator<TimeSeriesRecord> {
-
-    private final long aggTime;
-    private final PeekingIterator<TimeSeriesRecord> it;
-    private TimeSeriesRecord rec;
-    private long maxTime;
-
-    AggregatingIterator(final AvroCloseableIterable<TimeSeriesRecord> dataStream, final long aggTime) {
-      this.aggTime = aggTime;
-      it = Iterators.peekingIterator(dataStream.iterator());
-      aggNext();
-    }
-
-    private void aggNext() {
-      if (it.hasNext()) {
-        rec = it.next();
-        long recTime = rec.getTimeStamp().toEpochMilli();
-        maxTime = recTime + aggTime;
-        while (it.hasNext()) {
-          TimeSeriesRecord next = it.peek();
-          recTime = next.getTimeStamp().toEpochMilli();
-          if (recTime < maxTime) {
-            rec.accumulate(next);
-            it.next();
-          } else {
-            break;
-          }
-        }
-      } else {
-        rec = null;
-      }
-    }
-
-    @Override
-    public boolean hasNext() {
-      return rec != null;
-    }
-
-    @Override
-    public TimeSeriesRecord next() {
-      if (rec == null) {
-        throw new NoSuchElementException();
-      } else {
-        TimeSeriesRecord result = rec;
-        aggNext();
-        return result;
       }
     }
   }

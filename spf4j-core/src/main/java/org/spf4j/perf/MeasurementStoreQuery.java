@@ -31,9 +31,11 @@
  */
 package org.spf4j.perf;
 
+import com.google.common.annotations.Beta;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
@@ -58,5 +60,16 @@ public interface MeasurementStoreQuery {
   @Nullable
   AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(Schema measurement,
           Instant from, Instant to) throws IOException;
+
+  @Beta
+  default AvroCloseableIterable<TimeSeriesRecord> getAggregatedMeasurementData(
+          final Schema measurement,
+          final Instant from, final Instant to,
+          final int aggFreq,  final TimeUnit tu) throws IOException {
+    long aggTime = tu.toMillis(aggFreq);
+    AvroCloseableIterable<TimeSeriesRecord> iterable = getMeasurementData(measurement, from, to);
+    return AvroCloseableIterable.from(() -> new TimeSeriesAggregatingIterator(iterable, aggTime),
+            iterable, measurement);
+  }
 
 }
