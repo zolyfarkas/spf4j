@@ -35,19 +35,14 @@ import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import org.apache.avro.Schema;
-import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.jmx.JmxExport;
-import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.TableDefs;
 import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -63,8 +58,11 @@ public final class TSDBMeasurementStore
 
   private final TSDBWriter database;
 
+  private final TSDBMeasurementStoreReader reader;
+
   public TSDBMeasurementStore(final File databaseFile) throws IOException {
     this.database = new TSDBWriter(databaseFile, 1024, "", false);
+    reader = new TSDBMeasurementStoreReader(databaseFile);
   }
 
   @Override
@@ -125,32 +123,8 @@ public final class TSDBMeasurementStore
   }
 
   @Override
-  public Set<String> getMeasurements() throws IOException {
-    return TSDBQuery.getAllTables(database.getFile()).keySet();
+  public MeasurementStoreQuery query() {
+    return reader;
   }
-
-  @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
-          final Instant from, final Instant to) throws IOException {
-    return TSDBQuery.getTimeSeriesData(database.getFile(), measurement, from.toEpochMilli(), to.toEpochMilli());
-  }
-
-  @Override
-  public boolean readable() {
-    return true;
-  }
-
-  @Override
-  @Nullable
-  public Schema getMeasurementSchema(final String measurement) throws IOException {
-    List<TableDef> tableDef;
-    tableDef = TSDBQuery.getTableDef(database.getFile(), measurement);
-    if (tableDef.isEmpty()) {
-      return null;
-    }
-    return TableDefs.createSchema(tableDef.get(0));
-  }
-
 
 }

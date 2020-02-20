@@ -36,17 +36,12 @@ import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import javax.annotation.Nullable;
-import org.apache.avro.Schema;
 import org.spf4j.base.Throwables;
-import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
-import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.perf.MeasurementStoreQuery;
 
 /**
  *
@@ -172,46 +167,15 @@ public final class MultiStore implements MeasurementStore {
   }
 
   @Override
-  public Set<String> getMeasurements() throws IOException {
-   for (MeasurementStore store : stores) {
-      if (store.readable()) {
-        return store.getMeasurements();
-      }
-    }
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
-          final Instant from, final Instant to)
-          throws IOException {
+  public MeasurementStoreQuery query() {
     for (MeasurementStore store : stores) {
-      if (store.readable()) {
-        return store.getMeasurementData(measurement, from, to);
+      MeasurementStoreQuery query = store.query();
+      if (query != null) {
+        return query;
       }
     }
-    throw new UnsupportedOperationException();
+    return null;
   }
 
-  @Override
-  public boolean readable() {
-    for (MeasurementStore store : stores) {
-      if (store.readable()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
-  public Schema getMeasurementSchema(final String measurement) throws IOException {
-   for (MeasurementStore store : stores) {
-      if (store.readable()) {
-        return store.getMeasurementSchema(measurement);
-      }
-    }
-    throw new UnsupportedOperationException();
-  }
 
 }

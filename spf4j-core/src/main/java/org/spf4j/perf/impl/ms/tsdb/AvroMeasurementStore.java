@@ -31,35 +31,25 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
-import com.google.common.collect.Iterables;
 import com.google.common.primitives.Longs;
-import gnu.trove.set.TLongSet;
-import gnu.trove.set.hash.THashSet;
-import gnu.trove.set.hash.TLongHashSet;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.logging.Logger;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
-import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.jmx.JmxExport;
-import org.spf4j.perf.TimeSeriesRecord;
-import org.spf4j.tsdb2.TableDefs;
+import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.Observation;
@@ -88,6 +78,8 @@ public final class AvroMeasurementStore
 
   private final long timeRef;
 
+  private final AvroMeasurementStoreReader reader;
+
 
   public AvroMeasurementStore(final Path destinationPath, final String fileNameBase) throws IOException {
     this(destinationPath, fileNameBase,
@@ -115,6 +107,7 @@ public final class AvroMeasurementStore
     this.dataFile = data.getFilePath();
     this.dataWriter = data.getFileWriter();
     timeRef = data.getFileEpoch();
+    reader = new AvroMeasurementStoreReader(infoFile, dataFile);
    }
 
   private <T extends SpecificRecord>
@@ -224,81 +217,6 @@ public final class AvroMeasurementStore
     }
   }
 
-  @Override
-  public Set<String> getMeasurements() throws IOException {
-    Set<String> result = new THashSet<>();
-    try (DataFileStream<TableDef> stream = new DataFileStream<TableDef>(Files.newInputStream(infoFile),
-            new SpecificDatumReader<>(TableDef.class))) {
-      for (TableDef td : stream) {
-        result.add(td.getName());
-      }
-    }
-    return result;
-  }
-
-  @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final String measurement,
-          final Instant from, final Instant to) throws IOException {
-    TLongSet mids = new TLongHashSet(4, 0.7f, -1L);
-    TableDef def = null;
-    try (DataFileStream<TableDef> stream = new DataFileStream<TableDef>(Files.newInputStream(infoFile),
-            new SpecificDatumReader<>(TableDef.class))) {
-      for (TableDef td : stream) {
-        if (measurement.equals(td.getName())) {
-          mids.add(td.getId());
-          if (def != null && !td.getColumns().equals(def.getColumns())) {
-            throw new IllegalStateException("Invalid measurement table redefinition " + def + " != " + td);
-          }
-          def = td;
-        }
-      }
-    }
-    if (def == null) {
-      return null;
-    }
-    Schema schema = TableDefs.createSchema(def);
-    DataFileStream<Observation> stream = new DataFileStream<Observation>(Files.newInputStream(dataFile),
-            new SpecificDatumReader<>(Observation.class));
-    long fileTimeRef = stream.getMetaLong("timeRef");
-    long fromMs = from.toEpochMilli();
-    long toMs = to.toEpochMilli();
-    Iterable<Observation> filtered = Iterables.filter(stream, (Observation row) -> {
-      long ts = fileTimeRef + row.getRelTimeStamp();
-      return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
-    });
-    return AvroCloseableIterable.from(Iterables.transform(filtered,
-            (obs) -> TableDefs.toRecord(schema, fileTimeRef, obs)),
-            stream, schema);
-  }
-
-
-  @Override
-  public boolean readable() {
-    return true;
-  }
-
-  @Override
-  @Nullable
-  public Schema getMeasurementSchema(final String measurement) throws IOException {
-    TableDef def = null;
-    try (DataFileStream<TableDef> stream = new DataFileStream<TableDef>(Files.newInputStream(infoFile),
-            new SpecificDatumReader<>(TableDef.class))) {
-      for (TableDef td : stream) {
-        if (measurement.equals(td.getName())) {
-          if (def != null && !td.getColumns().equals(def.getColumns())) {
-            throw new IllegalStateException("Invalid measurement table redefinition " + def + " != " + td);
-          }
-          def = td;
-        }
-      }
-    }
-    if (def == null) {
-      return null;
-    }
-    return TableDefs.createSchema(def);
-  }
-
   public Path getInfoFile() {
     return infoFile;
   }
@@ -307,12 +225,16 @@ public final class AvroMeasurementStore
     return dataFile;
   }
 
-
   @Override
   public String toString() {
     return "AvroMeasurementStore{" + "codecFact=" + codecFact + ", infoWriter=" + infoWriter
             + ", dataWriter=" + dataWriter + ", infoFile=" + infoFile + ", dataFile=" + dataFile
             + ", ids=" + ids + ", timeRef=" + timeRef + '}';
+  }
+
+  @Override
+  public MeasurementStoreQuery query() {
+    return reader;
   }
 
 

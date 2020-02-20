@@ -33,13 +33,14 @@ package org.spf4j.perf;
 
 import java.io.Closeable;
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 /**
  * A measurement store.
  *
  * @author zoly
  */
-public interface MeasurementStore extends MeasurementStoreQuery, Closeable {
+public interface MeasurementStore extends Closeable {
 
   /**
    * Make any allocations necessary for the following measurements.
@@ -70,7 +71,12 @@ public interface MeasurementStore extends MeasurementStoreQuery, Closeable {
    */
   void flush() throws IOException;
 
-  boolean readable();
+
+  /**
+   * @return a query-able interface for the store.
+   */
+  @Nullable
+  MeasurementStoreQuery query();
 
 
 }
