@@ -72,6 +72,11 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
 
   private final Path[] dataFiles;
 
+  public AvroMeasurementStoreReader(final Path infoFile) throws IOException {
+    this(infoFile, lookupObservationFiles(infoFile).toArray(new Path[1]));
+  }
+
+
   public AvroMeasurementStoreReader(final Path infoFile, final Path... dataFiles) {
     this.infoFile = infoFile;
     this.dataFiles = dataFiles;
@@ -79,16 +84,28 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
 
   public static List<Path> lookupObservationFiles(final Path infoFile) throws IOException {
     List<Path> dataFiles = new ArrayList<>(4);
-    String fileName = infoFile.getFileName().toString();
+    Path fn = infoFile.getFileName();
+    if (fn == null) {
+      throw new IllegalArgumentException("Invalid info file " + infoFile);
+    }
+    String fileName = fn.toString();
     String prefix = fileName.substring(0, fileName.length() - ".tabledef.avro".length());
-    try (DirectoryStream<Path> stream = Files.newDirectoryStream(infoFile.getParent(),
+    Path parent = infoFile.getParent();
+    if (parent == null) {
+      throw new IllegalArgumentException("Invalid info file " + infoFile);
+    }
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(parent,
             new DirectoryStream.Filter<Path>() {
       @Override
-      public boolean accept(Path entry) throws IOException {
+      public boolean accept(final Path entry) {
         if (Files.isDirectory(entry)) {
           return false;
         }
-        String fName = entry.getFileName().toString();
+        Path fnp = entry.getFileName();
+        if (fnp == null) {
+          return false;
+        }
+        String fName = fnp.toString();
         return fName.startsWith(prefix) && fName.endsWith(".observation.avro");
       }
     })) {
