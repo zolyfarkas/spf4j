@@ -121,7 +121,7 @@ public final class AvroMeasurementStore
     }
     long epoch = System.currentTimeMillis();
     writer.setMeta("timeRef", epoch);
-    String fileName = fileNameBase + '_' + clasz.getSimpleName().toLowerCase(Locale.US) +  ".avro";
+    String fileName = fileNameBase + '.' + clasz.getSimpleName().toLowerCase(Locale.US) +  ".avro";
     Path file = destinationPath.resolve(fileName);
     long initNrRecords;
     if (Files.isWritable(file)) {
