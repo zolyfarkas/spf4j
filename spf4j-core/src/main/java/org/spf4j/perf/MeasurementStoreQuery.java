@@ -53,16 +53,8 @@ public interface MeasurementStoreQuery {
 
   AvroCloseableIterable<Observation> getObservations() throws IOException;
 
-  /**
-   * Query measurement data.
-   * @param measurement
-   * @param from
-   * @param to
-   * @return data iterable
-   * @throws IOException
-   */
-  default AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(Schema measurement,
-          Instant from, Instant to) throws IOException {
+  default AvroCloseableIterable<Observation> getObservations(final Schema measurement,
+          final Instant from, final Instant to) throws IOException {
     @SuppressWarnings("unchecked")
     Collection<Long> mids = (Collection<Long>) measurement.getObjectProp("ids");
     @SuppressWarnings("unchecked")
@@ -73,7 +65,21 @@ public interface MeasurementStoreQuery {
       long ts = row.getRelTimeStamp();
       return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
     });
-    Iterable<TimeSeriesRecord> tsr = Iterables.transform(filtered,
+    return AvroCloseableIterable.from(filtered, observations, measurement);
+  }
+
+  /**
+   * Query measurement data.
+   * @param measurement
+   * @param from
+   * @param to
+   * @return data iterable
+   * @throws IOException
+   */
+  default AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final Schema measurement,
+          final Instant from, final Instant to) throws IOException {
+    AvroCloseableIterable<Observation> observations = getObservations(measurement, from, to);
+    Iterable<TimeSeriesRecord> tsr = Iterables.transform(observations,
              (obs) -> TableDefs.toRecord(measurement, obs));
     return AvroCloseableIterable.from(tsr, observations, measurement);
   }

@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.Arrays;
 import org.spf4j.base.CharSequences;
 import org.spf4j.io.PushbackReader;
 
@@ -298,31 +299,7 @@ public final class CharSeparatedValues {
   }
 
   public CsvWriter writer(final Writer writer) {
-    return new CsvWriter() {
-
-      private boolean isStartLine = true;
-
-      @Override
-      public void writeElement(final CharSequence cs) throws IOException {
-        if (isStartLine) {
-          isStartLine = false;
-        } else {
-          writer.append(separator);
-        }
-        writeCsvElement(cs, writer);
-      }
-
-      @Override
-      public void writeEol() throws IOException {
-        writer.append('\n');
-        isStartLine = true;
-      }
-
-      @Override
-      public void flush() throws IOException {
-        writer.flush();
-      }
-    };
+    return new CsvWriterImpl(writer);
   }
 
   public void writeCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
@@ -334,17 +311,25 @@ public final class CharSeparatedValues {
   }
 
   public static void writeQuotedCsvElement(final CharSequence elem, final Appendable writer) throws IOException {
-    int length = elem.length();
     writer.append('"');
-    for (int i = 0; i < length; i++) {
+    writeQuotedElementContent(elem, 0, elem.length(), writer);
+    writer.append('"');
+  }
+
+  public static void writeQuotedElementContent(final CharSequence elem,
+          final int start, final int end, final Appendable writer) throws IOException {
+    for (int i = start; i < end; i++) {
       char c = elem.charAt(i);
-      if (c == '"') {
-        writer.append("\"\"");
-      } else {
-        writer.append(c);
-      }
+      writeQuotedChar(c, writer);
     }
-    writer.append('"');
+  }
+
+  public static void writeQuotedChar(final char c, final Appendable writer) throws IOException {
+    if (c == '"') {
+      writer.append("\"\"");
+    } else {
+      writer.append(c);
+    }
   }
 
    public CharSequence toCsvElement(final CharSequence elem) {
@@ -641,6 +626,105 @@ public final class CharSeparatedValues {
     @Override
     public List<String> eof() {
       return result;
+    }
+  }
+
+  private class CsvWriterImpl implements CsvWriter {
+
+    private final Writer writer;
+
+    CsvWriterImpl(final Writer writer) {
+      this.writer = writer;
+    }
+    private boolean isStartLine = true;
+
+    @Override
+    public void writeElement(final CharSequence cs) throws IOException {
+      addComma();
+      writeCsvElement(cs, writer);
+    }
+
+    private void addComma() throws IOException {
+      if (isStartLine) {
+        isStartLine = false;
+      } else {
+        writer.append(separator);
+      }
+    }
+
+    @Override
+    public void writeEol() throws IOException {
+      writer.append('\n');
+      isStartLine = true;
+    }
+
+    @Override
+    public void flush() throws IOException {
+      writer.flush();
+    }
+
+
+    @Override
+    public ElementAppendable startQuotedElement() throws IOException {
+      addComma();
+      writer.write('"');
+      return new ElementAppendable() {
+        @Override
+        public Appendable append(final CharSequence csq) throws IOException {
+          writeQuotedElementContent(csq, 0, csq.length(), writer);
+          return this;
+        }
+
+        @Override
+        public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
+          writeQuotedElementContent(csq, start, end, writer);
+          return this;
+        }
+
+        @Override
+        public Appendable append(final char c) throws IOException {
+          writeQuotedChar(c, writer);
+          return this;
+        }
+
+        @Override
+        public void close() throws IOException {
+          writer.write('"');
+        }
+      };
+    }
+
+    @Override
+    public Appendable startRawElement() throws IOException {
+      addComma();
+      return new Appendable() {
+        @Override
+        public Appendable append(final CharSequence csq) throws IOException {
+          if (CharSequences.containsAnyChar(csq, toEscape)) {
+            throw new IllegalStateException("Attempting to write str containing escapeable seq " + csq);
+          }
+          writer.append(csq);
+          return this;
+        }
+
+        @Override
+        public Appendable append(final CharSequence csq, final int start, final int end) throws IOException {
+          if (CharSequences.containsAnyChar(csq, start, end, toEscape)) {
+            throw new IllegalStateException("Attempting to write str containing escapeable seq " + csq);
+          }
+          writer.append(csq, start, end);
+          return this;
+        }
+
+        @Override
+        public Appendable append(final char c) throws IOException {
+          if (Arrays.search(toEscape, c) >= 0) {
+            throw new IllegalStateException("Attempting to write str containing escapeable seq " + c);
+          }
+          writer.append(c);
+          return this;
+        }
+      };
     }
   }
 

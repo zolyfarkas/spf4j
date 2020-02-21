@@ -31,34 +31,12 @@
  */
 package org.spf4j.io.csv;
 
-import java.io.IOException;
+import java.io.Closeable;
 
 /**
+ *
  * @author Zoltan Farkas
  */
-public interface CsvWriter {
-
-  /**
-   * Will start a element, and write it.
-   * @param cs
-   * @throws IOException
-   */
-  void writeElement(CharSequence cs) throws IOException;
-
-  /**
-   * should be called when writing a row is done.
-   * @throws IOException
-   */
-  void writeEol() throws IOException;
-
-  /**
-   * This will flush to underlying destination.
-   * @throws IOException
-   */
-  void flush() throws IOException;
-
-  ElementAppendable startQuotedElement() throws IOException;
-
-  Appendable startRawElement() throws IOException;
+public interface ElementAppendable extends Appendable, Closeable {
 
 }

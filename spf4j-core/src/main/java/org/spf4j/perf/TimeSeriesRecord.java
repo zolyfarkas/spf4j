@@ -54,6 +54,22 @@ public interface TimeSeriesRecord extends GenericRecord {
 
   double getDoubleValue(String column);
 
+  static int getFrequencyMillis(final Schema schema) {
+    Number freq = (Number) schema.getObjectProp(FREQ_MILLIS_REC_PROP);
+    if (freq == null) {
+      return -1;
+    }
+    return freq.intValue();
+  }
+
+  static String getUnit(final Schema schema) {
+    String unit = (String) schema.getObjectProp(UNIT_TYPE_PROP);
+    if (unit == null) {
+      return "N/A";
+    }
+    return unit;
+  }
+
   static TimeSeriesRecord from(final GenericRecord rec) {
     return new TimeSeriesRecord() {
       @Override
