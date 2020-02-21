@@ -565,7 +565,13 @@ public final class CharSequences {
   }
 
   public static boolean containsAnyChar(final CharSequence string, final char... chars) {
-    for (int i = 0; i < string.length(); i++) {
+    return containsAnyChar(string, 0, string.length(), chars);
+  }
+
+  public static boolean containsAnyChar(final CharSequence string,
+          final int start, final int end,
+          final char... chars) {
+    for (int i = start; i < end; i++) {
       char c = string.charAt(i);
       if (Arrays.search(chars, c) >= 0) {
         return true;
