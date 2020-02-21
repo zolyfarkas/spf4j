@@ -35,30 +35,37 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.BiConsumer;
+import java.util.function.ToLongFunction;
 
-public final class TimeSeriesAggregatingIterator implements Iterator<TimeSeriesRecord> {
+public final class TimeSeriesAggregatingIterator<T> implements Iterator<T> {
 
   private final long aggTime;
-  private final PeekingIterator<TimeSeriesRecord> it;
-  private TimeSeriesRecord rec;
+  private final PeekingIterator<T> it;
+  private T rec;
   private long maxTime;
+  private final ToLongFunction<T> timeExtractor;
+  private final BiConsumer<T, T> accumulator;
 
-  public TimeSeriesAggregatingIterator(final Iterable<TimeSeriesRecord> dataStream, final long aggTime) {
+  public TimeSeriesAggregatingIterator(final Iterable<T> dataStream,
+          final ToLongFunction<T> timeExtractor, final BiConsumer<T, T> accumulator, final long aggTime) {
     this.aggTime = aggTime;
     it = Iterators.peekingIterator(dataStream.iterator());
+    this.timeExtractor = timeExtractor;
+    this.accumulator = accumulator;
     aggNext();
   }
 
   private void aggNext() {
     if (it.hasNext()) {
       rec = it.next();
-      long recTime = rec.getTimeStamp().toEpochMilli();
+      long recTime = timeExtractor.applyAsLong(rec);
       maxTime = recTime + aggTime;
       while (it.hasNext()) {
-        TimeSeriesRecord next = it.peek();
-        recTime = next.getTimeStamp().toEpochMilli();
+        T next = it.peek();
+        recTime = timeExtractor.applyAsLong(next);
         if (recTime < maxTime) {
-          rec.accumulate(next);
+          accumulator.accept(rec, next);
           it.next();
         } else {
           break;
@@ -75,11 +82,11 @@ public final class TimeSeriesAggregatingIterator implements Iterator<TimeSeriesR
   }
 
   @Override
-  public TimeSeriesRecord next() {
+  public T next() {
     if (rec == null) {
       throw new NoSuchElementException();
     } else {
-      TimeSeriesRecord result = rec;
+      T result = rec;
       aggNext();
       return result;
     }

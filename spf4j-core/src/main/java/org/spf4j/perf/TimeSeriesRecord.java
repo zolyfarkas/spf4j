@@ -34,9 +34,11 @@ package org.spf4j.perf;
 import com.google.common.annotations.Beta;
 import java.time.Instant;
 import java.util.Iterator;
+import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.spf4j.tsdb2.avro.Aggregation;
+import org.spf4j.tsdb2.avro.Observation;
 
 /**
  * @author Zoltan Farkas
@@ -157,6 +159,47 @@ public interface TimeSeriesRecord extends GenericRecord {
     }
   }
 
+
+  @Beta
+  static void accumulateObservations(final Schema recSchema, final Observation r1, final Observation r2) {
+    r1.setRelTimeStamp(r2.getRelTimeStamp());
+    r1.setTableDefId(-1L);
+    Iterator<Schema.Field> it = recSchema.getFields().iterator();
+    it.next();
+    List<Long> r1d = r1.getData();
+    List<Long> r2d = r2.getData();
+    while (it.hasNext()) {
+      Schema.Field nf = it.next();
+      int pos = nf.pos();
+      Aggregation agg;
+      String prop = nf.schema().getProp(AGGREGATION_TYPE_PROP);
+      if (prop != null) {
+        agg = Aggregation.valueOf(prop);
+      } else {
+        agg = inferAggregationFromName(nf, recSchema);
+      }
+      int apos = pos - 1;
+      switch (agg) {
+        case SUM:
+          r1d.set(apos, r1d.get(apos) + r2d.get(apos));
+          break;
+        case MIN:
+           r1d.set(apos, Math.min(r1d.get(apos), r2d.get(apos)));
+          break;
+        case MAX:
+           r1d.set(apos, Math.max(r1d.get(apos), r2d.get(apos)));
+          break;
+        case FIRST:
+          break;
+        case LAST:
+        case UNKNOWN:
+          r1d.set(apos, r2d.get(apos));
+          break;
+        default:
+          throw new UnsupportedOperationException("Unsupported aggregation: " + agg);
+      }
+    }
+  }
 
 
   static Aggregation inferAggregationFromName(final Schema.Field nf, final Schema recSchema) {

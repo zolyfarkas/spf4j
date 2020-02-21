@@ -68,6 +68,16 @@ public interface MeasurementStoreQuery {
     return AvroCloseableIterable.from(filtered, observations, measurement);
   }
 
+  default AvroCloseableIterable<Observation> getAggregatedObservations(final Schema measurement,
+          final Instant from, final Instant to, final int aggFreq,  final TimeUnit tu) throws IOException {
+    long aggTime = tu.toMillis(aggFreq);
+    AvroCloseableIterable<Observation> observations = getObservations(measurement, from, to);
+     return AvroCloseableIterable.from(() -> new TimeSeriesAggregatingIterator<>(observations,
+             Observation::getRelTimeStamp,
+            (a, b) -> TimeSeriesRecord.accumulateObservations(measurement, a, b), aggTime),
+            observations, measurement);
+  }
+
   /**
    * Query measurement data.
    * @param measurement
@@ -91,7 +101,9 @@ public interface MeasurementStoreQuery {
           final int aggFreq,  final TimeUnit tu) throws IOException {
     long aggTime = tu.toMillis(aggFreq);
     AvroCloseableIterable<TimeSeriesRecord> iterable = getMeasurementData(measurement, from, to);
-    return AvroCloseableIterable.from(() -> new TimeSeriesAggregatingIterator(iterable, aggTime),
+    return AvroCloseableIterable.from(() -> new TimeSeriesAggregatingIterator<>(iterable,
+            (TimeSeriesRecord rec) -> rec.getTimeStamp().toEpochMilli(),
+            TimeSeriesRecord::accumulate, aggTime),
             iterable, measurement);
   }
 
