@@ -121,7 +121,7 @@ public class AvroMeasurementStoreTest {
 
     aggr = getMetrics(query, metric, Instant.EPOCH, Instant.now(), 1500);
     Assert.assertEquals(3, aggr.size());
-    
+
     aggr = getMetrics(query, metric, Instant.EPOCH, Instant.now(), 0);
     Assert.assertEquals(6, aggr.size());
     store.close();

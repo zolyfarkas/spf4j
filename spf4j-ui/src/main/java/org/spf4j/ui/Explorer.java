@@ -243,6 +243,7 @@ public class Explorer extends javax.swing.JFrame {
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);
       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);
       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.AVRO_TABLEDEF);
       if (folder != null) {
         chooser.setCurrentDirectory(folder);
       }
@@ -342,15 +343,19 @@ public class Explorer extends javax.swing.JFrame {
   private void openFile(final File file) throws IOException {
     String fileName = file.getName();
     JInternalFrame frame;
-    if (fileName.endsWith("tsdb")) {
+    if (Spf4jFileFilter.TSDB.accept(file)) {
       frame = new TSDBViewJInternalFrame(file);
       frame.setVisible(true);
       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-    } else if (fileName.endsWith("tsdb2")) {
+    } else if (Spf4jFileFilter.TSDB2.accept(file)) {
       frame = new TSDB2ViewJInternalFrame(file);
       frame.setVisible(true);
       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-    } else if (fileName.endsWith("ssdump")) {
+    } else if (Spf4jFileFilter.AVRO_TABLEDEF.accept(file)) {
+      frame = new AvroTSViewJInternalFrame(file);
+      frame.setVisible(true);
+      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+    } else if (Spf4jFileFilter.SSDUMP.accept(file)) {
       SampleNode samples = loadLegacyFormat(file);
       setFrames(samples, fileName);
     } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
