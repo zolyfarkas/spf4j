@@ -36,6 +36,7 @@ import gnu.trove.map.hash.THashMap;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -44,6 +45,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -73,6 +75,28 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
   public AvroMeasurementStoreReader(final Path infoFile, final Path... dataFiles) {
     this.infoFile = infoFile;
     this.dataFiles = dataFiles;
+  }
+
+  public static List<Path> lookupObservationFiles(final Path infoFile) throws IOException {
+    List<Path> dataFiles = new ArrayList<>(4);
+    String fileName = infoFile.getFileName().toString();
+    String prefix = fileName.substring(0, fileName.length() - ".tabledef.avro".length());
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(infoFile.getParent(),
+            new DirectoryStream.Filter<Path>() {
+      @Override
+      public boolean accept(Path entry) throws IOException {
+        if (Files.isDirectory(entry)) {
+          return false;
+        }
+        String fName = entry.getFileName().toString();
+        return fName.startsWith(prefix) && fName.endsWith(".observation.avro");
+      }
+    })) {
+      for (Path f : stream) {
+        dataFiles.add(f);
+      }
+    }
+    return dataFiles;
   }
 
   @Override
