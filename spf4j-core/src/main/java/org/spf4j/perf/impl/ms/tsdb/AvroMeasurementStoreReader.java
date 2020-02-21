@@ -33,12 +33,16 @@ package org.spf4j.perf.impl.ms.tsdb;
 
 import com.google.common.collect.Iterables;
 import gnu.trove.map.hash.THashMap;
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +52,7 @@ import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.Closeables;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
@@ -57,18 +62,17 @@ import org.spf4j.tsdb2.avro.Observation;
 import org.spf4j.tsdb2.avro.TableDef;
 
 /**
- *
  * @author Zoltan Farkas
  */
 public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
 
   private final Path infoFile;
 
-  private final Path dataFile;
+  private final Path[] dataFiles;
 
-  public AvroMeasurementStoreReader(final Path infoFile, final Path dataFile) {
+  public AvroMeasurementStoreReader(final Path infoFile, final Path... dataFiles) {
     this.infoFile = infoFile;
-    this.dataFile = dataFile;
+    this.dataFiles = dataFiles;
   }
 
   @Override
@@ -103,26 +107,53 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
   @Nullable
   public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final Schema measurement,
           final Instant from, final Instant to) throws IOException {
+    if (dataFiles.length == 0) {
+      return AvroCloseableIterable.from(Collections.emptyList(), () -> { }, measurement);
+    }
+    @SuppressWarnings("unchecked")
     Collection<Long> mids = (Collection<Long>) measurement.getObjectProp("ids");
-
-    DataFileStream<Observation> stream = new DataFileStream<Observation>(Files.newInputStream(dataFile),
-            new SpecificDatumReader<>(Observation.class));
-    long fileTimeRef = stream.getMetaLong("timeRef");
+    @SuppressWarnings("unchecked")
+    Iterable<TimeSeriesRecord>[] streams = new Iterable[dataFiles.length];
+    Closeable[] closeables = new Closeable[dataFiles.length];
     long fromMs = from.toEpochMilli();
     long toMs = to.toEpochMilli();
-    Iterable<Observation> filtered = Iterables.filter(stream, (Observation row) -> {
-      long ts = fileTimeRef + row.getRelTimeStamp();
-      return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
-    });
-    return AvroCloseableIterable.from(Iterables.transform(filtered,
-            (obs) -> TableDefs.toRecord(measurement, fileTimeRef, obs)),
-            stream, measurement);
+    SpecificDatumReader<Observation> specificDatumReader = new SpecificDatumReader<>(Observation.class);
+    for (int i = 0; i < dataFiles.length; i++) {
+      Path dataFile = dataFiles[i];
+      DataFileStream<Observation> ds;
+      try {
+        ds =  new DataFileStream<Observation>(Files.newInputStream(dataFile), specificDatumReader);
+      } catch (IOException ex) {
+        IOException ex2 = Closeables.closeAll(closeables, 0, i);
+        if (ex2 != null) {
+          ex2.addSuppressed(ex);
+          throw ex2;
+        }
+        throw ex;
+      }
+      long fileTimeRef = ds.getMetaLong("timeRef");
+      Iterable<Observation> filtered = Iterables.filter(ds, (Observation row) -> {
+         long ts = fileTimeRef + row.getRelTimeStamp();
+         return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
+      });
+      Iterable<TimeSeriesRecord> tsr = Iterables.transform(filtered,
+              (obs) -> TableDefs.toRecord(measurement, fileTimeRef, obs));
+      streams[i] = tsr;
+      closeables[i] = ds;
+    }
+    Iterable<TimeSeriesRecord> stream = Iterables.concat(streams);
+    return AvroCloseableIterable.from(stream, () -> {
+      IOException ex = Closeables.closeAll(closeables);
+      if (ex != null) {
+        throw new UncheckedIOException(ex);
+      }
+    }, measurement);
   }
 
 
   @Override
   public String toString() {
-    return "AvroMeasurementStoreReader{" + "infoFile=" + infoFile + ", dataFile=" + dataFile + '}';
+    return "AvroMeasurementStoreReader{" + "infoFile=" + infoFile + ", dataFiles=" + Arrays.toString(dataFiles) + '}';
   }
 
 

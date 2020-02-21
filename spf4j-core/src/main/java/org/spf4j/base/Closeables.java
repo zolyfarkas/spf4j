@@ -105,6 +105,24 @@ public final class Closeables {
 
   @Nullable
   @CheckReturnValue
+  public static IOException closeAll(final Closeable[] closeables, final int from, final int to) {
+    IOException ex = null;
+    for (int i = from; i < to; i++) {
+      Closeable closeable = closeables[i];
+      try {
+        closeable.close();
+      } catch (IOException ex1) {
+        if (ex != null) {
+          Throwables.suppressLimited(ex1, ex);
+        }
+        ex = ex1;
+      }
+    }
+    return ex;
+  }
+
+  @Nullable
+  @CheckReturnValue
   public static Exception closeAll(final Iterable<? extends AutoCloseable> closeables) {
     return closeAll(null, closeables);
   }
