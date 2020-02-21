@@ -74,6 +74,7 @@ import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataBlock;
 import org.spf4j.tsdb2.avro.DataRow;
 import org.spf4j.tsdb2.avro.MeasurementType;
+import org.spf4j.tsdb2.avro.Observation;
 import org.spf4j.tsdb2.avro.TableDef;
 
 /**
@@ -284,10 +285,12 @@ public final class TSDBQuery {
     TSDBReader reader = new TSDBReader(tsdbFile, 8192);
     try {
       DataScan dataScan = new DataScan(reader);
-      Iterable<Row> filtered = Iterables.filter(dataScan,
-              (x) -> x.timestamp >= startTimeMillis
-                      && x.timestamp <= endTimeMillis && ids.contains(x.data.getTableDefId()));
-
+      Iterable<Observation> filtered = Iterables.filter(dataScan,
+              (x) -> {
+                long ts = x.getRelTimeStamp();
+                return ts >= startTimeMillis
+                      && ts <= endTimeMillis && ids.contains(x.getTableDefId());
+              });
       Iterable<TimeSeriesRecord> it = Iterables.transform(filtered, toRecord(rSchema));
       return AvroCloseableIterable.from(it, reader, rSchema);
     } catch (RuntimeException | IOException ex) {
@@ -296,11 +299,22 @@ public final class TSDBQuery {
     }
   }
 
-  public static Function<Row, TimeSeriesRecord> toRecord(final Schema rSchema) {
+  public static AvroCloseableIterable<Observation> getTimeSeriesData(final File tsdbFile) throws IOException {
+    TSDBReader reader = new TSDBReader(tsdbFile, 8192);
+    try {
+      Iterable<Observation> dataScan = new DataScan(reader);
+      return AvroCloseableIterable.from(dataScan, reader, Observation.getClassSchema());
+    } catch (RuntimeException | IOException ex) {
+      reader.close();
+      throw ex;
+    }
+  }
+
+  public static Function<Observation, TimeSeriesRecord> toRecord(final Schema rSchema) {
     return (x) -> {
       GenericRecord rec = new GenericData.Record(rSchema);
-      rec.put(0, Instant.ofEpochMilli(x.timestamp));
-      List<Long> nrs = x.data.getData();
+      rec.put(0, Instant.ofEpochMilli(x.getRelTimeStamp()));
+      List<Long> nrs = x.getData();
       List<Schema.Field> fields = rSchema.getFields();
       for (int i = 1, l = fields.size(); i < l; i++) {
         Schema.Type type = fields.get(i).schema().getType();
@@ -319,17 +333,7 @@ public final class TSDBQuery {
     };
   }
 
-  private static class Row {
-
-    Row(final long ts, final DataRow data) {
-      this.timestamp = ts;
-      this.data = data;
-    }
-    private final long timestamp;
-    private final DataRow data;
-  }
-
-  private static class DataScan implements Iterable<Row> {
+  private static class DataScan implements Iterable<Observation> {
 
     private final TSDBReader reader;
 
@@ -338,8 +342,8 @@ public final class TSDBQuery {
     }
 
     @Override
-    public Iterator<Row> iterator() {
-      return new Iterator<Row>() {
+    public Iterator<Observation> iterator() {
+      return new Iterator<Observation>() {
 
         private long baseTs;
         private Iterator<DataRow> dataBlock;
@@ -379,14 +383,14 @@ public final class TSDBQuery {
         }
 
         @Override
-        public Row next() {
+        public Observation next() {
           while (true) {
             if (dataBlock == null) {
               throw new NoSuchElementException();
             }
             if (dataBlock.hasNext()) {
               DataRow next = dataBlock.next();
-              return new Row(baseTs + next.getRelTimeStamp(), next);
+              return new Observation(baseTs + next.getRelTimeStamp(), next.getTableDefId(), next.getData());
             }
             nextBlock();
           }

@@ -51,6 +51,7 @@ import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TableDefs;
+import org.spf4j.tsdb2.avro.Observation;
 import org.spf4j.tsdb2.avro.TableDef;
 
 /**
@@ -102,6 +103,11 @@ public final class TSDBMeasurementStoreReader implements MeasurementStoreQuery {
   @Override
   public String toString() {
     return "TSDBMeasurementStoreReader{" + "dbFile=" + dbFile + '}';
+  }
+
+  @Override
+  public AvroCloseableIterable<Observation> getObservations() throws IOException {
+   return TSDBQuery.getTimeSeriesData(dbFile);
   }
 
 }

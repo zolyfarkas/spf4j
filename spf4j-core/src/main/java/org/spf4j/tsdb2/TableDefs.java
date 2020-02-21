@@ -117,9 +117,9 @@ public final class TableDefs {
   }
 
 
- public static TimeSeriesRecord toRecord(final Schema rSchema, final long baseTs, final Observation row) {
+ public static TimeSeriesRecord toRecord(final Schema rSchema, final Observation row) {
     GenericRecord rec = new GenericData.Record(rSchema);
-    rec.put(0, Instant.ofEpochMilli(baseTs + row.getRelTimeStamp()));
+    rec.put(0, Instant.ofEpochMilli(row.getRelTimeStamp()));
     List<Long> nrs = row.getData();
     List<Schema.Field> fields = rSchema.getFields();
     for (int i = 1, l = fields.size(), j = 0; i < l; i++, j++) {

@@ -32,14 +32,16 @@
 package org.spf4j.perf;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Iterables;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.tsdb2.TableDefs;
+import org.spf4j.tsdb2.avro.Observation;
 
 /**
  *
@@ -49,6 +51,8 @@ public interface MeasurementStoreQuery {
 
   Collection<Schema> getMeasurements(Predicate<String> filter) throws IOException;
 
+  AvroCloseableIterable<Observation> getObservations() throws IOException;
+
   /**
    * Query measurement data.
    * @param measurement
@@ -57,9 +61,22 @@ public interface MeasurementStoreQuery {
    * @return data iterable
    * @throws IOException
    */
-  @Nullable
-  AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(Schema measurement,
-          Instant from, Instant to) throws IOException;
+  default AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(Schema measurement,
+          Instant from, Instant to) throws IOException {
+    @SuppressWarnings("unchecked")
+    Collection<Long> mids = (Collection<Long>) measurement.getObjectProp("ids");
+    @SuppressWarnings("unchecked")
+    long fromMs = from.toEpochMilli();
+    long toMs = to.toEpochMilli();
+    AvroCloseableIterable<Observation> observations = getObservations();
+    Iterable<Observation> filtered = Iterables.filter(observations, (Observation row) -> {
+      long ts = row.getRelTimeStamp();
+      return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
+    });
+    Iterable<TimeSeriesRecord> tsr = Iterables.transform(filtered,
+             (obs) -> TableDefs.toRecord(measurement, obs));
+    return AvroCloseableIterable.from(tsr, observations, measurement);
+  }
 
   @Beta
   default AvroCloseableIterable<TimeSeriesRecord> getAggregatedMeasurementData(

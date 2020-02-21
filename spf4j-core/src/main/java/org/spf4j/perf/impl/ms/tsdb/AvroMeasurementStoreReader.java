@@ -31,7 +31,9 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
+import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.hash.THashMap;
 import java.io.Closeable;
 import java.io.IOException;
@@ -39,7 +41,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,7 +51,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
@@ -58,7 +60,6 @@ import org.spf4j.base.Closeables;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
-import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.TableDefs;
 import org.spf4j.tsdb2.avro.Observation;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -66,6 +67,7 @@ import org.spf4j.tsdb2.avro.TableDef;
 /**
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
 
   private final Path infoFile;
@@ -145,20 +147,14 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
   }
 
   @Override
-  @Nullable
-  public AvroCloseableIterable<TimeSeriesRecord> getMeasurementData(final Schema measurement,
-          final Instant from, final Instant to) throws IOException {
+  public AvroCloseableIterable<Observation> getObservations() throws IOException {
+    Schema oSchema = Observation.getClassSchema();
     if (dataFiles.length == 0) {
-      return AvroCloseableIterable.from(Collections.emptyList(), () -> { }, measurement);
+          return AvroCloseableIterable.from(Collections.emptyList(), () -> { }, oSchema);
     }
-    @SuppressWarnings("unchecked")
-    Collection<Long> mids = (Collection<Long>) measurement.getObjectProp("ids");
-    @SuppressWarnings("unchecked")
-    Iterable<TimeSeriesRecord>[] streams = new Iterable[dataFiles.length];
-    Closeable[] closeables = new Closeable[dataFiles.length];
-    long fromMs = from.toEpochMilli();
-    long toMs = to.toEpochMilli();
     SpecificDatumReader<Observation> specificDatumReader = new SpecificDatumReader<>(Observation.class);
+    Iterable<Observation>[] streams = new Iterable[dataFiles.length];
+    Closeable[] closeables = new Closeable[dataFiles.length];
     for (int i = 0; i < dataFiles.length; i++) {
       Path dataFile = dataFiles[i];
       DataFileStream<Observation> ds;
@@ -173,28 +169,38 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
         throw ex;
       }
       long fileTimeRef = ds.getMetaLong("timeRef");
-      Iterable<Observation> filtered = Iterables.filter(ds, (Observation row) -> {
-         long ts = fileTimeRef + row.getRelTimeStamp();
-         return ts >= fromMs && ts <= toMs && mids.contains(row.getTableDefId());
-      });
-      Iterable<TimeSeriesRecord> tsr = Iterables.transform(filtered,
-              (obs) -> TableDefs.toRecord(measurement, fileTimeRef, obs));
-      streams[i] = tsr;
+      streams[i] = Iterables.transform(ds, new TimeCalibrate(fileTimeRef));
       closeables[i] = ds;
     }
-    Iterable<TimeSeriesRecord> stream = Iterables.concat(streams);
+    Iterable<Observation> stream = Iterables.concat(streams);
     return AvroCloseableIterable.from(stream, () -> {
       IOException ex = Closeables.closeAll(closeables);
       if (ex != null) {
         throw new UncheckedIOException(ex);
       }
-    }, measurement);
+    }, oSchema);
   }
-
 
   @Override
   public String toString() {
     return "AvroMeasurementStoreReader{" + "infoFile=" + infoFile + ", dataFiles=" + Arrays.toString(dataFiles) + '}';
+  }
+
+  private static class TimeCalibrate implements Function<Observation, Observation> {
+
+    private final long fileTimeRef;
+
+    TimeCalibrate(final long fileTimeRef) {
+      this.fileTimeRef = fileTimeRef;
+    }
+
+    @Override
+    @SuppressFBWarnings({"CFS_CONFUSING_FUNCTION_SEMANTICS", "NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION" })
+    // confusing but fast.
+    public Observation apply(@Nonnull final Observation row) {
+      row.setRelTimeStamp(fileTimeRef + row.getRelTimeStamp());
+      return row;
+    }
   }
 
 
