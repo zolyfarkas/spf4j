@@ -40,10 +40,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.impl.ms.StoreType;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -61,7 +61,7 @@ import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MultiMeasurementRecorder;
 import org.spf4j.perf.impl.ms.Flusher;
 import org.spf4j.perf.impl.ms.MultiStore;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
@@ -110,12 +110,10 @@ public final class RecorderFactory {
           throws IOException, ObjectCreationException {
 
     if (configuration == null || configuration.trim().isEmpty()) {
-      return new TSDBMeasurementStore(new File(
-              System.getProperty("spf4j.perf.ms.defaultTsdbFolderPath",
-                      System.getProperty("java.io.tmpdir"))
-              + File.separator
-              + CharSequences.validatedFileName(System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
-                      ManagementFactory.getRuntimeMXBean().getName() + ".tsdb2"))));
+      return new AvroMeasurementStore(Paths.get(System.getProperty("spf4j.perf.ms.defaultTsdbFolderPath",
+                      System.getProperty("java.io.tmpdir"))),
+              CharSequences.validatedFileName(System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
+                      ManagementFactory.getRuntimeMXBean().getName())));
     }
 
     List<String> stores;

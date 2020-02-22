@@ -49,15 +49,19 @@ public final class DirectRecorderSourceTest {
                 RecorderFactory.createDirectRecorderSource("test", "description");
         MeasurementRecorder recorder = recorderSource.getRecorder("A");
         long time = System.currentTimeMillis();
+        long s1 = 0;
         for (int i = 0; i < 100; i++) {
             recorder.recordAt(time + (long) i * 1000, i);
+            s1 += i;
         }
         MeasurementRecorder recorder2 = recorderSource.getRecorder("B");
+        long s2 = 0;
         for (int i = 0; i < 100; i++) {
             recorder2.recordAt(time + (long) i * 1000, i);
+            s2 += i;
         }
-        org.spf4j.perf.RecorderFactoryTest.assertData("test,A", 4950);
-        org.spf4j.perf.RecorderFactoryTest.assertData("test,B", 4950);
+        org.spf4j.perf.RecorderFactoryTest.assertData("test,A", s1);
+        org.spf4j.perf.RecorderFactoryTest.assertData("test,B", s2);
     }
 
 }

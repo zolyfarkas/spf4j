@@ -35,11 +35,14 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.impl.NopMeasurementStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
+import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStore;
 import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
 import org.spf4j.perf.impl.ms.tsdb.TSDBTxtMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
@@ -60,6 +63,22 @@ public enum StoreType {
                 config = pconfig;
             }
             return new TSDBMeasurementStore(new File(config));
+        }
+    }),
+    AVRO(new StoreFactory() {
+        @Override
+        @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not supplied by user
+        public MeasurementStore create(final String pconfig) throws IOException {
+          Path path = Paths.get(pconfig);
+          Path parent = path.getParent();
+          if (parent == null) {
+            throw new IllegalArgumentException("Invalid store config " + pconfig);
+          }
+          Path fileName = path.getFileName();
+          if (fileName == null) {
+            throw new IllegalArgumentException("Invalid store config " + pconfig);
+          }
+          return new AvroMeasurementStore(parent, fileName.toString());
         }
     }),
     TSDB_TXT(new StoreFactory() {

@@ -33,16 +33,14 @@ package org.spf4j.perf;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.impl.RecorderFactory;
-import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.time.Instant;
+import java.util.Collection;
+import org.apache.avro.Schema;
 import org.junit.Assert;
 import org.junit.Test;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
-import org.spf4j.tsdb2.TimeSeries;
-import org.spf4j.tsdb2.TSDBQuery;
-import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.avro.TableDef;
+import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.tsdb2.avro.Observation;
 
 /**
  *
@@ -136,18 +134,19 @@ public final class RecorderFactoryTest {
 
   @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
   public static void assertData(final String forWhat, final long expectedValue) throws IOException {
-    TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
-    dbWriter.flush();
-    final File file = dbWriter.getFile();
-    List<TableDef> tableDefs = TSDBQuery.getTableDef(file, forWhat);
-    TableDef tableDef = tableDefs.get(0);
-    TimeSeries timeSeries = TSDBQuery.getTimeSeries(file, new long[]{tableDef.getId()}, 0, Long.MAX_VALUE);
-    long sum = 0;
-    long[][] values = timeSeries.getValues();
-    for (long[] row : values) {
-      sum += row[0];
+    MeasurementStore store = RecorderFactory.MEASUREMENT_STORE;
+    store.flush();
+    MeasurementStoreQuery query = store.query();
+    Collection<Schema> schemas = query.getMeasurements((x) -> forWhat.equals(x));
+    Schema schema = schemas.iterator().next();
+    try (AvroCloseableIterable<Observation> observations = query.getObservations(schema, Instant.EPOCH,
+            Instant.ofEpochMilli(Long.MAX_VALUE))) {
+      long sum = 0;
+      for (Observation o : observations) {
+        sum += o.getData().get(0);
+      }
+      Assert.assertEquals(expectedValue, sum);
     }
-    Assert.assertEquals(expectedValue, sum);
   }
 
   public static void main(final String[] args) throws IOException, InterruptedException {
