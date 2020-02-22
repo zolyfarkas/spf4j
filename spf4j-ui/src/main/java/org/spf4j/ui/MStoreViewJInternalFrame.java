@@ -64,7 +64,6 @@ import java.nio.file.Files;
 import java.time.Instant;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.MutableTreeNode;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.spf4j.avro.csv.CsvEncoder;
@@ -81,23 +80,19 @@ import org.spf4j.tsdb2.avro.Observation;
  * @author zoly
  */
 @SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "SE_BAD_FIELD"})
-public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
+public class MStoreViewJInternalFrame extends javax.swing.JInternalFrame {
 
   private static final long serialVersionUID = 1L;
-
-  private final File tsDb;
-
   private final AvroMeasurementStoreReader reader;
 
   /**
    * Creates new form TSDBViewJInternalFrame
    */
   @SuppressForbiden
-  public AvroTSViewJInternalFrame(final File tsDb) throws IOException {
+  public MStoreViewJInternalFrame(final File tsDb) throws IOException {
     super(tsDb.getPath());
     String fileName = tsDb.getName();
     setName(fileName);
-    this.tsDb = tsDb;
     initComponents();
     if (fileName.endsWith(".tabledef.avro")) {
       reader = new AvroMeasurementStoreReader(tsDb.toPath());
@@ -363,7 +358,7 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
       if (pathArr.length < 2) {
         continue;
       }
-      DefaultMutableTreeNode colNode = (DefaultMutableTreeNode) pathArr[1];
+      DefaultMutableTreeNode colNode = (DefaultMutableTreeNode) pathArr[pathArr.length - 1];
       int depth = colNode.getDepth();
       if (depth == 0) {
         result.add((Schema) colNode.getUserObject());

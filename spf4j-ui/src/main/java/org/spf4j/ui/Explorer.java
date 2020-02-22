@@ -352,7 +352,7 @@ public class Explorer extends javax.swing.JFrame {
       frame.setVisible(true);
       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
     } else if (Spf4jFileFilter.AVRO_TABLEDEF.accept(file)) {
-      frame = new AvroTSViewJInternalFrame(file);
+      frame = new MStoreViewJInternalFrame(file);
       frame.setVisible(true);
       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
     } else if (Spf4jFileFilter.SSDUMP.accept(file)) {
