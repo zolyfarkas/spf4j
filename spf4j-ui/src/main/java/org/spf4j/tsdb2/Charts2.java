@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.apache.avro.Schema;
 import org.jfree.chart.JFreeChart;
 import org.spf4j.base.Arrays;
@@ -103,17 +104,20 @@ public final class Charts2 {
 
   public static JFreeChart createHeatJFreeChart(final MeasurementStoreQuery query,
           final Schema table, final long startTime,
-          final long endTime) throws IOException {
-    TimeSeries data = readToTs(query, table, startTime, endTime);
-    return createHeatJFreeChart(data, table);
+          final long endTime, final int aggTimeMillis) throws IOException {
+    TimeSeries data = readToTs(query, table, startTime, endTime, aggTimeMillis);
+    return createHeatJFreeChart(data, table, aggTimeMillis);
   }
 
   public static TimeSeries readToTs(final MeasurementStoreQuery query, final Schema table,
-          final long startTime, final long endTime) throws IOException {
+          final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
     TLongList ts = new TLongArrayList();
     List<long[]> values = new ArrayList<>();
     try (AvroCloseableIterable<Observation> data
-            = query.getObservations(table, Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime))) {
+            = aggTimeMillis <= 0
+            ? query.getObservations(table, Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime))
+            : query.getAggregatedObservations(table, Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime),
+                    aggTimeMillis, TimeUnit.MILLISECONDS)) {
       for (Observation rec : data) {
         ts.add(rec.getRelTimeStamp());
         values.add(Longs.toArray(rec.getData()));
@@ -132,10 +136,10 @@ public final class Charts2 {
     return result;
   }
 
-  public static JFreeChart createHeatJFreeChart(final TimeSeries data, final Schema info) {
+  public static JFreeChart createHeatJFreeChart(final TimeSeries data, final Schema info, final int aggTime) {
     int sampleTime = TimeSeriesRecord.getFrequencyMillis(info);
     Pair<long[], double[][]> mData = fillGaps(data.getTimeStamps(),
-            data.getValues(), sampleTime, info.getFields().size() - 1);
+            data.getValues(), Math.max(sampleTime, aggTime), info.getFields().size() - 1);
     return org.spf4j.perf.impl.chart.Charts.createHeatJFreeChart(getDataColumnNames(info),
             mData.getSecond(), data.getTimeStamps()[0], sampleTime,
             TimeSeriesRecord.getUnit(info.getField("total").schema()), "Measurements distribution for "
@@ -165,8 +169,8 @@ public final class Charts2 {
   }
 
   public static JFreeChart createMinMaxAvgJFreeChart(final MeasurementStoreQuery query, final Schema table,
-          final long startTime, final long endTime) throws IOException {
-    TimeSeries data = readToTs(query, table, startTime, endTime);
+          final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
+    TimeSeries data = readToTs(query, table, startTime, endTime, aggTimeMillis);
     return createMinMaxAvgJFreeChart(data, table);
   }
 
@@ -182,8 +186,8 @@ public final class Charts2 {
 
   public static JFreeChart createCountJFreeChart(final MeasurementStoreQuery query,
           final Schema info, final long startTime,
-          final long endTime) throws IOException {
-    TimeSeries data =  readToTs(query, info, startTime, endTime);
+          final long endTime, final int aggTimeMillis) throws IOException {
+    TimeSeries data =  readToTs(query, info, startTime, endTime, aggTimeMillis);
     return createCountJFreeChart(data, info);
   }
 
@@ -222,8 +226,8 @@ public final class Charts2 {
   }
 
   public static List<JFreeChart> createJFreeCharts(final MeasurementStoreQuery query, final Schema td,
-          final long startTime, final long endTime) throws IOException {
-    TimeSeries data = readToTs(query, td, startTime, endTime);
+          final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
+    TimeSeries data = readToTs(query, td, startTime, endTime, aggTimeMillis);
     return createJFreeCharts(data, td);
   }
 

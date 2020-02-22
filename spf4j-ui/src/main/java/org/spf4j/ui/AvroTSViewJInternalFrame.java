@@ -32,6 +32,7 @@
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
 
+import com.google.common.primitives.Ints;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.Dimension;
 import java.io.File;
@@ -174,8 +175,8 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
     measurementTree = new javax.swing.JTree();
     chartPannel = new javax.swing.JScrollPane();
     jToolBar1 = new javax.swing.JToolBar();
-    jButton1 = new javax.swing.JButton();
-    jButton2 = new javax.swing.JButton();
+    plotButton = new javax.swing.JButton();
+    exportButton = new javax.swing.JButton();
     aggregationMillis = new javax.swing.JTextField();
     startDate = new javax.swing.JSpinner();
     endDate = new javax.swing.JSpinner();
@@ -218,29 +219,31 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
     jToolBar1.setFloatable(false);
     jToolBar1.setRollover(true);
 
-    jButton1.setText("Plot");
-    jButton1.setFocusable(false);
-    jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-    jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    jButton1.addActionListener(new java.awt.event.ActionListener() {
+    plotButton.setText("Plot");
+    plotButton.setFocusable(false);
+    plotButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+    plotButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+    plotButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        jButton1ActionPerformed(evt);
+        plotButtonActionPerformed(evt);
       }
     });
-    jToolBar1.add(jButton1);
+    jToolBar1.add(plotButton);
 
-    jButton2.setText("Export");
-    jButton2.setFocusable(false);
-    jButton2.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-    jButton2.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    jButton2.addActionListener(new java.awt.event.ActionListener() {
+    exportButton.setText("Export");
+    exportButton.setFocusable(false);
+    exportButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+    exportButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+    exportButton.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-        jButton2ActionPerformed(evt);
+        exportButtonActionPerformed(evt);
       }
     });
-    jToolBar1.add(jButton2);
+    jToolBar1.add(exportButton);
 
     aggregationMillis.setText("0");
+    aggregationMillis.setMinimumSize(new java.awt.Dimension(80, 24));
+    aggregationMillis.setPreferredSize(new java.awt.Dimension(80, 24));
     aggregationMillis.addActionListener(new java.awt.event.ActionListener() {
       public void actionPerformed(java.awt.event.ActionEvent evt) {
         aggregationMillisActionPerformed(evt);
@@ -284,7 +287,7 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
   }// </editor-fold>//GEN-END:initComponents
 
   @SuppressFBWarnings("UP_UNUSED_PARAMETER")
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void plotButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_plotButtonActionPerformed
       TreePath[] selectionPaths = measurementTree.getSelectionPaths();
       JPanel content = new JPanel();
       content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -298,10 +301,10 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
         throw new UncheckedIOException(ex);
       }
       chartPannel.repaint();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    }//GEN-LAST:event_plotButtonActionPerformed
 
   @SuppressFBWarnings("UP_UNUSED_PARAMETER")
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportButtonActionPerformed
       TreePath[] selectionPaths = measurementTree.getSelectionPaths();
       Set<Schema> selectedTables = getSelectedTables(selectionPaths);
       if (!selectedTables.isEmpty()) {
@@ -327,7 +330,7 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
           }
         }
       }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_exportButtonActionPerformed
 
   @SuppressFBWarnings("UP_UNUSED_PARAMETER")
   private void aggregationMillisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggregationMillisActionPerformed
@@ -338,13 +341,13 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
   private javax.swing.JTextField aggregationMillis;
   private javax.swing.JScrollPane chartPannel;
   private javax.swing.JSpinner endDate;
-  private javax.swing.JButton jButton1;
-  private javax.swing.JButton jButton2;
+  private javax.swing.JButton exportButton;
   private javax.swing.JPanel jPanel2;
   private javax.swing.JScrollPane jScrollPane1;
   private javax.swing.JToolBar jToolBar1;
   private javax.swing.JSplitPane mainSplitPannel;
   private javax.swing.JTree measurementTree;
+  private javax.swing.JButton plotButton;
   private javax.swing.JPanel rightPanel;
   private javax.swing.JSpinner startDate;
   // End of variables declaration//GEN-END:variables
@@ -378,9 +381,13 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
   private void addChartToPanel(final Schema table, final JPanel content) throws IOException {
     long startTime = ((Date) startDate.getValue()).getTime();
     long endTime = ((Date) endDate.getValue()).getTime();
+    Integer aggMillis = Ints.tryParse(aggregationMillis.getText());
+    if (aggMillis == null) {
+      aggMillis = 0;
+    }
     if (Charts2.canGenerateHeatChart(table)) {
       JFreeChart chart = Charts2.createHeatJFreeChart(reader, table,
-              startTime, endTime);
+              startTime, endTime, aggMillis);
       ChartPanel pannel = new ChartPanel(chart);
       pannel.setPreferredSize(new Dimension(600, 800));
       pannel.setDomainZoomable(false);
@@ -393,7 +400,7 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
     }
     if (Charts2.canGenerateMinMaxAvgCount(table)) {
       JFreeChart chart = Charts2.createMinMaxAvgJFreeChart(reader, table,
-              startTime, endTime);
+              startTime, endTime, aggMillis);
       ChartPanel pannel = new ChartPanel(chart);
       pannel.setPreferredSize(new Dimension(600, 600));
       content.add(pannel);
@@ -401,12 +408,12 @@ public class AvroTSViewJInternalFrame extends javax.swing.JInternalFrame {
     }
     if (Charts2.canGenerateCount(table)) {
       JFreeChart chart = Charts2.createCountJFreeChart(reader, table,
-              startTime, endTime);
+              startTime, endTime, aggMillis);
       ChartPanel pannel = new ChartPanel(chart);
       pannel.setPreferredSize(new Dimension(600, 600));
       content.add(pannel);
     } else {
-      List<JFreeChart> createJFreeCharts = Charts2.createJFreeCharts(reader, table, startTime, endTime);
+      List<JFreeChart> createJFreeCharts = Charts2.createJFreeCharts(reader, table, startTime, endTime, aggMillis);
       for (JFreeChart chart : createJFreeCharts) {
         ChartPanel pannel = new ChartPanel(chart);
         pannel.setPreferredSize(new Dimension(600, 600));
