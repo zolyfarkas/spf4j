@@ -36,9 +36,12 @@ import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 import org.apache.avro.Schema;
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.tsdb2.avro.Observation;
 
@@ -49,6 +52,8 @@ import org.spf4j.tsdb2.avro.Observation;
 @SuppressWarnings("SleepWhileInLoop")
 @SuppressFBWarnings("MDM_THREAD_YIELD")
 public final class RecorderFactoryTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(RecorderFactoryTest.class);
 
   /**
    * Test of createScalableQuantizedRecorder method, of class RecorderFactory.
@@ -70,6 +75,21 @@ public final class RecorderFactoryTest {
     }
     result.close();
     assertData(forWhat, 124750);
+    MeasurementStore store = RecorderFactory.MEASUREMENT_STORE;
+    MeasurementStoreQuery query = store.query();
+    Collection<Schema> measurements = query.getMeasurements((x) -> forWhat.equals(x));
+    Schema m = measurements.iterator().next();
+    try (AvroCloseableIterable<Observation> observations = query.getObservations(m, Instant.EPOCH, Instant.now())) {
+      for (Observation o : observations) {
+        LOG.debug("RAW Obeservation", o);
+      }
+    }
+    try (AvroCloseableIterable<Observation> observations = query.getAggregatedObservations(m,
+            Instant.EPOCH, Instant.now(), 2, TimeUnit.SECONDS)) {
+      for (Observation o : observations) {
+        LOG.debug("AGG Obeservation", o);
+      }
+    }
   }
 
   /**

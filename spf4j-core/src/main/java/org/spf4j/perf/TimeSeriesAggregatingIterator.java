@@ -46,13 +46,16 @@ public final class TimeSeriesAggregatingIterator<T> implements Iterator<T> {
   private long maxTime;
   private final ToLongFunction<T> timeExtractor;
   private final BiConsumer<T, T> accumulator;
+  private final int adj;
 
   public TimeSeriesAggregatingIterator(final Iterable<T> dataStream,
-          final ToLongFunction<T> timeExtractor, final BiConsumer<T, T> accumulator, final long aggTime) {
+          final ToLongFunction<T> timeExtractor, final BiConsumer<T, T> accumulator,
+          final long aggTime, final int sampleTime) {
     this.aggTime = aggTime;
     it = Iterators.peekingIterator(dataStream.iterator());
     this.timeExtractor = timeExtractor;
     this.accumulator = accumulator;
+    this.adj = Math.max(sampleTime, 0) / 2;
     aggNext();
   }
 
@@ -60,7 +63,7 @@ public final class TimeSeriesAggregatingIterator<T> implements Iterator<T> {
     if (it.hasNext()) {
       rec = it.next();
       long recTime = timeExtractor.applyAsLong(rec);
-      maxTime = recTime + aggTime;
+      maxTime = recTime + aggTime - adj;
       while (it.hasNext()) {
         T next = it.peek();
         recTime = timeExtractor.applyAsLong(next);
