@@ -84,7 +84,7 @@ public final class RecorderFactory {
       LOG.error("Cannot initialize measurement store, installing NOP store", ex);
       mStore = new NopMeasurementStore();
     }
-    if (!(mStore instanceof NopMeasurementStore)) {
+    if (!(mStore instanceof NopMeasurementStore) && Boolean.getBoolean("spf4j.perf.ms.periodicFlush")) {
       Flusher.flushEvery(Integer.getInteger("spf4j.perf.ms.flushIntervalMillis", 60000), mStore);
     }
     MEASUREMENT_STORE = mStore;
