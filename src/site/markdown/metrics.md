@@ -104,6 +104,8 @@ Callable<?> monitoredCallable =
   -Dspf4j.perf.ms.config=TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
 ```
 
+ TSDB_AVRO (DEFAULT) - standard avro files, metrics will be stored to  *.tabledef.avro (metadata) and *.observation.avro (obsevations)
+
  TSDB - binary file format (this is the most efficient store)
 
  TSDB_TXT - text format each line: groupname, timestamp millis, sampletime millis, measurementName1, measurementValue2, ...
@@ -120,13 +122,13 @@ Callable<?> monitoredCallable =
   This endpoint allows you to get to:
 
    * Your [metrics](https://demo.spf4j.org/metrics/cluster)
-   * Their [detail](https://demo.spf4j.org/metrics/cluster/gc_time/schema)
+   * Their [data](https://demo.spf4j.org/metrics/cluster/gc_time)
 
   You can get the metrics in any format you might need:
 
-   * [json](https://demo.spf4j.org/metrics/cluster/gc_time/data)
-   * [avro binary](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=application/avro)
-   * [csv](https://demo.spf4j.org/metrics/cluster/gc_time/data?_Accept=text/csv)
+   * [json](https://demo.spf4j.org/metrics/cluster/gc_time)
+   * [avro binary](https://demo.spf4j.org/metrics/cluster/gc_time?_Accept=application/avro)
+   * [csv](https://demo.spf4j.org/metrics/cluster/gc_time?_Accept=text/csv)
    * [prometheus](https://demo.spf4j.org/metrics?_Accept=text/plain&from=-PT1H)
 
 #### Via JMX
