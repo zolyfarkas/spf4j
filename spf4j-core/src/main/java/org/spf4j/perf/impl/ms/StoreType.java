@@ -65,7 +65,7 @@ public enum StoreType {
             return new TSDBMeasurementStore(new File(config));
         }
     }),
-    AVRO(new StoreFactory() {
+    TSDB_AVRO(new StoreFactory() {
         @Override
         @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not supplied by user
         public MeasurementStore create(final String pconfig) throws IOException {
