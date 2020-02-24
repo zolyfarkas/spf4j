@@ -56,7 +56,7 @@ public interface MeasurementStoreQuery {
   default AvroCloseableIterable<Observation> getObservations(final Schema measurement,
           final Instant from, final Instant to) throws IOException {
     @SuppressWarnings("unchecked")
-    Collection<Long> mids = (Collection<Long>) measurement.getObjectProp("ids");
+    Collection<Long> mids = (Collection<Long>) measurement.getObjectProp(TimeSeriesRecord.IDS_PROP);
     @SuppressWarnings("unchecked")
     long fromMs = from.toEpochMilli();
     long toMs = to.toEpochMilli();

@@ -50,6 +50,7 @@ public interface TimeSeriesRecord extends GenericRecord {
   String UNIT_TYPE_PROP = "unit";
   String FREQ_MILLIS_REC_PROP = "frequencyMillis";
   String RAW_NAME = "rawName";
+  String IDS_PROP = "ids";
 
 
   Instant getTimeStamp();

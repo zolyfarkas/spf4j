@@ -60,6 +60,7 @@ import org.spf4j.base.Closeables;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.TableDefs;
 import org.spf4j.tsdb2.avro.Observation;
 import org.spf4j.tsdb2.avro.TableDef;
@@ -141,7 +142,7 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
     }
     return result.values().stream().map((x) -> {
       Schema sch = x.getKey();
-      sch.addProp("ids", x.getValue());
+      sch.addProp(TimeSeriesRecord.IDS_PROP, x.getValue());
       return sch;
     }).collect(Collectors.toCollection(() -> new ArrayList<>(result.size())));
   }

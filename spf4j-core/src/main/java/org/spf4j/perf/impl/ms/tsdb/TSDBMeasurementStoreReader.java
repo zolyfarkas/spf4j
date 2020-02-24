@@ -87,7 +87,7 @@ public final class TSDBMeasurementStoreReader implements MeasurementStoreQuery {
     }
     return schemas.values().stream().map((x) -> {
       Schema sch = x.getKey();
-      sch.addProp("ids", x.getValue());
+      sch.addProp(TimeSeriesRecord.IDS_PROP, x.getValue());
       return sch;
     }).collect(Collectors.toCollection(() -> new ArrayList<>(schemas.size())));
   }
