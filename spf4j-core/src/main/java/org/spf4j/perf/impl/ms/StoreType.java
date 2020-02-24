@@ -34,6 +34,7 @@ package org.spf4j.perf.impl.ms;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -114,7 +115,24 @@ public enum StoreType {
         public MeasurementStore create(final String config) {
             return new NopMeasurementStore();
         }
+    }),
+    CUSTOM(new StoreFactory() {
+
+        @Override
+        public MeasurementStore create(final String config) {
+          try {
+            return (MeasurementStore) Class.forName(config).getConstructor().newInstance();
+          } catch (ClassNotFoundException | NoSuchMethodException
+                  | SecurityException | InstantiationException | IllegalAccessException
+                  | InvocationTargetException ex) {
+           throw new RuntimeException(ex);
+          }
+        }
     });
+
+
+
+
     private final StoreFactory factory;
 
     StoreType(final StoreFactory factory) {
