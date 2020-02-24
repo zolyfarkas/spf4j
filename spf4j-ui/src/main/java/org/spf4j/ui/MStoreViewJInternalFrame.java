@@ -113,7 +113,7 @@ public class MStoreViewJInternalFrame extends javax.swing.JInternalFrame {
     Map<String, DefaultMutableTreeNode> gNodes = new HashMap<>();
     DefaultMutableTreeNode root = new DefaultMutableTreeNode(fileName);
     for (Schema info : measurements) {
-      String groupName = info.getName();
+      String groupName = info.getProp(TimeSeriesRecord.RAW_NAME);
       Pair<String, String> pair = Pair.from(groupName);
       if (pair == null) {
         DefaultMutableTreeNode child = new DefaultMutableTreeNode(info);
