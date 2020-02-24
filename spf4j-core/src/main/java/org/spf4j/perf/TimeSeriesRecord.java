@@ -49,6 +49,8 @@ public interface TimeSeriesRecord extends GenericRecord {
   String AGGREGATION_TYPE_PROP = "aggregation";
   String UNIT_TYPE_PROP = "unit";
   String FREQ_MILLIS_REC_PROP = "frequencyMillis";
+  String RAW_NAME = "rawName";
+
 
   Instant getTimeStamp();
 

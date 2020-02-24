@@ -31,8 +31,8 @@
  */
 package org.spf4j.perf.aspects;
 
-import com.google.common.collect.ListMultimap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.set.hash.THashSet;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -40,21 +40,22 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
+import org.apache.avro.Schema;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.os.OperatingSystem;
+import org.spf4j.perf.MeasurementStoreQuery;
+import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.perf.impl.RecorderFactory;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
-import org.spf4j.tsdb2.TSDBQuery;
-import org.spf4j.tsdb2.TSDBQuery.TableDefEx;
-import org.spf4j.tsdb2.TSDBWriter;
+import org.spf4j.tsdb2.avro.Observation;
 
 /**
  * @author zoly
@@ -88,18 +89,22 @@ public final class FileMonitorAspectTest {
         Thread.sleep(500);
       }
     }
-    TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
-    dbWriter.flush();
-    final File file = dbWriter.getFile();
-    ListMultimap<String, TableDefEx> allTables = TSDBQuery.getAllTablesWithDataRanges(file);
-    LOG.debug("Tables {}", allTables);
-    Map<String, Collection<TableDefEx>> asMap = allTables.asMap();
-    Assert.assertThat(asMap, (Matcher)
-            Matchers.hasKey("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest"));
-    Assert.assertThat(asMap, (Matcher)
-            Matchers.hasKey("file-read,org.spf4j.perf.aspects.FileMonitorAspectTest"));
-    List<TableDefEx> get = allTables.get("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest");
-    Assert.assertTrue(get.get(0).getStartTime() != 0);
+    RecorderFactory.MEASUREMENT_STORE.flush();
+    MeasurementStoreQuery query = RecorderFactory.MEASUREMENT_STORE.query();
+    Collection<Schema> measurements = query.getMeasurements((x) -> true);
+    LOG.debug("Tables {}", measurements);
+    THashSet<String> collect = measurements.stream().map((x) -> x.getProp(TimeSeriesRecord.RAW_NAME))
+            .collect(Collectors.toCollection(() -> new THashSet<String>(measurements.size())));
+    Assert.assertThat(collect, (Matcher)
+            Matchers.hasItem("file-write,org.spf4j.perf.aspects.FileMonitorAspectTest"));
+    Assert.assertThat(collect, (Matcher)
+            Matchers.hasItem("file-read,org.spf4j.perf.aspects.FileMonitorAspectTest"));
+    Collection<Schema> fmw = query.getMeasurements((x)
+            -> "file-write,org.spf4j.perf.aspects.FileMonitorAspectTest".equals(x));
+    try (AvroCloseableIterable<Observation>
+            obs = query.getObservations(fmw.iterator().next(), Instant.EPOCH, Instant.now())) {
+      Assert.assertTrue(obs.iterator().hasNext());
+    }
     Assert.assertTrue(OperatingSystem.getOpenFileDescriptorCount() > 0);
   }
 

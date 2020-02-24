@@ -59,7 +59,9 @@ public final class TableDefs {
   }
 
   public static Schema createSchema(final TableDef td) {
-    Schema recSchema = AvroCompatUtils.createRecordSchema(td.getName(), td.getDescription(), null, false, false);
+    String rawName = td.getName();
+    Schema recSchema = AvroCompatUtils.createRecordSchema(rawName.replace('.', '_'),
+            td.getDescription(), null, false, false);
     List<ColumnDef> columns = td.getColumns();
     List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
     fields.add(AvroCompatUtils.createField("ts", INSTANT_SCHEMA, "Measurement time stamp", null, true, false,
@@ -91,6 +93,7 @@ public final class TableDefs {
       recSchema.addProp(TimeSeriesRecord.FREQ_MILLIS_REC_PROP, sampleTime);
     }
     recSchema.addProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP, getMeasurementType(td));
+    recSchema.addProp(TimeSeriesRecord.RAW_NAME, rawName);
     return recSchema;
   }
 

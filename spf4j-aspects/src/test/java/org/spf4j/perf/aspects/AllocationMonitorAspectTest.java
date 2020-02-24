@@ -33,21 +33,18 @@ package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.File;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
-import java.util.List;
+import java.util.Collection;
+import org.apache.avro.Schema;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore;
+import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
-import org.spf4j.tsdb2.TSDBQuery;
-import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.avro.TableDef;
 
 /**
  *
@@ -83,11 +80,10 @@ public final class AllocationMonitorAspectTest {
     }
     testAllocInStaticContext();
     TestClass.testAllocInStaticContext();
-    final TSDBWriter dbWriter = ((TSDBMeasurementStore) RecorderFactory.MEASUREMENT_STORE).getDBWriter();
-    dbWriter.flush();
-    File file = dbWriter.getFile();
-    List<TableDef> tableDef = TSDBQuery.getTableDef(file, "heap_used");
-    Assert.assertFalse(tableDef.isEmpty());
+    RecorderFactory.MEASUREMENT_STORE.flush();
+    MeasurementStoreQuery query = RecorderFactory.MEASUREMENT_STORE.query();
+    Collection<Schema> measurements = query.getMeasurements((x) -> "heap_used".equals(x));
+    Assert.assertEquals(1, measurements.size());
     MemoryUsageSampler.stop();
     OpenFilesSampler.stop();
   }
