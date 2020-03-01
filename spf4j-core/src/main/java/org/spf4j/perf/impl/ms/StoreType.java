@@ -128,10 +128,26 @@ public enum StoreType {
            throw new RuntimeException(ex);
           }
         }
+    }),
+    WRAPPER(new StoreFactory() {
+
+        @Override
+        public MeasurementStore create(final String config) throws IOException, ObjectCreationException {
+          int fp = config.indexOf('(');
+          int lp = config.lastIndexOf(')');
+          if (fp < 0 || lp < 0 || lp < fp) {
+            throw new IllegalArgumentException("Invalid wrapper config: " + config);
+          }
+          String className = config.substring(0, fp);
+          MeasurementStore ms = fromString(config.substring(fp + 1, lp));
+          try {
+            return (MeasurementStore) Class.forName(className).getConstructor(MeasurementStore.class).newInstance(ms);
+          } catch (ClassNotFoundException | NoSuchMethodException | SecurityException
+                  | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+            throw new RuntimeException(ex);
+          }
+        }
     });
-
-
-
 
     private final StoreFactory factory;
 
@@ -139,11 +155,26 @@ public enum StoreType {
         this.factory = factory;
     }
 
-    public MeasurementStore create(final String configuration) throws IOException, ObjectCreationException {
+    private MeasurementStore create(final String configuration) throws IOException, ObjectCreationException {
         MeasurementStore store =  factory.create(configuration);
         Registry.exportIfNeeded(store.getClass().getName(),
                     store.toString(), store);
         return store;
     }
+
+
+  public static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
+    int atIdx = string.indexOf('@');
+    final int length = string.length();
+    if (atIdx < 0) {
+      atIdx = length;
+    }
+    StoreType type = StoreType.valueOf(string.substring(0, atIdx));
+    if (atIdx >= length) {
+      return type.create("");
+    } else {
+      return type.create(string.substring(atIdx + 1));
+    }
+  }
 
 }

@@ -124,29 +124,15 @@ public final class RecorderFactory {
     }
     final int size = stores.size();
     if (size == 1) {
-      return fromString(stores.get(0));
+      return StoreType.fromString(stores.get(0));
     } else {
       MeasurementStore[] mstores = new MeasurementStore[size];
       int i = 0;
       for (String config : stores) {
-        mstores[i] = fromString(config);
+        mstores[i] = StoreType.fromString(config);
         i++;
       }
       return new MultiStore(mstores);
-    }
-  }
-
-  public static MeasurementStore fromString(final String string) throws IOException, ObjectCreationException {
-    int atIdx = string.indexOf('@');
-    final int length = string.length();
-    if (atIdx < 0) {
-      atIdx = length;
-    }
-    StoreType type = StoreType.valueOf(string.substring(0, atIdx));
-    if (atIdx >= length) {
-      return type.create("");
-    } else {
-      return type.create(string.substring(atIdx + 1));
     }
   }
 
