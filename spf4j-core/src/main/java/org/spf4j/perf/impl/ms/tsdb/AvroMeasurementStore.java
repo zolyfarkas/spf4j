@@ -37,8 +37,6 @@ import org.spf4j.perf.MeasurementStore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.logging.Logger;
 import javax.annotation.concurrent.ThreadSafe;
@@ -50,11 +48,9 @@ import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.perf.MeasurementStoreQuery;
-import org.spf4j.tsdb2.avro.Aggregation;
-import org.spf4j.tsdb2.avro.ColumnDef;
+import org.spf4j.tsdb2.TableDefs;
 import org.spf4j.tsdb2.avro.Observation;
 import org.spf4j.tsdb2.avro.TableDef;
-import org.spf4j.tsdb2.avro.Type;
 
 /**
  *
@@ -155,20 +151,9 @@ public final class AvroMeasurementStore
   @Override
   public long alocateMeasurements(final MeasurementsInfo measurement,
           final int sampleTimeMillis) throws IOException {
-    int numberOfMeasurements = measurement.getNumberOfMeasurements();
-    List<ColumnDef> columns = new ArrayList<>(numberOfMeasurements);
-    for (int i = 0; i < numberOfMeasurements; i++) {
-      String mname = measurement.getMeasurementName(i);
-      String unit = measurement.getMeasurementUnit(i);
-      Aggregation aggregation = measurement.getMeasurementAggregation(i);
-      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "", aggregation);
-      columns.add(cd);
-    }
     synchronized (infoWriter) {
       long id = ids++;
-      infoWriter.append(new TableDef(id,
-              measurement.getMeasuredEntity().toString(),
-              "", columns, sampleTimeMillis, measurement.getMeasurementType()));
+      infoWriter.append(TableDefs.from(measurement, sampleTimeMillis, id));
       return id;
     }
   }

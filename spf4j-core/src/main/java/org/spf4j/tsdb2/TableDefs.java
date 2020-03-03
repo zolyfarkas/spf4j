@@ -39,7 +39,9 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.ColumnDef;
 import org.spf4j.tsdb2.avro.DataRow;
 import org.spf4j.tsdb2.avro.MeasurementType;
@@ -56,6 +58,22 @@ public final class TableDefs {
           = new Schema.Parser().parse("{\"type\":\"string\",\"logicalType\":\"instant\"}");
 
   private TableDefs() {
+  }
+
+  public static TableDef from(final MeasurementsInfo measurement, final int sampleTimeMillis,
+          final long id) {
+    int numberOfMeasurements = measurement.getNumberOfMeasurements();
+    List<ColumnDef> columns = new ArrayList<>(numberOfMeasurements);
+    for (int i = 0; i < numberOfMeasurements; i++) {
+      String mname = measurement.getMeasurementName(i);
+      String unit = measurement.getMeasurementUnit(i);
+      Aggregation aggregation = measurement.getMeasurementAggregation(i);
+      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, "", aggregation);
+      columns.add(cd);
+    }
+    return  new TableDef(id,
+            measurement.getMeasuredEntity().toString(),
+            "", columns, sampleTimeMillis, measurement.getMeasurementType());
   }
 
   public static Schema createSchema(final TableDef td) {
