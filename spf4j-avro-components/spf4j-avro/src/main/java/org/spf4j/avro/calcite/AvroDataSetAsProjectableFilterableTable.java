@@ -58,6 +58,10 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     this.dataSet = dataSet;
   }
 
+  public AvroDataSet<? extends IndexedRecord> getDataSet() {
+    return dataSet;
+  }
+  
   @Override
   public Statistic getStatistic() {
     long rowCountStatistic = dataSet.getRowCountStatistic();
