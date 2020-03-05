@@ -38,6 +38,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import javax.annotation.Nullable;
 import org.apache.avro.Schema;
 import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.tsdb2.TableDefs;
@@ -54,12 +55,22 @@ public interface MeasurementStoreQuery {
   AvroCloseableIterable<Observation> getObservations() throws IOException;
 
   default AvroCloseableIterable<Observation> getObservations(final Schema measurement,
-          final Instant from, final Instant to) throws IOException {
+          @Nullable final Instant from, @Nullable final Instant to) throws IOException {
     @SuppressWarnings("unchecked")
     Collection<Long> mids = (Collection<Long>) measurement.getObjectProp(TimeSeriesRecord.IDS_PROP);
     @SuppressWarnings("unchecked")
-    long fromMs = from.toEpochMilli();
-    long toMs = to.toEpochMilli();
+    long fromMs;
+    if (from == null) {
+      fromMs = Long.MIN_VALUE;
+    } else {
+      fromMs = from.toEpochMilli();
+    }
+    long toMs;
+    if (to == null) {
+      toMs = Long.MAX_VALUE;
+    } else {
+      toMs = to.toEpochMilli();
+    }
     AvroCloseableIterable<Observation> observations = getObservations();
     Iterable<Observation> filtered = Iterables.filter(observations, (Observation row) -> {
       long ts = row.getRelTimeStamp();
