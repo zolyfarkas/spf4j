@@ -69,6 +69,9 @@ public final class Types {
       case DATE:
         result = Schemas.dateString();
         break;
+      case TIMESTAMP:
+        result = Schemas.instantString();
+        break;
       case BINARY:
         int precision = dataType.getPrecision();
         if (precision > 0) {
