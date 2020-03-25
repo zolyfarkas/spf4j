@@ -71,10 +71,11 @@ public final class CsvDecoder extends ParsingDecoder {
     parser.advance(Symbol.NULL);
     CsvReader.TokenType tok = csvReader.current();
     if (tok == CsvReader.TokenType.ELEMENT) {
-      boolean notNull = !CharSequences.equals("", csvReader.getElement());
+      CharSequence element = csvReader.getElement();
+      boolean notNull = !CharSequences.equals("", element);
       parseNextCsv();
       if (notNull) {
-        throw new AvroTypeException("Expected null, not " + csvReader.getElement());
+        throw new AvroTypeException("Expected null, not " + element);
       }
     } else {
       throw new AvroTypeException("Expected boolean, not " + tok);
@@ -86,7 +87,15 @@ public final class CsvDecoder extends ParsingDecoder {
     parser.advance(Symbol.BOOLEAN);
     CsvReader.TokenType tok = csvReader.current();
     if (tok == CsvReader.TokenType.ELEMENT) {
-      boolean result = CharSequences.equals("true", csvReader.getElement());
+      boolean result;
+      CharSequence element = csvReader.getElement();
+      if (CharSequences.equals("true", element)) {
+        result = true;
+      } else if (CharSequences.equals("false", element)) {
+        result = false;
+      } else {
+        throw new AvroTypeException("Expected true or false, not " + element);
+      }
       parseNextCsv();
       return result;
     } else {
