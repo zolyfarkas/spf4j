@@ -131,6 +131,12 @@ Callable<?> monitoredCallable =
    * [csv](https://demo.spf4j.org/metrics/cluster/gc_time?_Accept=text/csv)
    * [prometheus](https://demo.spf4j.org/metrics?_Accept=text/plain&from=-PT1H)
 
+  You can also query your metrics more precisely:
+
+   * Get the metrics for the [last hour](https://demo.spf4j.org/metrics/cluster/gc_time?from=-PT1H).
+   * Get the metrics for the [last 10 hours](https://demo.spf4j.org/metrics/cluster/gc_time?from=-PT10H)
+   * Get the metrics for the [last 10 hours aggregated hourly](https://demo.spf4j.org/metrics/cluster/gc_time?from=-PT10H&aggDuration=PT1H)
+
 #### Via JMX
 
  invoke org.spf4j.perf.impl.ms.tsdb.TSDBMeasurementStore/flush to flush all measurements from memory to disk.
