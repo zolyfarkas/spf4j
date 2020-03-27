@@ -58,94 +58,98 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
 <span class="nc" id="L58">    this.dataSet = dataSet;</span>
 <span class="nc" id="L59">  }</span>
 
+  public AvroDataSet&lt;? extends IndexedRecord&gt; getDataSet() {
+<span class="nc" id="L62">    return dataSet;</span>
+  }
+  
   @Override
   public Statistic getStatistic() {
-<span class="nc" id="L63">    long rowCountStatistic = dataSet.getRowCountStatistic();</span>
-<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (rowCountStatistic &gt;= 0) {</span>
-<span class="nc" id="L65">      return Statistics.of(rowCountStatistic, Collections.EMPTY_LIST);</span>
+<span class="nc" id="L67">    long rowCountStatistic = dataSet.getRowCountStatistic();</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">    if (rowCountStatistic &gt;= 0) {</span>
+<span class="nc" id="L69">      return Statistics.of(rowCountStatistic, Collections.EMPTY_LIST);</span>
     } else {
-<span class="nc" id="L67">      return Statistics.of(Collections.EMPTY_LIST);</span>
+<span class="nc" id="L71">      return Statistics.of(Collections.EMPTY_LIST);</span>
     }
   }
 
   private  CloseableIterable&lt;IndexedRecord&gt; project(final CloseableIterable&lt;IndexedRecord&gt; iterable,
           @Nullable final int[] projection) {
-<span class="nc bnc" id="L73" title="All 2 branches missed.">    if (projection == null) {</span>
-<span class="nc" id="L74">      return iterable;</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">    if (projection == null) {</span>
+<span class="nc" id="L78">      return iterable;</span>
     }
-<span class="nc" id="L76">    Schema schema = getComponentType();</span>
-<span class="nc" id="L77">    Schema nschema = Schemas.projectRecord(schema, projection);</span>
-<span class="nc" id="L78">    Iterable&lt;IndexedRecord&gt; transformed = Iterables.transform(iterable, (x) -&gt; Schemas.project(nschema, schema, x));</span>
-<span class="nc" id="L79">    return CloseableIterable.from(transformed, iterable);</span>
+<span class="nc" id="L80">    Schema schema = getComponentType();</span>
+<span class="nc" id="L81">    Schema nschema = Schemas.projectRecord(schema, projection);</span>
+<span class="nc" id="L82">    Iterable&lt;IndexedRecord&gt; transformed = Iterables.transform(iterable, (x) -&gt; Schemas.project(nschema, schema, x));</span>
+<span class="nc" id="L83">    return CloseableIterable.from(transformed, iterable);</span>
   }
 
   private void deprecations(@Nullable final int[] projection,
           final DataContext ctx) {
-<span class="nc" id="L84">    Schema schema = getComponentType();</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (projection == null) {</span>
-<span class="nc" id="L86">       EmbededDataContext.addDeprecations(schema, ctx);</span>
+<span class="nc" id="L88">    Schema schema = getComponentType();</span>
+<span class="nc bnc" id="L89" title="All 2 branches missed.">    if (projection == null) {</span>
+<span class="nc" id="L90">       EmbededDataContext.addDeprecations(schema, ctx);</span>
     } else {
-<span class="nc" id="L88">       Schema nschema = Schemas.projectRecord(schema, projection);</span>
-<span class="nc" id="L89">       EmbededDataContext.addDeprecations(nschema, ctx);</span>
+<span class="nc" id="L92">       Schema nschema = Schemas.projectRecord(schema, projection);</span>
+<span class="nc" id="L93">       EmbededDataContext.addDeprecations(nschema, ctx);</span>
     }
-<span class="nc" id="L91">  }</span>
+<span class="nc" id="L95">  }</span>
 
 
   @Override
   @SuppressWarnings({&quot;unchecked&quot;, &quot;unchecked&quot;})
   public Enumerable&lt;Object[]&gt; scan(final DataContext root, final List&lt;RexNode&gt; filters,
           @Nullable final int[] projection) {
-<span class="nc" id="L98">    LOG.debug(&quot;Filtered+Projected Table scan of {} with filter {} and projection {}&quot;, dataSet.getName(),</span>
+<span class="nc" id="L102">    LOG.debug(&quot;Filtered+Projected Table scan of {} with filter {} and projection {}&quot;, dataSet.getName(),</span>
             filters, projection);
-<span class="nc" id="L100">    deprecations(projection, root);</span>
-<span class="nc" id="L101">    RelDataType rowType = this.getRowType(root.getTypeFactory());</span>
-<span class="nc" id="L102">    Long timeoutMillis = DataContext.Variable.TIMEOUT.get(root);</span>
-<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (timeoutMillis == null) {</span>
-<span class="nc" id="L104">      timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L104">    deprecations(projection, root);</span>
+<span class="nc" id="L105">    RelDataType rowType = this.getRowType(root.getTypeFactory());</span>
+<span class="nc" id="L106">    Long timeoutMillis = DataContext.Variable.TIMEOUT.get(root);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (timeoutMillis == null) {</span>
+<span class="nc" id="L108">      timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);</span>
     }
-<span class="nc" id="L106">    SecurityContext sc = (SecurityContext) root.get(&quot;security-context&quot;);</span>
-<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (sc == null) {</span>
-<span class="nc" id="L108">      sc = SecurityContext.NOAUTH;</span>
+<span class="nc" id="L110">    SecurityContext sc = (SecurityContext) root.get(&quot;security-context&quot;);</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">    if (sc == null) {</span>
+<span class="nc" id="L112">      sc = SecurityContext.NOAUTH;</span>
     }
     CloseableIterable&lt;IndexedRecord&gt; it;
-<span class="nc" id="L111">    Set&lt;AvroDataSet.Feature&gt; features = dataSet.getFeatures();</span>
-<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (features.contains(AvroDataSet.Feature.FILTERABLE)) {</span>
-<span class="nc" id="L113">      SqlRowPredicate predicate = null;</span>
+<span class="nc" id="L115">    Set&lt;AvroDataSet.Feature&gt; features = dataSet.getFeatures();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    if (features.contains(AvroDataSet.Feature.FILTERABLE)) {</span>
+<span class="nc" id="L117">      SqlRowPredicate predicate = null;</span>
       try {
-<span class="nc bnc" id="L115" title="All 2 branches missed.">         if (!filters.isEmpty()) {</span>
-<span class="nc" id="L116">           predicate = new SqlRowPredicate(filters, rowType);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">         if (!filters.isEmpty()) {</span>
+<span class="nc" id="L120">           predicate = new SqlRowPredicate(filters, rowType);</span>
          }
-<span class="nc" id="L118">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L119">        LOG.debug(&quot;Unable to resolve filter {}&quot;, filters, ex);</span>
-<span class="nc" id="L120">      }</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">      if (predicate != null) {</span>
-<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
-<span class="nc" id="L123">          List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
-<span class="nc" id="L124">          it = dataSet.getData(predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
-<span class="nc" id="L125">        } else {</span>
-<span class="nc" id="L126">          it = project(dataSet.getData(predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
+<span class="nc" id="L122">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L123">        LOG.debug(&quot;Unable to resolve filter {}&quot;, filters, ex);</span>
+<span class="nc" id="L124">      }</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">      if (predicate != null) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">        if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
+<span class="nc" id="L127">          List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
+<span class="nc" id="L128">          it = dataSet.getData(predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
+<span class="nc" id="L129">        } else {</span>
+<span class="nc" id="L130">          it = project(dataSet.getData(predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
         }
-<span class="nc" id="L128">        filters.clear();</span>
-<span class="nc bnc" id="L129" title="All 2 branches missed.">      } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
-<span class="nc" id="L130">        List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
-<span class="nc" id="L131">        it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
-<span class="nc" id="L132">      } else {</span>
-<span class="nc" id="L133">        it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
+<span class="nc" id="L132">        filters.clear();</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">      } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
+<span class="nc" id="L134">        List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
+<span class="nc" id="L135">        it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
+<span class="nc" id="L136">      } else {</span>
+<span class="nc" id="L137">        it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
       }
-<span class="nc bnc" id="L135" title="All 2 branches missed.">    } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
-<span class="nc" id="L136">      List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
-<span class="nc" id="L137">      it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
-<span class="nc" id="L138">    } else {</span>
-<span class="nc" id="L139">      it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">    } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {</span>
+<span class="nc" id="L140">      List&lt;String&gt; projectionString = SqlConverters.projectionToString(projection, rowType);</span>
+<span class="nc" id="L141">      it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);</span>
+<span class="nc" id="L142">    } else {</span>
+<span class="nc" id="L143">      it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);</span>
     }
-<span class="nc bnc" id="L141" title="All 2 branches missed.">    return new AvroEnumerable(projection == null ? rowType.getFieldCount() : projection.length, root, () -&gt; {</span>
-<span class="nc" id="L142">        return CloseableIterator.from((Iterator&lt;IndexedRecord&gt;) it.iterator(), it);</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">    return new AvroEnumerable(projection == null ? rowType.getFieldCount() : projection.length, root, () -&gt; {</span>
+<span class="nc" id="L146">        return CloseableIterator.from((Iterator&lt;IndexedRecord&gt;) it.iterator(), it);</span>
       });
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L148">    return &quot;AvroDataSetAsProjectableFilterableTable{&quot; + &quot;dataSet=&quot; + dataSet + '}';</span>
+<span class="nc" id="L152">    return &quot;AvroDataSetAsProjectableFilterableTable{&quot; + &quot;dataSet=&quot; + dataSet + '}';</span>
   }
 
 }

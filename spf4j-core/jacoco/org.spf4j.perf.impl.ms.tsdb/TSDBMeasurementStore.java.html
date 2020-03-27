@@ -35,20 +35,13 @@ import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.File;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
-import org.apache.avro.Schema;
-import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.jmx.JmxExport;
-import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.tsdb2.TSDBQuery;
 import org.spf4j.tsdb2.TSDBWriter;
-import org.spf4j.tsdb2.avro.ColumnDef;
-import org.spf4j.tsdb2.avro.TableDef;
-import org.spf4j.tsdb2.avro.Type;
+import org.spf4j.tsdb2.TableDefs;
 
 /**
  *
@@ -60,92 +53,64 @@ public final class TSDBMeasurementStore
 
   private final TSDBWriter database;
 
-<span class="fc" id="L63">  public TSDBMeasurementStore(final File databaseFile) throws IOException {</span>
-<span class="fc" id="L64">    this.database = new TSDBWriter(databaseFile, 1024, &quot;&quot;, false);</span>
-<span class="fc" id="L65">  }</span>
+  private final TSDBMeasurementStoreReader reader;
+
+<span class="fc" id="L58">  public TSDBMeasurementStore(final File databaseFile) throws IOException {</span>
+<span class="fc" id="L59">    this.database = new TSDBWriter(databaseFile, 1024, &quot;&quot;, false);</span>
+<span class="fc" id="L60">    reader = new TSDBMeasurementStoreReader(databaseFile);</span>
+<span class="fc" id="L61">  }</span>
 
   @Override
   public long alocateMeasurements(final MeasurementsInfo measurement,
           final int sampleTimeMillis) throws IOException {
-<span class="fc" id="L70">    int numberOfMeasurements = measurement.getNumberOfMeasurements();</span>
-<span class="fc" id="L71">    List&lt;ColumnDef&gt; columns = new ArrayList&lt;&gt;(numberOfMeasurements);</span>
-<span class="fc bfc" id="L72" title="All 2 branches covered.">    for (int i = 0; i &lt; numberOfMeasurements; i++) {</span>
-<span class="fc" id="L73">      String mname = measurement.getMeasurementName(i);</span>
-<span class="fc" id="L74">      String unit = measurement.getMeasurementUnit(i);</span>
-<span class="fc" id="L75">      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, &quot;&quot;);</span>
-<span class="fc" id="L76">      columns.add(cd);</span>
-    }
-<span class="fc" id="L78">    return database.writeTableDef(new TableDef(-1,</span>
-<span class="fc" id="L79">            measurement.getMeasuredEntity().toString(),</span>
-<span class="fc" id="L80">            &quot;&quot;, columns, sampleTimeMillis, measurement.getMeasurementType()));</span>
+
+<span class="fc" id="L67">    return database.writeTableDef(TableDefs.from(measurement, sampleTimeMillis, -1L));</span>
   }
 
   @Override
   public void saveMeasurements(final long tableId,
           final long timeStampMillis, final long... measurements)
           throws IOException {
-<span class="fc" id="L87">    database.writeDataRow(tableId, timeStampMillis, measurements);</span>
-<span class="fc" id="L88">  }</span>
+<span class="fc" id="L74">    database.writeDataRow(tableId, timeStampMillis, measurements);</span>
+<span class="fc" id="L75">  }</span>
 
   @Override
   public void close() throws IOException {
-<span class="fc" id="L92">    database.close();</span>
-<span class="fc" id="L93">  }</span>
+<span class="nc" id="L79">    database.close();</span>
+<span class="nc" id="L80">  }</span>
 
   @JmxExport(description = &quot;flush out buffers&quot;)
   @Override
   public void flush() throws IOException {
-<span class="fc" id="L98">    database.flush();</span>
-<span class="fc" id="L99">  }</span>
+<span class="fc" id="L85">    database.flush();</span>
+<span class="fc" id="L86">  }</span>
 
   @JmxExport(description = &quot;list all tables&quot;)
   public String[] getTables() throws IOException {
-<span class="nc" id="L103">    final Set&lt;String&gt; metrics = TSDBQuery.getAllTables(database.getFile()).keySet();</span>
-<span class="nc" id="L104">    return metrics.toArray(new String[metrics.size()]);</span>
+<span class="nc" id="L90">    final Set&lt;String&gt; metrics = TSDBQuery.getAllTables(database.getFile()).keySet();</span>
+<span class="nc" id="L91">    return metrics.toArray(new String[metrics.size()]);</span>
   }
 
   @JmxExport(description = &quot;getTable As Csv&quot;)
   public String getTableAsCsv(@JmxExport(&quot;tableName&quot;) final String tableName) throws IOException {
-<span class="nc" id="L109">    StringBuilder result = new StringBuilder(1024);</span>
-<span class="nc" id="L110">    TSDBQuery.writeAsCsv(result, database.getFile(), tableName);</span>
-<span class="nc" id="L111">    return result.toString();</span>
+<span class="nc" id="L96">    StringBuilder result = new StringBuilder(1024);</span>
+<span class="nc" id="L97">    TSDBQuery.writeAsCsv(result, database.getFile(), tableName);</span>
+<span class="nc" id="L98">    return result.toString();</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L116">    return &quot;TSDBMeasurementStore{&quot; + &quot;database=&quot; + database + '}';</span>
+<span class="fc" id="L103">    return &quot;TSDBMeasurementStore{&quot; + &quot;database=&quot; + database + '}';</span>
   }
 
   public TSDBWriter getDBWriter() {
-<span class="fc" id="L120">    return database;</span>
+<span class="nc" id="L107">    return database;</span>
   }
 
   @Override
-  public Set&lt;String&gt; getMeasurements() throws IOException {
-<span class="nc" id="L125">    return TSDBQuery.getAllTables(database.getFile()).keySet();</span>
+  public MeasurementStoreQuery query() {
+<span class="nc" id="L112">    return reader;</span>
   }
-
-  @Override
-  public AvroCloseableIterable&lt;TimeSeriesRecord&gt; getMeasurementData(final String measurement,
-          final Instant from, final Instant to) throws IOException {
-<span class="nc" id="L131">    return TSDBQuery.getTimeSeriesData(database.getFile(), measurement, from.toEpochMilli(), to.toEpochMilli());</span>
-  }
-
-  @Override
-  public boolean readable() {
-<span class="nc" id="L136">    return true;</span>
-  }
-
-  @Override
-  public Schema getMeasurementSchema(final String measurement) throws IOException {
-    List&lt;TableDef&gt; tableDef;
-<span class="nc" id="L142">    tableDef = TSDBQuery.getTableDef(database.getFile(), measurement);</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">    if (tableDef.isEmpty()) {</span>
-<span class="nc" id="L144">      return null;</span>
-    }
-<span class="nc" id="L146">    return TSDBQuery.createSchema(tableDef.get(0));</span>
-  }
-
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.impl;
 
+import org.spf4j.perf.impl.acc.DirectStoreAccumulator;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import org.spf4j.base.Pair;
@@ -38,6 +39,7 @@ import org.spf4j.concurrent.UnboundedLoadingCache;
 import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
  /*
  * Copyright (c) 2001, Zoltan Farkas All Rights Reserved.
@@ -63,14 +65,20 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
     private final LoadingCache&lt;Object, MeasurementRecorder&gt; recorders;
 
     public DirectRecorderSource(final Object forWhat, final String description,
-<span class="fc" id="L66">            final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
-<span class="fc" id="L67">        recorders = new UnboundedLoadingCache(16,</span>
-                new CreateDirectRecorder(forWhat, description, uom, sampleTimeMillis, store));
-<span class="fc" id="L69">    }</span>
+            final String uom, final int sampleTimeMillis, final MeasurementStore store) {
+<span class="fc" id="L69">      this(forWhat, description, uom, sampleTimeMillis, store, MeasurementType.UNTYPED);</span>
+<span class="fc" id="L70">    }</span>
+
+    public DirectRecorderSource(final Object forWhat, final String description,
+            final String uom, final int sampleTimeMillis, final MeasurementStore store,
+<span class="fc" id="L74">            final MeasurementType measurementType) {</span>
+<span class="fc" id="L75">        recorders = new UnboundedLoadingCache(16,</span>
+                new CreateDirectRecorder(forWhat, description, uom, sampleTimeMillis, store, measurementType));
+<span class="fc" id="L77">    }</span>
 
     @Override
     public MeasurementRecorder getRecorder(final Object forWhat) {
-<span class="fc" id="L73">        return recorders.getUnchecked(forWhat);</span>
+<span class="fc" id="L81">        return recorders.getUnchecked(forWhat);</span>
     }
 
 
@@ -81,26 +89,29 @@ public final class DirectRecorderSource implements MeasurementRecorderSource {
         private final String uom;
         private final int sampleTimeMillis;
         private final MeasurementStore store;
+        private final MeasurementType measurementType;
 
         CreateDirectRecorder(final Object forWhat, final String description,
-<span class="fc" id="L86">                final String uom, final int sampleTimeMillis, final MeasurementStore store) {</span>
-<span class="fc" id="L87">            this.forWhat = forWhat;</span>
-<span class="fc" id="L88">            this.description = description;</span>
-<span class="fc" id="L89">            this.uom = uom;</span>
-<span class="fc" id="L90">            this.sampleTimeMillis = sampleTimeMillis;</span>
-<span class="fc" id="L91">            this.store = store;</span>
-<span class="fc" id="L92">        }</span>
+                final String uom, final int sampleTimeMillis, final MeasurementStore store,
+<span class="fc" id="L96">                final MeasurementType measurementType) {</span>
+<span class="fc" id="L97">            this.forWhat = forWhat;</span>
+<span class="fc" id="L98">            this.description = description;</span>
+<span class="fc" id="L99">            this.uom = uom;</span>
+<span class="fc" id="L100">            this.sampleTimeMillis = sampleTimeMillis;</span>
+<span class="fc" id="L101">            this.store = store;</span>
+<span class="fc" id="L102">            this.measurementType = measurementType;</span>
+<span class="fc" id="L103">        }</span>
 
         @Override
         public MeasurementRecorder load(final Object key) {
-<span class="fc" id="L96">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
-                    uom, sampleTimeMillis, store);
+<span class="fc" id="L107">            return new DirectStoreAccumulator(Pair.of(forWhat, key), description,</span>
+                    uom, sampleTimeMillis, store, measurementType);
         }
     }
 
     @Override
     public String toString() {
-<span class="nc" id="L103">        return &quot;DirectRecorderSource{&quot; + &quot;recorders=&quot; + recorders + '}';</span>
+<span class="nc" id="L114">        return &quot;DirectRecorderSource{&quot; + &quot;recorders=&quot; + recorders + '}';</span>
     }
 
 }

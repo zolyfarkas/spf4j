@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Charts2.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.tsdb2</a> &gt; <span class="el_source">Charts2.java</span></div><h1>Charts2.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.tsdb2;
+
+import com.google.common.primitives.Longs;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import org.apache.avro.Schema;
+import org.jfree.chart.JFreeChart;
+import org.spf4j.base.Arrays;
+import org.spf4j.base.Pair;
+import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.perf.MeasurementStoreQuery;
+import org.spf4j.perf.TimeSeriesRecord;
+import static org.spf4j.perf.impl.chart.Charts.fillGaps;
+import org.spf4j.tsdb2.avro.Observation;
+
+/**
+ *
+ * @author zoly
+ */
+public final class Charts2 {
+
+  private Charts2() {
+  }
+
+  public static boolean canGenerateMinMaxAvgCount(final Schema info) {
+<span class="nc" id="L66">    int found = 0;</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    for (Schema.Field colDef : info.getFields()) {</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">      switch (colDef.name()) {</span>
+        case &quot;min&quot;:
+        case &quot;max&quot;:
+        case &quot;total&quot;:
+        case &quot;count&quot;:
+<span class="nc" id="L73">          found++;</span>
+<span class="nc" id="L74">          break;</span>
+        default:
+      }
+<span class="nc" id="L77">    }</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">    return found &gt;= 4;</span>
+  }
+
+  public static boolean canGenerateCount(final Schema info) {
+<span class="nc" id="L82">    int found = 0;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">    for (Schema.Field colDef : info.getFields()) {</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">      switch (colDef.name()) {</span>
+        case &quot;count&quot;:
+<span class="nc" id="L86">          found++;</span>
+<span class="nc" id="L87">          break;</span>
+        default:
+      }
+<span class="nc" id="L90">    }</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">    return found &gt;= 1;</span>
+  }
+
+  @SuppressFBWarnings(&quot;STT_STRING_PARSING_A_FIELD&quot;)
+  public static boolean canGenerateHeatChart(final Schema info) {
+<span class="nc bnc" id="L96" title="All 2 branches missed.">    for (Schema.Field colDef : info.getFields()) {</span>
+<span class="nc" id="L97">      String colName = colDef.name();</span>
+<span class="nc bnc" id="L98" title="All 4 branches missed.">      if (colName.startsWith(&quot;Q&quot;) &amp;&amp; colName.contains(&quot;_&quot;)) {</span>
+<span class="nc" id="L99">        return true;</span>
+      }
+<span class="nc" id="L101">    }</span>
+<span class="nc" id="L102">    return false;</span>
+  }
+
+  public static JFreeChart createHeatJFreeChart(final MeasurementStoreQuery query,
+          final Schema table, final long startTime,
+          final long endTime, final int aggTimeMillis) throws IOException {
+<span class="nc" id="L108">    TimeSeries data = readToTs(query, table, startTime, endTime, aggTimeMillis);</span>
+<span class="nc" id="L109">    return createHeatJFreeChart(data, table, aggTimeMillis);</span>
+  }
+
+  public static TimeSeries readToTs(final MeasurementStoreQuery query, final Schema table,
+          final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
+<span class="nc" id="L114">    TLongList ts = new TLongArrayList();</span>
+<span class="nc" id="L115">    List&lt;long[]&gt; values = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">    try (AvroCloseableIterable&lt;Observation&gt; data</span>
+            = aggTimeMillis &lt;= 0
+<span class="nc" id="L118">            ? query.getObservations(table, Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime))</span>
+<span class="nc" id="L119">            : query.getAggregatedObservations(table, Instant.ofEpochMilli(startTime), Instant.ofEpochMilli(endTime),</span>
+                    aggTimeMillis, TimeUnit.MILLISECONDS)) {
+<span class="nc bnc" id="L121" title="All 2 branches missed.">      for (Observation rec : data) {</span>
+<span class="nc" id="L122">        ts.add(rec.getRelTimeStamp());</span>
+<span class="nc" id="L123">        values.add(Longs.toArray(rec.getData()));</span>
+<span class="nc" id="L124">      }</span>
+    }
+<span class="nc" id="L126">    return new TimeSeries(ts.toArray(), values.toArray(new long[values.size()][]));</span>
+  }
+
+  public static String[] getDataColumnNames(final Schema info) {
+<span class="nc" id="L130">    List&lt;Schema.Field&gt; fields = info.getFields();</span>
+<span class="nc" id="L131">    int size = fields.size();</span>
+<span class="nc" id="L132">    String[] result = new String[size - 1];</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">    for (int i = 1, j = 0; i &lt; size; i++, j++) {</span>
+<span class="nc" id="L134">      result[j] = fields.get(i).name();</span>
+    }
+<span class="nc" id="L136">    return result;</span>
+  }
+
+  public static JFreeChart createHeatJFreeChart(final TimeSeries data, final Schema info, final int aggTime) {
+<span class="nc" id="L140">    int sampleTime = TimeSeriesRecord.getFrequencyMillis(info);</span>
+<span class="nc" id="L141">    Pair&lt;long[], double[][]&gt; mData = fillGaps(data.getTimeStamps(),</span>
+<span class="nc" id="L142">            data.getValues(), Math.max(sampleTime, aggTime), info.getFields().size() - 1);</span>
+<span class="nc" id="L143">    return org.spf4j.perf.impl.chart.Charts.createHeatJFreeChart(getDataColumnNames(info),</span>
+<span class="nc" id="L144">            mData.getSecond(), data.getTimeStamps()[0], sampleTime,</span>
+<span class="nc" id="L145">            TimeSeriesRecord.getUnit(info.getField(&quot;total&quot;).schema()), &quot;Measurements distribution for &quot;</span>
+<span class="nc" id="L146">            + info.getName() + &quot;, sampleTime &quot; + sampleTime + &quot;ms, generated by spf4j&quot;);</span>
+  }
+
+  public static JFreeChart createMinMaxAvgJFreeChart(final TimeSeries data, final Schema info) {
+<span class="nc" id="L150">    long[][] vals = data.getValues();</span>
+<span class="nc" id="L151">    double[] min = Arrays.getColumnAsDoubles(vals, info.getField(&quot;min&quot;).pos() - 1);</span>
+<span class="nc" id="L152">    double[] max = Arrays.getColumnAsDoubles(vals, info.getField(&quot;max&quot;).pos() - 1);</span>
+<span class="nc" id="L153">    final int totalColumnIndex = info.getField(&quot;total&quot;).pos() - 1;</span>
+<span class="nc" id="L154">    double[] total = Arrays.getColumnAsDoubles(vals, totalColumnIndex);</span>
+<span class="nc" id="L155">    double[] count = Arrays.getColumnAsDoubles(vals, info.getField(&quot;count&quot;).pos() - 1);</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">    for (int i = 0; i &lt; count.length; i++) {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">      if (count[i] == 0) {</span>
+<span class="nc" id="L158">        min[i] = 0;</span>
+<span class="nc" id="L159">        max[i] = 0;</span>
+      }
+    }
+<span class="nc" id="L162">    int sampleTime = TimeSeriesRecord.getFrequencyMillis(info);</span>
+<span class="nc" id="L163">    long[] timestamps = data.getTimeStamps();</span>
+<span class="nc" id="L164">    return org.spf4j.perf.impl.chart.Charts.createTimeSeriesJFreeChart(&quot;Min,Max,Avg chart for &quot;</span>
+<span class="nc" id="L165">            + info.getName() + &quot;, sampleTime &quot; + sampleTime + &quot;ms, generated by spf4j&quot;, timestamps,</span>
+            new String[]{&quot;min&quot;, &quot;max&quot;, &quot;avg&quot;},
+<span class="nc" id="L167">            TimeSeriesRecord.getUnit(info.getField(&quot;total&quot;).schema()),</span>
+<span class="nc" id="L168">            new double[][]{min, max, Arrays.divide(total, count)});</span>
+  }
+
+  public static JFreeChart createMinMaxAvgJFreeChart(final MeasurementStoreQuery query, final Schema table,
+          final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
+<span class="nc" id="L173">    TimeSeries data = readToTs(query, table, startTime, endTime, aggTimeMillis);</span>
+<span class="nc" id="L174">    return createMinMaxAvgJFreeChart(data, table);</span>
+  }
+
+  public static JFreeChart createCountJFreeChart(final TimeSeries data, final Schema info) {
+<span class="nc" id="L178">    long[][] vals = data.getValues();</span>
+<span class="nc" id="L179">    double[] count = Arrays.getColumnAsDoubles(vals, info.getField(&quot;count&quot;).pos() - 1);</span>
+<span class="nc" id="L180">    long[] timestamps = data.getTimeStamps();</span>
+<span class="nc" id="L181">    int sampleTime = TimeSeriesRecord.getFrequencyMillis(info);</span>
+<span class="nc" id="L182">    return org.spf4j.perf.impl.chart.Charts.createTimeSeriesJFreeChart(&quot;count chart for &quot;</span>
+<span class="nc" id="L183">            + info.getName() + &quot;, sampleTime &quot; + sampleTime + &quot; ms, generated by spf4j&quot;, timestamps,</span>
+            new String[]{&quot;count&quot;}, &quot;count&quot;, new double[][]{count});
+  }
+
+  public static JFreeChart createCountJFreeChart(final MeasurementStoreQuery query,
+          final Schema info, final long startTime,
+          final long endTime, final int aggTimeMillis) throws IOException {
+<span class="nc" id="L190">    TimeSeries data =  readToTs(query, info, startTime, endTime, aggTimeMillis);</span>
+<span class="nc" id="L191">    return createCountJFreeChart(data, info);</span>
+  }
+
+  public static List&lt;JFreeChart&gt; createJFreeCharts(final TimeSeries data, final Schema info) {
+<span class="nc" id="L195">    long[][] vals = data.getValues();</span>
+<span class="nc" id="L196">    Map&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt; measurementsByUom = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L197">    int i = 0;</span>
+<span class="nc" id="L198">    Iterator&lt;Schema.Field&gt; it = info.getFields().iterator();</span>
+<span class="nc" id="L199">    it.next();</span>
+<span class="nc bnc" id="L200" title="All 2 branches missed.">    while (it.hasNext()) {</span>
+<span class="nc" id="L201">      Schema.Field col = it.next();</span>
+<span class="nc" id="L202">      String uom = TimeSeriesRecord.getUnit(col.schema());</span>
+<span class="nc" id="L203">      Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt; meas = measurementsByUom.get(uom);</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">      if (meas == null) {</span>
+<span class="nc" id="L205">        meas = Pair.of((List&lt;String&gt;) new ArrayList&lt;String&gt;(), (List&lt;double[]&gt;) new ArrayList&lt;double[]&gt;());</span>
+<span class="nc" id="L206">        measurementsByUom.put(uom, meas);</span>
+      }
+<span class="nc" id="L208">      meas.getFirst().add(col.name());</span>
+<span class="nc" id="L209">      meas.getSecond().add(Arrays.getColumnAsDoubles(vals, i));</span>
+<span class="nc" id="L210">      i++;</span>
+<span class="nc" id="L211">    }</span>
+<span class="nc" id="L212">    long[] timestamps = data.getTimeStamps();</span>
+<span class="nc" id="L213">    int sampleTime = TimeSeriesRecord.getFrequencyMillis(info);</span>
+<span class="nc" id="L214">    List&lt;JFreeChart&gt; result = new ArrayList&lt;&gt;(measurementsByUom.size());</span>
+<span class="nc bnc" id="L215" title="All 2 branches missed.">    for (Map.Entry&lt;String, Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt;&gt; entry : measurementsByUom.entrySet()) {</span>
+<span class="nc" id="L216">      Pair&lt;List&lt;String&gt;, List&lt;double[]&gt;&gt; p = entry.getValue();</span>
+<span class="nc" id="L217">      final List&lt;String&gt; measurementNames = p.getFirst();</span>
+<span class="nc" id="L218">      final List&lt;double[]&gt; measurements = p.getSecond();</span>
+<span class="nc" id="L219">      result.add(org.spf4j.perf.impl.chart.Charts.createTimeSeriesJFreeChart(&quot;chart for &quot;</span>
+<span class="nc" id="L220">              + info.getName() + &quot;, sampleTime &quot; + sampleTime</span>
+              + &quot; ms, generated by spf4j&quot;, timestamps,
+<span class="nc" id="L222">              measurementNames.toArray(new String[measurementNames.size()]), entry.getKey(),</span>
+<span class="nc" id="L223">              measurements.toArray(new double[measurements.size()][])));</span>
+<span class="nc" id="L224">    }</span>
+<span class="nc" id="L225">    return result;</span>
+  }
+
+  public static List&lt;JFreeChart&gt; createJFreeCharts(final MeasurementStoreQuery query, final Schema td,
+          final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
+<span class="nc" id="L230">    TimeSeries data = readToTs(query, td, startTime, endTime, aggTimeMillis);</span>
+<span class="nc" id="L231">    return createJFreeCharts(data, td);</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

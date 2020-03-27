@@ -251,224 +251,229 @@
 <a class="jxr_linenumber" name="L243" href="#L243">243</a>       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);
 <a class="jxr_linenumber" name="L244" href="#L244">244</a>       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);
 <a class="jxr_linenumber" name="L245" href="#L245">245</a>       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);
-<a class="jxr_linenumber" name="L246" href="#L246">246</a>       <strong class="jxr_keyword">if</strong> (folder != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L247" href="#L247">247</a>         chooser.setCurrentDirectory(folder);
-<a class="jxr_linenumber" name="L248" href="#L248">248</a>       }
-<a class="jxr_linenumber" name="L249" href="#L249">249</a> 
-<a class="jxr_linenumber" name="L250" href="#L250">250</a>       <strong class="jxr_keyword">int</strong> returnVal = chooser.showOpenDialog(<strong class="jxr_keyword">this</strong>);
-<a class="jxr_linenumber" name="L251" href="#L251">251</a> 
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>       <strong class="jxr_keyword">if</strong> (returnVal == JFileChooser.APPROVE_OPTION) {
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>         File [] files = chooser.getSelectedFiles();
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>         <strong class="jxr_keyword">for</strong> (File file : files) {
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>           <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>             openFile(file);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>           } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedIOException(ex);
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>           }
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>         }
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>       }
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>     }<em class="jxr_comment">//GEN-LAST:event_openMenuItemActionPerformed</em>
-<a class="jxr_linenumber" name="L263" href="#L263">263</a> 
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L265" href="#L265">265</a> <em class="jxr_javadoccomment">   * Create an Edit menu to support cut/copy/paste.</em>
-<a class="jxr_linenumber" name="L266" href="#L266">266</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>   <strong class="jxr_keyword">public</strong> JMenuBar createContextMenuBar() {
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>     JMenuItem menuItem = <strong class="jxr_keyword">null</strong>;
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>     JMenuBar menuBar = <strong class="jxr_keyword">new</strong> JMenuBar();
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>     JMenu mainMenu = <strong class="jxr_keyword">new</strong> JMenu(<span class="jxr_string">"Edit"</span>);
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>     mainMenu.setMnemonic(KeyEvent.VK_E);
-<a class="jxr_linenumber" name="L272" href="#L272">272</a> 
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>     menuItem = <strong class="jxr_keyword">new</strong> JMenuItem(<strong class="jxr_keyword">new</strong> DefaultEditorKit.CutAction());
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>     menuItem.setText(<span class="jxr_string">"Cut"</span>);
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>     menuItem.setMnemonic(KeyEvent.VK_X);
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>     mainMenu.add(menuItem);
-<a class="jxr_linenumber" name="L277" href="#L277">277</a> 
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>     menuItem = <strong class="jxr_keyword">new</strong> JMenuItem(<strong class="jxr_keyword">new</strong> DefaultEditorKit.CopyAction());
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>     menuItem.setText(<span class="jxr_string">"Copy"</span>);
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>     menuItem.setMnemonic(KeyEvent.VK_C);
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>     mainMenu.add(menuItem);
-<a class="jxr_linenumber" name="L282" href="#L282">282</a> 
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>     menuItem = <strong class="jxr_keyword">new</strong> JMenuItem(<strong class="jxr_keyword">new</strong> DefaultEditorKit.PasteAction());
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>     menuItem.setText(<span class="jxr_string">"Paste"</span>);
-<a class="jxr_linenumber" name="L285" href="#L285">285</a>     menuItem.setMnemonic(KeyEvent.VK_V);
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>     mainMenu.add(menuItem);
-<a class="jxr_linenumber" name="L287" href="#L287">287</a> 
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     menuBar.add(mainMenu);
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>     <strong class="jxr_keyword">return</strong> menuBar;
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>   }
-<a class="jxr_linenumber" name="L291" href="#L291">291</a> 
+<a class="jxr_linenumber" name="L246" href="#L246">246</a>       chooser.addChoosableFileFilter(Spf4jFileFilter.AVRO_TABLEDEF);
+<a class="jxr_linenumber" name="L247" href="#L247">247</a>       <strong class="jxr_keyword">if</strong> (folder != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L248" href="#L248">248</a>         chooser.setCurrentDirectory(folder);
+<a class="jxr_linenumber" name="L249" href="#L249">249</a>       }
+<a class="jxr_linenumber" name="L250" href="#L250">250</a> 
+<a class="jxr_linenumber" name="L251" href="#L251">251</a>       <strong class="jxr_keyword">int</strong> returnVal = chooser.showOpenDialog(<strong class="jxr_keyword">this</strong>);
+<a class="jxr_linenumber" name="L252" href="#L252">252</a> 
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>       <strong class="jxr_keyword">if</strong> (returnVal == JFileChooser.APPROVE_OPTION) {
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>         File [] files = chooser.getSelectedFiles();
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>         <strong class="jxr_keyword">for</strong> (File file : files) {
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>           <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>             openFile(file);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>           } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>             <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedIOException(ex);
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>           }
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>         }
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>       }
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>     }<em class="jxr_comment">//GEN-LAST:event_openMenuItemActionPerformed</em>
+<a class="jxr_linenumber" name="L264" href="#L264">264</a> 
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L266" href="#L266">266</a> <em class="jxr_javadoccomment">   * Create an Edit menu to support cut/copy/paste.</em>
+<a class="jxr_linenumber" name="L267" href="#L267">267</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>   <strong class="jxr_keyword">public</strong> JMenuBar createContextMenuBar() {
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>     JMenuItem menuItem = <strong class="jxr_keyword">null</strong>;
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>     JMenuBar menuBar = <strong class="jxr_keyword">new</strong> JMenuBar();
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>     JMenu mainMenu = <strong class="jxr_keyword">new</strong> JMenu(<span class="jxr_string">"Edit"</span>);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>     mainMenu.setMnemonic(KeyEvent.VK_E);
+<a class="jxr_linenumber" name="L273" href="#L273">273</a> 
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>     menuItem = <strong class="jxr_keyword">new</strong> JMenuItem(<strong class="jxr_keyword">new</strong> DefaultEditorKit.CutAction());
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>     menuItem.setText(<span class="jxr_string">"Cut"</span>);
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>     menuItem.setMnemonic(KeyEvent.VK_X);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>     mainMenu.add(menuItem);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a> 
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>     menuItem = <strong class="jxr_keyword">new</strong> JMenuItem(<strong class="jxr_keyword">new</strong> DefaultEditorKit.CopyAction());
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>     menuItem.setText(<span class="jxr_string">"Copy"</span>);
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>     menuItem.setMnemonic(KeyEvent.VK_C);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>     mainMenu.add(menuItem);
+<a class="jxr_linenumber" name="L283" href="#L283">283</a> 
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>     menuItem = <strong class="jxr_keyword">new</strong> JMenuItem(<strong class="jxr_keyword">new</strong> DefaultEditorKit.PasteAction());
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>     menuItem.setText(<span class="jxr_string">"Paste"</span>);
+<a class="jxr_linenumber" name="L286" href="#L286">286</a>     menuItem.setMnemonic(KeyEvent.VK_V);
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>     mainMenu.add(menuItem);
+<a class="jxr_linenumber" name="L288" href="#L288">288</a> 
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>     menuBar.add(mainMenu);
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     <strong class="jxr_keyword">return</strong> menuBar;
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>   }
 <a class="jxr_linenumber" name="L292" href="#L292">292</a> 
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> fromTextMenuItemActionPerformed(java.awt.event.ActionEvent evt) {<em class="jxr_comment">//GEN-FIRST:event_fromTextMenuItemActionPerformed</em>
-<a class="jxr_linenumber" name="L294" href="#L294">294</a> 
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>     <strong class="jxr_keyword">final</strong> JDialog frame = <strong class="jxr_keyword">new</strong> JDialog(<strong class="jxr_keyword">this</strong>, <span class="jxr_string">"Enter json stack samples"</span>, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>     frame.setName(<span class="jxr_string">"fromTextDialog"</span>);
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>     frame.setJMenuBar(createContextMenuBar());
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>     <a href="../../../org/spf4j/ui/TextEntryPanel.html">TextEntryPanel</a> panel = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/TextEntryPanel.html">TextEntryPanel</a>((title, samples) -&gt; {
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>         JInternalFrame f = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/StackDumpJInternalFrame.html">StackDumpJInternalFrame</a>(samples, title, <strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>         frame.setVisible(false);
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>         f.setVisible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>         desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>     }, (ex) -&gt; {
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>       JOptionPane.showMessageDialog(frame, <span class="jxr_string">"Invalid input "</span> + ex);
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>       frame.setVisible(false);
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>       frame.dispose();
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>     });
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>     frame.getContentPane().add(panel);
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>     frame.pack();
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>     frame.setVisible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>   }<em class="jxr_comment">//GEN-LAST:event_fromTextMenuItemActionPerformed</em>
-<a class="jxr_linenumber" name="L312" href="#L312">312</a> 
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {<em class="jxr_comment">//GEN-FIRST:event_jMenuItem1ActionPerformed</em>
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>       sampler = Sampler.getSampler(10, 100000, <strong class="jxr_keyword">new</strong> File(<span class="jxr_string">"."</span>), <span class="jxr_string">"dump"</span>);
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>       sampler.start();
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>     } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>       Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>     }
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>   }<em class="jxr_comment">//GEN-LAST:event_jMenuItem1ActionPerformed</em>
-<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {<em class="jxr_comment">//GEN-FIRST:event_jMenuItem2ActionPerformed</em>
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>     <strong class="jxr_keyword">if</strong> (sampler != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>         sampler.stop();
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>       } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>         Thread.currentThread().interrupt();
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>       }
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>       Map&lt;String, SampleNode&gt; samples = sampler.getStackCollectionsAndReset();
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, SampleNode&gt; entry : samples.entrySet()) {
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>           setFrames(entry.getValue(), <span class="jxr_string">"self:"</span> + entry.getKey());
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedIOException(ex);
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>         }
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>       }
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>     }
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>   }<em class="jxr_comment">//GEN-LAST:event_jMenuItem2ActionPerformed</em>
-<a class="jxr_linenumber" name="L341" href="#L341">341</a> 
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> openFile(<strong class="jxr_keyword">final</strong> File file) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>     String fileName = file.getName();
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>     JInternalFrame frame;
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>     <strong class="jxr_keyword">if</strong> (fileName.endsWith(<span class="jxr_string">"tsdb"</span>)) {
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>       frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/TSDBViewJInternalFrame.html">TSDBViewJInternalFrame</a>(file);
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>       frame.setVisible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (fileName.endsWith(<span class="jxr_string">"tsdb2"</span>)) {
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>       frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/TSDB2ViewJInternalFrame.html">TSDB2ViewJInternalFrame</a>(file);
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>       frame.setVisible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (fileName.endsWith(<span class="jxr_string">"ssdump"</span>)) {
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>       SampleNode samples = loadLegacyFormat(file);
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>       setFrames(samples, fileName);
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
-<a class="jxr_linenumber" name="L357" href="#L357">357</a>       SampleNode samples = org.spf4j.ssdump2.Converter.load(file);
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>       setFrames(samples, fileName);
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>       Map&lt;String, SampleNode&gt; loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, SampleNode&gt; entry : loadLabeledDumps.entrySet()) {
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>         setFrames(entry.getValue(), fileName + ':' + entry.getKey());
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>       }
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.D3_JSON.accept(file)) {
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>       <strong class="jxr_keyword">try</strong> (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>         Pair&lt;Method, SampleNode&gt; parse = SampleNode.parseD3Json(br);
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>         setFrames(parse.getSecond(), fileName);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a> 
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> fromTextMenuItemActionPerformed(java.awt.event.ActionEvent evt) {<em class="jxr_comment">//GEN-FIRST:event_fromTextMenuItemActionPerformed</em>
+<a class="jxr_linenumber" name="L295" href="#L295">295</a> 
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     <strong class="jxr_keyword">final</strong> JDialog frame = <strong class="jxr_keyword">new</strong> JDialog(<strong class="jxr_keyword">this</strong>, <span class="jxr_string">"Enter json stack samples"</span>, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>     frame.setName(<span class="jxr_string">"fromTextDialog"</span>);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>     frame.setJMenuBar(createContextMenuBar());
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>     <a href="../../../org/spf4j/ui/TextEntryPanel.html">TextEntryPanel</a> panel = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/TextEntryPanel.html">TextEntryPanel</a>((title, samples) -&gt; {
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>         JInternalFrame f = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/StackDumpJInternalFrame.html">StackDumpJInternalFrame</a>(samples, title, <strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>         frame.setVisible(false);
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         f.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>         desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>     }, (ex) -&gt; {
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>       JOptionPane.showMessageDialog(frame, <span class="jxr_string">"Invalid input "</span> + ex);
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>       frame.setVisible(false);
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>       frame.dispose();
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>     });
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     frame.getContentPane().add(panel);
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>     frame.pack();
+<a class="jxr_linenumber" name="L311" href="#L311">311</a>     frame.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>   }<em class="jxr_comment">//GEN-LAST:event_fromTextMenuItemActionPerformed</em>
+<a class="jxr_linenumber" name="L313" href="#L313">313</a> 
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {<em class="jxr_comment">//GEN-FIRST:event_jMenuItem1ActionPerformed</em>
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>       sampler = Sampler.getSampler(10, 100000, <strong class="jxr_keyword">new</strong> File(<span class="jxr_string">"."</span>), <span class="jxr_string">"dump"</span>);
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>       sampler.start();
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>     } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>       Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>     }
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>   }<em class="jxr_comment">//GEN-LAST:event_jMenuItem1ActionPerformed</em>
+<a class="jxr_linenumber" name="L323" href="#L323">323</a> 
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {<em class="jxr_comment">//GEN-FIRST:event_jMenuItem2ActionPerformed</em>
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     <strong class="jxr_keyword">if</strong> (sampler != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>         sampler.stop();
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>       } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>         Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(ex);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>       }
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>       Map&lt;String, SampleNode&gt; samples = sampler.getStackCollectionsAndReset();
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, SampleNode&gt; entry : samples.entrySet()) {
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>           setFrames(entry.getValue(), <span class="jxr_string">"self:"</span> + entry.getKey());
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> UncheckedIOException(ex);
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>         }
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>       }
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     }
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>   }<em class="jxr_comment">//GEN-LAST:event_jMenuItem2ActionPerformed</em>
+<a class="jxr_linenumber" name="L342" href="#L342">342</a> 
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> openFile(<strong class="jxr_keyword">final</strong> File file) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>     String fileName = file.getName();
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>     JInternalFrame frame;
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>     <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.TSDB.accept(file)) {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>       frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/TSDBViewJInternalFrame.html">TSDBViewJInternalFrame</a>(file);
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>       frame.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.TSDB2.accept(file)) {
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>       frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/TSDB2ViewJInternalFrame.html">TSDB2ViewJInternalFrame</a>(file);
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>       frame.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.AVRO_TABLEDEF.accept(file)) {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>       frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/MStoreViewJInternalFrame.html">MStoreViewJInternalFrame</a>(file);
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>       frame.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SSDUMP.accept(file)) {
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>       SampleNode samples = loadLegacyFormat(file);
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>       setFrames(samples, fileName);
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>       SampleNode samples = org.spf4j.ssdump2.Converter.load(file);
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>       setFrames(samples, fileName);
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>       Map&lt;String, SampleNode&gt; loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>       <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, SampleNode&gt; entry : loadLabeledDumps.entrySet()) {
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>         setFrames(entry.getValue(), fileName + ':' + entry.getKey());
 <a class="jxr_linenumber" name="L368" href="#L368">368</a>       }
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SPF4J_JSON.accept(file)) {
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.D3_JSON.accept(file)) {
 <a class="jxr_linenumber" name="L370" href="#L370">370</a>       <strong class="jxr_keyword">try</strong> (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>         Pair&lt;Method, SampleNode&gt; parse = SampleNode.parse(br);
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>         Pair&lt;Method, SampleNode&gt; parse = SampleNode.parseD3Json(br);
 <a class="jxr_linenumber" name="L372" href="#L372">372</a>         setFrames(parse.getSecond(), fileName);
 <a class="jxr_linenumber" name="L373" href="#L373">373</a>       }
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Unsupported file format "</span> + fileName);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>     }
-<a class="jxr_linenumber" name="L377" href="#L377">377</a>   }
-<a class="jxr_linenumber" name="L378" href="#L378">378</a> 
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> SampleNode loadLegacyFormat(<strong class="jxr_keyword">final</strong> File file) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>     InputStream fis = Files.newInputStream(file.toPath());
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>     <strong class="jxr_keyword">return</strong> loadLegacyFormat(fis);
+<a class="jxr_linenumber" name="L374" href="#L374">374</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (Spf4jFileFilter.SPF4J_JSON.accept(file)) {
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>       <strong class="jxr_keyword">try</strong> (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>         Pair&lt;Method, SampleNode&gt; parse = SampleNode.parse(br);
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>         setFrames(parse.getSecond(), fileName);
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>       }
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(<span class="jxr_string">"Unsupported file format "</span> + fileName);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>     }
 <a class="jxr_linenumber" name="L382" href="#L382">382</a>   }
 <a class="jxr_linenumber" name="L383" href="#L383">383</a> 
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>   @VisibleForTesting
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>   <strong class="jxr_keyword">static</strong> SampleNode loadLegacyFormat(InputStream fis) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>     <strong class="jxr_keyword">try</strong> (BufferedInputStream bis = <strong class="jxr_keyword">new</strong> BufferedInputStream(fis)) {
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>       <strong class="jxr_keyword">final</strong> CodedInputStream is = CodedInputStream.newInstance(bis);
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>       is.setRecursionLimit(Short.MAX_VALUE);
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>       <strong class="jxr_keyword">return</strong> Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>     }
-<a class="jxr_linenumber" name="L391" href="#L391">391</a>   }
-<a class="jxr_linenumber" name="L392" href="#L392">392</a> 
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setFrames(SampleNode samples, String fileName) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L394" href="#L394">394</a>     JInternalFrame frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/StackDumpJInternalFrame.html">StackDumpJInternalFrame</a>(samples, fileName, false);
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>     frame.setVisible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>   }
-<a class="jxr_linenumber" name="L398" href="#L398">398</a> 
-<a class="jxr_linenumber" name="L399" href="#L399">399</a> 
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>   <em class="jxr_javadoccomment">/**</em>
-<a class="jxr_linenumber" name="L401" href="#L401">401</a> <em class="jxr_javadoccomment">   * @param args the command line arguments</em>
-<a class="jxr_linenumber" name="L402" href="#L402">402</a> <em class="jxr_javadoccomment">   */</em>
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) {
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>     Thread.setDefaultUncaughtExceptionHandler(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/UncaughtExceptionDisplayer.html">UncaughtExceptionDisplayer</a>());
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>     System.setProperty(<span class="jxr_string">"spf4j.tsdb2.lenientRead"</span>, <span class="jxr_string">"true"</span>);
-<a class="jxr_linenumber" name="L406" href="#L406">406</a>     <em class="jxr_comment">/* Set the Nimbus look and feel */</em>
-<a class="jxr_linenumber" name="L407" href="#L407">407</a>     <em class="jxr_comment">//&lt;editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) "&gt;</em>
-<a class="jxr_linenumber" name="L408" href="#L408">408</a>     <em class="jxr_comment">/* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.</em>
-<a class="jxr_linenumber" name="L409" href="#L409">409</a> <em class="jxr_comment">         * For details see <a href="http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.htm" target="alexandria_uri">http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.htm</a>l</em>
-<a class="jxr_linenumber" name="L410" href="#L410">410</a> <em class="jxr_comment">     */</em>
-<a class="jxr_linenumber" name="L411" href="#L411">411</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>       <strong class="jxr_keyword">for</strong> (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>         <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"Nimbus"</span>.equals(info.getName())) {
-<a class="jxr_linenumber" name="L414" href="#L414">414</a>           javax.swing.UIManager.setLookAndFeel(info.getClassName());
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>           <strong class="jxr_keyword">break</strong>;
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>         }
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>       }
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>     } <strong class="jxr_keyword">catch</strong> (ClassNotFoundException ex) {
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
-<a class="jxr_linenumber" name="L420" href="#L420">420</a>     } <strong class="jxr_keyword">catch</strong> (InstantiationException ex) {
-<a class="jxr_linenumber" name="L421" href="#L421">421</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>     } <strong class="jxr_keyword">catch</strong> (IllegalAccessException ex) {
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>     } <strong class="jxr_keyword">catch</strong> (javax.swing.UnsupportedLookAndFeelException ex) {
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>     }
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>     <em class="jxr_comment">//&lt;/editor-fold&gt;</em>
-<a class="jxr_linenumber" name="L428" href="#L428">428</a> 
-<a class="jxr_linenumber" name="L429" href="#L429">429</a>     <em class="jxr_comment">/* Create and display the form */</em>
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>     java.awt.EventQueue.invokeLater(<strong class="jxr_keyword">new</strong> AbstractRunnable(false) {
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>       @Override
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>       @SuppressFBWarnings(<span class="jxr_string">"PATH_TRAVERSAL_IN"</span>)
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>         File[] files = <strong class="jxr_keyword">new</strong> File[args.length];
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; args.length; i++) {
-<a class="jxr_linenumber" name="L436" href="#L436">436</a>           files[i] = <strong class="jxr_keyword">new</strong> File(args[i]);
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>         }
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>         <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/Explorer.html">Explorer</a>(files).setVisible(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L439" href="#L439">439</a>       }
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>     });
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>   }
-<a class="jxr_linenumber" name="L442" href="#L442">442</a>   <em class="jxr_comment">// Variables declaration - do not modify//GEN-BEGIN:variables</em>
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem aboutMenuItem;
-<a class="jxr_linenumber" name="L444" href="#L444">444</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem contentMenuItem;
-<a class="jxr_linenumber" name="L445" href="#L445">445</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem copyMenuItem;
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem cutMenuItem;
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem deleteMenuItem;
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>   <strong class="jxr_keyword">private</strong> javax.swing.JDesktopPane desktopPane;
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu editMenu;
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem exitMenuItem;
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu fileMenu;
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem fromTextMenuItem;
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu helpMenu;
-<a class="jxr_linenumber" name="L454" href="#L454">454</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu jMenu1;
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem jMenuItem1;
-<a class="jxr_linenumber" name="L456" href="#L456">456</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem jMenuItem2;
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuBar menuBar;
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem openMenuItem;
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem pasteMenuItem;
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>   <em class="jxr_comment">// End of variables declaration//GEN-END:variables</em>
-<a class="jxr_linenumber" name="L461" href="#L461">461</a> 
-<a class="jxr_linenumber" name="L462" href="#L462">462</a> 
-<a class="jxr_linenumber" name="L463" href="#L463">463</a> }
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> SampleNode loadLegacyFormat(<strong class="jxr_keyword">final</strong> File file) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>     InputStream fis = Files.newInputStream(file.toPath());
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>     <strong class="jxr_keyword">return</strong> loadLegacyFormat(fis);
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>   }
+<a class="jxr_linenumber" name="L388" href="#L388">388</a> 
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>   @VisibleForTesting
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>   <strong class="jxr_keyword">static</strong> SampleNode loadLegacyFormat(InputStream fis) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>     <strong class="jxr_keyword">try</strong> (BufferedInputStream bis = <strong class="jxr_keyword">new</strong> BufferedInputStream(fis)) {
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>       <strong class="jxr_keyword">final</strong> CodedInputStream is = CodedInputStream.newInstance(bis);
+<a class="jxr_linenumber" name="L393" href="#L393">393</a>       is.setRecursionLimit(Short.MAX_VALUE);
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>       <strong class="jxr_keyword">return</strong> Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>     }
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>   }
+<a class="jxr_linenumber" name="L397" href="#L397">397</a> 
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> setFrames(SampleNode samples, String fileName) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>     JInternalFrame frame = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/StackDumpJInternalFrame.html">StackDumpJInternalFrame</a>(samples, fileName, false);
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>     frame.setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>   }
+<a class="jxr_linenumber" name="L403" href="#L403">403</a> 
+<a class="jxr_linenumber" name="L404" href="#L404">404</a> 
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>   <em class="jxr_javadoccomment">/**</em>
+<a class="jxr_linenumber" name="L406" href="#L406">406</a> <em class="jxr_javadoccomment">   * @param args the command line arguments</em>
+<a class="jxr_linenumber" name="L407" href="#L407">407</a> <em class="jxr_javadoccomment">   */</em>
+<a class="jxr_linenumber" name="L408" href="#L408">408</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> main(<strong class="jxr_keyword">final</strong> String[] args) {
+<a class="jxr_linenumber" name="L409" href="#L409">409</a>     Thread.setDefaultUncaughtExceptionHandler(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/UncaughtExceptionDisplayer.html">UncaughtExceptionDisplayer</a>());
+<a class="jxr_linenumber" name="L410" href="#L410">410</a>     System.setProperty(<span class="jxr_string">"spf4j.tsdb2.lenientRead"</span>, <span class="jxr_string">"true"</span>);
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>     <em class="jxr_comment">/* Set the Nimbus look and feel */</em>
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>     <em class="jxr_comment">//&lt;editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) "&gt;</em>
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>     <em class="jxr_comment">/* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.</em>
+<a class="jxr_linenumber" name="L414" href="#L414">414</a> <em class="jxr_comment">         * For details see <a href="http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.htm" target="alexandria_uri">http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.htm</a>l</em>
+<a class="jxr_linenumber" name="L415" href="#L415">415</a> <em class="jxr_comment">     */</em>
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>       <strong class="jxr_keyword">for</strong> (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>         <strong class="jxr_keyword">if</strong> (<span class="jxr_string">"Nimbus"</span>.equals(info.getName())) {
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>           javax.swing.UIManager.setLookAndFeel(info.getClassName());
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>           <strong class="jxr_keyword">break</strong>;
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>         }
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>       }
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>     } <strong class="jxr_keyword">catch</strong> (ClassNotFoundException ex) {
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>     } <strong class="jxr_keyword">catch</strong> (InstantiationException ex) {
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>     } <strong class="jxr_keyword">catch</strong> (IllegalAccessException ex) {
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>     } <strong class="jxr_keyword">catch</strong> (javax.swing.UnsupportedLookAndFeelException ex) {
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>       java.util.logging.Logger.getLogger(Explorer.<strong class="jxr_keyword">class</strong>.getName()).log(java.util.logging.Level.SEVERE, <strong class="jxr_keyword">null</strong>, ex);
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>     }
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>     <em class="jxr_comment">//&lt;/editor-fold&gt;</em>
+<a class="jxr_linenumber" name="L433" href="#L433">433</a> 
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>     <em class="jxr_comment">/* Create and display the form */</em>
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>     java.awt.EventQueue.invokeLater(<strong class="jxr_keyword">new</strong> AbstractRunnable(false) {
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>       @Override
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>       @SuppressFBWarnings(<span class="jxr_string">"PATH_TRAVERSAL_IN"</span>)
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> doRun() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>         File[] files = <strong class="jxr_keyword">new</strong> File[args.length];
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>         <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; args.length; i++) {
+<a class="jxr_linenumber" name="L441" href="#L441">441</a>           files[i] = <strong class="jxr_keyword">new</strong> File(args[i]);
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>         }
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>         <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/ui/Explorer.html">Explorer</a>(files).setVisible(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>       }
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>     });
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>   }
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>   <em class="jxr_comment">// Variables declaration - do not modify//GEN-BEGIN:variables</em>
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem aboutMenuItem;
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem contentMenuItem;
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem copyMenuItem;
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem cutMenuItem;
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem deleteMenuItem;
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>   <strong class="jxr_keyword">private</strong> javax.swing.JDesktopPane desktopPane;
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu editMenu;
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem exitMenuItem;
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu fileMenu;
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem fromTextMenuItem;
+<a class="jxr_linenumber" name="L458" href="#L458">458</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu helpMenu;
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenu jMenu1;
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem jMenuItem1;
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem jMenuItem2;
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuBar menuBar;
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem openMenuItem;
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>   <strong class="jxr_keyword">private</strong> javax.swing.JMenuItem pasteMenuItem;
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>   <em class="jxr_comment">// End of variables declaration//GEN-END:variables</em>
+<a class="jxr_linenumber" name="L466" href="#L466">466</a> 
+<a class="jxr_linenumber" name="L467" href="#L467">467</a> 
+<a class="jxr_linenumber" name="L468" href="#L468">468</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

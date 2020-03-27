@@ -129,34 +129,45 @@ public final class MemoryUsageSampler {
 
     private final CloseableMeasurementRecorder heapCommited;
     private final CloseableMeasurementRecorder heapUsed;
+    private final CloseableMeasurementRecorder nonHeapCommited;
+    private final CloseableMeasurementRecorder nonHeapUsed;
 
-<span class="fc" id="L133">    AccumulatorRunnable(final int accumulationIntervalMillis) {</span>
-<span class="fc" id="L134">      heapCommited</span>
-<span class="fc" id="L135">              = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;heap_commited&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
-<span class="fc" id="L136">      heapUsed</span>
-<span class="fc" id="L137">              = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;heap_used&quot;, &quot;bytes&quot;, accumulationIntervalMillis);</span>
-<span class="fc" id="L138">    }</span>
+<span class="fc" id="L135">    AccumulatorRunnable(final int accumulationIntervalMillis) {</span>
+<span class="fc" id="L136">      heapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;heap_commited&quot;,</span>
+                      &quot;bytes&quot;, accumulationIntervalMillis);
+<span class="fc" id="L138">      heapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;heap_used&quot;,</span>
+                      &quot;bytes&quot;, accumulationIntervalMillis);
+<span class="fc" id="L140">      nonHeapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;non_heap_commited&quot;,</span>
+                      &quot;bytes&quot;, accumulationIntervalMillis);
+<span class="fc" id="L142">      nonHeapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2(&quot;non_heap_used&quot;,</span>
+                      &quot;bytes&quot;, accumulationIntervalMillis);
+<span class="fc" id="L144">    }</span>
 
     @Override
     public void doRun() throws Exception {
-<span class="fc" id="L142">      MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
-<span class="fc" id="L143">      heapCommited.record(usage.getCommitted());</span>
-<span class="fc" id="L144">      heapUsed.record(usage.getUsed());</span>
-<span class="fc" id="L145">    }</span>
+<span class="fc" id="L148">      MemoryUsage usage = MBEAN.getHeapMemoryUsage();</span>
+<span class="fc" id="L149">      heapCommited.record(usage.getCommitted());</span>
+<span class="fc" id="L150">      heapUsed.record(usage.getUsed());</span>
+<span class="fc" id="L151">      MemoryUsage nonHeapMemoryUsage = MBEAN.getNonHeapMemoryUsage();</span>
+<span class="fc" id="L152">      nonHeapCommited.record(nonHeapMemoryUsage.getCommitted());</span>
+<span class="fc" id="L153">      nonHeapUsed.record(nonHeapMemoryUsage.getUsed());</span>
+<span class="fc" id="L154">    }</span>
 
     @Override
     public void close() {
-<span class="fc" id="L149">      heapUsed.close();</span>
-<span class="fc" id="L150">      heapCommited.close();</span>
-<span class="fc" id="L151">    }</span>
+<span class="fc" id="L158">      heapUsed.close();</span>
+<span class="fc" id="L159">      heapCommited.close();</span>
+<span class="fc" id="L160">      nonHeapCommited.close();</span>
+<span class="fc" id="L161">      nonHeapUsed.close();</span>
+<span class="fc" id="L162">    }</span>
   }
 
   public static void dumpHeap(final String filename, final boolean liveObjectOnly) throws IOException {
-<span class="nc" id="L155">    HOTSPOT_DIAGNOSTIC_INSTANCE.dumpHeap(filename, liveObjectOnly);</span>
-<span class="nc" id="L156">  }</span>
+<span class="nc" id="L166">    HOTSPOT_DIAGNOSTIC_INSTANCE.dumpHeap(filename, liveObjectOnly);</span>
+<span class="nc" id="L167">  }</span>
 
   public static HotSpotDiagnosticMXBean getHotspotDiagnosticBean() {
-<span class="nc" id="L159">    return HOTSPOT_DIAGNOSTIC_INSTANCE;</span>
+<span class="nc" id="L170">    return HOTSPOT_DIAGNOSTIC_INSTANCE;</span>
   }
 
 }

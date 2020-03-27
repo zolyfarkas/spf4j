@@ -57,18 +57,22 @@
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>                  RecorderFactory.createDirectRecorderSource(<span class="jxr_string">"test"</span>, <span class="jxr_string">"description"</span>);
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>          MeasurementRecorder recorder = recorderSource.getRecorder(<span class="jxr_string">"A"</span>);
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>          <strong class="jxr_keyword">long</strong> time = System.currentTimeMillis();
-<a class="jxr_linenumber" name="L52" href="#L52">52</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 100; i++) {
-<a class="jxr_linenumber" name="L53" href="#L53">53</a>              recorder.recordAt(time + (<strong class="jxr_keyword">long</strong>) i * 1000, i);
-<a class="jxr_linenumber" name="L54" href="#L54">54</a>          }
-<a class="jxr_linenumber" name="L55" href="#L55">55</a>          MeasurementRecorder recorder2 = recorderSource.getRecorder(<span class="jxr_string">"B"</span>);
-<a class="jxr_linenumber" name="L56" href="#L56">56</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 100; i++) {
-<a class="jxr_linenumber" name="L57" href="#L57">57</a>              recorder2.recordAt(time + (<strong class="jxr_keyword">long</strong>) i * 1000, i);
-<a class="jxr_linenumber" name="L58" href="#L58">58</a>          }
-<a class="jxr_linenumber" name="L59" href="#L59">59</a>          org.spf4j.perf.RecorderFactoryTest.assertData(<span class="jxr_string">"test,A"</span>, 4950);
-<a class="jxr_linenumber" name="L60" href="#L60">60</a>          org.spf4j.perf.RecorderFactoryTest.assertData(<span class="jxr_string">"test,B"</span>, 4950);
-<a class="jxr_linenumber" name="L61" href="#L61">61</a>      }
-<a class="jxr_linenumber" name="L62" href="#L62">62</a>  
-<a class="jxr_linenumber" name="L63" href="#L63">63</a>  }
+<a class="jxr_linenumber" name="L52" href="#L52">52</a>          <strong class="jxr_keyword">long</strong> s1 = 0;
+<a class="jxr_linenumber" name="L53" href="#L53">53</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 100; i++) {
+<a class="jxr_linenumber" name="L54" href="#L54">54</a>              recorder.recordAt(time + (<strong class="jxr_keyword">long</strong>) i * 1000, i);
+<a class="jxr_linenumber" name="L55" href="#L55">55</a>              s1 += i;
+<a class="jxr_linenumber" name="L56" href="#L56">56</a>          }
+<a class="jxr_linenumber" name="L57" href="#L57">57</a>          MeasurementRecorder recorder2 = recorderSource.getRecorder(<span class="jxr_string">"B"</span>);
+<a class="jxr_linenumber" name="L58" href="#L58">58</a>          <strong class="jxr_keyword">long</strong> s2 = 0;
+<a class="jxr_linenumber" name="L59" href="#L59">59</a>          <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; 100; i++) {
+<a class="jxr_linenumber" name="L60" href="#L60">60</a>              recorder2.recordAt(time + (<strong class="jxr_keyword">long</strong>) i * 1000, i);
+<a class="jxr_linenumber" name="L61" href="#L61">61</a>              s2 += i;
+<a class="jxr_linenumber" name="L62" href="#L62">62</a>          }
+<a class="jxr_linenumber" name="L63" href="#L63">63</a>          org.spf4j.perf.RecorderFactoryTest.assertData(<span class="jxr_string">"test,A"</span>, s1);
+<a class="jxr_linenumber" name="L64" href="#L64">64</a>          org.spf4j.perf.RecorderFactoryTest.assertData(<span class="jxr_string">"test,B"</span>, s2);
+<a class="jxr_linenumber" name="L65" href="#L65">65</a>      }
+<a class="jxr_linenumber" name="L66" href="#L66">66</a>  
+<a class="jxr_linenumber" name="L67" href="#L67">67</a>  }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>TableDefs.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.tsdb2</a> &gt; <span class="el_source">TableDefs.java</span></div><h1>TableDefs.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.tsdb2;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.tsdb2.avro.Aggregation;
+import org.spf4j.tsdb2.avro.ColumnDef;
+import org.spf4j.tsdb2.avro.DataRow;
+import org.spf4j.tsdb2.avro.MeasurementType;
+import org.spf4j.tsdb2.avro.Observation;
+import org.spf4j.tsdb2.avro.TableDef;
+import org.spf4j.tsdb2.avro.Type;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class TableDefs {
+
+<span class="fc" id="L57">  private static final Schema INSTANT_SCHEMA</span>
+<span class="fc" id="L58">          = new Schema.Parser().parse(&quot;{\&quot;type\&quot;:\&quot;string\&quot;,\&quot;logicalType\&quot;:\&quot;instant\&quot;}&quot;);</span>
+
+  private TableDefs() {
+  }
+
+  public static TableDef from(final MeasurementsInfo measurement, final int sampleTimeMillis,
+          final long id) {
+<span class="fc" id="L65">    int numberOfMeasurements = measurement.getNumberOfMeasurements();</span>
+<span class="fc" id="L66">    List&lt;ColumnDef&gt; columns = new ArrayList&lt;&gt;(numberOfMeasurements);</span>
+<span class="fc bfc" id="L67" title="All 2 branches covered.">    for (int i = 0; i &lt; numberOfMeasurements; i++) {</span>
+<span class="fc" id="L68">      String mname = measurement.getMeasurementName(i);</span>
+<span class="fc" id="L69">      String unit = measurement.getMeasurementUnit(i);</span>
+<span class="fc" id="L70">      Aggregation aggregation = measurement.getMeasurementAggregation(i);</span>
+<span class="fc" id="L71">      ColumnDef cd = new ColumnDef(mname, Type.LONG, unit, &quot;&quot;, aggregation);</span>
+<span class="fc" id="L72">      columns.add(cd);</span>
+    }
+<span class="fc" id="L74">    return  new TableDef(id,</span>
+<span class="fc" id="L75">            measurement.getMeasuredEntity().toString(),</span>
+<span class="fc" id="L76">            &quot;&quot;, columns, sampleTimeMillis, measurement.getMeasurementType());</span>
+  }
+
+  public static Schema createSchema(final TableDef td) {
+<span class="fc" id="L80">    String rawName = td.getName();</span>
+<span class="fc" id="L81">    Schema recSchema = AvroCompatUtils.createRecordSchema(rawName.replace('.', '_'),</span>
+<span class="fc" id="L82">            td.getDescription(), null, false, false);</span>
+<span class="fc" id="L83">    List&lt;ColumnDef&gt; columns = td.getColumns();</span>
+<span class="fc" id="L84">    List&lt;Schema.Field&gt; fields = new ArrayList&lt;&gt;(columns.size() + 1);</span>
+<span class="fc" id="L85">    fields.add(AvroCompatUtils.createField(&quot;ts&quot;, INSTANT_SCHEMA, &quot;Measurement time stamp&quot;, null, true, false,</span>
+            Schema.Field.Order.IGNORE));
+<span class="fc bfc" id="L87" title="All 2 branches covered.">    for (ColumnDef cd : columns) {</span>
+<span class="fc" id="L88">      Type type = cd.getType();</span>
+<span class="pc bpc" id="L89" title="2 of 3 branches missed.">      switch (type) {</span>
+        case DOUBLE:
+<span class="nc" id="L91">          Schema schema = Schema.create(Schema.Type.DOUBLE);</span>
+<span class="nc" id="L92">          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());</span>
+<span class="nc" id="L93">          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());</span>
+<span class="nc" id="L94">          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,</span>
+                  Schema.Field.Order.IGNORE));
+<span class="nc" id="L96">          break;</span>
+        case LONG:
+<span class="fc" id="L98">          schema = Schema.create(Schema.Type.LONG);</span>
+<span class="fc" id="L99">          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());</span>
+<span class="fc" id="L100">          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());</span>
+<span class="fc" id="L101">          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,</span>
+                  Schema.Field.Order.IGNORE));
+<span class="fc" id="L103">          break;</span>
+        default:
+<span class="nc" id="L105">          throw new IllegalStateException(&quot;Invalid data type &quot; + type);</span>
+      }
+<span class="fc" id="L107">    }</span>
+<span class="fc" id="L108">    recSchema.setFields(fields);</span>
+<span class="fc" id="L109">    int sampleTime = td.getSampleTime();</span>
+<span class="fc bfc" id="L110" title="All 2 branches covered.">    if (sampleTime &gt; 0) {</span>
+<span class="fc" id="L111">      recSchema.addProp(TimeSeriesRecord.FREQ_MILLIS_REC_PROP, sampleTime);</span>
+    }
+<span class="fc" id="L113">    recSchema.addProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP, getMeasurementType(td));</span>
+<span class="fc" id="L114">    recSchema.addProp(TimeSeriesRecord.RAW_NAME, rawName);</span>
+<span class="fc" id="L115">    return recSchema;</span>
+  }
+
+  public static TimeSeriesRecord toRecord(final Schema rSchema, final long baseTs, final DataRow row) {
+<span class="nc" id="L119">    GenericRecord rec = new GenericData.Record(rSchema);</span>
+<span class="nc" id="L120">    long ts = baseTs + row.getRelTimeStamp();</span>
+<span class="nc" id="L121">    rec.put(0, Instant.ofEpochMilli(ts));</span>
+<span class="nc" id="L122">    List&lt;Long&gt; nrs = row.getData();</span>
+<span class="nc" id="L123">    List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">    for (int i = 1, l = fields.size(), j = 0; i &lt; l; i++, j++) {</span>
+<span class="nc" id="L125">      Schema.Type type = fields.get(i).schema().getType();</span>
+<span class="nc bnc" id="L126" title="All 3 branches missed.">      switch (type) {</span>
+        case DOUBLE:
+<span class="nc" id="L128">          rec.put(i, Double.longBitsToDouble(nrs.get(j)));</span>
+<span class="nc" id="L129">          break;</span>
+        case LONG:
+<span class="nc" id="L131">          rec.put(i, nrs.get(j));</span>
+<span class="nc" id="L132">          break;</span>
+        default:
+<span class="nc" id="L134">          throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
+      }
+    }
+<span class="nc" id="L137">    return TimeSeriesRecord.from(rec);</span>
+  }
+
+
+ public static TimeSeriesRecord toRecord(final Schema rSchema, final Observation row) {
+<span class="fc" id="L142">    GenericRecord rec = new GenericData.Record(rSchema);</span>
+<span class="fc" id="L143">    rec.put(0, Instant.ofEpochMilli(row.getRelTimeStamp()));</span>
+<span class="fc" id="L144">    List&lt;Long&gt; nrs = row.getData();</span>
+<span class="fc" id="L145">    List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
+<span class="fc bfc" id="L146" title="All 2 branches covered.">    for (int i = 1, l = fields.size(), j = 0; i &lt; l; i++, j++) {</span>
+<span class="fc" id="L147">      Schema.Type type = fields.get(i).schema().getType();</span>
+<span class="pc bpc" id="L148" title="2 of 3 branches missed.">      switch (type) {</span>
+        case DOUBLE:
+<span class="nc" id="L150">          rec.put(i, Double.longBitsToDouble(nrs.get(j)));</span>
+<span class="nc" id="L151">          break;</span>
+        case LONG:
+<span class="fc" id="L153">          rec.put(i, nrs.get(j));</span>
+<span class="fc" id="L154">          break;</span>
+        default:
+<span class="nc" id="L156">          throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
+      }
+    }
+<span class="fc" id="L159">    return TimeSeriesRecord.from(rec);</span>
+  }
+
+  @SuppressFBWarnings(&quot;STT_STRING_PARSING_A_FIELD&quot;)
+  public static MeasurementType getMeasurementType(final TableDef info) {
+<span class="fc" id="L164">    MeasurementType measurementType = info.getMeasurementType();</span>
+<span class="fc bfc" id="L165" title="All 2 branches covered.">    if (measurementType != MeasurementType.UNTYPED) {</span>
+<span class="fc" id="L166">      return measurementType;</span>
+    }
+<span class="fc" id="L168">    boolean hasCount = false;</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">    for (ColumnDef colDef : info.getColumns()) {</span>
+<span class="fc" id="L170">      String colName = colDef.getName();</span>
+<span class="pc bpc" id="L171" title="3 of 4 branches missed.">      if (colName.startsWith(&quot;Q&quot;) &amp;&amp; colName.contains(&quot;_&quot;)) {</span>
+<span class="nc" id="L172">        return MeasurementType.HISTOGRAM;</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">      } else if (&quot;sum&quot;.equals(colName)) {</span>
+<span class="nc" id="L174">        return MeasurementType.SUMMARY;</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">      } else if (&quot;count&quot;.equals(colName)) {</span>
+<span class="nc" id="L176">        hasCount = true;</span>
+      }
+<span class="fc" id="L178">    }</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">    if (hasCount) {</span>
+<span class="nc" id="L180">      return MeasurementType.COUNTER;</span>
+    }
+<span class="fc" id="L182">    return MeasurementType.UNTYPED;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -44,9 +44,10 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
+import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
- * This class allows you to poll and recordAt to a file the heap commited and heap used for your java process. start
+ * This class allows you to poll and recordAt to a file the heap committed and heap used for your java process. start
  * data recording by calling the startMemoryUsageSampling method, stop the data recording by calling the method:
  * startMemoryUsageSampling.
  *
@@ -54,81 +55,81 @@ import org.spf4j.jmx.Registry;
  */
 public final class GCUsageSampler {
 
-<span class="fc" id="L57">  private static final List&lt;GarbageCollectorMXBean&gt; MBEANS = ManagementFactory.getGarbageCollectorMXBeans();</span>
+<span class="fc" id="L58">  private static final List&lt;GarbageCollectorMXBean&gt; MBEANS = ManagementFactory.getGarbageCollectorMXBeans();</span>
   private static ScheduledFuture&lt;?&gt; samplingFuture;
 
   static {
-<span class="fc" id="L61">    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
+<span class="fc" id="L62">    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {</span>
       @Override
       public void doRun() {
-<span class="fc" id="L64">        stop();</span>
-<span class="fc" id="L65">      }</span>
+<span class="fc" id="L65">        stop();</span>
+<span class="fc" id="L66">      }</span>
     });
-<span class="fc" id="L67">    Registry.export(GCUsageSampler.class);</span>
-<span class="fc" id="L68">  }</span>
+<span class="fc" id="L68">    Registry.export(GCUsageSampler.class);</span>
+<span class="fc" id="L69">  }</span>
 
   private GCUsageSampler() {
   }
 
   public static List&lt;GarbageCollectorMXBean&gt; getMBEANS() {
-<span class="fc" id="L74">    return MBEANS;</span>
+<span class="fc" id="L75">    return MBEANS;</span>
   }
 
   @JmxExport
   public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTime) {
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">    if (samplingFuture == null) {</span>
-<span class="fc" id="L80">      final MeasurementRecorder gcUsage</span>
-<span class="fc" id="L81">              = RecorderFactory.createDirectRecorder(&quot;gc_time&quot;, &quot;ms&quot;, sampleTime);</span>
-<span class="fc" id="L82">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    if (samplingFuture == null) {</span>
+<span class="fc" id="L81">      final MeasurementRecorder gcUsage</span>
+<span class="fc" id="L82">              = RecorderFactory.createDirectRecorder(&quot;gc_time&quot;, &quot;ms&quot;, sampleTime, MeasurementType.COUNTER);</span>
+<span class="fc" id="L83">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
 
-<span class="fc" id="L84">        private final TObjectLongMap lastValues = new TObjectLongHashMap();</span>
+<span class="fc" id="L85">        private final TObjectLongMap lastValues = new TObjectLongHashMap();</span>
 
         @Override
         public void doRun() {
-<span class="fc" id="L88">          synchronized (lastValues) {</span>
-<span class="fc" id="L89">            gcUsage.record(getGCTimeDiff(MBEANS, lastValues));</span>
-<span class="fc" id="L90">          }</span>
-<span class="fc" id="L91">        }</span>
+<span class="fc" id="L89">          synchronized (lastValues) {</span>
+<span class="fc" id="L90">            gcUsage.record(getGCTimeDiff(MBEANS, lastValues));</span>
+<span class="fc" id="L91">          }</span>
+<span class="fc" id="L92">        }</span>
       }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-<span class="fc" id="L93">    } else {</span>
-<span class="nc" id="L94">      throw new IllegalStateException(&quot;GC usage sampling already started &quot; + samplingFuture);</span>
+<span class="fc" id="L94">    } else {</span>
+<span class="nc" id="L95">      throw new IllegalStateException(&quot;GC usage sampling already started &quot; + samplingFuture);</span>
     }
-<span class="fc" id="L96">  }</span>
+<span class="fc" id="L97">  }</span>
 
   @JmxExport
   public static synchronized void stop() {
-<span class="fc bfc" id="L100" title="All 2 branches covered.">    if (samplingFuture != null) {</span>
-<span class="fc" id="L101">      samplingFuture.cancel(false);</span>
-<span class="fc" id="L102">      samplingFuture = null;</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">    if (samplingFuture != null) {</span>
+<span class="fc" id="L102">      samplingFuture.cancel(false);</span>
+<span class="fc" id="L103">      samplingFuture = null;</span>
     }
-<span class="fc" id="L104">  }</span>
+<span class="fc" id="L105">  }</span>
 
   public static long getGCTimeDiff(final Iterable&lt;GarbageCollectorMXBean&gt; gcBeans, final TObjectLongMap lastValues) {
-<span class="fc" id="L107">    long gcTime = 0;</span>
-<span class="fc bfc" id="L108" title="All 2 branches covered.">    for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
-<span class="fc" id="L109">      long currVal = gcBean.getCollectionTime();</span>
-<span class="fc" id="L110">      long prevVal = lastValues.put(gcBean, currVal);</span>
-<span class="fc" id="L111">      gcTime += currVal - prevVal;</span>
-<span class="fc" id="L112">    }</span>
-<span class="fc" id="L113">    return gcTime;</span>
+<span class="fc" id="L108">    long gcTime = 0;</span>
+<span class="fc bfc" id="L109" title="All 2 branches covered.">    for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
+<span class="fc" id="L110">      long currVal = gcBean.getCollectionTime();</span>
+<span class="fc" id="L111">      long prevVal = lastValues.put(gcBean, currVal);</span>
+<span class="fc" id="L112">      gcTime += currVal - prevVal;</span>
+<span class="fc" id="L113">    }</span>
+<span class="fc" id="L114">    return gcTime;</span>
   }
 
   public static long getGCTime(final Iterable&lt;GarbageCollectorMXBean&gt; gcBeans) {
-<span class="nc" id="L117">    long gcTime = 0;</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">    for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
-<span class="nc" id="L119">      gcTime += gcBean.getCollectionTime();</span>
-<span class="nc" id="L120">    }</span>
-<span class="nc" id="L121">    return gcTime;</span>
+<span class="nc" id="L118">    long gcTime = 0;</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">    for (GarbageCollectorMXBean gcBean : gcBeans) {</span>
+<span class="nc" id="L120">      gcTime += gcBean.getCollectionTime();</span>
+<span class="nc" id="L121">    }</span>
+<span class="nc" id="L122">    return gcTime;</span>
   }
 
   @JmxExport(description = &quot;Get the total GC time in millis since the JVM started&quot;)
   public static long getGCTime() {
-<span class="nc" id="L126">    return getGCTime(MBEANS);</span>
+<span class="nc" id="L127">    return getGCTime(MBEANS);</span>
   }
 
   @JmxExport
   public static synchronized boolean isStarted() {
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    return samplingFuture != null;</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    return samplingFuture != null;</span>
   }
 
 }

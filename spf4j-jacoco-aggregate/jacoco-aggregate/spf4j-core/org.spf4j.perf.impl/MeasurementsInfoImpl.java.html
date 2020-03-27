@@ -31,9 +31,11 @@
  */
 package org.spf4j.perf.impl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementsInfo;
 import java.util.Arrays;
 import javax.annotation.concurrent.Immutable;
+import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
 /**
@@ -47,88 +49,115 @@ public final class MeasurementsInfoImpl implements MeasurementsInfo {
   private final String description;
   private final String[] measurementNames;
   private final String[] measurementUnits;
+  private final Aggregation[] aggregations;
   private final MeasurementType measurementType;
 
   public MeasurementsInfoImpl(final Object measuredEntity, final String description,
           final String[] measurementNames, final String[] measurementUnits,
-<span class="fc" id="L54">          final MeasurementType measurementType) {</span>
-<span class="fc" id="L55">    this.measuredEntity = measuredEntity;</span>
-<span class="fc" id="L56">    this.description = description;</span>
-<span class="fc" id="L57">    this.measurementNames = measurementNames.clone();</span>
-<span class="fc" id="L58">    this.measurementUnits = measurementUnits.clone();</span>
-<span class="fc" id="L59">    this.measurementType = measurementType;</span>
+          final MeasurementType measurementType) {
+<span class="fc" id="L58">    this(measuredEntity, description, measurementNames, measurementUnits,</span>
+<span class="fc" id="L59">            defaultAggs(measurementNames.length), measurementType);</span>
 <span class="fc" id="L60">  }</span>
 
+  private static Aggregation[] defaultAggs(final int nr) {
+<span class="fc" id="L63">     Aggregation[] result = new Aggregation[nr];</span>
+<span class="fc" id="L64">     Arrays.fill(result, Aggregation.UNKNOWN);</span>
+<span class="fc" id="L65">     return result;</span>
+  }
+
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;) //should be protected
+  public MeasurementsInfoImpl(final Object measuredEntity, final String description,
+          final String[] measurementNames, final String[] measurementUnits,
+          final Aggregation[] aggregations,
+<span class="fc" id="L72">          final MeasurementType measurementType) {</span>
+<span class="fc" id="L73">    this.measuredEntity = measuredEntity;</span>
+<span class="fc" id="L74">    this.description = description;</span>
+<span class="fc" id="L75">    this.measurementNames = measurementNames;</span>
+<span class="fc" id="L76">    this.measurementUnits = measurementUnits;</span>
+<span class="fc" id="L77">    this.aggregations =  aggregations;</span>
+<span class="fc" id="L78">    this.measurementType = measurementType;</span>
+<span class="fc" id="L79">  }</span>
+
   public MeasurementType getMeasurementType() {
-<span class="fc" id="L63">    return measurementType;</span>
+<span class="fc" id="L82">    return measurementType;</span>
   }
 
   @Override
   public Object getMeasuredEntity() {
-<span class="fc" id="L68">    return measuredEntity;</span>
+<span class="fc" id="L87">    return measuredEntity;</span>
   }
 
   @Override
   public String getDescription() {
-<span class="fc" id="L73">    return description;</span>
+<span class="fc" id="L92">    return description;</span>
   }
 
   @Override
   public String[] getMeasurementNames() {
-<span class="fc" id="L78">    return measurementNames.clone();</span>
+<span class="fc" id="L97">    return measurementNames.clone();</span>
   }
 
   @Override
   public int hashCode() {
-<span class="fc" id="L83">    return measuredEntity.hashCode();</span>
+<span class="fc" id="L102">    return measuredEntity.hashCode();</span>
   }
 
   @Override
   public boolean equals(final Object obj) {
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (obj == null) {</span>
-<span class="nc" id="L89">      return false;</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">    if (obj == null) {</span>
+<span class="nc" id="L108">      return false;</span>
     }
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L92">      return false;</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">    if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L111">      return false;</span>
     }
-<span class="fc" id="L94">    final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;</span>
-<span class="pc bpc" id="L95" title="1 of 4 branches missed.">    if (this.measuredEntity != other.measuredEntity</span>
-<span class="pc bpc" id="L96" title="1 of 2 branches missed.">            &amp;&amp; (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {</span>
-<span class="fc" id="L97">      return false;</span>
+<span class="fc" id="L113">    final MeasurementsInfoImpl other = (MeasurementsInfoImpl) obj;</span>
+<span class="pc bpc" id="L114" title="1 of 4 branches missed.">    if (this.measuredEntity != other.measuredEntity</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">            &amp;&amp; (this.measuredEntity == null || !this.measuredEntity.equals(other.measuredEntity))) {</span>
+<span class="fc" id="L116">      return false;</span>
     }
-<span class="pc bpc" id="L99" title="3 of 4 branches missed.">    if ((this.description == null)</span>
-<span class="pc bpc" id="L100" title="1 of 2 branches missed.">            ? (other.description != null) : !this.description.equals(other.description)) {</span>
-<span class="nc" id="L101">      return false;</span>
+<span class="pc bpc" id="L118" title="3 of 4 branches missed.">    if ((this.description == null)</span>
+<span class="pc bpc" id="L119" title="1 of 2 branches missed.">            ? (other.description != null) : !this.description.equals(other.description)) {</span>
+<span class="nc" id="L120">      return false;</span>
     }
-<span class="fc" id="L103">    return Arrays.equals(this.measurementNames, other.measurementNames);</span>
+<span class="fc" id="L122">    return Arrays.equals(this.measurementNames, other.measurementNames);</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L108">    return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
+<span class="fc" id="L127">    return &quot;EntityMeasurementsInfoImpl{&quot; + &quot;measuredEntity=&quot; + measuredEntity</span>
             + &quot;, description=&quot; + description + &quot;, measurementNames=&quot;
-<span class="fc" id="L110">            + Arrays.toString(measurementNames) + &quot;, measurementUnits=&quot;</span>
-<span class="fc" id="L111">            + Arrays.toString(measurementUnits) + '}';</span>
+<span class="fc" id="L129">            + Arrays.toString(measurementNames) + &quot;, measurementUnits=&quot;</span>
+<span class="fc" id="L130">            + Arrays.toString(measurementUnits) + '}';</span>
   }
 
   @Override
   public int getNumberOfMeasurements() {
-<span class="fc" id="L116">    return measurementNames.length;</span>
+<span class="fc" id="L135">    return measurementNames.length;</span>
   }
 
   @Override
   public String[] getMeasurementUnits() {
-<span class="fc" id="L121">    return measurementUnits.clone();</span>
+<span class="fc" id="L140">    return measurementUnits.clone();</span>
   }
 
   @Override
   public String getMeasurementName(final int measurementNr) {
-<span class="fc" id="L126">    return measurementNames[measurementNr];</span>
+<span class="fc" id="L145">    return measurementNames[measurementNr];</span>
   }
 
   @Override
   public String getMeasurementUnit(final int measurementNr) {
-<span class="fc" id="L131">    return measurementUnits[measurementNr];</span>
+<span class="fc" id="L150">    return measurementUnits[measurementNr];</span>
+  }
+
+  @Override
+  public Aggregation[] getAggregations() {
+<span class="nc" id="L155">    return aggregations.clone();</span>
+  }
+
+  @Override
+  public Aggregation getMeasurementAggregation(final int measurementNr) {
+<span class="fc" id="L160">    return aggregations[measurementNr];</span>
   }
 
 }

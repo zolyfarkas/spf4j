@@ -168,23 +168,25 @@
 <a class="jxr_linenumber" name="L160" href="#L160">160</a>           bb.get(rba);
 <a class="jxr_linenumber" name="L161" href="#L161">161</a>           String receivedString = <strong class="jxr_keyword">new</strong> String(rba, StandardCharsets.UTF_8);
 <a class="jxr_linenumber" name="L162" href="#L162">162</a>           String[] lines = receivedString.split(<span class="jxr_string">"\n"</span>);
-<a class="jxr_linenumber" name="L163" href="#L163">163</a>           LOG.debug(<span class="jxr_string">"Received = {}"</span>, lines);
-<a class="jxr_linenumber" name="L164" href="#L164">164</a>           <strong class="jxr_keyword">for</strong> (String line : lines) {
-<a class="jxr_linenumber" name="L165" href="#L165">165</a>             QUEUE.put(line);
-<a class="jxr_linenumber" name="L166" href="#L166">166</a>           }
-<a class="jxr_linenumber" name="L167" href="#L167">167</a>         }
-<a class="jxr_linenumber" name="L168" href="#L168">168</a>       }
-<a class="jxr_linenumber" name="L169" href="#L169">169</a>     });
-<a class="jxr_linenumber" name="L170" href="#L170">170</a> 
-<a class="jxr_linenumber" name="L171" href="#L171">171</a>   }
+<a class="jxr_linenumber" name="L163" href="#L163">163</a>           <strong class="jxr_keyword">for</strong> (<strong class="jxr_keyword">int</strong> i = 0; i &lt; lines.length; i++) {
+<a class="jxr_linenumber" name="L164" href="#L164">164</a>             LOG.debug(<span class="jxr_string">"{}: {}"</span>, i, lines[i]);
+<a class="jxr_linenumber" name="L165" href="#L165">165</a>           }
+<a class="jxr_linenumber" name="L166" href="#L166">166</a>           <strong class="jxr_keyword">for</strong> (String line : lines) {
+<a class="jxr_linenumber" name="L167" href="#L167">167</a>             QUEUE.put(line);
+<a class="jxr_linenumber" name="L168" href="#L168">168</a>           }
+<a class="jxr_linenumber" name="L169" href="#L169">169</a>         }
+<a class="jxr_linenumber" name="L170" href="#L170">170</a>       }
+<a class="jxr_linenumber" name="L171" href="#L171">171</a>     });
 <a class="jxr_linenumber" name="L172" href="#L172">172</a> 
-<a class="jxr_linenumber" name="L173" href="#L173">173</a>   @AfterClass
-<a class="jxr_linenumber" name="L174" href="#L174">174</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> stopUdpServer() {
-<a class="jxr_linenumber" name="L175" href="#L175">175</a>     terminated = <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L176" href="#L176">176</a>     server.cancel(<strong class="jxr_keyword">true</strong>);
-<a class="jxr_linenumber" name="L177" href="#L177">177</a>   }
-<a class="jxr_linenumber" name="L178" href="#L178">178</a> 
-<a class="jxr_linenumber" name="L179" href="#L179">179</a> }
+<a class="jxr_linenumber" name="L173" href="#L173">173</a>   }
+<a class="jxr_linenumber" name="L174" href="#L174">174</a> 
+<a class="jxr_linenumber" name="L175" href="#L175">175</a>   @AfterClass
+<a class="jxr_linenumber" name="L176" href="#L176">176</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> stopUdpServer() {
+<a class="jxr_linenumber" name="L177" href="#L177">177</a>     terminated = <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L178" href="#L178">178</a>     server.cancel(<strong class="jxr_keyword">true</strong>);
+<a class="jxr_linenumber" name="L179" href="#L179">179</a>   }
+<a class="jxr_linenumber" name="L180" href="#L180">180</a> 
+<a class="jxr_linenumber" name="L181" href="#L181">181</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

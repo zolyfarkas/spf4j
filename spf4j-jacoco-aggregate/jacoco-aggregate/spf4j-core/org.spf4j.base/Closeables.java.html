@@ -76,7 +76,7 @@ public final class Closeables {
   @Nullable
   @CheckReturnValue
   public static IOException closeAll(final Closeable... closeables) {
-<span class="nc" id="L79">    return closeAll(null, closeables);</span>
+<span class="fc" id="L79">    return closeAll(null, closeables);</span>
   }
 
   @Nullable
@@ -105,50 +105,68 @@ public final class Closeables {
 
   @Nullable
   @CheckReturnValue
+  public static IOException closeAll(final Closeable[] closeables, final int from, final int to) {
+<span class="nc" id="L109">    IOException ex = null;</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">    for (int i = from; i &lt; to; i++) {</span>
+<span class="nc" id="L111">      Closeable closeable = closeables[i];</span>
+      try {
+<span class="nc" id="L113">        closeable.close();</span>
+<span class="nc" id="L114">      } catch (IOException ex1) {</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L116">          Throwables.suppressLimited(ex1, ex);</span>
+        }
+<span class="nc" id="L118">        ex = ex1;</span>
+<span class="nc" id="L119">      }</span>
+    }
+<span class="nc" id="L121">    return ex;</span>
+  }
+
+  @Nullable
+  @CheckReturnValue
   public static Exception closeAll(final Iterable&lt;? extends AutoCloseable&gt; closeables) {
-<span class="fc" id="L109">    return closeAll(null, closeables);</span>
+<span class="fc" id="L127">    return closeAll(null, closeables);</span>
   }
 
   @Nullable
   @CheckReturnValue
   public static Exception closeAll(@Nullable final Exception propagate,
           final Iterable&lt;? extends AutoCloseable&gt; closeables) {
-<span class="fc" id="L116">    Exception ex = propagate;</span>
-<span class="fc bfc" id="L117" title="All 2 branches covered.">    for (AutoCloseable closeable : closeables) {</span>
+<span class="fc" id="L134">    Exception ex = propagate;</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">    for (AutoCloseable closeable : closeables) {</span>
       try {
-<span class="fc" id="L119">        closeable.close();</span>
-<span class="nc" id="L120">      } catch (Exception ex1) {</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L122">          Throwables.suppressLimited(ex1, ex);</span>
+<span class="fc" id="L137">        closeable.close();</span>
+<span class="nc" id="L138">      } catch (Exception ex1) {</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L140">          Throwables.suppressLimited(ex1, ex);</span>
         }
-<span class="nc" id="L124">        ex = ex1;</span>
-<span class="fc" id="L125">      }</span>
-<span class="fc" id="L126">    }</span>
-<span class="fc" id="L127">    return ex;</span>
+<span class="nc" id="L142">        ex = ex1;</span>
+<span class="fc" id="L143">      }</span>
+<span class="fc" id="L144">    }</span>
+<span class="fc" id="L145">    return ex;</span>
   }
 
   @Nullable
   @CheckReturnValue
   public static IOException closeSelectorChannels(final Selector selector) {
-<span class="fc" id="L133">    return closeSelectorChannels(null, selector);</span>
+<span class="fc" id="L151">    return closeSelectorChannels(null, selector);</span>
   }
 
   @Nullable
   @CheckReturnValue
   public static IOException closeSelectorChannels(@Nullable final IOException propagate, final Selector selector) {
-<span class="fc" id="L139">    IOException ex = propagate;</span>
-<span class="fc bfc" id="L140" title="All 2 branches covered.">    for (SelectionKey key : selector.keys()) {</span>
-<span class="fc" id="L141">      SelectableChannel channel = key.channel();</span>
+<span class="fc" id="L157">    IOException ex = propagate;</span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">    for (SelectionKey key : selector.keys()) {</span>
+<span class="fc" id="L159">      SelectableChannel channel = key.channel();</span>
       try {
-<span class="fc" id="L143">        channel.close();</span>
-<span class="nc" id="L144">      } catch (IOException ex2) {</span>
-<span class="nc bnc" id="L145" title="All 2 branches missed.">        if (ex != null) {</span>
-<span class="nc" id="L146">          Throwables.suppressLimited(ex2, ex);</span>
+<span class="fc" id="L161">        channel.close();</span>
+<span class="nc" id="L162">      } catch (IOException ex2) {</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">        if (ex != null) {</span>
+<span class="nc" id="L164">          Throwables.suppressLimited(ex2, ex);</span>
         }
-<span class="nc" id="L148">        ex = ex2;</span>
-<span class="fc" id="L149">      }</span>
-<span class="fc" id="L150">    }</span>
-<span class="fc" id="L151">    return ex;</span>
+<span class="nc" id="L166">        ex = ex2;</span>
+<span class="fc" id="L167">      }</span>
+<span class="fc" id="L168">    }</span>
+<span class="fc" id="L169">    return ex;</span>
   }
 
 }

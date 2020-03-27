@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DirectStoreAccumulator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.acc</a> &gt; <span class="el_source">DirectStoreAccumulator.java</span></div><h1>DirectStoreAccumulator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.impl.acc;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.beans.ConstructorProperties;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import org.spf4j.jmx.JmxExport;
+import org.spf4j.jmx.Registry;
+import org.spf4j.perf.CloseableMeasurementRecorder;
+import org.spf4j.perf.JmxSupport;
+import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.Aggregation;
+import org.spf4j.tsdb2.avro.MeasurementType;
+
+/**
+ * @author zoly
+ */
+public final class DirectStoreAccumulator implements CloseableMeasurementRecorder, JmxSupport {
+
+<span class="fc" id="L53">  private static final String[] MEASUREMENTS = {&quot;value&quot;};</span>
+
+  private final MeasurementsInfo info;
+  private final MeasurementStore measurementStore;
+  private final long tableId;
+
+  private long lastRecordedTS;
+
+  private long lastRecordedValue;
+
+  public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+          final int sampleTimeMillis, final MeasurementStore measurementStore) {
+<span class="nc" id="L65">    this(measuredEntity, description, unitOfMeasurement, sampleTimeMillis, measurementStore, MeasurementType.GAUGE);</span>
+<span class="nc" id="L66">  }</span>
+
+  public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+          final int sampleTimeMillis, final MeasurementStore measurementStore, final MeasurementType mType) {
+<span class="fc" id="L70">    this(measuredEntity, description, unitOfMeasurement, sampleTimeMillis,</span>
+            measurementStore, mType, Aggregation.UNKNOWN);
+<span class="fc" id="L72">  }</span>
+
+  public DirectStoreAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+          final int sampleTimeMillis, final MeasurementStore measurementStore, final MeasurementType mType,
+<span class="fc" id="L76">          final Aggregation agg) {</span>
+<span class="fc" id="L77">    this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+            MEASUREMENTS, new String[]{unitOfMeasurement}, new Aggregation[] {agg}, mType);
+<span class="fc" id="L79">    this.measurementStore = measurementStore;</span>
+    try {
+<span class="fc" id="L81">      tableId = measurementStore.alocateMeasurements(info, sampleTimeMillis);</span>
+<span class="nc" id="L82">    } catch (IOException ex) {</span>
+<span class="nc" id="L83">      throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L84">    }</span>
+<span class="fc" id="L85">  }</span>
+
+  @JmxExport
+  public String getUnitOfMeasurement() {
+<span class="nc" id="L89">    return info.getMeasurementUnit(0);</span>
+  }
+
+  @Override
+  public void record(final long measurement) {
+<span class="fc" id="L94">    recordAt(System.currentTimeMillis(), measurement);</span>
+<span class="fc" id="L95">  }</span>
+
+  @Override
+  @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+  public synchronized void recordAt(final long timestampMillis, final long measurement) {
+<span class="fc" id="L100">    lastRecordedValue = measurement;</span>
+<span class="fc" id="L101">    lastRecordedTS = timestampMillis;</span>
+    try {
+<span class="fc" id="L103">      measurementStore.saveMeasurements(tableId, timestampMillis, measurement);</span>
+<span class="nc" id="L104">    } catch (IOException ex) {</span>
+<span class="nc" id="L105">      throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L106">    }</span>
+<span class="fc" id="L107">  }</span>
+
+  public void registerJmx() {
+<span class="fc" id="L110">    Registry.export(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString(), this);</span>
+<span class="fc" id="L111">  }</span>
+
+  @Override
+  public void close() {
+<span class="nc" id="L115">    Registry.unregister(&quot;org.spf4j.perf.recorders&quot;, info.getMeasuredEntity().toString());</span>
+<span class="nc" id="L116">  }</span>
+
+  public static final class RecordedValue {
+
+    private final long ts;
+    private final long value;
+
+    @ConstructorProperties({&quot;ts&quot;, &quot;value&quot;})
+<span class="nc" id="L124">    public RecordedValue(final long ts, final long value) {</span>
+<span class="nc" id="L125">      this.ts = ts;</span>
+<span class="nc" id="L126">      this.value = value;</span>
+<span class="nc" id="L127">    }</span>
+
+    public long getTs() {
+<span class="nc" id="L130">      return ts;</span>
+    }
+
+    public long getValue() {
+<span class="nc" id="L134">      return value;</span>
+    }
+  }
+
+  @JmxExport(description = &quot;Last recorded value&quot;)
+  public synchronized RecordedValue getLastRecorded() {
+<span class="nc" id="L140">    return new RecordedValue(lastRecordedTS, lastRecordedValue);</span>
+  }
+
+  @JmxExport
+  @SuppressFBWarnings(&quot;SPP_NON_USEFUL_TOSTRING&quot;)
+  public String getInfo() {
+<span class="nc" id="L146">    return info.toString();</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L151">    return &quot;DirectStoreAccumulator{&quot; + &quot;info=&quot; + info + &quot;, measurementStore=&quot; + measurementStore</span>
+            + &quot;, tableId=&quot; + tableId + &quot;, lastRecordedTS=&quot; + lastRecordedTS + &quot;, lastRecordedValue=&quot;
+            + lastRecordedValue + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MeasurementStoreQuery.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf</a> &gt; <span class="el_source">MeasurementStoreQuery.java</span></div><h1>MeasurementStoreQuery.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf;
+
+import com.google.common.annotations.Beta;
+import com.google.common.collect.Iterables;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.Collection;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import javax.annotation.Nullable;
+import org.apache.avro.Schema;
+import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.tsdb2.TableDefs;
+import org.spf4j.tsdb2.avro.Observation;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public interface MeasurementStoreQuery {
+
+  Collection&lt;Schema&gt; getMeasurements(Predicate&lt;String&gt; filter) throws IOException;
+
+  AvroCloseableIterable&lt;Observation&gt; getObservations() throws IOException;
+
+  default AvroCloseableIterable&lt;Observation&gt; getObservations(final Schema measurement,
+          @Nullable final Instant from, @Nullable final Instant to) throws IOException {
+    @SuppressWarnings(&quot;unchecked&quot;)
+<span class="fc" id="L60">    Collection&lt;Long&gt; mids = (Collection&lt;Long&gt;) measurement.getObjectProp(TimeSeriesRecord.IDS_PROP);</span>
+    @SuppressWarnings(&quot;unchecked&quot;)
+    long fromMs;
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    if (from == null) {</span>
+<span class="nc" id="L64">      fromMs = Long.MIN_VALUE;</span>
+    } else {
+<span class="fc" id="L66">      fromMs = from.toEpochMilli();</span>
+    }
+    long toMs;
+<span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (to == null) {</span>
+<span class="nc" id="L70">      toMs = Long.MAX_VALUE;</span>
+    } else {
+<span class="fc" id="L72">      toMs = to.toEpochMilli();</span>
+    }
+<span class="fc" id="L74">    AvroCloseableIterable&lt;Observation&gt; observations = getObservations();</span>
+<span class="fc" id="L75">    Iterable&lt;Observation&gt; filtered = Iterables.filter(observations, (Observation row) -&gt; {</span>
+<span class="fc" id="L76">      long ts = row.getRelTimeStamp();</span>
+<span class="fc bfc" id="L77" title="All 6 branches covered.">      return ts &gt;= fromMs &amp;&amp; ts &lt;= toMs &amp;&amp; mids.contains(row.getTableDefId());</span>
+    });
+<span class="fc" id="L79">    return AvroCloseableIterable.from(filtered, observations, measurement);</span>
+  }
+
+  default AvroCloseableIterable&lt;Observation&gt; getAggregatedObservations(final Schema measurement,
+          final Instant from, final Instant to, final int aggFreq,  final TimeUnit tu) throws IOException {
+<span class="fc" id="L84">    long aggTime = tu.toMillis(aggFreq);</span>
+<span class="fc" id="L85">    int frequencyMillis = TimeSeriesRecord.getFrequencyMillis(measurement);</span>
+<span class="fc" id="L86">    AvroCloseableIterable&lt;Observation&gt; observations = getObservations(measurement, from, to);</span>
+<span class="fc" id="L87">     return AvroCloseableIterable.from(() -&gt; new TimeSeriesAggregatingIterator&lt;&gt;(observations,</span>
+             Observation::getRelTimeStamp,
+<span class="fc" id="L89">            (a, b) -&gt; TimeSeriesRecord.accumulateObservations(measurement, a, b), aggTime, frequencyMillis),</span>
+            observations, measurement);
+  }
+
+  /**
+   * Query measurement data.
+   * @param measurement
+   * @param from
+   * @param to
+   * @return data iterable
+   * @throws IOException
+   */
+  default AvroCloseableIterable&lt;TimeSeriesRecord&gt; getMeasurementData(final Schema measurement,
+          final Instant from, final Instant to) throws IOException {
+<span class="fc" id="L103">    AvroCloseableIterable&lt;Observation&gt; observations = getObservations(measurement, from, to);</span>
+<span class="fc" id="L104">    Iterable&lt;TimeSeriesRecord&gt; tsr = Iterables.transform(observations,</span>
+<span class="fc" id="L105">             (obs) -&gt; TableDefs.toRecord(measurement, obs));</span>
+<span class="fc" id="L106">    return AvroCloseableIterable.from(tsr, observations, measurement);</span>
+  }
+
+  @Beta
+  default AvroCloseableIterable&lt;TimeSeriesRecord&gt; getAggregatedMeasurementData(
+          final Schema measurement,
+          final Instant from, final Instant to,
+          final int aggFreq,  final TimeUnit tu) throws IOException {
+<span class="fc" id="L114">    long aggTime = tu.toMillis(aggFreq);</span>
+<span class="fc" id="L115">    int frequencyMillis = TimeSeriesRecord.getFrequencyMillis(measurement);</span>
+<span class="fc" id="L116">    AvroCloseableIterable&lt;TimeSeriesRecord&gt; iterable = getMeasurementData(measurement, from, to);</span>
+<span class="fc" id="L117">    return AvroCloseableIterable.from(() -&gt; new TimeSeriesAggregatingIterator&lt;&gt;(iterable,</span>
+<span class="fc" id="L118">            (TimeSeriesRecord rec) -&gt; rec.getTimeStamp().toEpochMilli(),</span>
+            TimeSeriesRecord::accumulate, aggTime, frequencyMillis),
+            iterable, measurement);
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

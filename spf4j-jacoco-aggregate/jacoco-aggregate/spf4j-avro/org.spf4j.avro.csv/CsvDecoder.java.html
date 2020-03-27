@@ -71,295 +71,304 @@ public final class CsvDecoder extends ParsingDecoder {
 <span class="fc" id="L71">    parser.advance(Symbol.NULL);</span>
 <span class="fc" id="L72">    CsvReader.TokenType tok = csvReader.current();</span>
 <span class="pc bpc" id="L73" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">      boolean notNull = !CharSequences.equals(&quot;&quot;, csvReader.getElement());</span>
-<span class="fc" id="L75">      parseNextCsv();</span>
-<span class="pc bpc" id="L76" title="1 of 2 branches missed.">      if (notNull) {</span>
-<span class="nc" id="L77">        throw new AvroTypeException(&quot;Expected null, not &quot; + csvReader.getElement());</span>
+<span class="fc" id="L74">      CharSequence element = csvReader.getElement();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">      boolean notNull = !CharSequences.equals(&quot;&quot;, element);</span>
+<span class="fc" id="L76">      parseNextCsv();</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">      if (notNull) {</span>
+<span class="nc" id="L78">        throw new AvroTypeException(&quot;Expected null, not &quot; + element);</span>
       }
-<span class="fc" id="L79">    } else {</span>
-<span class="nc" id="L80">      throw new AvroTypeException(&quot;Expected boolean, not &quot; + tok);</span>
+<span class="fc" id="L80">    } else {</span>
+<span class="nc" id="L81">      throw new AvroTypeException(&quot;Expected boolean, not &quot; + tok);</span>
     }
-<span class="fc" id="L82">  }</span>
+<span class="fc" id="L83">  }</span>
 
   @Override
   public boolean readBoolean() throws IOException {
-<span class="fc" id="L86">    parser.advance(Symbol.BOOLEAN);</span>
-<span class="fc" id="L87">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L89">      boolean result = CharSequences.equals(&quot;true&quot;, csvReader.getElement());</span>
-<span class="fc" id="L90">      parseNextCsv();</span>
-<span class="fc" id="L91">      return result;</span>
+<span class="fc" id="L87">    parser.advance(Symbol.BOOLEAN);</span>
+<span class="fc" id="L88">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+      boolean result;
+<span class="fc" id="L91">      CharSequence element = csvReader.getElement();</span>
+<span class="fc bfc" id="L92" title="All 2 branches covered.">      if (CharSequences.equals(&quot;true&quot;, element)) {</span>
+<span class="fc" id="L93">        result = true;</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">      } else if (CharSequences.equals(&quot;false&quot;, element)) {</span>
+<span class="fc" id="L95">        result = false;</span>
+      } else {
+<span class="nc" id="L97">        throw new AvroTypeException(&quot;Expected true or false, not &quot; + element);</span>
+      }
+<span class="fc" id="L99">      parseNextCsv();</span>
+<span class="fc" id="L100">      return result;</span>
     } else {
-<span class="nc" id="L93">      throw new AvroTypeException(&quot;Expected boolean, not &quot; + tok);</span>
+<span class="nc" id="L102">      throw new AvroTypeException(&quot;Expected boolean, not &quot; + tok);</span>
     }
   }
 
   private void parseNextCsv() throws IOException {
     try {
-<span class="fc" id="L99">      csvReader.next();</span>
-<span class="nc" id="L100">    } catch (CsvParseException ex) {</span>
-<span class="nc" id="L101">      throw new AvroRuntimeException(ex);</span>
-<span class="fc" id="L102">    }</span>
-<span class="fc" id="L103">  }</span>
+<span class="fc" id="L108">      csvReader.next();</span>
+<span class="nc" id="L109">    } catch (CsvParseException ex) {</span>
+<span class="nc" id="L110">      throw new AvroRuntimeException(ex);</span>
+<span class="fc" id="L111">    }</span>
+<span class="fc" id="L112">  }</span>
 
   @Override
   public int readInt() throws IOException {
-<span class="fc" id="L107">    parser.advance(Symbol.INT);</span>
-<span class="fc" id="L108">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L110">      int result = CharSequences.parseInt(csvReader.getElement());</span>
-<span class="fc" id="L111">      parseNextCsv();</span>
-<span class="fc" id="L112">      return result;</span>
+<span class="fc" id="L116">    parser.advance(Symbol.INT);</span>
+<span class="fc" id="L117">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L119">      int result = CharSequences.parseInt(csvReader.getElement());</span>
+<span class="fc" id="L120">      parseNextCsv();</span>
+<span class="fc" id="L121">      return result;</span>
     } else {
-<span class="nc" id="L114">      throw new AvroTypeException(&quot;Expected int, not &quot; + tok);</span>
+<span class="nc" id="L123">      throw new AvroTypeException(&quot;Expected int, not &quot; + tok);</span>
     }
   }
 
   @Override
   public long readLong() throws IOException {
-<span class="fc" id="L120">    parser.advance(Symbol.LONG);</span>
-<span class="fc" id="L121">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L123">      long result = CharSequences.parseLong(csvReader.getElement());</span>
-<span class="fc" id="L124">      parseNextCsv();</span>
-<span class="fc" id="L125">      return result;</span>
+<span class="fc" id="L129">    parser.advance(Symbol.LONG);</span>
+<span class="fc" id="L130">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L132">      long result = CharSequences.parseLong(csvReader.getElement());</span>
+<span class="fc" id="L133">      parseNextCsv();</span>
+<span class="fc" id="L134">      return result;</span>
     } else {
-<span class="nc" id="L127">      throw new AvroTypeException(&quot;Expected long, not &quot; + tok);</span>
+<span class="nc" id="L136">      throw new AvroTypeException(&quot;Expected long, not &quot; + tok);</span>
     }
   }
 
   @Override
   public float readFloat() throws IOException {
-<span class="nc" id="L133">    parser.advance(Symbol.FLOAT);</span>
-<span class="nc" id="L134">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="nc bnc" id="L135" title="All 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="nc" id="L136">      float result = Float.parseFloat(csvReader.getElement().toString());</span>
-<span class="nc" id="L137">      parseNextCsv();</span>
-<span class="nc" id="L138">      return result;</span>
+<span class="nc" id="L142">    parser.advance(Symbol.FLOAT);</span>
+<span class="nc" id="L143">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="nc" id="L145">      float result = Float.parseFloat(csvReader.getElement().toString());</span>
+<span class="nc" id="L146">      parseNextCsv();</span>
+<span class="nc" id="L147">      return result;</span>
     } else {
-<span class="nc" id="L140">      throw new AvroTypeException(&quot;Expected float, not &quot; + tok);</span>
+<span class="nc" id="L149">      throw new AvroTypeException(&quot;Expected float, not &quot; + tok);</span>
     }
   }
 
   @Override
   public double readDouble() throws IOException {
-<span class="fc" id="L146">    parser.advance(Symbol.DOUBLE);</span>
-<span class="fc" id="L147">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L148" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L149">      double result = Double.parseDouble(csvReader.getElement().toString());</span>
-<span class="fc" id="L150">      parseNextCsv();</span>
-<span class="fc" id="L151">      return result;</span>
+<span class="fc" id="L155">    parser.advance(Symbol.DOUBLE);</span>
+<span class="fc" id="L156">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L158">      double result = Double.parseDouble(csvReader.getElement().toString());</span>
+<span class="fc" id="L159">      parseNextCsv();</span>
+<span class="fc" id="L160">      return result;</span>
     } else {
-<span class="nc" id="L153">      throw new AvroTypeException(&quot;Expected double, not &quot; + tok);</span>
+<span class="nc" id="L162">      throw new AvroTypeException(&quot;Expected double, not &quot; + tok);</span>
     }
   }
 
   @Override
   public Utf8 readString(final Utf8 utf8) throws IOException {
-<span class="fc" id="L159">    parser.advance(Symbol.STRING);</span>
-<span class="fc" id="L160">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L161" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L162">      Utf8 result = new Utf8(csvReader.getElement().toString());</span>
-<span class="fc" id="L163">      parseNextCsv();</span>
-<span class="fc" id="L164">      return result;</span>
+<span class="fc" id="L168">    parser.advance(Symbol.STRING);</span>
+<span class="fc" id="L169">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L170" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L171">      Utf8 result = new Utf8(csvReader.getElement().toString());</span>
+<span class="fc" id="L172">      parseNextCsv();</span>
+<span class="fc" id="L173">      return result;</span>
     } else {
-<span class="nc" id="L166">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
+<span class="nc" id="L175">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
     }
   }
 
   @Override
   public String readString() throws IOException {
-<span class="fc" id="L172">    parser.advance(Symbol.STRING);</span>
-<span class="fc" id="L173">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L174" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L175">      String result = csvReader.getElement().toString();</span>
-<span class="fc" id="L176">      parseNextCsv();</span>
-<span class="fc" id="L177">      return result;</span>
+<span class="fc" id="L181">    parser.advance(Symbol.STRING);</span>
+<span class="fc" id="L182">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L183" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L184">      String result = csvReader.getElement().toString();</span>
+<span class="fc" id="L185">      parseNextCsv();</span>
+<span class="fc" id="L186">      return result;</span>
     } else {
-<span class="nc" id="L179">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
+<span class="nc" id="L188">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
     }
   }
 
   @Override
   public void skipString() throws IOException {
-<span class="nc" id="L185">    parser.advance(Symbol.STRING);</span>
-<span class="nc" id="L186">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
-<span class="nc" id="L188">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
+<span class="nc" id="L194">    parser.advance(Symbol.STRING);</span>
+<span class="nc" id="L195">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="nc bnc" id="L196" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
+<span class="nc" id="L197">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
     }
-<span class="nc" id="L190">    parseNextCsv();</span>
-<span class="nc" id="L191">  }</span>
+<span class="nc" id="L199">    parseNextCsv();</span>
+<span class="nc" id="L200">  }</span>
 
   @Override
   public ByteBuffer readBytes(final ByteBuffer bb) throws IOException {
-<span class="fc" id="L195">    parser.advance(Symbol.BYTES);</span>
-<span class="fc" id="L196">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L198">      ByteBuffer result = ByteBuffer.wrap(Base64.decodeBase64(csvReader.getElement()));</span>
-<span class="fc" id="L199">      parseNextCsv();</span>
-<span class="fc" id="L200">      return result;</span>
+<span class="fc" id="L204">    parser.advance(Symbol.BYTES);</span>
+<span class="fc" id="L205">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L206" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L207">      ByteBuffer result = ByteBuffer.wrap(Base64.decodeBase64(csvReader.getElement()));</span>
+<span class="fc" id="L208">      parseNextCsv();</span>
+<span class="fc" id="L209">      return result;</span>
     } else {
-<span class="nc" id="L202">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
+<span class="nc" id="L211">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
     }
   }
 
   @Override
   public void skipBytes() throws IOException {
-<span class="nc" id="L208">    parser.advance(Symbol.BYTES);</span>
-<span class="nc" id="L209">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="nc bnc" id="L210" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
-<span class="nc" id="L211">      parseNextCsv();</span>
-<span class="nc" id="L212">      throw new AvroTypeException(&quot;Expected bytes, not &quot; + tok);</span>
+<span class="nc" id="L217">    parser.advance(Symbol.BYTES);</span>
+<span class="nc" id="L218">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
+<span class="nc" id="L220">      parseNextCsv();</span>
+<span class="nc" id="L221">      throw new AvroTypeException(&quot;Expected bytes, not &quot; + tok);</span>
     }
-<span class="nc" id="L214">  }</span>
+<span class="nc" id="L223">  }</span>
 
   @Override
   public void readFixed(final byte[] bytes, final int i, final int nrBytes) throws IOException {
-<span class="nc" id="L218">    parser.advance(Symbol.FIXED);</span>
-<span class="nc" id="L219">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="nc" id="L221">      CharSequence text = csvReader.getElement();</span>
-<span class="nc" id="L222">      int nrB = Base64.decodeInto(text, 0, text.length(), bytes, i);</span>
-<span class="nc bnc" id="L223" title="All 2 branches missed.">      if (nrB != nrBytes) {</span>
-<span class="nc" id="L224">        throw new AvroTypeException(&quot;invalid fixed lenth &quot; + nrB + &quot; into &quot; + Arrays.toString(bytes));</span>
+<span class="nc" id="L227">    parser.advance(Symbol.FIXED);</span>
+<span class="nc" id="L228">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="nc bnc" id="L229" title="All 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="nc" id="L230">      CharSequence text = csvReader.getElement();</span>
+<span class="nc" id="L231">      int nrB = Base64.decodeInto(text, 0, text.length(), bytes, i);</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">      if (nrB != nrBytes) {</span>
+<span class="nc" id="L233">        throw new AvroTypeException(&quot;invalid fixed lenth &quot; + nrB + &quot; into &quot; + Arrays.toString(bytes));</span>
       }
-<span class="nc" id="L226">      parseNextCsv();</span>
-<span class="nc" id="L227">    } else {</span>
-<span class="nc" id="L228">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
+<span class="nc" id="L235">      parseNextCsv();</span>
+<span class="nc" id="L236">    } else {</span>
+<span class="nc" id="L237">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
     }
-<span class="nc" id="L230">  }</span>
+<span class="nc" id="L239">  }</span>
 
   @Override
   public void skipFixed(final int i) throws IOException {
-<span class="nc" id="L234">    parser.advance(Symbol.FIXED);</span>
-<span class="nc" id="L235">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="nc bnc" id="L236" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
-<span class="nc" id="L237">      throw new AvroTypeException(&quot;Expected fixed, not &quot; + tok);</span>
+<span class="nc" id="L243">    parser.advance(Symbol.FIXED);</span>
+<span class="nc" id="L244">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="nc bnc" id="L245" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
+<span class="nc" id="L246">      throw new AvroTypeException(&quot;Expected fixed, not &quot; + tok);</span>
     }
-<span class="nc" id="L239">    parseNextCsv();</span>
-<span class="nc" id="L240">  }</span>
+<span class="nc" id="L248">    parseNextCsv();</span>
+<span class="nc" id="L249">  }</span>
 
   @Override
   public int readEnum() throws IOException {
-<span class="fc" id="L244">    parser.advance(Symbol.ENUM);</span>
-<span class="fc" id="L245">    Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();</span>
-<span class="fc" id="L246">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="pc bpc" id="L247" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L248">      String symb = csvReader.getElement().toString();</span>
-<span class="fc" id="L249">      int n = top.findLabel(symb);</span>
-<span class="pc bpc" id="L250" title="1 of 2 branches missed.">      if (n &gt;= 0) {</span>
-<span class="fc" id="L251">        parseNextCsv();</span>
-<span class="fc" id="L252">        return n;</span>
+<span class="fc" id="L253">    parser.advance(Symbol.ENUM);</span>
+<span class="fc" id="L254">    Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();</span>
+<span class="fc" id="L255">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">    if (tok == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L257">      String symb = csvReader.getElement().toString();</span>
+<span class="fc" id="L258">      int n = top.findLabel(symb);</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">      if (n &gt;= 0) {</span>
+<span class="fc" id="L260">        parseNextCsv();</span>
+<span class="fc" id="L261">        return n;</span>
       } else {
-<span class="nc" id="L254">        throw new AvroTypeException(&quot;Invalid enum symbol &quot; + symb);</span>
+<span class="nc" id="L263">        throw new AvroTypeException(&quot;Invalid enum symbol &quot; + symb);</span>
       }
     } else {
-<span class="nc" id="L257">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
+<span class="nc" id="L266">      throw new AvroTypeException(&quot;Expected string, not &quot; + tok);</span>
     }
   }
 
   @Override
   public long readArrayStart() throws IOException {
-<span class="fc" id="L263">    CsvReader.TokenType current = csvReader.current();</span>
-<span class="pc bpc" id="L264" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.START_DOCUMENT) {</span>
-<span class="nc" id="L265">      throw new IllegalStateException(&quot;cannot be at the beginning of &quot; + csvReader);</span>
+<span class="fc" id="L272">    CsvReader.TokenType current = csvReader.current();</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.START_DOCUMENT) {</span>
+<span class="nc" id="L274">      throw new IllegalStateException(&quot;cannot be at the beginning of &quot; + csvReader);</span>
     }
-<span class="fc" id="L267">    parser.advance(Symbol.ARRAY_START);</span>
-<span class="pc bpc" id="L268" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L269">      return 1L;</span>
+<span class="fc" id="L276">    parser.advance(Symbol.ARRAY_START);</span>
+<span class="pc bpc" id="L277" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L278">      return 1L;</span>
     } else {
-<span class="nc" id="L271">      return 0L;</span>
+<span class="nc" id="L280">      return 0L;</span>
     }
   }
 
   @Override
   public long arrayNext() throws IOException {
-<span class="fc" id="L277">    parser.advance(Symbol.ITEM_END);</span>
-<span class="fc" id="L278">    CsvReader.TokenType current = csvReader.current();</span>
-<span class="pc bpc" id="L279" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.START_DOCUMENT) {</span>
-<span class="nc" id="L280">      throw new IllegalStateException(&quot;cannot be at the beginning of &quot; + csvReader);</span>
+<span class="fc" id="L286">    parser.advance(Symbol.ITEM_END);</span>
+<span class="fc" id="L287">    CsvReader.TokenType current = csvReader.current();</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.START_DOCUMENT) {</span>
+<span class="nc" id="L289">      throw new IllegalStateException(&quot;cannot be at the beginning of &quot; + csvReader);</span>
     }
-<span class="pc bpc" id="L282" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.END_ROW) {</span>
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">    if (current == CsvReader.TokenType.END_ROW) {</span>
       try {
-<span class="fc" id="L284">        current = csvReader.next();</span>
-<span class="nc" id="L285">      } catch (CsvParseException ex) {</span>
-<span class="nc" id="L286">        throw new AvroRuntimeException(ex);</span>
-<span class="fc" id="L287">      }</span>
+<span class="fc" id="L293">        current = csvReader.next();</span>
+<span class="nc" id="L294">      } catch (CsvParseException ex) {</span>
+<span class="nc" id="L295">        throw new AvroRuntimeException(ex);</span>
+<span class="fc" id="L296">      }</span>
     }
-<span class="fc bfc" id="L289" title="All 2 branches covered.">    if (current == CsvReader.TokenType.ELEMENT) {</span>
-<span class="fc" id="L290">      return 1L;</span>
+<span class="fc bfc" id="L298" title="All 2 branches covered.">    if (current == CsvReader.TokenType.ELEMENT) {</span>
+<span class="fc" id="L299">      return 1L;</span>
     } else {
-<span class="fc" id="L292">      return 0L;</span>
+<span class="fc" id="L301">      return 0L;</span>
     }
   }
 
   @Override
   public long skipArray() throws IOException {
-<span class="nc" id="L298">    long i = 0;</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">    while (csvReader.current() != CsvReader.TokenType.END_DOCUMENT) {</span>
-<span class="nc bnc" id="L300" title="All 2 branches missed.">      if (csvReader.current() == CsvReader.TokenType.END_ROW) {</span>
-<span class="nc" id="L301">        i++;</span>
+<span class="nc" id="L307">    long i = 0;</span>
+<span class="nc bnc" id="L308" title="All 2 branches missed.">    while (csvReader.current() != CsvReader.TokenType.END_DOCUMENT) {</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">      if (csvReader.current() == CsvReader.TokenType.END_ROW) {</span>
+<span class="nc" id="L310">        i++;</span>
       }
       try {
-<span class="nc" id="L304">        csvReader.next();</span>
-<span class="nc" id="L305">      } catch (CsvParseException ex) {</span>
-<span class="nc" id="L306">        throw new AvroRuntimeException(ex);</span>
-<span class="nc" id="L307">      }</span>
+<span class="nc" id="L313">        csvReader.next();</span>
+<span class="nc" id="L314">      } catch (CsvParseException ex) {</span>
+<span class="nc" id="L315">        throw new AvroRuntimeException(ex);</span>
+<span class="nc" id="L316">      }</span>
     }
-<span class="nc" id="L309">    parser.advance(Symbol.ARRAY_START);</span>
-<span class="nc" id="L310">    parser.advance(Symbol.ARRAY_END);</span>
-<span class="nc" id="L311">    return i;</span>
+<span class="nc" id="L318">    parser.advance(Symbol.ARRAY_START);</span>
+<span class="nc" id="L319">    parser.advance(Symbol.ARRAY_END);</span>
+<span class="nc" id="L320">    return i;</span>
   }
 
   @Override
   public long readMapStart() {
-<span class="nc" id="L316">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L325">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public long mapNext() {
-<span class="nc" id="L321">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L330">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public long skipMap() {
-<span class="nc" id="L326">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L335">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public int readIndex() throws IOException {
-<span class="fc" id="L331">    parser.advance(Symbol.UNION);</span>
-<span class="fc" id="L332">    Symbol.Alternative a = (Symbol.Alternative) parser.popSymbol();</span>
-<span class="fc" id="L333">    String label = csvReader.getElement().toString();</span>
-<span class="fc" id="L334">    parser.pushSymbol(Symbol.UNION_END);</span>
-<span class="fc" id="L335">    int n = a.findLabel(label);</span>
-<span class="pc bpc" id="L336" title="1 of 2 branches missed.">    if (n &lt; 0) {</span>
-<span class="nc" id="L337">      throw new AvroTypeException(&quot;Unknown union branch &quot; + label);</span>
+<span class="fc" id="L340">    parser.advance(Symbol.UNION);</span>
+<span class="fc" id="L341">    Symbol.Alternative a = (Symbol.Alternative) parser.popSymbol();</span>
+<span class="fc" id="L342">    String label = csvReader.getElement().toString();</span>
+<span class="fc" id="L343">    parser.pushSymbol(Symbol.UNION_END);</span>
+<span class="fc" id="L344">    int n = a.findLabel(label);</span>
+<span class="pc bpc" id="L345" title="1 of 2 branches missed.">    if (n &lt; 0) {</span>
+<span class="nc" id="L346">      throw new AvroTypeException(&quot;Unknown union branch &quot; + label);</span>
     }
-<span class="fc" id="L339">    parser.pushSymbol(a.getSymbol(n));</span>
-<span class="fc" id="L340">    parseNextCsv();</span>
-<span class="fc" id="L341">    return n;</span>
+<span class="fc" id="L348">    parser.pushSymbol(a.getSymbol(n));</span>
+<span class="fc" id="L349">    parseNextCsv();</span>
+<span class="fc" id="L350">    return n;</span>
   }
 
   @Override
   protected void skipFixed() throws IOException {
-<span class="nc" id="L346">    parser.advance(Symbol.FIXED);</span>
-<span class="nc" id="L347">    CsvReader.TokenType tok = csvReader.current();</span>
-<span class="nc bnc" id="L348" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
-<span class="nc" id="L349">      throw new AvroTypeException(&quot;Expected fixed, not &quot; + tok);</span>
+<span class="nc" id="L355">    parser.advance(Symbol.FIXED);</span>
+<span class="nc" id="L356">    CsvReader.TokenType tok = csvReader.current();</span>
+<span class="nc bnc" id="L357" title="All 2 branches missed.">    if (tok != CsvReader.TokenType.ELEMENT) {</span>
+<span class="nc" id="L358">      throw new AvroTypeException(&quot;Expected fixed, not &quot; + tok);</span>
     }
-<span class="nc" id="L351">    parseNextCsv();</span>
-<span class="nc" id="L352">  }</span>
+<span class="nc" id="L360">    parseNextCsv();</span>
+<span class="nc" id="L361">  }</span>
 
   @Override
   @Nullable
   public Symbol doAction(final Symbol symbol, final Symbol symbol1) {
-<span class="fc" id="L357">    return null;</span>
+<span class="fc" id="L366">    return null;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L362">    return &quot;CsvDecoder{&quot; + &quot;csvReader=&quot; + csvReader + '}';</span>
+<span class="nc" id="L371">    return &quot;CsvDecoder{&quot; + &quot;csvReader=&quot; + csvReader + '}';</span>
   }
 
   /**
@@ -372,26 +381,26 @@ public final class CsvDecoder extends ParsingDecoder {
   public static DecodedSchema tryDecodeSchema(final InputStream is, @Nullable final Schema readerSchema)
           throws IOException {
     try {
-<span class="fc" id="L375">      CsvReader reader = Csv.CSV.reader(new InputStreamReader(is, StandardCharsets.UTF_8));</span>
+<span class="fc" id="L384">      CsvReader reader = Csv.CSV.reader(new InputStreamReader(is, StandardCharsets.UTF_8));</span>
       Schema record;
-<span class="pc bpc" id="L377" title="1 of 2 branches missed.">      if (readerSchema == null) {</span>
-<span class="nc" id="L378">        record = Schema.createRecord(&quot;DynCsv&quot;, &quot;Infered schema&quot;, &quot;org.spf4j.avro&quot;, false);</span>
-<span class="nc" id="L379">        List&lt;Schema.Field&gt; bfields = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L380">        reader.readRow((cs) -&gt; {</span>
-<span class="nc" id="L381">          bfields.add(AvroCompatUtils.createField(cs.toString(), Schema.create(Schema.Type.STRING),</span>
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">      if (readerSchema == null) {</span>
+<span class="nc" id="L387">        record = Schema.createRecord(&quot;DynCsv&quot;, &quot;Infered schema&quot;, &quot;org.spf4j.avro&quot;, false);</span>
+<span class="nc" id="L388">        List&lt;Schema.Field&gt; bfields = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L389">        reader.readRow((cs) -&gt; {</span>
+<span class="nc" id="L390">          bfields.add(AvroCompatUtils.createField(cs.toString(), Schema.create(Schema.Type.STRING),</span>
                   null, null, false, false, Schema.Field.Order.IGNORE));
-<span class="nc" id="L383">        });</span>
-<span class="nc" id="L384">        record.setFields(bfields);</span>
-<span class="nc" id="L385">      } else {</span>
-<span class="fc" id="L386">        Schema elementType = readerSchema.getElementType();</span>
-<span class="fc" id="L387">        List&lt;CharSequence&gt; list = new ArrayList&lt;&gt;(elementType.getFields().size());</span>
-<span class="fc" id="L388">        reader.readRow((cs) -&gt; list.add(cs.toString()));</span>
-<span class="fc" id="L389">        record = Schemas.project(elementType, list);</span>
+<span class="nc" id="L392">        });</span>
+<span class="nc" id="L393">        record.setFields(bfields);</span>
+<span class="nc" id="L394">      } else {</span>
+<span class="fc" id="L395">        Schema elementType = readerSchema.getElementType();</span>
+<span class="fc" id="L396">        List&lt;CharSequence&gt; list = new ArrayList&lt;&gt;(elementType.getFields().size());</span>
+<span class="fc" id="L397">        reader.readRow((cs) -&gt; list.add(cs.toString()));</span>
+<span class="fc" id="L398">        record = Schemas.project(elementType, list);</span>
       }
-<span class="fc" id="L391">      Schema arraySchema = Schema.createArray(record);</span>
-<span class="fc" id="L392">      return new DecodedSchema(arraySchema, new CsvDecoder(reader, arraySchema));</span>
-<span class="nc" id="L393">    } catch (CsvParseException ex) {</span>
-<span class="nc" id="L394">      throw new RuntimeException(ex);</span>
+<span class="fc" id="L400">      Schema arraySchema = Schema.createArray(record);</span>
+<span class="fc" id="L401">      return new DecodedSchema(arraySchema, new CsvDecoder(reader, arraySchema));</span>
+<span class="nc" id="L402">    } catch (CsvParseException ex) {</span>
+<span class="nc" id="L403">      throw new RuntimeException(ex);</span>
     }
   }
 

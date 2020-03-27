@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AvroMeasurementStoreReader.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.ms.tsdb</a> &gt; <span class="el_source">AvroMeasurementStoreReader.java</span></div><h1>AvroMeasurementStoreReader.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.impl.ms.tsdb;
+
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gnu.trove.map.hash.THashMap;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
+import org.apache.avro.Schema;
+import org.apache.avro.file.DataFileStream;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.Closeables;
+import org.spf4j.base.Pair;
+import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.perf.MeasurementStoreQuery;
+import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.tsdb2.TableDefs;
+import org.spf4j.tsdb2.avro.Observation;
+import org.spf4j.tsdb2.avro.TableDef;
+
+/**
+ * @author Zoltan Farkas
+ */
+@ParametersAreNonnullByDefault
+public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
+
+  private final Path infoFile;
+
+  private final Path[] dataFiles;
+
+  public AvroMeasurementStoreReader(final Path infoFile) throws IOException {
+<span class="nc" id="L79">    this(infoFile, lookupObservationFiles(infoFile).toArray(new Path[1]));</span>
+<span class="nc" id="L80">  }</span>
+
+
+<span class="fc" id="L83">  public AvroMeasurementStoreReader(final Path infoFile, final Path... dataFiles) {</span>
+<span class="fc" id="L84">    this.infoFile = infoFile;</span>
+<span class="fc" id="L85">    this.dataFiles = dataFiles;</span>
+<span class="fc" id="L86">  }</span>
+
+  public static List&lt;Path&gt; lookupObservationFiles(final Path infoFile) throws IOException {
+<span class="nc" id="L89">    List&lt;Path&gt; dataFiles = new ArrayList&lt;&gt;(4);</span>
+<span class="nc" id="L90">    Path fn = infoFile.getFileName();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">    if (fn == null) {</span>
+<span class="nc" id="L92">      throw new IllegalArgumentException(&quot;Invalid info file &quot; + infoFile);</span>
+    }
+<span class="nc" id="L94">    String fileName = fn.toString();</span>
+<span class="nc" id="L95">    String prefix = fileName.substring(0, fileName.length() - &quot;.tabledef.avro&quot;.length());</span>
+<span class="nc" id="L96">    Path parent = infoFile.getParent();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    if (parent == null) {</span>
+<span class="nc" id="L98">      throw new IllegalArgumentException(&quot;Invalid info file &quot; + infoFile);</span>
+    }
+<span class="nc" id="L100">    try (DirectoryStream&lt;Path&gt; stream = Files.newDirectoryStream(parent,</span>
+<span class="nc" id="L101">            new DirectoryStream.Filter&lt;Path&gt;() {</span>
+      @Override
+      public boolean accept(final Path entry) {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (Files.isDirectory(entry)) {</span>
+<span class="nc" id="L105">          return false;</span>
+        }
+<span class="nc" id="L107">        Path fnp = entry.getFileName();</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (fnp == null) {</span>
+<span class="nc" id="L109">          return false;</span>
+        }
+<span class="nc" id="L111">        String fName = fnp.toString();</span>
+<span class="nc bnc" id="L112" title="All 4 branches missed.">        return fName.startsWith(prefix) &amp;&amp; fName.endsWith(&quot;.observation.avro&quot;);</span>
+      }
+    })) {
+<span class="nc bnc" id="L115" title="All 2 branches missed.">      for (Path f : stream) {</span>
+<span class="nc" id="L116">        dataFiles.add(f);</span>
+<span class="nc" id="L117">      }</span>
+    }
+<span class="nc" id="L119">    return dataFiles;</span>
+  }
+
+  @Override
+  public Collection&lt;Schema&gt; getMeasurements(final Predicate&lt;String&gt; filter) throws IOException {
+<span class="fc" id="L124">    Map&lt;String, Pair&lt;Schema, Set&lt;Long&gt;&gt;&gt; result = new THashMap&lt;&gt;();</span>
+<span class="fc" id="L125">    try (DataFileStream&lt;TableDef&gt; stream = new DataFileStream&lt;TableDef&gt;(Files.newInputStream(infoFile),</span>
+            new SpecificDatumReader&lt;&gt;(TableDef.class))) {
+<span class="fc bfc" id="L127" title="All 2 branches covered.">      for (TableDef td : stream) {</span>
+<span class="fc" id="L128">        String name = td.getName();</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">        if (filter.test(name)) {</span>
+<span class="fc" id="L130">          Pair&lt;Schema, Set&lt;Long&gt;&gt; exSch = result.get(name);</span>
+<span class="pc bpc" id="L131" title="1 of 2 branches missed.">          if (exSch == null) {</span>
+<span class="fc" id="L132">            Schema sch = TableDefs.createSchema(td);</span>
+<span class="fc" id="L133">            Set&lt;Long&gt; ids = new HashSet&lt;&gt;(2);</span>
+<span class="fc" id="L134">            ids.add(td.getId());</span>
+<span class="fc" id="L135">            exSch = Pair.of(sch, ids);</span>
+<span class="fc" id="L136">            result.put(name, exSch);</span>
+<span class="fc" id="L137">          } else {</span>
+<span class="nc" id="L138">            exSch.getValue().add(td.getId());</span>
+          }
+        }
+<span class="fc" id="L141">      }</span>
+    }
+<span class="fc" id="L143">    return result.values().stream().map((x) -&gt; {</span>
+<span class="fc" id="L144">      Schema sch = x.getKey();</span>
+<span class="fc" id="L145">      sch.addProp(TimeSeriesRecord.IDS_PROP, x.getValue());</span>
+<span class="fc" id="L146">      return sch;</span>
+<span class="fc" id="L147">    }).collect(Collectors.toCollection(() -&gt; new ArrayList&lt;&gt;(result.size())));</span>
+  }
+
+  @Override
+  public AvroCloseableIterable&lt;Observation&gt; getObservations() throws IOException {
+<span class="fc" id="L152">    Schema oSchema = Observation.getClassSchema();</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">    if (dataFiles.length == 0) {</span>
+<span class="nc" id="L154">          return AvroCloseableIterable.from(Collections.emptyList(), () -&gt; { }, oSchema);</span>
+    }
+<span class="fc" id="L156">    SpecificDatumReader&lt;Observation&gt; specificDatumReader = new SpecificDatumReader&lt;&gt;(Observation.class);</span>
+<span class="fc" id="L157">    Iterable&lt;Observation&gt;[] streams = new Iterable[dataFiles.length];</span>
+<span class="fc" id="L158">    Closeable[] closeables = new Closeable[dataFiles.length];</span>
+<span class="fc bfc" id="L159" title="All 2 branches covered.">    for (int i = 0; i &lt; dataFiles.length; i++) {</span>
+<span class="fc" id="L160">      Path dataFile = dataFiles[i];</span>
+      DataFileStream&lt;Observation&gt; ds;
+      try {
+<span class="fc" id="L163">        ds =  new DataFileStream&lt;Observation&gt;(Files.newInputStream(dataFile), specificDatumReader);</span>
+<span class="nc" id="L164">      } catch (IOException ex) {</span>
+<span class="nc" id="L165">        IOException ex2 = Closeables.closeAll(closeables, 0, i);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        if (ex2 != null) {</span>
+<span class="nc" id="L167">          ex2.addSuppressed(ex);</span>
+<span class="nc" id="L168">          throw ex2;</span>
+        }
+<span class="nc" id="L170">        throw ex;</span>
+<span class="fc" id="L171">      }</span>
+<span class="fc" id="L172">      long fileTimeRef = ds.getMetaLong(&quot;timeRef&quot;);</span>
+<span class="fc" id="L173">      streams[i] = Iterables.transform(ds, new TimeCalibrate(fileTimeRef));</span>
+<span class="fc" id="L174">      closeables[i] = ds;</span>
+    }
+<span class="fc" id="L176">    Iterable&lt;Observation&gt; stream = Iterables.concat(streams);</span>
+<span class="fc" id="L177">    return AvroCloseableIterable.from(stream, () -&gt; {</span>
+<span class="fc" id="L178">      IOException ex = Closeables.closeAll(closeables);</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">      if (ex != null) {</span>
+<span class="nc" id="L180">        throw new UncheckedIOException(ex);</span>
+      }
+<span class="fc" id="L182">    }, oSchema);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L187">    return &quot;AvroMeasurementStoreReader{&quot; + &quot;infoFile=&quot; + infoFile + &quot;, dataFiles=&quot; + Arrays.toString(dataFiles) + '}';</span>
+  }
+
+  private static class TimeCalibrate implements Function&lt;Observation, Observation&gt; {
+
+    private final long fileTimeRef;
+
+<span class="fc" id="L194">    TimeCalibrate(final long fileTimeRef) {</span>
+<span class="fc" id="L195">      this.fileTimeRef = fileTimeRef;</span>
+<span class="fc" id="L196">    }</span>
+
+    @Override
+    @SuppressFBWarnings({&quot;CFS_CONFUSING_FUNCTION_SEMANTICS&quot;, &quot;NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION&quot; })
+    // confusing but fast.
+    public Observation apply(@Nonnull final Observation row) {
+<span class="fc" id="L202">      row.setRelTimeStamp(fileTimeRef + row.getRelTimeStamp());</span>
+<span class="fc" id="L203">      return row;</span>
+    }
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MStoreViewJInternalFrame.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-ui</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ui</a> &gt; <span class="el_source">MStoreViewJInternalFrame.java</span></div><h1>MStoreViewJInternalFrame.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.ui;
+//CHECKSTYLE:OFF
+
+import com.google.common.primitives.Ints;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.awt.Dimension;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.Nullable;
+import javax.swing.BoxLayout;
+import javax.swing.JFileChooser;
+import javax.swing.JPanel;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.spf4j.base.Pair;
+import org.spf4j.base.SuppressForbiden;
+import gnu.trove.set.hash.THashSet;
+import java.awt.Component;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.time.Instant;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericDatumWriter;
+import org.spf4j.avro.csv.CsvEncoder;
+import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.io.Csv;
+import org.spf4j.io.csv.CsvWriter;
+import org.spf4j.perf.TimeSeriesRecord;
+import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStoreReader;
+import org.spf4j.tsdb2.Charts2;
+import org.spf4j.tsdb2.avro.Observation;
+
+/**
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings({&quot;FCBL_FIELD_COULD_BE_LOCAL&quot;, &quot;SE_BAD_FIELD&quot;})
+public class MStoreViewJInternalFrame extends javax.swing.JInternalFrame {
+
+  private static final long serialVersionUID = 1L;
+  private final AvroMeasurementStoreReader reader;
+
+  /**
+   * Creates new form TSDBViewJInternalFrame
+   */
+  @SuppressForbiden
+  public MStoreViewJInternalFrame(final File tsDb) throws IOException {
+<span class="nc" id="L93">    super(tsDb.getPath());</span>
+<span class="nc" id="L94">    String fileName = tsDb.getName();</span>
+<span class="nc" id="L95">    setName(fileName);</span>
+<span class="nc" id="L96">    initComponents();</span>
+<span class="nc bnc" id="L97" title="All 2 branches missed.">    if (fileName.endsWith(&quot;.tabledef.avro&quot;)) {</span>
+<span class="nc" id="L98">      reader = new AvroMeasurementStoreReader(tsDb.toPath());</span>
+    } else {
+<span class="nc" id="L100">      throw new IllegalArgumentException(&quot;Not a tabledef.avrro file &quot; + tsDb);</span>
+    }
+<span class="nc" id="L102">    Collection&lt;Schema&gt; measurements = reader.getMeasurements((x) -&gt; true);</span>
+<span class="nc" id="L103">    long startDateMillis = System.currentTimeMillis();</span>
+<span class="nc" id="L104">    try (AvroCloseableIterable&lt;Observation&gt; scan = reader.getObservations()) {</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">      for (Observation obs : scan) {</span>
+<span class="nc" id="L106">        long ts = obs.getRelTimeStamp();</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        if (ts &lt; startDateMillis) {</span>
+<span class="nc" id="L108">          startDateMillis = ts;</span>
+        }
+<span class="nc" id="L110">      }</span>
+    }
+
+<span class="nc" id="L113">    Map&lt;String, DefaultMutableTreeNode&gt; gNodes = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L114">    DefaultMutableTreeNode root = new DefaultMutableTreeNode(fileName);</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">    for (Schema info : measurements) {</span>
+<span class="nc" id="L116">      String groupName = info.getProp(TimeSeriesRecord.RAW_NAME);</span>
+<span class="nc" id="L117">      Pair&lt;String, String&gt; pair = Pair.from(groupName);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">      if (pair == null) {</span>
+<span class="nc" id="L119">        DefaultMutableTreeNode child = new DefaultMutableTreeNode(info);</span>
+<span class="nc" id="L120">        root.add(child);</span>
+<span class="nc" id="L121">      } else {</span>
+<span class="nc" id="L122">        groupName = pair.getFirst();</span>
+<span class="nc" id="L123">        DefaultMutableTreeNode gNode = gNodes.get(groupName);</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (gNode == null) {</span>
+<span class="nc" id="L125">          gNode = new DefaultMutableTreeNode(groupName);</span>
+<span class="nc" id="L126">          gNodes.put(groupName, gNode);</span>
+<span class="nc" id="L127">          root.add(gNode);</span>
+        }
+<span class="nc" id="L129">        DefaultMutableTreeNode child = new DefaultMutableTreeNode(info);</span>
+<span class="nc" id="L130">        gNode.add(child);</span>
+      }
+<span class="nc" id="L132">    }</span>
+<span class="nc" id="L133">    measurementTree.setModel(new DefaultTreeModel(root));</span>
+<span class="nc" id="L134">    measurementTree.setCellRenderer(new TreeCellRenderer());</span>
+<span class="nc" id="L135">    measurementTree.setVisible(true);</span>
+<span class="nc" id="L136">    this.startDate.setValue(new Date(startDateMillis));</span>
+<span class="nc" id="L137">  }</span>
+
+  private static class TreeCellRenderer extends DefaultTreeCellRenderer {
+
+    @Override
+    @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
+    public Component getTreeCellRendererComponent(final JTree tree, final Object node,
+            final boolean selected, final boolean expanded, final boolean leaf,
+            final int row, final boolean hasFocus) {
+<span class="nc" id="L146">      Object value = ((DefaultMutableTreeNode) node).getUserObject();</span>
+<span class="nc bnc" id="L147" title="All 2 branches missed.">      if (value instanceof String) {</span>
+<span class="nc" id="L148">        this.setText((String) value);</span>
+<span class="nc bnc" id="L149" title="All 2 branches missed.">      } else if (value instanceof Schema) {</span>
+<span class="nc" id="L150">        this.setText(((Schema) value).getName());</span>
+      } else {
+<span class="nc" id="L152">        throw new IllegalStateException(&quot;Unsupported object type &quot; + value.getClass());</span>
+      }
+<span class="nc" id="L154">      return this;</span>
+    }
+  }
+
+  /**
+   * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
+   * content of this method is always regenerated by the Form Editor.
+   */
+  @SuppressWarnings(&quot;unchecked&quot;)
+  // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
+  private void initComponents() {
+
+<span class="nc" id="L166">    rightPanel = new javax.swing.JPanel();</span>
+<span class="nc" id="L167">    mainSplitPannel = new javax.swing.JSplitPane();</span>
+<span class="nc" id="L168">    jPanel2 = new javax.swing.JPanel();</span>
+<span class="nc" id="L169">    jScrollPane1 = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L170">    measurementTree = new javax.swing.JTree();</span>
+<span class="nc" id="L171">    chartPannel = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L172">    jToolBar1 = new javax.swing.JToolBar();</span>
+<span class="nc" id="L173">    plotButton = new javax.swing.JButton();</span>
+<span class="nc" id="L174">    exportButton = new javax.swing.JButton();</span>
+<span class="nc" id="L175">    aggregationMillis = new javax.swing.JTextField();</span>
+<span class="nc" id="L176">    startDate = new javax.swing.JSpinner();</span>
+<span class="nc" id="L177">    endDate = new javax.swing.JSpinner();</span>
+
+<span class="nc" id="L179">    org.jdesktop.layout.GroupLayout rightPanelLayout = new org.jdesktop.layout.GroupLayout(rightPanel);</span>
+<span class="nc" id="L180">    rightPanel.setLayout(rightPanelLayout);</span>
+<span class="nc" id="L181">    rightPanelLayout.setHorizontalGroup(</span>
+<span class="nc" id="L182">      rightPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L183">      .add(0, 448, Short.MAX_VALUE)</span>
+    );
+<span class="nc" id="L185">    rightPanelLayout.setVerticalGroup(</span>
+<span class="nc" id="L186">      rightPanelLayout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L187">      .add(0, 306, Short.MAX_VALUE)</span>
+    );
+
+<span class="nc" id="L190">    setClosable(true);</span>
+<span class="nc" id="L191">    setMaximizable(true);</span>
+<span class="nc" id="L192">    setResizable(true);</span>
+
+<span class="nc" id="L194">    mainSplitPannel.setDividerSize(5);</span>
+<span class="nc" id="L195">    mainSplitPannel.setPreferredSize(new java.awt.Dimension(600, 500));</span>
+
+<span class="nc" id="L197">    measurementTree.setAutoscrolls(true);</span>
+<span class="nc" id="L198">    jScrollPane1.setViewportView(measurementTree);</span>
+
+<span class="nc" id="L200">    org.jdesktop.layout.GroupLayout jPanel2Layout = new org.jdesktop.layout.GroupLayout(jPanel2);</span>
+<span class="nc" id="L201">    jPanel2.setLayout(jPanel2Layout);</span>
+<span class="nc" id="L202">    jPanel2Layout.setHorizontalGroup(</span>
+<span class="nc" id="L203">      jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L204">      .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)</span>
+    );
+<span class="nc" id="L206">    jPanel2Layout.setVerticalGroup(</span>
+<span class="nc" id="L207">      jPanel2Layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L208">      .add(jScrollPane1, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)</span>
+    );
+
+<span class="nc" id="L211">    mainSplitPannel.setLeftComponent(jPanel2);</span>
+<span class="nc" id="L212">    mainSplitPannel.setRightComponent(chartPannel);</span>
+
+<span class="nc" id="L214">    jToolBar1.setFloatable(false);</span>
+<span class="nc" id="L215">    jToolBar1.setRollover(true);</span>
+
+<span class="nc" id="L217">    plotButton.setText(&quot;Plot&quot;);</span>
+<span class="nc" id="L218">    plotButton.setFocusable(false);</span>
+<span class="nc" id="L219">    plotButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L220">    plotButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L221">    plotButton.addActionListener(new java.awt.event.ActionListener() {</span>
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+<span class="nc" id="L223">        plotButtonActionPerformed(evt);</span>
+<span class="nc" id="L224">      }</span>
+    });
+<span class="nc" id="L226">    jToolBar1.add(plotButton);</span>
+
+<span class="nc" id="L228">    exportButton.setText(&quot;Export&quot;);</span>
+<span class="nc" id="L229">    exportButton.setFocusable(false);</span>
+<span class="nc" id="L230">    exportButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L231">    exportButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L232">    exportButton.addActionListener(new java.awt.event.ActionListener() {</span>
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+<span class="nc" id="L234">        exportButtonActionPerformed(evt);</span>
+<span class="nc" id="L235">      }</span>
+    });
+<span class="nc" id="L237">    jToolBar1.add(exportButton);</span>
+
+<span class="nc" id="L239">    aggregationMillis.setText(&quot;0&quot;);</span>
+<span class="nc" id="L240">    aggregationMillis.setMinimumSize(new java.awt.Dimension(80, 24));</span>
+<span class="nc" id="L241">    aggregationMillis.setPreferredSize(new java.awt.Dimension(80, 24));</span>
+<span class="nc" id="L242">    aggregationMillis.addActionListener(new java.awt.event.ActionListener() {</span>
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+<span class="nc" id="L244">        aggregationMillisActionPerformed(evt);</span>
+<span class="nc" id="L245">      }</span>
+    });
+<span class="nc" id="L247">    jToolBar1.add(aggregationMillis);</span>
+
+<span class="nc" id="L249">    startDate.setModel(new javax.swing.SpinnerDateModel());</span>
+<span class="nc" id="L250">    startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="nc" id="L251">    startDate.setMinimumSize(new java.awt.Dimension(200, 28));</span>
+<span class="nc" id="L252">    startDate.setName(&quot;&quot;); // NOI18N</span>
+<span class="nc" id="L253">    jToolBar1.add(startDate);</span>
+
+<span class="nc" id="L255">    endDate.setModel(new javax.swing.SpinnerDateModel());</span>
+<span class="nc" id="L256">    endDate.setEditor(new javax.swing.JSpinner.DateEditor(endDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="nc" id="L257">    jToolBar1.add(endDate);</span>
+
+<span class="nc" id="L259">    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
+<span class="nc" id="L260">    getContentPane().setLayout(layout);</span>
+<span class="nc" id="L261">    layout.setHorizontalGroup(</span>
+<span class="nc" id="L262">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L263">      .add(layout.createSequentialGroup()</span>
+<span class="nc" id="L264">        .addContainerGap()</span>
+<span class="nc" id="L265">        .add(layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L266">          .add(layout.createSequentialGroup()</span>
+<span class="nc" id="L267">            .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 627, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L268">            .add(0, 0, Short.MAX_VALUE))</span>
+<span class="nc" id="L269">          .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 695, Short.MAX_VALUE))</span>
+<span class="nc" id="L270">        .addContainerGap())</span>
+    );
+<span class="nc" id="L272">    layout.setVerticalGroup(</span>
+<span class="nc" id="L273">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L274">      .add(layout.createSequentialGroup()</span>
+<span class="nc" id="L275">        .add(jToolBar1, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L276">        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)</span>
+<span class="nc" id="L277">        .add(mainSplitPannel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 688, Short.MAX_VALUE)</span>
+<span class="nc" id="L278">        .addContainerGap())</span>
+    );
+
+<span class="nc" id="L281">    pack();</span>
+<span class="nc" id="L282">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+
+  @SuppressFBWarnings(&quot;UP_UNUSED_PARAMETER&quot;)
+    private void plotButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_plotButtonActionPerformed
+<span class="nc" id="L286">      TreePath[] selectionPaths = measurementTree.getSelectionPaths();</span>
+<span class="nc" id="L287">      JPanel content = new JPanel();</span>
+<span class="nc" id="L288">      content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));</span>
+<span class="nc" id="L289">      chartPannel.setViewportView(content);</span>
+      try {
+<span class="nc" id="L291">        Set&lt;Schema&gt; selectedTables = getSelectedTables(selectionPaths);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">        for (Schema tableName : selectedTables) {</span>
+<span class="nc" id="L293">          addChartToPanel(tableName, content);</span>
+<span class="nc" id="L294">        }</span>
+<span class="nc" id="L295">      } catch (IOException ex) {</span>
+<span class="nc" id="L296">        throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L297">      }</span>
+<span class="nc" id="L298">      chartPannel.repaint();</span>
+<span class="nc" id="L299">    }//GEN-LAST:event_plotButtonActionPerformed</span>
+
+  @SuppressFBWarnings(&quot;UP_UNUSED_PARAMETER&quot;)
+    private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportButtonActionPerformed
+<span class="nc" id="L303">      TreePath[] selectionPaths = measurementTree.getSelectionPaths();</span>
+<span class="nc" id="L304">      Set&lt;Schema&gt; selectedTables = getSelectedTables(selectionPaths);</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">      if (!selectedTables.isEmpty()) {</span>
+<span class="nc" id="L306">        JFileChooser chooser = new JFileChooser();</span>
+<span class="nc" id="L307">        chooser.setDialogType(JFileChooser.SAVE_DIALOG);</span>
+<span class="nc" id="L308">        int returnVal = chooser.showOpenDialog(this);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L310">          File file = chooser.getSelectedFile();</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">          for (Schema metric : selectedTables) {</span>
+<span class="nc" id="L312">            try (AvroCloseableIterable&lt;TimeSeriesRecord&gt; obs = reader.getMeasurementData(metric,</span>
+<span class="nc" id="L313">                    Instant.EPOCH, Instant.now())) {</span>
+<span class="nc" id="L314">              CsvWriter writer = Csv.CSV.writer(Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8));</span>
+<span class="nc" id="L315">              CsvEncoder encoder = new CsvEncoder(writer, Schema.createArray(metric));</span>
+<span class="nc" id="L316">              encoder.writeHeader();</span>
+<span class="nc" id="L317">              GenericDatumWriter dw = new GenericDatumWriter(metric);</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">              for (TimeSeriesRecord o : obs) {</span>
+<span class="nc" id="L319">                dw.write(o, encoder);</span>
+<span class="nc" id="L320">              }</span>
+<span class="nc" id="L321">              encoder.flush();</span>
+<span class="nc" id="L322">            } catch (IOException ex) {</span>
+<span class="nc" id="L323">              throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L324">            }</span>
+<span class="nc" id="L325">          }</span>
+        }
+      }
+<span class="nc" id="L328">    }//GEN-LAST:event_exportButtonActionPerformed</span>
+
+  @SuppressFBWarnings(&quot;UP_UNUSED_PARAMETER&quot;)
+  private void aggregationMillisActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aggregationMillisActionPerformed
+    // TODO add your handling code here:
+<span class="nc" id="L333">  }//GEN-LAST:event_aggregationMillisActionPerformed</span>
+
+  // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JTextField aggregationMillis;
+  private javax.swing.JScrollPane chartPannel;
+  private javax.swing.JSpinner endDate;
+  private javax.swing.JButton exportButton;
+  private javax.swing.JPanel jPanel2;
+  private javax.swing.JScrollPane jScrollPane1;
+  private javax.swing.JToolBar jToolBar1;
+  private javax.swing.JSplitPane mainSplitPannel;
+  private javax.swing.JTree measurementTree;
+  private javax.swing.JButton plotButton;
+  private javax.swing.JPanel rightPanel;
+  private javax.swing.JSpinner startDate;
+  // End of variables declaration//GEN-END:variables
+
+  @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
+  private static Set&lt;Schema&gt; getSelectedTables(@Nullable final TreePath[] selectionPaths) {
+<span class="nc bnc" id="L352" title="All 2 branches missed.">    if (selectionPaths == null) {</span>
+<span class="nc" id="L353">      return Collections.EMPTY_SET;</span>
+    }
+<span class="nc" id="L355">    Set&lt;Schema&gt; result = new THashSet&lt;&gt;();</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">    for (TreePath path : selectionPaths) {</span>
+<span class="nc" id="L357">      Object[] pathArr = path.getPath();</span>
+<span class="nc bnc" id="L358" title="All 2 branches missed.">      if (pathArr.length &lt; 2) {</span>
+<span class="nc" id="L359">        continue;</span>
+      }
+<span class="nc" id="L361">      DefaultMutableTreeNode colNode = (DefaultMutableTreeNode) pathArr[pathArr.length - 1];</span>
+<span class="nc" id="L362">      int depth = colNode.getDepth();</span>
+<span class="nc bnc" id="L363" title="All 2 branches missed.">      if (depth == 0) {</span>
+<span class="nc" id="L364">        result.add((Schema) colNode.getUserObject());</span>
+      } else {
+<span class="nc" id="L366">        Enumeration childEnum = colNode.children();</span>
+<span class="nc bnc" id="L367" title="All 2 branches missed.">        while (childEnum.hasMoreElements()) {</span>
+<span class="nc" id="L368">          DefaultMutableTreeNode child = (DefaultMutableTreeNode) childEnum.nextElement();</span>
+<span class="nc" id="L369">          result.add((Schema) child.getUserObject());</span>
+<span class="nc" id="L370">        }</span>
+      }
+    }
+<span class="nc" id="L373">    return result;</span>
+  }
+
+  private void addChartToPanel(final Schema table, final JPanel content) throws IOException {
+<span class="nc" id="L377">    long startTime = ((Date) startDate.getValue()).getTime();</span>
+<span class="nc" id="L378">    long endTime = ((Date) endDate.getValue()).getTime();</span>
+<span class="nc" id="L379">    Integer aggMillis = Ints.tryParse(aggregationMillis.getText());</span>
+<span class="nc bnc" id="L380" title="All 2 branches missed.">    if (aggMillis == null) {</span>
+<span class="nc" id="L381">      aggMillis = 0;</span>
+    }
+<span class="nc bnc" id="L383" title="All 2 branches missed.">    if (Charts2.canGenerateHeatChart(table)) {</span>
+<span class="nc" id="L384">      JFreeChart chart = Charts2.createHeatJFreeChart(reader, table,</span>
+<span class="nc" id="L385">              startTime, endTime, aggMillis);</span>
+<span class="nc" id="L386">      ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L387">      pannel.setPreferredSize(new Dimension(600, 800));</span>
+<span class="nc" id="L388">      pannel.setDomainZoomable(false);</span>
+<span class="nc" id="L389">      pannel.setMouseZoomable(false);</span>
+<span class="nc" id="L390">      pannel.setRangeZoomable(false);</span>
+<span class="nc" id="L391">      pannel.setZoomAroundAnchor(false);</span>
+<span class="nc" id="L392">      pannel.setZoomInFactor(1);</span>
+<span class="nc" id="L393">      pannel.setZoomOutFactor(1);</span>
+<span class="nc" id="L394">      content.add(pannel);</span>
+    }
+<span class="nc bnc" id="L396" title="All 2 branches missed.">    if (Charts2.canGenerateMinMaxAvgCount(table)) {</span>
+<span class="nc" id="L397">      JFreeChart chart = Charts2.createMinMaxAvgJFreeChart(reader, table,</span>
+<span class="nc" id="L398">              startTime, endTime, aggMillis);</span>
+<span class="nc" id="L399">      ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L400">      pannel.setPreferredSize(new Dimension(600, 600));</span>
+<span class="nc" id="L401">      content.add(pannel);</span>
+
+    }
+<span class="nc bnc" id="L404" title="All 2 branches missed.">    if (Charts2.canGenerateCount(table)) {</span>
+<span class="nc" id="L405">      JFreeChart chart = Charts2.createCountJFreeChart(reader, table,</span>
+<span class="nc" id="L406">              startTime, endTime, aggMillis);</span>
+<span class="nc" id="L407">      ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L408">      pannel.setPreferredSize(new Dimension(600, 600));</span>
+<span class="nc" id="L409">      content.add(pannel);</span>
+<span class="nc" id="L410">    } else {</span>
+<span class="nc" id="L411">      List&lt;JFreeChart&gt; createJFreeCharts = Charts2.createJFreeCharts(reader, table, startTime, endTime, aggMillis);</span>
+<span class="nc bnc" id="L412" title="All 2 branches missed.">      for (JFreeChart chart : createJFreeCharts) {</span>
+<span class="nc" id="L413">        ChartPanel pannel = new ChartPanel(chart);</span>
+<span class="nc" id="L414">        pannel.setPreferredSize(new Dimension(600, 600));</span>
+<span class="nc" id="L415">        content.add(pannel);</span>
+<span class="nc" id="L416">      }</span>
+    }
+<span class="nc" id="L418">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

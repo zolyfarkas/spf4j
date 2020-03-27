@@ -31,14 +31,27 @@
  */
 package org.spf4j.perf;
 
+import com.google.common.annotations.Beta;
 import java.time.Instant;
+import java.util.Iterator;
+import java.util.List;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
+import org.spf4j.tsdb2.avro.Aggregation;
+import org.spf4j.tsdb2.avro.Observation;
 
 /**
  * @author Zoltan Farkas
  */
 public interface TimeSeriesRecord extends GenericRecord {
+
+  String MEASUREMENT_TYPE_PROP = &quot;measurementType&quot;;
+  String AGGREGATION_TYPE_PROP = &quot;aggregation&quot;;
+  String UNIT_TYPE_PROP = &quot;unit&quot;;
+  String FREQ_MILLIS_REC_PROP = &quot;frequencyMillis&quot;;
+  String RAW_NAME = &quot;rawName&quot;;
+  String IDS_PROP = &quot;ids&quot;;
+
 
   Instant getTimeStamp();
 
@@ -46,49 +59,184 @@ public interface TimeSeriesRecord extends GenericRecord {
 
   double getDoubleValue(String column);
 
+  static int getFrequencyMillis(final Schema schema) {
+<span class="fc" id="L63">    Number freq = (Number) schema.getObjectProp(FREQ_MILLIS_REC_PROP);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">    if (freq == null) {</span>
+<span class="nc" id="L65">      return -1;</span>
+    }
+<span class="fc" id="L67">    return freq.intValue();</span>
+  }
+
+  static String getUnit(final Schema schema) {
+<span class="nc" id="L71">    String unit = (String) schema.getObjectProp(UNIT_TYPE_PROP);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (unit == null) {</span>
+<span class="nc" id="L73">      return &quot;N/A&quot;;</span>
+    }
+<span class="nc" id="L75">    return unit;</span>
+  }
+
   static TimeSeriesRecord from(final GenericRecord rec) {
-<span class="fc" id="L50">    return new TimeSeriesRecord() {</span>
+<span class="fc" id="L79">    return new TimeSeriesRecord() {</span>
       @Override
       public Instant getTimeStamp() {
-<span class="nc" id="L53">        return (Instant) rec.get(0);</span>
+<span class="fc" id="L82">        return (Instant) rec.get(0);</span>
       }
 
       @Override
       public long getLongValue(final String column) {
-<span class="nc" id="L58">        return ((Number) rec.get(column)).longValue();</span>
+<span class="fc" id="L87">        return ((Number) rec.get(column)).longValue();</span>
       }
 
       @Override
       public double getDoubleValue(final String column) {
-<span class="nc" id="L63">        return ((Number) rec.get(column)).doubleValue();</span>
+<span class="nc" id="L92">        return ((Number) rec.get(column)).doubleValue();</span>
       }
 
       @Override
       public void put(final String key, final Object v) {
-<span class="nc" id="L68">        rec.put(key, v);</span>
-<span class="nc" id="L69">      }</span>
+<span class="nc" id="L97">        rec.put(key, v);</span>
+<span class="nc" id="L98">      }</span>
 
       @Override
       public Object get(final String key) {
-<span class="nc" id="L73">        return rec.get(key);</span>
+<span class="nc" id="L102">        return rec.get(key);</span>
       }
 
       @Override
       public void put(final int i, final Object v) {
-<span class="nc" id="L78">        rec.put(i, v);</span>
-<span class="nc" id="L79">      }</span>
+<span class="fc" id="L107">        rec.put(i, v);</span>
+<span class="fc" id="L108">      }</span>
 
       @Override
       public Object get(final int i) {
-<span class="fc" id="L83">        return rec.get(i);</span>
+<span class="fc" id="L112">        return rec.get(i);</span>
       }
 
       @Override
       public Schema getSchema() {
-<span class="fc" id="L88">        return rec.getSchema();</span>
+<span class="fc" id="L117">        return rec.getSchema();</span>
       }
     };
   }
+
+  /**
+   * Temporary, until better implementation.
+   * @param accumulator
+   * @param r2
+   */
+  @Beta
+  default void accumulate(final TimeSeriesRecord r2) {
+<span class="fc" id="L129">    Schema recSchema = getSchema();</span>
+<span class="fc" id="L130">    Iterator&lt;Schema.Field&gt; it = recSchema.getFields().iterator();</span>
+<span class="fc" id="L131">    it.next();</span>
+<span class="fc" id="L132">    put(0, r2.get(0));</span>
+<span class="fc bfc" id="L133" title="All 2 branches covered.">    while (it.hasNext()) {</span>
+<span class="fc" id="L134">      Schema.Field nf = it.next();</span>
+<span class="fc" id="L135">      int pos = nf.pos();</span>
+      Aggregation agg;
+<span class="fc" id="L137">      String prop = nf.schema().getProp(AGGREGATION_TYPE_PROP);</span>
+<span class="pc bpc" id="L138" title="1 of 2 branches missed.">      if (prop != null) {</span>
+<span class="fc" id="L139">        agg = Aggregation.valueOf(prop);</span>
+      } else {
+<span class="nc" id="L141">        agg = inferAggregationFromName(nf, recSchema);</span>
+      }
+<span class="pc bpc" id="L143" title="4 of 6 branches missed.">      switch (agg) {</span>
+        case SUM:
+<span class="fc" id="L145">          put(pos, ((Long) get(pos)) + ((Long) r2.get(pos)));</span>
+<span class="fc" id="L146">          break;</span>
+        case MIN:
+<span class="nc" id="L148">          put(pos, Math.min((Long) get(pos), ((Long) r2.get(pos))));</span>
+<span class="nc" id="L149">          break;</span>
+        case MAX:
+<span class="nc" id="L151">          put(pos, Math.max((Long) get(pos), ((Long) r2.get(pos))));</span>
+<span class="nc" id="L152">          break;</span>
+        case FIRST:
+<span class="nc" id="L154">          break;</span>
+        case LAST:
+        case UNKNOWN:
+<span class="fc" id="L157">          put(pos, ((Long) r2.get(pos)));</span>
+<span class="fc" id="L158">          break;</span>
+        default:
+<span class="nc" id="L160">          throw new UnsupportedOperationException(&quot;Unsupported aggregation: &quot; + agg);</span>
+      }
+<span class="fc" id="L162">    }</span>
+<span class="fc" id="L163">  }</span>
+
+
+  @Beta
+  static void accumulateObservations(final Schema recSchema, final Observation r1, final Observation r2) {
+<span class="fc" id="L168">    r1.setRelTimeStamp(r2.getRelTimeStamp());</span>
+<span class="fc" id="L169">    r1.setTableDefId(-1L);</span>
+<span class="fc" id="L170">    Iterator&lt;Schema.Field&gt; it = recSchema.getFields().iterator();</span>
+<span class="fc" id="L171">    it.next();</span>
+<span class="fc" id="L172">    List&lt;Long&gt; r1d = r1.getData();</span>
+<span class="fc" id="L173">    List&lt;Long&gt; r2d = r2.getData();</span>
+<span class="fc bfc" id="L174" title="All 2 branches covered.">    while (it.hasNext()) {</span>
+<span class="fc" id="L175">      Schema.Field nf = it.next();</span>
+<span class="fc" id="L176">      int pos = nf.pos();</span>
+      Aggregation agg;
+<span class="fc" id="L178">      String prop = nf.schema().getProp(AGGREGATION_TYPE_PROP);</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">      if (prop != null) {</span>
+<span class="fc" id="L180">        agg = Aggregation.valueOf(prop);</span>
+      } else {
+<span class="nc" id="L182">        agg = inferAggregationFromName(nf, recSchema);</span>
+      }
+<span class="fc" id="L184">      int apos = pos - 1;</span>
+<span class="pc bpc" id="L185" title="3 of 6 branches missed.">      switch (agg) {</span>
+        case SUM:
+<span class="fc" id="L187">          r1d.set(apos, r1d.get(apos) + r2d.get(apos));</span>
+<span class="fc" id="L188">          break;</span>
+        case MIN:
+<span class="fc" id="L190">           r1d.set(apos, Math.min(r1d.get(apos), r2d.get(apos)));</span>
+<span class="fc" id="L191">          break;</span>
+        case MAX:
+<span class="fc" id="L193">           r1d.set(apos, Math.max(r1d.get(apos), r2d.get(apos)));</span>
+<span class="fc" id="L194">          break;</span>
+        case FIRST:
+<span class="nc" id="L196">          break;</span>
+        case LAST:
+        case UNKNOWN:
+<span class="nc" id="L199">          r1d.set(apos, r2d.get(apos));</span>
+<span class="nc" id="L200">          break;</span>
+        default:
+<span class="nc" id="L202">          throw new UnsupportedOperationException(&quot;Unsupported aggregation: &quot; + agg);</span>
+      }
+<span class="fc" id="L204">    }</span>
+<span class="fc" id="L205">  }</span>
+
+
+  static Aggregation inferAggregationFromName(final Schema.Field nf, final Schema recSchema) {
+    Aggregation agg;
+<span class="nc bnc" id="L210" title="All 4 branches missed.">    switch (nf.name()) {</span>
+      case &quot;count&quot;:
+      case &quot;total&quot;:
+<span class="nc" id="L213">        agg = Aggregation.SUM;</span>
+<span class="nc" id="L214">        break;</span>
+      case &quot;min&quot;:
+<span class="nc" id="L216">        agg = Aggregation.MIN;</span>
+<span class="nc" id="L217">        break;</span>
+      case &quot;max&quot;:
+<span class="nc" id="L219">        agg = Aggregation.MAX;</span>
+<span class="nc" id="L220">        break;</span>
+      default:
+<span class="nc" id="L222">        String mType = recSchema.getProp(MEASUREMENT_TYPE_PROP);</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        if (mType != null) {</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">          switch (mType) {</span>
+            case &quot;COUNTER&quot;:
+            case &quot;SUMMARY&quot;:
+<span class="nc" id="L227">              agg = Aggregation.SUM;</span>
+<span class="nc" id="L228">              break;</span>
+            default:
+<span class="nc" id="L230">              agg = Aggregation.LAST;</span>
+          }
+        } else {
+<span class="nc" id="L233">          agg = Aggregation.LAST;</span>
+        }
+    }
+<span class="nc" id="L236">    return agg;</span>
+  }
+
+
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

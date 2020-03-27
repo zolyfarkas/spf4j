@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>MinMaxAvgAccumulator.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl.acc</a> &gt; <span class="el_source">MinMaxAvgAccumulator.java</span></div><h1>MinMaxAvgAccumulator.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.impl.acc;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import javax.annotation.Nullable;
+import org.spf4j.perf.MeasurementAccumulator;
+import org.spf4j.perf.MeasurementsInfo;
+import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.tsdb2.avro.Aggregation;
+import org.spf4j.tsdb2.avro.MeasurementType;
+
+/**
+ *
+ * @author zoly
+ */
+public final class MinMaxAvgAccumulator
+    extends AbstractMeasurementAccumulator {
+
+<span class="fc" id="L49">    private static final String[] MEASUREMENTS = {&quot;count&quot;, &quot;total&quot;, &quot;min&quot;, &quot;max&quot;};</span>
+<span class="fc" id="L50">    private static final Aggregation[] AGGS = {Aggregation.SUM, Aggregation.SUM, Aggregation.MIN, Aggregation.MAX};</span>
+
+    private long counter;
+    private long total;
+    private long min;
+    private long max;
+    private final MeasurementsInfo info;
+
+    private MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement,
+<span class="fc" id="L59">            final long counter, final long total, final long min, final long max) {</span>
+<span class="fc" id="L60">        this.info = new MeasurementsInfoImpl(measuredEntity, description,</span>
+                MEASUREMENTS, new String[] {&quot;count&quot;, unitOfMeasurement, unitOfMeasurement, unitOfMeasurement},
+                AGGS,
+                MeasurementType.SUMMARY);
+<span class="fc" id="L64">        this.counter = counter;</span>
+<span class="fc" id="L65">        this.total = total;</span>
+<span class="fc" id="L66">        this.min = min;</span>
+<span class="fc" id="L67">        this.max = max;</span>
+<span class="fc" id="L68">    }</span>
+
+    public MinMaxAvgAccumulator(final Object measuredEntity, final String description, final String unitOfMeasurement) {
+<span class="fc" id="L71">        this(measuredEntity, description, unitOfMeasurement, 0, 0, Long.MAX_VALUE, Long.MIN_VALUE);</span>
+<span class="fc" id="L72">    }</span>
+
+
+    public String getUnitOfMeasurement() {
+<span class="fc" id="L76">        return info.getMeasurementUnit(1);</span>
+    }
+
+
+    @Override
+    public synchronized void record(final long measurement) {
+<span class="fc" id="L82">        total += measurement;</span>
+<span class="fc" id="L83">        counter++;</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">        if (measurement &lt; min) {</span>
+<span class="fc" id="L85">            min = measurement;</span>
+        }
+<span class="fc bfc" id="L87" title="All 2 branches covered.">        if (measurement &gt; max) {</span>
+<span class="fc" id="L88">            max = measurement;</span>
+        }
+<span class="fc" id="L90">    }</span>
+
+    @Override
+    @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
+    @Nullable
+    public synchronized long[] get() {
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">        if (counter == 0) {</span>
+<span class="nc" id="L97">            return null;</span>
+        } else {
+<span class="fc" id="L99">            return new long[] {counter, total, min, max};</span>
+        }
+    }
+
+    @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot; })
+    @Override
+    public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
+<span class="pc bpc" id="L106" title="1 of 2 branches missed.">        if (mSource instanceof MinMaxAvgAccumulator) {</span>
+<span class="fc" id="L107">            MinMaxAvgAccumulator other = (MinMaxAvgAccumulator) mSource;</span>
+<span class="fc" id="L108">            long[] measurements = other.get();</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">            if (measurements != null) {</span>
+<span class="fc" id="L110">                synchronized (this) {</span>
+<span class="fc" id="L111">                return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),</span>
+<span class="fc" id="L112">                    getUnitOfMeasurement(),</span>
+                    counter + measurements[0], total + measurements[1],
+<span class="fc" id="L114">                    Math.min(min, measurements[2]), Math.max(max, measurements[3]));</span>
+                }
+            } else {
+<span class="nc" id="L117">                return this.createClone();</span>
+            }
+        } else {
+<span class="nc" id="L120">           throw new IllegalArgumentException(&quot;Cannot aggregate &quot; + this + &quot; with &quot; + mSource);</span>
+        }
+    }
+
+    @Override
+    public synchronized MinMaxAvgAccumulator createClone() {
+<span class="fc" id="L126">        return new MinMaxAvgAccumulator(this.info.getMeasuredEntity(),</span>
+<span class="fc" id="L127">                this.info.getDescription(), getUnitOfMeasurement(), counter, total, min, max);</span>
+    }
+
+    @Override
+    public MeasurementAccumulator createLike(final Object entity) {
+<span class="nc" id="L132">        return new MinMaxAvgAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());</span>
+    }
+
+    @Override
+    public MeasurementsInfo getInfo() {
+<span class="fc" id="L137">        return info;</span>
+    }
+
+    @Override
+    @Nullable
+    public synchronized MinMaxAvgAccumulator reset() {
+<span class="fc bfc" id="L143" title="All 2 branches covered.">        if (counter == 0) {</span>
+<span class="fc" id="L144">            return null;</span>
+        } else {
+<span class="fc" id="L146">            MinMaxAvgAccumulator result = createClone();</span>
+<span class="fc" id="L147">            counter = 0;</span>
+<span class="fc" id="L148">            total = 0;</span>
+<span class="fc" id="L149">            min = Long.MAX_VALUE;</span>
+<span class="fc" id="L150">            max = Long.MIN_VALUE;</span>
+<span class="fc" id="L151">            return result;</span>
+        }
+    }
+
+    @Override
+    @SuppressFBWarnings(&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;)
+    @Nullable
+    public long[] getThenReset() {
+<span class="nc" id="L159">        final MinMaxAvgAccumulator vals = reset();</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">        if (vals == null) {</span>
+<span class="nc" id="L161">            return null;</span>
+        } else {
+<span class="nc" id="L163">            return vals.get();</span>
+        }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L169">        return &quot;MinMaxAvgAccumulator{&quot; + &quot;counter=&quot; + counter + &quot;, total=&quot; + total + &quot;, min=&quot; + min</span>
+                + &quot;, max=&quot; + max + &quot;, info=&quot; + info + '}';
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
