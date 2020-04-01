@@ -390,6 +390,27 @@ public class BasicExecutionContext implements ExecutionContext {
     }
   }
 
+  @Override
+  public final synchronized void streamLogs(final Consumer<Slf4jLogRecord> to, final int maxNr) {
+    if (logs != null) {
+      if (maxNr >= logs.size()) {
+        for (Slf4jLogRecord log : logs) {
+          to.accept(log);
+        }
+      } else {
+        int i = 0;
+        int toSkip = logs.size() - maxNr;
+        for (Slf4jLogRecord log : logs) {
+          if (i >= toSkip) {
+            to.accept(log);
+          } else {
+            i++;
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Overwrite for more configurable implementation.
    * @param loggerName

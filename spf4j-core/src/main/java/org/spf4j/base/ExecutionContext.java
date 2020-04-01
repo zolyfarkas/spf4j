@@ -217,6 +217,9 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   void streamLogs(Consumer<Slf4jLogRecord> to);
 
+  @Beta
+  void streamLogs(Consumer<Slf4jLogRecord> to, int nrLogs);
+
   void detach();
 
   void attach();
@@ -408,12 +411,17 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
           boolean addStackSamples) {
+    return getDebugDetail(origin, throwable, addStackSamples, 100);
+  }
+
+  default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
+          boolean addStackSamples, final int maxNrLogs) {
     List<Slf4jLogRecord> ctxLogs = new ArrayList<>();
     ExecutionContext curr = this;
     while (curr != null) {
       curr.streamLogs((log) -> {
         ctxLogs.add(log);
-      });
+      }, maxNrLogs);
       curr = curr.getSource();
     }
     Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);
