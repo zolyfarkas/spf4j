@@ -491,7 +491,7 @@ public final class SchemaCompileMojo
     }
     super.execute();
     Log logger = this.getLog();
-    logger.info("Generationg java code + schemas, using avro "
+    logger.info("Generating java code + schemas, using avro "
             + PackageInfo.getPackageInfo(org.apache.avro.Schema.class.getName()));
     synchronized (String.class) {
       Properties properties = new Properties(System.getProperties());
