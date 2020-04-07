@@ -68,6 +68,9 @@ public final class FlameStackPanel extends StackPanelBase<Pair<Method, SampleNod
   @SuppressFBWarnings("ISB_TOSTRING_APPENDING")
   private int paintNode(final Method method, final SampleNode node,
           final Graphics2D g2, final int x, final int py, final int width, final int height, final int depth) {
+    if (node == null) {
+      return 0;
+    }
     int y = py;
     int sampleCount = node.getSampleCount();
     String val = Methods.toString(method) + '-' + sampleCount;

@@ -90,8 +90,11 @@ public final class HotFlameStackPanel extends StackPanelBase<SampleKey> {
 
   private void paintGraph(
           final Graphics2D g2, final double areaWidth, final double rowHeight) {
-
-    final SampleGraph graph = new SampleGraph(getMethod(), getSamples());
+    SampleNode samples = getSamples();
+    if (samples == null) {
+      return;
+    }
+    final SampleGraph graph = new SampleGraph(getMethod(), samples);
     this.completeGraph = graph;
     AggSample aggRoot = graph.getAggRootVertex();
     int rootSamples = aggRoot.getNrSamples();
