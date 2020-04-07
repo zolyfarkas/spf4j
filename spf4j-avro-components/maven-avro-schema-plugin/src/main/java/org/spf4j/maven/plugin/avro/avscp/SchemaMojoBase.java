@@ -16,8 +16,22 @@
 package org.spf4j.maven.plugin.avro.avscp;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
+import org.apache.avro.Schema;
 import org.apache.avro.SchemaRefWriter;
+import org.apache.avro.SchemaResolver;
+import org.apache.avro.SchemaResolvers;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,7 +40,9 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
-import org.spf4j.maven.Registerer;
+import org.spf4j.avro.SchemaRef;
+import org.spf4j.maven.MavenSchemaResolver;
+import static org.spf4j.maven.plugin.avro.avscp.SchemaCompileMojo.SCHEMA_INDEX_FILENAME;
 
 /**
  * @author Zoltan Farkas
@@ -131,6 +147,17 @@ public abstract class SchemaMojoBase extends AbstractMojo {
     return target;
   }
 
+ private Map<String, String> idx2Name() throws IOException {
+    Path indexFile = generatedAvscTarget.toPath().resolve(SCHEMA_INDEX_FILENAME);
+    Properties result = new Properties();
+    try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {
+      result.load(br);
+    } catch (NoSuchFileException ex) {
+      return Collections.EMPTY_MAP;
+    }
+    return (Map) result;
+  }
+
   /**
    * Children must call this.
    * @throws MojoExecutionException
@@ -139,9 +166,39 @@ public abstract class SchemaMojoBase extends AbstractMojo {
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     if (useSchemaReferencesForAvsc && SchemaRefWriter.isSchemaRefsSupported()) {
-      Registerer.register(repoSystem, getMavenSession().getRepositorySession(),
-              mavenProject.getRemoteProjectRepositories(),
-              schemaArtifactClassifier, schemaArtifactExtension);
+      Map<String, String> currentMappings;
+      try {
+        currentMappings = idx2Name();
+      } catch (IOException ex) {
+        throw new MojoExecutionException("Exception loading schema index: "
+                + generatedAvscTarget.toPath().resolve(SCHEMA_INDEX_FILENAME), ex);
+      }
+      MavenSchemaResolver res = new MavenSchemaResolver(repoSystem, getMavenSession().getRepositorySession(),
+              mavenProject.getRemoteProjectRepositories(), schemaArtifactClassifier, schemaArtifactExtension);
+      SchemaResolvers.registerDefault(new SchemaResolver() {
+        @Override
+        public Schema resolveSchema(final String id) {
+          SchemaRef ref = new SchemaRef(id);
+          if (mavenProject.getGroupId().equals(ref.getGroupId())
+                  && mavenProject.getArtifactId().equals(ref.getArtifactId())
+                  && mavenProject.getVersion().equals(ref.getVersion())) {
+            String name = currentMappings.get(ref.getRef());
+            Path schemaPath = generatedAvscTarget.toPath().resolve(name.replace('.', '/') + ".avsc");
+            try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(schemaPath))) {
+              return new Schema.Parser().parse(bis);
+            } catch (IOException ex) {
+              throw new UncheckedIOException(ex);
+            }
+          } else {
+            return res.resolveSchema(id);
+          }
+        }
+
+        @Override
+        public String getId(final Schema schema) {
+          return res.getId(schema);
+        }
+      });
     }
   }
 
