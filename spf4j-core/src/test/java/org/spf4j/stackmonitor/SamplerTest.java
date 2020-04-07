@@ -66,9 +66,11 @@ public class SamplerTest {
   }
 
   @Test
+  @SuppressFBWarnings("MDM_THREAD_YIELD")
   public void testSampler2() throws InterruptedException, IOException {
     Sampler sampler = Sampler.getSampler(5, 2000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
     sampler.start();
+    Thread.sleep(50);
     File dumpToFile = sampler.dumpToFile("id");
     LOG.debug("saved to file {}", dumpToFile);
     Assert.assertThat(dumpToFile.getAbsolutePath(), Matchers.not(Matchers.containsString(":")));

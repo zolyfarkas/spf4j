@@ -319,7 +319,8 @@ public class RetryPolicyTest {
         Assert.fail();
       } catch (ExecutionException | TimeoutException ex) {
         LOG.debug("Expected exception", ex);
-        Assert.assertEquals(SocketException.class, Throwables.getRootCause(ex).getClass());
+        Class<? extends Throwable> aClass = Throwables.getRootCause(ex).getClass();
+        Assert.assertTrue(SocketException.class == aClass || TimeoutException.class == aClass);
         // as expected.
       }
       retryExpect2.assertObservation();
