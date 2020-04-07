@@ -1,5 +1,6 @@
 package org.spf4j.maven.plugin.avro.avscp;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedOutputStream;
@@ -71,7 +72,7 @@ import org.spf4j.maven.MavenRepositoryUtils;
 @Mojo(name = "avro-compile",
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
-@SuppressFBWarnings("PATH_TRAVERSAL_IN")
+@SuppressFBWarnings({ "PATH_TRAVERSAL_IN", "SE_BAD_FIELD_INNER_CLASS" })
 public final class SchemaCompileMojo
         extends SchemaMojoBase {
 
@@ -339,30 +340,53 @@ public final class SchemaCompileMojo
 
   protected void doCompileSchemas(final String[] filenames)
           throws IOException {
-    Schema.Parser parser = new Schema.Parser();
+    Schema.Parser parser = new Schema.Parser(new Schema.Names() {
+      @Override
+      public Schema get(final Object o) {
+        Schema result = super.get(o);
+        if (result == null) {
+          result = org.apache.avro.avsc.SchemaResolver.unresolvedSchema(o.toString());
+        }
+        return result;
+      }
+
+    });
+    Map<String, Schema> schemas = Maps.newHashMapWithExpectedSize(filenames.length);
+    Map<String, File> srcFiles = Maps.newHashMapWithExpectedSize(filenames.length);
     for (String fileName : filenames) {
       File src = new File(sourceDirectory, fileName);
       Schema schema = parser.parse(src);
       if (addMavenId) {
         attachMavenId(schema);
       }
-      String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
-      Path destination = generatedAvscTarget.toPath().resolve(targetName);
-      Path parent = destination.getParent();
-      if (parent != null) {
-        Files.createDirectories(parent);
-      }
-      Files.write(destination,
-              schema.toString().getBytes(StandardCharsets.UTF_8),
-              StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-      SpecificCompiler compiler = new SpecificCompiler(schema);
-      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
-      compiler.setTemplateDir(templateDirectory);
-      compiler.setStringType(GenericData.StringType.valueOf(stringType));
-      compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
-      compiler.setCreateSetters(createSetters);
-      compiler.compileToDestination(src, generatedJavaTarget);
+      String fullName = schema.getFullName();
+      schemas.put(fullName, schema);
+      srcFiles.put(fullName, src);
     }
+    List<Schema> schemaList = org.apache.avro.avsc.SchemaResolver.resolve(schemas,
+            Boolean.getBoolean("allowUndefinedLogicalTypes"));
+    for (Schema schema : schemaList) {
+      writeSchemaToTarget(schema, srcFiles.get(schema.getFullName()));
+    }
+  }
+
+  private void writeSchemaToTarget(final Schema schema, final File src) throws IOException {
+    String targetName = schema.getFullName().replace('.', File.separatorChar) + ".avsc";
+    Path destination = generatedAvscTarget.toPath().resolve(targetName);
+    Path parent = destination.getParent();
+    if (parent != null) {
+      Files.createDirectories(parent);
+    }
+    Files.write(destination,
+            schema.toString().getBytes(StandardCharsets.UTF_8),
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    SpecificCompiler compiler = new SpecificCompiler(schema);
+    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty("project.build.sourceEncoding"));
+    compiler.setTemplateDir(templateDirectory);
+    compiler.setStringType(GenericData.StringType.valueOf(stringType));
+    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
+    compiler.setCreateSetters(createSetters);
+    compiler.compileToDestination(src, generatedJavaTarget);
   }
 
   protected void doCompileProtocol(final String filename, final Path destination) throws IOException {
@@ -503,6 +527,7 @@ public final class SchemaCompileMojo
         Files.createDirectories(generatedAvscTargetPath);
         Files.createDirectories(generatedJavaTarget.toPath());
         String[] sourceFiles = getSourceFiles("**/*.avsc");
+        Arrays.sort(sourceFiles); // make this predictable, (mostly easier to test)
         try {
           doCompileSchemas(sourceFiles);
         } catch (IOException ex) {
