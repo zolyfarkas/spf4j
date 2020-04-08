@@ -1,17 +1,16 @@
 
 package org.apache.avro.avsc;
 
-import com.google.common.base.Function;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.function.Function;
 import org.apache.avro.AvroTypeException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.compiler.schema.SchemaVisitor;
-import org.apache.avro.compiler.schema.SchemaVisitorAction;
-import org.apache.avro.compiler.schema.Schemas;
+import org.apache.avro.SchemaAdapter;
 
 /**
  * this visitor will create a clone of the original Schema and will also resolve all unresolved schemas
@@ -79,7 +78,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
   }
 
   private void materializeLogicalType(final Schema schema) {
-    schema.parseLogicalType(allowUndefinedLogicalTypes);
+    SchemaAdapter.parseLogicalType(schema, allowUndefinedLogicalTypes);
   }
 
   public static void copyAllProperties(final Schema first, final Schema second) {

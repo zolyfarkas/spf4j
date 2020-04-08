@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.avro.Schema;
-import org.apache.avro.compiler.schema.Schemas;
 
 /**
  * Utility class to resolve schemas that are unavailable at the time they are referenced in the IDL.

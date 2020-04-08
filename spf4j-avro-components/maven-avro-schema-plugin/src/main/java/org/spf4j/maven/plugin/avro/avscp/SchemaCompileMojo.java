@@ -34,9 +34,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.avro.ExtendedParser;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaRefWriter;
+import org.apache.avro.UnresolvedExtendedParser;
 import org.apache.avro.compiler.idl.Idl;
 import org.apache.avro.compiler.idl.ParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -340,17 +342,12 @@ public final class SchemaCompileMojo
 
   protected void doCompileSchemas(final String[] filenames)
           throws IOException {
-    Schema.Parser parser = new Schema.Parser(new Schema.Names() {
-      @Override
-      public Schema get(final Object o) {
-        Schema result = super.get(o);
-        if (result == null) {
-          result = org.apache.avro.avsc.SchemaResolver.unresolvedSchema(o.toString());
-        }
-        return result;
-      }
-
-    });
+    ClassLoader avroLibClassLoader = org.apache.avro.Schema.class.getClassLoader();
+    Thread currentThread = Thread.currentThread();
+    ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+    currentThread.setContextClassLoader(avroLibClassLoader);
+    try {
+    ExtendedParser parser = new UnresolvedExtendedParser();
     Map<String, Schema> schemas = Maps.newHashMapWithExpectedSize(filenames.length);
     Map<String, File> srcFiles = Maps.newHashMapWithExpectedSize(filenames.length);
     for (String fileName : filenames) {
@@ -367,6 +364,9 @@ public final class SchemaCompileMojo
             Boolean.getBoolean("allowUndefinedLogicalTypes"));
     for (Schema schema : schemaList) {
       writeSchemaToTarget(schema, srcFiles.get(schema.getFullName()));
+    }
+    } finally {
+      currentThread.setContextClassLoader(contextClassLoader);
     }
   }
 
