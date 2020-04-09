@@ -38,7 +38,7 @@ public class ExtendedParser {
 
 
   private final ExtendedNames names;
-  private boolean validate = true;
+  private boolean validateNames = true;
   private boolean validateDefaults = false;
 
   public static boolean isAllowUndefinedLogicalTypes() {
@@ -70,7 +70,7 @@ public class ExtendedParser {
   /**
    * Adds the provided types to the set of defined, named types known to this parser.
    */
-  public ExtendedParser addTypes(Map<String, Schema> types) {
+  public final ExtendedParser addTypes(final Map<String, Schema> types) {
     for (Schema s : types.values()) {
       names.add(s);
     }
@@ -80,7 +80,7 @@ public class ExtendedParser {
   /**
    * Returns the set of defined, named types known to this parser.
    */
-  public Map<String, Schema> getTypes() {
+  public final Map<String, Schema> getTypes() {
     Collection<Schema> values = names.values();
     Map<String, Schema> result = newLinkedHashMapWithExpectedSize(values.size());
     for (Schema s : values) {
@@ -92,55 +92,55 @@ public class ExtendedParser {
   /**
    * Enable or disable name validation.
    */
-  public ExtendedParser setValidssate(boolean validate) {
-    this.validate = validate;
+  public final ExtendedParser setValidate(final boolean validate) {
+    this.validateNames = validate;
     return this;
   }
 
   /**
    * True iff names are validated. True by default.
    */
-  public boolean getValidate() {
-    return this.validate;
+  public final boolean getValidate() {
+    return this.validateNames;
   }
 
   /**
    * Enable or disable default value validation.
    */
-  public ExtendedParser setValidateDefaults(boolean validateDefaults) {
-    this.validateDefaults = validateDefaults;
+  public final ExtendedParser setValidateDefaults(final boolean pvalidateDefaults) {
+    this.validateDefaults = pvalidateDefaults;
     return this;
   }
 
   /**
    * True iff default values are validated. False by default.
    */
-  public boolean getValidateDefaults() {
+  public final boolean getValidateDefaults() {
     return this.validateDefaults;
   }
 
   /**
    * Parse a schema from the provided file. If named, the schema is added to the names known to this parser.
    */
-  public Schema parse(File file) throws IOException {
+  public final Schema parse(final File file) throws IOException {
     return parse(FACTORY.createParser(file));
   }
 
-  public Schema parse(InputStream in) throws IOException {
+  public final Schema parse(final InputStream in) throws IOException {
     return parse(in, isAllowUndefinedLogicalTypes());
   }
 
   /**
    * Parse a schema from the provided stream. If named, the schema is added to the names known to this parser.
    */
-  public Schema parse(InputStream in, final boolean allowUndefinedLogicalTypes) throws IOException {
+  public final Schema parse(final InputStream in, final boolean allowUndefinedLogicalTypes) throws IOException {
     return parse(FACTORY.createParser(in), allowUndefinedLogicalTypes);
   }
 
   /**
    * Read a schema from one or more json strings
    */
-  public Schema parse(String s, String... more) {
+  public final Schema parse(final String s, final String... more) {
     StringBuilder b = new StringBuilder(s.length() * (more.length + 1));
     b.append(s);
     for (String part : more) {
@@ -149,14 +149,14 @@ public class ExtendedParser {
     return parse(b.toString());
   }
 
-  public Schema parse(String s) {
+  public final Schema parse(final String s) {
     return parse(s, isAllowUndefinedLogicalTypes());
   }
 
   /**
    * Parse a schema from the provided string. If named, the schema is added to the names known to this parser.
    */
-  public Schema parse(String s, final boolean allowUndefinedLogicalTypes) {
+  public final Schema parse(final String s, final boolean allowUndefinedLogicalTypes) {
     try {
       return parse(FACTORY.createParser(new StringReader(s)), allowUndefinedLogicalTypes);
     } catch (IOException e) {
@@ -164,20 +164,20 @@ public class ExtendedParser {
     }
   }
 
-  public Schema parse(JsonParser parser) throws IOException {
+  public final Schema parse(final JsonParser parser) throws IOException {
     return parse(parser, isAllowUndefinedLogicalTypes());
   }
 
   @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
-  public Schema parse(JsonParser parser, final boolean allowUndefinedLogicalTypes) throws IOException {
-    return SchemaAdapter.parse(parser, names, allowUndefinedLogicalTypes, validate, validateDefaults);
+  public final Schema parse(final JsonParser parser, final boolean allowUndefinedLogicalTypes) throws IOException {
+    return SchemaAdapter.parse(parser, names, allowUndefinedLogicalTypes, validateNames, validateDefaults);
   }
 
-  public static <K, V> LinkedHashMap<K, V> newLinkedHashMapWithExpectedSize(int expectedSize) {
+  public static <K, V> LinkedHashMap<K, V> newLinkedHashMapWithExpectedSize(final int expectedSize) {
     return new LinkedHashMap<K, V>(capacity(expectedSize));
   }
 
-  static int capacity(int expectedSize) {
+  private static int capacity(final int expectedSize) {
     if (expectedSize < 3) {
       if (expectedSize < 0) {
         throw new IllegalArgumentException("Invalid capacity: " + expectedSize);
@@ -193,9 +193,13 @@ public class ExtendedParser {
     return Integer.MAX_VALUE; // any large value
   }
 
+  /**
+   * Overwrite as appropriate.
+   * @return
+   */
   @Override
   public String toString() {
-    return "ExtendedParser{" + "names=" + names + ", validate=" + validate
+    return "ExtendedParser{" + "names=" + names + ", validate=" + validateNames
             + ", validateDefaults=" + validateDefaults + '}';
   }
 

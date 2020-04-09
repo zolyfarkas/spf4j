@@ -30,16 +30,16 @@ public final class ExtendedAvroNamesRefResolver extends ExtendedNames {
     this.sResolver = sResolver;
   }
 
-  public ExtendedAvroNamesRefResolver(final SchemaResolver sClient, String space) {
-    super(space);
+  public ExtendedAvroNamesRefResolver(final SchemaResolver sClient, final String nameSpace) {
+    super(nameSpace);
     this.sResolver = sClient;
   }
 
-  public String getId(Schema schema) {
+  public String getId(final Schema schema) {
     return sResolver.getId(schema);
   }
 
-  public Schema resolveSchema(String id) {
+  public Schema resolveSchema(final String id) {
     return sResolver.resolveSchema(id);
   }
 

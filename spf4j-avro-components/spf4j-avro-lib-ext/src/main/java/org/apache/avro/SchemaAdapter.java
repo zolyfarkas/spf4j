@@ -25,7 +25,7 @@ import static org.apache.avro.Schema.MAPPER;
 /**
  * @author Zoltan Farkas
  */
-public class SchemaAdapter {
+public final class SchemaAdapter {
 
   private static final Method PARSE_METHOD;
 
@@ -42,9 +42,12 @@ public class SchemaAdapter {
     PARSE_METHOD = m;
   }
 
+  private SchemaAdapter() { }
+
   @Nonnull
-  public static Schema parse(JsonParser parser,
-          ExtendedNames names, final boolean allowUndefinedLogicalTypes, boolean validate, boolean validateDefaults)
+  public static Schema parse(final JsonParser parser,
+          final ExtendedNames names, final boolean allowUndefinedLogicalTypes,
+          final boolean validateNames, final boolean validateDefaults)
           throws IOException {
     Schema schema;
     if (PARSE_METHOD == null) {
@@ -52,7 +55,7 @@ public class SchemaAdapter {
     } else {
       try {
         schema = (Schema) PARSE_METHOD.invoke(null, MAPPER.readTree(parser), names,
-                allowUndefinedLogicalTypes, validate, validateDefaults);
+                allowUndefinedLogicalTypes, validateNames, validateDefaults);
       } catch (IllegalAccessException | InvocationTargetException ex) {
         throw new SchemaParseException(ex);
       }
@@ -63,7 +66,7 @@ public class SchemaAdapter {
     return schema;
   }
 
-  public static void parseLogicalType(Schema schema, boolean allowUndefinedLogicalTypes) {
+  public static void parseLogicalType(final Schema schema, final boolean allowUndefinedLogicalTypes) {
     if (schema.getLogicalType() == null) {
       if (allowUndefinedLogicalTypes) {
         LogicalType lt = LogicalTypes.fromSchemaIgnoreInvalid(schema);

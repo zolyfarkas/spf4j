@@ -31,13 +31,24 @@ public class ExtendedNames extends Schema.Names {
     super(space);
   }
 
+  /**
+   * overwrite for extra name resolution.
+   * @param o
+   * @return
+   */
   @Override
-  public Schema get(String o) {
+  public Schema get(final String o) {
     return super.get(o);
   }
 
+
+  /**
+   * overwrite for extra name resolution.
+   * @param o
+   * @return
+   */
   @Override
-  public Schema get(Object o) {
+  public Schema get(final Object o) {
     return super.get(o);
   }
 

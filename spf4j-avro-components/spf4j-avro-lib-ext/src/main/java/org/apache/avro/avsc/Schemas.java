@@ -25,6 +25,7 @@ public final class Schemas {
   private Schemas() {
   }
 
+  @SuppressWarnings("checkstyle:MissingSwitchDefault")
   public static void copyAliases(final Schema from, final Schema to) {
     switch (from.getType()) { // only named types.
       case RECORD:
@@ -223,19 +224,19 @@ public final class Schemas {
   }
 
   /** Utility for template use.  Adds a dollar sign to reserved words. */
-  public static String mangle(String word) {
+  public static String mangle(final String word) {
     return mangle(word, Collections.EMPTY_SET);
   }
 
 
   /** Utility for template use.  Adds a dollar sign to reserved words. */
-  public static String mangle(String word, Set<String> reservedWords) {
+  public static String mangle(final String word, final Set<String> reservedWords) {
     return mangle(word, reservedWords, false);
   }
 
   /** Utility for template use.  Adds a dollar sign to reserved words. */
-  public static String mangle(String word, Set<String> reservedWords,
-      boolean isMethod) {
+  public static String mangle(final String word, final Set<String> reservedWords,
+      final boolean isMethod) {
     if (word.contains(".")) {
       // If the 'word' is really a full path of a class we must mangle just the classname
       int lastDot = word.lastIndexOf('.');
@@ -243,16 +244,13 @@ public final class Schemas {
       String className = word.substring(lastDot + 1);
       return packageName + mangle(className, reservedWords, isMethod);
     }
-    if (reservedWords.contains(word) ||
-        (isMethod && reservedWords.contains(
-            Character.toLowerCase(word.charAt(0)) +
-            ((word.length() > 1) ? word.substring(1) : "")))) {
+    if (reservedWords.contains(word)
+            || (isMethod && reservedWords.contains(
+            Character.toLowerCase(word.charAt(0))
+                    + ((word.length() > 1) ? word.substring(1) : "")))) {
       return word + "$";
     }
     return word;
   }
-
-
-
 
 }

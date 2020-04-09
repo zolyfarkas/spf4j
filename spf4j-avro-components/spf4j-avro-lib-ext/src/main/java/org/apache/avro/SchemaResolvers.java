@@ -30,9 +30,8 @@ import javax.annotation.Nullable;
 @SuppressFBWarnings("PMB_POSSIBLE_MEMORY_BLOAT")
 public final class SchemaResolvers {
 
-  private static final Map<String, SchemaResolver> REGISTERED_RESOLVERS=
-      new ConcurrentHashMap<>();
-
+  private static final Map<String, SchemaResolver> REGISTERED_RESOLVERS
+          = new ConcurrentHashMap<>();
 
   private static volatile SchemaResolver defaultResolver = null;
 
@@ -43,21 +42,19 @@ public final class SchemaResolvers {
       SchemaResolver ex = register(reg.getName(), reg.getResolver());
       if (ex != null) {
         Logger.getLogger(SchemaResolvers.class.getName())
-                .log(Level.WARNING, "Overwriting schema resolver {0} with {1}", new Object [] {ex, reg.getResolver()});
+                .log(Level.WARNING, "Overwriting schema resolver {0} with {1}", new Object[]{ex, reg.getResolver()});
       }
     }
   }
 
-
-
-  public static  SchemaResolver get(@Nullable final String name) {
+  public static SchemaResolver get(@Nullable final String name) {
     if (name == null) {
       return getDefault();
     }
     return REGISTERED_RESOLVERS.get(name);
   }
 
-  public static  SchemaResolver register(@Nullable final String name, final SchemaResolver resolver) {
+  public static SchemaResolver register(@Nullable final String name, final SchemaResolver resolver) {
     if (name == null) {
       SchemaResolver result = defaultResolver;
       defaultResolver = resolver;
@@ -67,7 +64,7 @@ public final class SchemaResolvers {
     }
   }
 
-  public static  SchemaResolver registerDefault(final SchemaResolver resolver) {
+  public static SchemaResolver registerDefault(final SchemaResolver resolver) {
     return defaultResolver = resolver;
   }
 
@@ -80,6 +77,7 @@ public final class SchemaResolvers {
     return res;
   }
 
-  private SchemaResolvers() { }
+  private SchemaResolvers() {
+  }
 
 }
