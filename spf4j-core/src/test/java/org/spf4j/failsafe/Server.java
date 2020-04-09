@@ -18,6 +18,7 @@ package org.spf4j.failsafe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +32,14 @@ public final class Server {
 
   private final Map<String, Function<Request, Response>> responses;
 
-  private volatile Exception breakException;
+  private volatile Supplier<Exception> breakException;
 
   public Server() {
     responses = new HashMap<>();
   }
 
-  public void breakException(final Exception ex) {
-    LOG.info("Setting break exception", ex == null ? null : ex.toString());
+  public void breakException(final Supplier<Exception> ex) {
+    LOG.info("Setting break exception supplier", ex);
     breakException = ex;
   }
 
@@ -48,10 +49,10 @@ public final class Server {
 
 
   public Response execute(final Request request) throws Exception {
-    Exception be = breakException;
+    Supplier<Exception> be = breakException;
     if (be != null) {
       LOG.debug("broken, throwing exception");
-      throw be;
+      throw be.get();
     }
     long deadlineMSEpoch = request.getDeadlineMSEpoch();
     long timeout = deadlineMSEpoch - System.currentTimeMillis();

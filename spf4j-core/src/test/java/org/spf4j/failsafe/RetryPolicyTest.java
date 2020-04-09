@@ -251,7 +251,7 @@ public class RetryPolicyTest {
       Assert.assertEquals(response1, resp);
       retryExpect.assertObservation();
     }
-    server.breakException(new SocketException("Bla bla"));
+    server.breakException(() -> new SocketException("Bla bla"));
     try (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "Result java.net.SocketException, retrying ServerCall.*"))) {
@@ -309,7 +309,7 @@ public class RetryPolicyTest {
       Assert.assertEquals(response1, resp);
       retryExpect.assertObservation();
     }
-    server.breakException(new SocketException("Bla bla"));
+    server.breakException(() -> new SocketException("Bla bla"));
     try (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "Result java.net.SocketException, retrying ServerCall.*"))) {
@@ -340,7 +340,7 @@ public class RetryPolicyTest {
       Assert.assertEquals("boooo", er.getPayload());
       retryExpect3.assertObservation();
     }
-    // Test error response the second type, to make sure predicate state is handled correctly
+    // Test error response the second time, to make sure predicate state is handled correctly
     try (LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
             LogMatchers.hasMessageWithPattern(
                     "^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"))) {
