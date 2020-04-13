@@ -27,14 +27,14 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
    */
   @Parameter(name = "packageAvsc",
           defaultValue = "true")
-  protected boolean packageAvsc = true;
+  private boolean packageAvsc = true;
 
   /**
-   * package avsc sourrces artifact (a zip/jar containing avro sources (avdl, avprr, avsc).)
+   * package avsc sources artifact (a zip/jar containing avro sources (avdl, avprr, avsc).)
    */
   @Parameter(name = "packageAvscSources",
           defaultValue = "true")
-  protected boolean packageAvscSources = true;
+  private boolean packageAvscSources = true;
 
 
   public String[] getSourceFiles() {
@@ -59,7 +59,8 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
     if (packageAvsc) {
       logger.info("Packaging schemas");
       Path avsc = target.toPath().resolve(
-                mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc." + schemaArtifactExtension);
+                mavenProject.getArtifactId() + '-' + mavenProject.getVersion()
+                        + '-' + "avsc." + schemaArtifactExtension);
       try {
         if (Files.notExists(sourcePath)) {
           return;
