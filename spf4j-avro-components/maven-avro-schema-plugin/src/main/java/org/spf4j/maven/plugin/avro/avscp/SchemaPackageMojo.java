@@ -35,10 +35,8 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
   }
 
   /**
-   * {@inheritDoc} running packaging of the current project may package a script for execution Dependencies libraries
-   * are copied in the
-   *
-   *
+   * {@inheritDoc}
+   * package schemas and sources.s
    */
   public void execute() throws MojoExecutionException, MojoFailureException {
     super.execute();
