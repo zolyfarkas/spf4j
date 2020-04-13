@@ -11,6 +11,7 @@ import org.apache.maven.plugin.logging.Log;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.model.fileset.FileSet;
 import org.apache.maven.shared.model.fileset.util.FileSetManager;
 import org.spf4j.io.compress.Compress;
@@ -21,6 +22,19 @@ import org.spf4j.io.compress.Compress;
 @Mojo(name = "avro-package", defaultPhase = LifecyclePhase.PACKAGE, requiresProject = true)
 public final class SchemaPackageMojo extends SchemaMojoBase {
 
+  /**
+   * package avsc artifact (a zip/jar containing avro schemas.)
+   */
+  @Parameter(name = "packageAvsc",
+          defaultValue = "true")
+  protected boolean packageAvsc = true;
+
+  /**
+   * package avsc sourrces artifact (a zip/jar containing avro sources (avdl, avprr, avsc).)
+   */
+  @Parameter(name = "packageAvscSources",
+          defaultValue = "true")
+  protected boolean packageAvscSources = true;
 
 
   public String[] getSourceFiles() {
@@ -41,37 +55,43 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
   public void execute() throws MojoExecutionException, MojoFailureException {
     super.execute();
     Log logger = this.getLog();
-    logger.info("Packaging schemas");
-    Path avsc = target.toPath().resolve(
-              mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc." + schemaArtifactExtension);
     Path sourcePath = this.sourceDirectory.toPath();
-    try {
-      if (Files.notExists(sourcePath)) {
-        return;
+    if (packageAvsc) {
+      logger.info("Packaging schemas");
+      Path avsc = target.toPath().resolve(
+                mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avsc." + schemaArtifactExtension);
+      try {
+        if (Files.notExists(sourcePath)) {
+          return;
+        }
+        Compress.zip(this.generatedAvscTarget.toPath(), avsc);
+      } catch (IOException ex) {
+        throw new MojoExecutionException("Cannot package schemas and sources from " + this.generatedAvscTarget, ex);
       }
-      Compress.zip(this.generatedAvscTarget.toPath(), avsc);
-    } catch (IOException ex) {
-      throw new MojoExecutionException("Cannot package schemas and sources from " + this.generatedAvscTarget, ex);
+      DefaultArtifact schemas = new DefaultArtifact(mavenProject.getGroupId(),
+              mavenProject.getArtifactId(), mavenProject.getVersion(), "compile",
+              schemaArtifactExtension, schemaArtifactClassifier,
+              new DefaultArtifactHandler(schemaArtifactExtension));
+      schemas.setFile(avsc.toFile());
+      logger.debug("Attaching " + schemas  + " from " + avsc);
+      mavenProject.getAttachedArtifacts().add(schemas);
     }
-    DefaultArtifact schemas = new DefaultArtifact(mavenProject.getGroupId(),
-            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile",
-            schemaArtifactExtension, schemaArtifactClassifier,
-            new DefaultArtifactHandler(schemaArtifactExtension));
-    schemas.setFile(avsc.toFile());
-    logger.debug("Attaching " + schemas  + " from " + avsc);
-    mavenProject.getAttachedArtifacts().add(schemas);
-    Path sources = target.toPath().resolve(
-              mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avroSources.jar");
-    try {
-      Compress.zip(sourcePath, sources);
-    } catch (IOException ex) {
-      throw new MojoExecutionException("Cannot package sources from " + this.sourceDirectory, ex);
+    if (packageAvscSources) {
+      logger.info("Packaging schema sources");
+      Path sources = target.toPath().resolve(
+                mavenProject.getArtifactId() + '-' + mavenProject.getVersion() + '-' + "avroSources.jar");
+      try {
+        Compress.zip(sourcePath, sources);
+      } catch (IOException ex) {
+        throw new MojoExecutionException("Cannot package sources from " + this.sourceDirectory, ex);
+      }
+      DefaultArtifact avroSources = new DefaultArtifact(mavenProject.getGroupId(),
+              mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", "avroSources",
+              new DefaultArtifactHandler("jar"));
+      avroSources.setFile(sources.toFile());
+      logger.debug("Attaching " + avroSources  + " from " + sources);
+      mavenProject.getAttachedArtifacts().add(avroSources);
     }
-    DefaultArtifact avroSources = new DefaultArtifact(mavenProject.getGroupId(),
-            mavenProject.getArtifactId(), mavenProject.getVersion(), "compile", "jar", "avroSources",
-            new DefaultArtifactHandler("jar"));
-    avroSources.setFile(sources.toFile());
-    mavenProject.getAttachedArtifacts().add(avroSources);
   }
 
   @Override
