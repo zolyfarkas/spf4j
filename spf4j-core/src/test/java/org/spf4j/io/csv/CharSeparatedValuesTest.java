@@ -34,6 +34,10 @@ package org.spf4j.io.csv;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -203,5 +207,36 @@ public class CharSeparatedValuesTest {
     csvW.writeElement("b ");
     Assert.assertEquals(" \"b \"", writer.toString());
   }
+
+  @Test
+  public void testRowParse() {
+     CharSeparatedValues csv = new CharSeparatedValues(',');
+     List<String> res = new ArrayList<>();
+     for (CharSequence elem :csv.singleRow(new StringReader("a,b,c"))) {
+       res.add(elem.toString());
+     }
+     Assert.assertEquals(Arrays.asList("a", "b", "c"), res);
+  }
+
+  @Test
+  public void testRowParse2() {
+     CharSeparatedValues csv = new CharSeparatedValues(',');
+     List<String> res = new ArrayList<>();
+     for (CharSequence elem :csv.singleRow(new StringReader(""))) {
+       res.add(elem.toString());
+     }
+     Assert.assertEquals(Collections.singletonList(""), res);
+  }
+
+  @Test
+  public void testRowParse3() {
+     CharSeparatedValues csv = new CharSeparatedValues(',');
+     List<String> res = new ArrayList<>();
+     for (CharSequence elem :csv.singleRow(new StringReader("\na,b,c"))) {
+       res.add(elem.toString());
+     }
+     Assert.assertEquals(Collections.singletonList(""), res);
+  }
+
 
 }

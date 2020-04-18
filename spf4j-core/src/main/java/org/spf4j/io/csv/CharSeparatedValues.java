@@ -256,6 +256,20 @@ public final class CharSeparatedValues {
 
   }
 
+  /**
+   * Iterate through the first row of your CSV.
+   * the CharSequence is a re-0used char buffer you either need to parse the content out of copy it.
+   * @param preader
+   * @return
+   */
+  public Iterable<CharSequence> singleRow(final Reader preader) {
+    try {
+      CsvReader reader = reader(preader);
+      return () -> new OneRowIterator(reader);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }
 
   public CsvReader reader(final Reader preader) throws IOException {
     PushbackReader reader = new PushbackReader(preader);
