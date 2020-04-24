@@ -225,7 +225,7 @@ public final class Strings {
           } catch (NoSuchMethodException ex2) {
             ex2.addSuppressed(ex);
             Logger logger = Logger.getLogger(Strings.class.getName());
-            logger.warning("Building String from char[] without copy not supported");
+            logger.log(Level.FINE, "Building String from char[] without copy not supported");
             logger.log(Level.FINEST, "Exception detail", ex2);
             constr = null;
           }
