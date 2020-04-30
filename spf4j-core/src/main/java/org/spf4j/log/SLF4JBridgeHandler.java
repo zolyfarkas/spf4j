@@ -124,8 +124,7 @@ public final class SLF4JBridgeHandler extends Handler {
 
   /**
    * Adds a SLF4JBridgeHandler instance to jul's root logger.
-   * <p/>
-   * <p/>
+   * 
    * This handler will redirect j.u.l. logging to SLF4J. However, only logs enabled in j.u.l. will be redirected. For
    * example, if a log statement invoking a j.u.l. logger is disabled, then the corresponding non-event will
    * <em>not</em>
