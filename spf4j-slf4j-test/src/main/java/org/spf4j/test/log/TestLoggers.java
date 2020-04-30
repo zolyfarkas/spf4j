@@ -371,13 +371,15 @@ public final class TestLoggers implements ILoggerFactory {
    * @return an assertion handle.
    */
   @CheckReturnValue
-  public LogAssert expect(final String category, final Level minimumLogLevel,
+  @SafeVarargs
+  public final LogAssert expect(final String category, final Level minimumLogLevel,
           final Matcher<TestLogRecord>... matchers) {
     return logAssert(true, minimumLogLevel, category, matchers);
   }
 
   @CheckReturnValue
-  public LogAssert expect(final String category, final Level minimumLogLevel,
+  @SafeVarargs
+  public final LogAssert expect(final String category, final Level minimumLogLevel,
           final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
     return logAssert(true, minimumLogLevel, category, timeout, unit, matchers);
   }
@@ -390,12 +392,14 @@ public final class TestLoggers implements ILoggerFactory {
    * @return an assertion handle.
    */
   @CheckReturnValue
-  public LogAssert dontExpect(final String category, final Level minimumLogLevel,
+  @SafeVarargs
+  public final LogAssert dontExpect(final String category, final Level minimumLogLevel,
           final Matcher<TestLogRecord>... matchers) {
     return logAssert(false, minimumLogLevel, category, matchers);
   }
 
-  private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
+  @SafeVarargs
+  private final LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category, final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
     LogMatchingHandler handler =
             new LogMatchingHandlerAsync(assertSeen, category, minimumLogLevel, timeout, unit, matchers) {
@@ -419,7 +423,8 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
 
-  private LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
+  @SafeVarargs
+  private final LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category,  final Matcher<TestLogRecord>... matchers) {
     LogMatchingHandler handler = new LogMatchingHandler(assertSeen, category, minimumLogLevel, matchers) {
 
@@ -450,7 +455,8 @@ public final class TestLoggers implements ILoggerFactory {
    * @param matchers the sequence of matchers.
    * @return the assertion handle.
    */
-  public LogAssert expect(final String category, final Level minimumLogLevel,
+  @SafeVarargs
+  public final LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final Matcher<TestLogRecord>... matchers) {
     Matcher<TestLogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
     for (int i = 0, j = 0; i < nrTimes; i++) {
@@ -461,7 +467,8 @@ public final class TestLoggers implements ILoggerFactory {
     return expect(category, minimumLogLevel, newMatchers);
   }
 
-  public LogAssert expect(final String category, final Level minimumLogLevel,
+  @SafeVarargs
+  public final LogAssert expect(final String category, final Level minimumLogLevel,
           final int nrTimes, final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
     Matcher<TestLogRecord>[] newMatchers = new Matcher[matchers.length * nrTimes];
     for (int i = 0, j = 0; i < nrTimes; i++) {

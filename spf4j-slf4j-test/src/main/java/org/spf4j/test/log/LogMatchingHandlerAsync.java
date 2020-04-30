@@ -29,6 +29,7 @@ abstract class LogMatchingHandlerAsync extends LogMatchingHandler {
   private final long timeout;
   private final TimeUnit tu;
 
+  @SafeVarargs
   LogMatchingHandlerAsync(final boolean assertSeen, final String category,
           final Level minLevel, final long timeout, final TimeUnit tu,  final Matcher<TestLogRecord>... matchers) {
     super(assertSeen, category, minLevel, matchers);
