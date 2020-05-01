@@ -34,7 +34,7 @@ import org.spf4j.log.Level;
 @Repeatable(ExpectLogs.class)
 public @interface ExpectLog {
   /**
-   * @return the log category to print. ("" is the root category).
+   * @return the log category to expect. ("" is the root category).
    */
   String category() default "";
   /**

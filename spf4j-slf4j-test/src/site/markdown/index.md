@@ -215,7 +215,7 @@ or a more complex print config:
  You can add to your test resources a file with the name spf4j-test-prtcfg.properties or spf4j-test-prtcfg-ide.properties if you want
  different configuration when executing your tests from the IDE. The file format is a property file with key=values in the format:
 
-      [category(package) name]=[LOG,LEVEL](,[greedy])?
+      [category(package) name]=[LOG_LEVEL](,[greedy])?
 
 #### Customized timing for testing.
  

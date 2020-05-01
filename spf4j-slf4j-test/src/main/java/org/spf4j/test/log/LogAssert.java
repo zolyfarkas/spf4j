@@ -16,7 +16,7 @@
 package org.spf4j.test.log;
 
 /**
- *
+ * Log behavior assert object.
  * @author Zoltan Farkas
  */
 public interface LogAssert extends ObservationAssert, HandlerRegistration {

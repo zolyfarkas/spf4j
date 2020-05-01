@@ -23,8 +23,25 @@ import java.lang.annotation.Target;
 import org.spf4j.log.Level;
 
 /**
- * Annotation to specify custom log collection for a particular unit test.
- * By default all unprinted logs above and including DEBUG level are collected.
+ * Annotation to specify custom log printout for a particular unit test.
+ *
+ * The default log level is controlled via:
+ *
+ * <p>System properties:</p>
+ * <ul>
+ * <li>
+ *   # default root log level when tests executed from IDE. see TestUtils.class for more info.
+ *   spf4j.testLog.rootPrintLevelIDE = DEBUG
+ * </li>
+ * <li>
+ *   # default root log level.
+ *   spf4j.testLog.rootPrintLevel = INFO
+ * </li>
+ * </ul>
+ * <p>Property files: spf4j-test-prtcfg.properties or spf4j-test-prtcfg-ide.properties for ide settings:</p>
+ * <p>[category(package) name]=[LOG_LEVEL](,[greedy])?</p>
+ *
+ *
  * @author Zoltan Farkas
  */
 @Retention(RetentionPolicy.RUNTIME)

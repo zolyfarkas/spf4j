@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,7 @@ import org.spf4j.base.TimeSource;
 /**
  * @author Zoltan Farkas
  */
+@CleanupObligation
 public interface ObservationAssert {
 
   /**
