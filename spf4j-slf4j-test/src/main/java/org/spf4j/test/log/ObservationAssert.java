@@ -36,6 +36,7 @@ public interface ObservationAssert {
 
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
+  @DischargesObligation
   default void assertObservation(final long time, final TimeUnit tu) {
     long deadline = TimeSource.nanoTime() + tu.toNanos(time);
     AssertionError rae;
