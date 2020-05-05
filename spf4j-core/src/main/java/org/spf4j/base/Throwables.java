@@ -82,21 +82,9 @@ public final class Throwables {
   private static final int MAX_SUPPRESS_CHAIN
           = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 100);
 
-  private static final Field CAUSE_FIELD;
-
   private static final Field SUPPRESSED_FIELD;
 
   static {
-    CAUSE_FIELD = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
-      Field causeField;
-      try {
-        causeField = Throwable.class.getDeclaredField("cause");
-      } catch (NoSuchFieldException | SecurityException ex) {
-        throw new ExceptionInInitializerError(ex);
-      }
-      causeField.setAccessible(true);
-      return causeField;
-    });
 
     SUPPRESSED_FIELD = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
       Field suppressedField;
@@ -266,41 +254,6 @@ public final class Throwables {
     }
   }
 
-  private static void chain0(final Throwable t, final Throwable cause) {
-    final Throwable rc = com.google.common.base.Throwables.getRootCause(t);
-    setCause(rc, cause);
-  }
-
-  private static void setCause(final Throwable rc, @Nullable final Throwable cause) {
-    try {
-      AccessController.doPrivileged(new PrivilegedAction() {
-        @Override
-        public Object run() {
-          try {
-            CAUSE_FIELD.set(rc, cause);
-          } catch (IllegalArgumentException | IllegalAccessException ex) {
-            throw new RuntimeException(ex);
-          }
-          return null; // nothing to return
-        }
-      });
-
-    } catch (IllegalArgumentException ex) {
-      throw new RuntimeException(ex);
-    }
-  }
-
-  /**
-   * This method will clone the exception t and will set a new root cause.
-   *
-   * @param <T>
-   * @param t
-   * @param newRootCause
-   * @return
-   */
-  public static <T extends Throwable> T chain(final T t, final Throwable newRootCause) {
-    return chain(t, newRootCause, MAX_SUPPRESS_CHAIN);
-  }
 
   public static final class TrimmedException extends Exception {
 
@@ -314,57 +267,6 @@ public final class Throwables {
     }
   }
 
-
-  public static <T extends Throwable> T chain(final T t, final Throwable newRootCause, final int maxChained) {
-    int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
-    if (chainedExNr > maxChained) {
-      T res = clone0(t);
-      trimCausalChain(res, maxChained);
-      return res;
-    }
-    T result = clone0(t);
-    chain0(result, newRootCause);
-    trimCausalChain(result, maxChained);
-    return result;
-
-  }
-
-
-  public static void setRootCause(final Throwable t, final Throwable newRootCause) {
-     setRootCause(t, newRootCause, MAX_SUPPRESS_CHAIN);
-  }
-
-  public static void setRootCause(final Throwable t, final Throwable newRootCause, final int maxChained) {
-    int chainedExNr = com.google.common.base.Throwables.getCausalChain(t).size();
-    if (chainedExNr > maxChained) {
-     trimCausalChain(t, maxChained);
-     return;
-    }
-    chain0(t, newRootCause);
-    trimCausalChain(t, maxChained);
-  }
-
-  private static <T extends Throwable> T clone0(final T t) {
-    T result;
-    try {
-      result = Objects.clone(t);
-    } catch (RuntimeException ex) {
-      result = t;
-      t.addSuppressed(new CloneFailedException("Unable to clone exception " + t));
-    }
-    return result;
-  }
-
-  public static void trimCausalChain(final Throwable t, final int maxSize) {
-    List<Throwable> causalChain = com.google.common.base.Throwables.getCausalChain(t);
-    if (causalChain.size() <= maxSize) {
-      return;
-    }
-    int lastExIdx = maxSize - 1;
-    if (lastExIdx >= 0) {
-      setCause(causalChain.get(lastExIdx), new TrimmedException("Trimmed after " + maxSize + " exceptions"));
-    }
-  }
 
   /**
    * Functionality will call Throwable.addSuppressed, 2 extra things happen:

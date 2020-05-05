@@ -419,11 +419,11 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
             return resultStore.getLeft();
           } else {
             nrErrors++;
-            if (e == null) {
-              e = resultStore.getRight();
-            } else {
-              e = Throwables.chain(resultStore.getRight(), e);
+            ExecutionException exRes = resultStore.getRight();
+            if (e != null) {
+              Throwables.suppressLimited(exRes, e);
             }
+            e = exRes;
           }
         } else {
           if (futures == null) {

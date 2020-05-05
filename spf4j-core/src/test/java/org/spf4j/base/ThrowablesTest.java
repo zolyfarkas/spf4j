@@ -31,14 +31,10 @@
  */
 package org.spf4j.base;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.sql.BatchUpdateException;
 import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
-import java.util.List;
-import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,57 +47,6 @@ import org.slf4j.LoggerFactory;
 public final class ThrowablesTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(ThrowablesTest.class);
-
-  /**
-   * Test of chain method, of class ExceptionChain.
-   */
-  @Test(timeout = 3000)
-  public void testChain() {
-    Throwable t = new RuntimeException("", new SocketTimeoutException("Boo timeout"));
-    Throwable newRootCause = new TimeoutException("Booo");
-    Throwable result = Throwables.chain(t, newRootCause);
-    LOG.debug("Thowable", result);
-    Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
-    Assert.assertEquals(3, com.google.common.base.Throwables.getCausalChain(result).size());
-    Throwable firstCause = Throwables.firstCause(t, (l) -> false);
-    Assert.assertNull(firstCause);
-  }
-
-  @Test
-  @SuppressFBWarnings("BC_UNCONFIRMED_CAST_OF_RETURN_VALUE")
-  public void testChain2() {
-    Throwable t = new RuntimeException("bla1",
-            new BatchUpdateException("Sql bla", "ORA-500", 500, new int[]{1, 2}, new RuntimeException("la la")));
-    Throwable newRootCause = new TimeoutException("Booo");
-    Throwable result = Throwables.chain(t, newRootCause);
-    LOG.debug("Thowable", result);
-    Assert.assertArrayEquals(new int[]{1, 2}, ((BatchUpdateException) result.getCause()).getUpdateCounts());
-    Assert.assertEquals(newRootCause, com.google.common.base.Throwables.getRootCause(result));
-    Assert.assertEquals(4, com.google.common.base.Throwables.getCausalChain(result).size());
-  }
-
-  @Test
-  public void testSetRootCause() {
-    Throwable t = new RuntimeException("bla1",
-            new BatchUpdateException("Sql bla", "ORA-500", 500, new int[]{1, 2}, new RuntimeException("la la")));
-    Throwables.setRootCause(t, new RuntimeException("some other ex"), 3);
-    LOG.debug("Thowable", t);
-    List<Throwable> causalChain = com.google.common.base.Throwables.getCausalChain(t);
-    Assert.assertEquals(4, causalChain.size());
-    Assert.assertEquals(Throwables.TrimmedException.class, causalChain.get(3).getClass());
-  }
-
-  @Test
-  public void testSetRootCause2() {
-    Throwable t = new RuntimeException("bla1",
-            new BatchUpdateException("Sql bla", "ORA-500", 500, new int[]{1, 2}));
-    Throwables.setRootCause(t, new RuntimeException("some other ex"), 3);
-    LOG.debug("Thowable", t);
-    List<Throwable> causalChain = com.google.common.base.Throwables.getCausalChain(t);
-    Assert.assertEquals(3, causalChain.size());
-    Assert.assertEquals("some other ex", causalChain.get(2).getMessage());
-  }
-
 
   @Test
   public void testSuppress() {
