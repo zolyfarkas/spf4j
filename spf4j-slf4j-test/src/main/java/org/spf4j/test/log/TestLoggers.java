@@ -324,12 +324,26 @@ public final class TestLoggers implements ILoggerFactory {
   private void addConfig(final String category, final LogHandler handler,
           @Nullable final ExecutionContext ctx, final HandlerRegistration reg,
           final ToIntFunction<List<LogHandler>> whereTo) {
+    validateCorrectLoggingBacked();
     synchronized (sync) {
       config = config.add(category, handler, whereTo);
       resetJulConfig();
       if (ctx != null) {
         ctx.addCloseable(reg);
       }
+    }
+  }
+
+  @SuppressFBWarnings("LO_SUSPECT_LOG_CLASS") // on purpose
+  private void validateCorrectLoggingBacked() {
+    if (!(org.slf4j.LoggerFactory.getLogger("test") instanceof TestLogger)) {
+      throw new ExceptionInInitializerError("Incorrect logging backend is picked up, please make sure:\n"
+              + "     <dependency>\n"
+              + "      <groupId>org.spf4j</groupId>\n"
+              + "      <artifactId>spf4j-slf4j-test</artifactId>\n"
+              + "      <scope>test</scope>\n"
+              + "      <version>${project.version}</version>\n"
+              + "    </dependency>\n is before any other slf4j logging backed (logback, etc...) in your dependencies");
     }
   }
 
