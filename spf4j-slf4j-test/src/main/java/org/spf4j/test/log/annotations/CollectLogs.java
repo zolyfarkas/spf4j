@@ -26,6 +26,7 @@ import org.spf4j.log.Level;
  * By default all unprinted logs above and including DEBUG level are collected for the purpose of being logged
  * in case of unit test failure.
  * @author Zoltan Farkas
+ * @see org.spf4j.test.log.annotations
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

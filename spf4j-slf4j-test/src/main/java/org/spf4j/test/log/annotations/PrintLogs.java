@@ -43,6 +43,7 @@ import org.spf4j.log.Level;
  *
  *
  * @author Zoltan Farkas
+ * @see org.spf4j.test.log.annotations
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

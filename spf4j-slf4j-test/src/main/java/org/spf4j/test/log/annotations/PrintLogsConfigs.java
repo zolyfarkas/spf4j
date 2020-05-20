@@ -21,7 +21,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * Support for multiple Printl log configurations
  * @author Zoltan Farkas
+ * @see org.spf4j.test.log.annotations
+ * @see org.spf4j.test.log.annotations.PrintLogs
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
