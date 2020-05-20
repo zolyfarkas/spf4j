@@ -52,10 +52,10 @@ import org.spf4j.test.log.LogCollection;
 import org.spf4j.test.log.LogPrinter;
 import org.spf4j.test.log.TestLogRecordImpl;
 import org.spf4j.test.log.TestLogRecord;
-import org.spf4j.test.log.TestLogger;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
+import org.spf4j.test.log.ValidationUtils;
 import org.spf4j.test.log.annotations.CollectLogs;
 import org.spf4j.test.log.annotations.ExpectLog;
 import org.spf4j.test.log.annotations.ExpectLogs;
@@ -83,15 +83,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   private static final Spf4jTestLogRunListenerSingleton INSTANCE = new Spf4jTestLogRunListenerSingleton();
 
   static {
-    if (!(LOG instanceof TestLogger)) {
-      throw new ExceptionInInitializerError("Incorrect logging backend is picked up, please make sure:\n"
-              + "     <dependency>\n"
-              + "      <groupId>org.spf4j</groupId>\n"
-              + "      <artifactId>spf4j-slf4j-test</artifactId>\n"
-              + "      <scope>test</scope>\n"
-              + "      <version>${project.version}</version>\n"
-              + "    </dependency>\n is before any other slf4j logging backed (logback, etc...) in your dependencies");
-    }
+    ValidationUtils.validateLogger(LOG);
     System.setProperty("spf4j.timeSource", TestTimeSource.class.getName());
   }
 

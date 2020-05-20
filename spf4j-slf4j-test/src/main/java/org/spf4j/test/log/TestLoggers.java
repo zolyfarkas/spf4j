@@ -41,6 +41,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.MatcherAssert;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.log.SLF4JBridgeHandler;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
@@ -336,15 +337,7 @@ public final class TestLoggers implements ILoggerFactory {
 
   @SuppressFBWarnings("LO_SUSPECT_LOG_CLASS") // on purpose
   private void validateCorrectLoggingBacked() {
-    if (!(org.slf4j.LoggerFactory.getLogger("test") instanceof TestLogger)) {
-      throw new ExceptionInInitializerError("Incorrect logging backend is picked up, please make sure:\n"
-              + "     <dependency>\n"
-              + "      <groupId>org.spf4j</groupId>\n"
-              + "      <artifactId>spf4j-slf4j-test</artifactId>\n"
-              + "      <scope>test</scope>\n"
-              + "      <version>${project.version}</version>\n"
-              + "    </dependency>\n is before any other slf4j logging backed (logback, etc...) in your dependencies");
-    }
+    ValidationUtils.validateLogger(LoggerFactory.getLogger("test"));
   }
 
   /**
