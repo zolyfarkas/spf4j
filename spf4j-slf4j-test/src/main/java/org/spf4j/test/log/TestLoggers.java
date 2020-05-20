@@ -497,7 +497,8 @@ public final class TestLoggers implements ILoggerFactory {
   @Beta
   public LogAssert expectUncaughtException(final long timeout, final TimeUnit unit,
           final Matcher<UncaughtExceptionDetail> matcher) {
-    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getInstance().getUncaughtExceptionHandler();
+    ExceptionHandoverRegistry reg = Spf4jTestLogRunListenerSingleton.getListenerInstance()
+            .getUncaughtExceptionHandler();
     UncaughtExceptionAsserter asserter = new UncaughtExceptionAsserter(timeout, unit, matcher) {
 
       @Override

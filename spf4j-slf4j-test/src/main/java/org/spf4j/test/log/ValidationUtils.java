@@ -26,7 +26,7 @@ public final class ValidationUtils {
 
   private ValidationUtils() { }
 
-  public static final void validateLogger(final Logger log) {
+  public static void validateLogger(final Logger log) {
     if (!(log instanceof TestLogger)) {
       throw new ExceptionInInitializerError("Incorrect logging backend is picked up, please make sure:\n"
               + "     <dependency>\n"

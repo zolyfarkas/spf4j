@@ -80,7 +80,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);
 
-  private static final Spf4jTestLogRunListenerSingleton INSTANCE = new Spf4jTestLogRunListenerSingleton();
+  private static volatile Spf4jTestLogRunListenerSingleton instance;
 
   static {
     ValidationUtils.validateLogger(LOG);
@@ -115,8 +115,39 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  public static Spf4jTestLogRunListenerSingleton getInstance() {
-    return INSTANCE;
+  public static Spf4jTestLogRunListenerSingleton getOrCreateListenerInstance() {
+    Spf4jTestLogRunListenerSingleton res = instance;
+    if (res == null) {
+      synchronized (Spf4jTestLogRunListenerSingleton.class) {
+        res = instance;
+        if (res == null) {
+          res = new Spf4jTestLogRunListenerSingleton();
+          instance = res;
+        }
+      }
+    }
+    return res;
+  }
+
+  @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
+  public static Spf4jTestLogRunListenerSingleton getListenerInstance() {
+    Spf4jTestLogRunListenerSingleton res = instance;
+    if (res == null) {
+      throw new RuntimeException("Spf4jTestLogRunListener not registered, you can register it like:"
+              + "      <plugin>\n"
+              + "        <groupId>org.apache.maven.plugins</groupId>\n"
+              + "        <artifactId>maven-surefire-plugin</artifactId>\n"
+              + "        <configuration>\n"
+              + "          <properties>\n"
+              + "            <property>\n"
+              + "              <name>listener</name>\n"
+              + "              <value>org.spf4j.test.log.junit4.Spf4jTestLogRunListener</value>\n"
+              + "            </property>\n"
+              + "          </properties>\n"
+              + "        </configuration>\n"
+              + "      </plugin>");
+    }
+    return res;
   }
 
   @Override

@@ -55,7 +55,7 @@ public class Spf4jTestLogJUnitRunner extends BlockJUnit4ClassRunner {
         throw new RuntimeException(ex);
       }
     }
-    Spf4jTestLogRunListenerSingleton listener = Spf4jTestLogRunListenerSingleton.getInstance();
+    Spf4jTestLogRunListenerSingleton listener = Spf4jTestLogRunListenerSingleton.getOrCreateListenerInstance();
     notifier.removeListener(listener);
     notifier.addListener(listener);
     super.run(notifier);

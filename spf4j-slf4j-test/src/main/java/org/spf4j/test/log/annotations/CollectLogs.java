@@ -30,6 +30,7 @@ import org.spf4j.log.Level;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface CollectLogs {
+
   /**
    * The minimum level of logs to collect.
    */

@@ -29,7 +29,7 @@ public class Spf4jTestLogRunListener extends RunListener {
   private final Spf4jTestLogRunListenerSingleton instance;
 
   public Spf4jTestLogRunListener() {
-    instance = Spf4jTestLogRunListenerSingleton.getInstance();
+    instance = Spf4jTestLogRunListenerSingleton.getOrCreateListenerInstance();
   }
 
   @Override
