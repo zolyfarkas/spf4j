@@ -74,7 +74,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   private static final ScheduledExecutorService SCHEDULER  =
           MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(
                   Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
-                  new CustomThreadFactory("DefaultScheduler",
+                  new CustomThreadFactory("SPF4j-JUNIT",
                           Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
                           Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY))));
 
