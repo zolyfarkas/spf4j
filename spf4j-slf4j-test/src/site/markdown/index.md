@@ -58,6 +58,21 @@ with tons of debug info dumped to output all the time. But making it available w
  NOTE: since logging is JVM global, you should run your unit tests single threaded to be able to easily reason about your logging,
  and more accurate log message attribution.
 
+### JDK 9+ notes
+
+When running on java 9 or higher you will receive warnings like:
+
+```
+WARNING: Illegal reflective access by  ...
+```
+
+you can remove these warnings by adding to you java command line:
+
+
+```
+--add-opens=java.logging/java.util.logging=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED
+```
+
 ### Examples:
 
 #### Assert that you expect message to be logged:

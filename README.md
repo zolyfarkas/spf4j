@@ -36,3 +36,17 @@ please define java11.home property with the home of JDK 11 in your settings.xml
 
 See pom.xml for other profiles for openjdk, zolyfarkas/avro fork validations.
 
+
+When running on java 9 or higher you will receive warnings like:
+
+```
+WARNING: Illegal reflective access by  ...
+```
+
+you can remove these warnings by adding to you java command line:
+
+
+```
+--add-opens=java.base/java.lang=ALL-UNNAMED
+```
+
