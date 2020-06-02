@@ -16,6 +16,9 @@
 package org.spf4j.base;
 
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -66,5 +69,30 @@ public final class Env {
     }
   }
 
+  @NonNull
+  public static String getSystemProperty(final String name, final String[] deprecatedAliases,
+          final String defaultValue) {
+    String val = getSystemProperty(name, deprecatedAliases);
+    if (val != null) {
+      return val;
+    }
+    return defaultValue;
+  }
 
+  @Nullable
+  public static String getSystemProperty(final String name, final String... deprecatedAliases) {
+    String val = System.getProperty(name);
+    if (val != null) {
+      return val;
+    }
+    for (String key : deprecatedAliases) {
+      val = System.getProperty(key);
+      if (val != null) {
+        Logger.getLogger(Env.class.getName()).log(Level.WARNING,
+                "Use {0} system property instead of {1}", new Object[] {name, key});
+        return val;
+      }
+    }
+    return null;
+  }
 }
