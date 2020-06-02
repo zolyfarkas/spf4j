@@ -38,6 +38,12 @@ public @interface ExpectLog {
    * @return the log category to expect. ("" is the root category).
    */
   String category() default "";
+
+  /**
+   * @return the log category to expect. (Void.class is the root category and default).
+   */
+  Class<?> categoryClass() default Void.class;
+
   /**
    * @return expected log level.
    */
@@ -61,5 +67,19 @@ public @interface ExpectLog {
    * @return expectation timeout unit.
    */
   TimeUnit timeUnit()  default TimeUnit.MILLISECONDS;
+
+  final class Util {
+    
+    private Util() { }
+
+    public static String effectiveCategory(final ExpectLog ann) {
+      Class<?> categoryClass = ann.categoryClass();
+      if (categoryClass == Void.class) {
+        return ann.category();
+      } else {
+        return categoryClass.getName();
+      }
+    }
+  }
 
 }

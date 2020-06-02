@@ -232,7 +232,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
         ExpectLog[] value = expectLogs.value();
         for (ExpectLog expect : value) {
           assertions.add(
-                  sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
+                  sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),
                           expect.expectationTimeout(), expect.timeUnit(),
                   Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
                   LogMatchers.hasLevel(expect.level()))));
@@ -241,7 +241,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
           ExpectLog expect = description.getAnnotation(ExpectLog.class);
           if (expect != null) {
             assertions.add(
-                  sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),
+                  sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),
                   expect.expectationTimeout(), expect.timeUnit(),
                   Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
                   LogMatchers.hasLevel(expect.level()))));

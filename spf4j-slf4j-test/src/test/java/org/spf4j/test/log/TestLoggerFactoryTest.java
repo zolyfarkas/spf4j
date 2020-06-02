@@ -188,7 +188,7 @@ public class TestLoggerFactoryTest {
   }
 
   @Test
-  @ExpectLog(level = Level.ERROR)
+  @ExpectLog(level = Level.ERROR, categoryClass = TestLoggerFactoryTest.class)
   @SuppressFBWarnings("UTAO_JUNIT_ASSERTION_ODDITIES_NO_ASSERT")
   public void testLoggingAnnot() {
     LOG.error("Booo", new RuntimeException());
