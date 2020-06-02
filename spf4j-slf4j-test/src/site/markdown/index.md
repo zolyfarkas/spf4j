@@ -162,7 +162,7 @@ or a more complex print config:
 
 #### Debug detail on demand.
 
- For example if you have spf4j.testLog.rootPrintLevel=DEBUG and you want everything
+ For example if you have spf4j.test.log.rootPrintLevel=DEBUG and you want everything
  above trace available if a unit test fails, you can either set globaly spf4j.test.log.collectMinLevel=TRACE or you can
  control this at test level like:
 
@@ -198,9 +198,9 @@ or a more complex print config:
 #### Available global configuration system properties with the defaults:
 
       # default root log level when tests executed from IDE. see TestUtils.class for more info.
-      spf4j.testLog.rootPrintLevelIDE = DEBUG
+      spf4j.test.log.rootPrintLevelIDE = DEBUG
       # default root log level.
-      spf4j.testLog.rootPrintLevel = INFO
+      spf4j.test.log.rootPrintLevel = INFO
       # default log level collected for availability when a unit test fails.
       spf4j.test.log.collectMinLevel = DEBUG
       # maximum number of logs to collect for availability in case of a failure. (by default only unprinted logs are collected)
@@ -208,7 +208,7 @@ or a more complex print config:
       # collect printed logs.
       spf4j.test.log.collectPrintedLogs
       # loggers where ERROR should not fail your unit tests. (comma separated)
-      spf4j.testLog.expectingErrorsIn
+      spf4j.test.log.expectingErrorsIn
 
 #### Configuring the default log printing configuration.
 

@@ -42,6 +42,7 @@ import org.hamcrest.MatcherAssert;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Env;
 import org.spf4j.log.SLF4JBridgeHandler;
 import org.spf4j.base.ExecutionContext;
 import org.spf4j.base.ExecutionContexts;
@@ -87,8 +88,12 @@ public final class TestLoggers implements ILoggerFactory {
     sync = new Object();
     loggerMap = new ConcurrentHashMap<String, Logger>();
     Level rootPrintLevel = EXECUTED_FROM_IDE
-            ? Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevelIDE", "DEBUG"))
-            : Level.valueOf(System.getProperty("spf4j.testLog.rootPrintLevel", "INFO"));
+            ? Level.valueOf(
+                    Env.getSystemProperty("spf4j.test.log.rootPrintLevelIDE",
+                            new String[] {"spf4j.testLog.rootPrintLevelIDE"}, "DEBUG"))
+            : Level.valueOf(
+                    Env.getSystemProperty("spf4j.test.log.rootPrintLevel",
+                             new String[] {"spf4j.testLog.rootPrintLevel"}, "INFO"));
     final Map<String, List<LogHandler>> catHandlers;
     Map<String, PrintConfig> loadConfig = null;
     if (EXECUTED_FROM_IDE) {
@@ -117,7 +122,7 @@ public final class TestLoggers implements ILoggerFactory {
       catHandlers = Collections.EMPTY_MAP;
     }
     computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
-    String vals = System.getProperty("spf4j.testLog.expectingErrorsIn");
+    String vals = Env.getSystemProperty("spf4j.test.log.expectingErrorsIn", "spf4j.testLog.expectingErrorsIn");
     if (vals != null) {
       expectingErrorsIn = ImmutableSortedSet.orderedBy(LogConfigImpl.REV_STR_COMPARATOR).add(vals.split(",")).build();
     } else {
