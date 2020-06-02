@@ -43,7 +43,7 @@ import org.spf4j.test.log.annotations.PrintLogsConfigs;
 /**
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS")
+@SuppressFBWarnings({ "LO_INCORRECT_NUMBER_OF_ANCHOR_PARAMETERS", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY" })
 public class TestLoggerFactoryTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest.class);
