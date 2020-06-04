@@ -427,11 +427,11 @@
 <a class="jxr_linenumber" name="L419" href="#L419">419</a>             <strong class="jxr_keyword">return</strong> resultStore.getLeft();
 <a class="jxr_linenumber" name="L420" href="#L420">420</a>           } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L421" href="#L421">421</a>             nrErrors++;
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>             <strong class="jxr_keyword">if</strong> (e == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>               e = resultStore.getRight();
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>             } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>               e = Throwables.chain(resultStore.getRight(), e);
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>             }
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>             ExecutionException exRes = resultStore.getRight();
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>             <strong class="jxr_keyword">if</strong> (e != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>               Throwables.suppressLimited(exRes, e);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>             }
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>             e = exRes;
 <a class="jxr_linenumber" name="L427" href="#L427">427</a>           }
 <a class="jxr_linenumber" name="L428" href="#L428">428</a>         } <strong class="jxr_keyword">else</strong> {
 <a class="jxr_linenumber" name="L429" href="#L429">429</a>           <strong class="jxr_keyword">if</strong> (futures == <strong class="jxr_keyword">null</strong>) {

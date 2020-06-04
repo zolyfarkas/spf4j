@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaMojoBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.8.1-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaMojoBase.java</span></div><h1>SchemaMojoBase.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaMojoBase.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.8.3-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaMojoBase.java</span></div><h1>SchemaMojoBase.java</h1><pre class="source lang-java linenums">/*
  * Copyright 2018 SPF4J.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -16,8 +16,22 @@
 package org.spf4j.maven.plugin.avro.avscp;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Properties;
+import org.apache.avro.Schema;
 import org.apache.avro.SchemaRefWriter;
+import org.apache.avro.SchemaResolver;
+import org.apache.avro.SchemaResolvers;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -26,14 +40,16 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
-import org.spf4j.maven.Registerer;
+import org.spf4j.avro.SchemaRef;
+import org.spf4j.maven.MavenSchemaResolver;
+import static org.spf4j.maven.plugin.avro.avscp.SchemaCompileMojo.SCHEMA_INDEX_FILENAME;
 
 /**
  * @author Zoltan Farkas
  */
 @SuppressWarnings(&quot;checkstyle:VisibilityModifier&quot;)
 @SuppressFBWarnings(&quot;AI_ANNOTATION_ISSUES_NEEDS_NULLABLE&quot;)
-<span class="nc" id="L36">public abstract class SchemaMojoBase extends AbstractMojo {</span>
+<span class="nc" id="L52">public abstract class SchemaMojoBase extends AbstractMojo {</span>
 
 
   @Parameter(defaultValue = &quot;${project}&quot;, required = true, readonly = true)
@@ -88,20 +104,20 @@ import org.spf4j.maven.Registerer;
    * instead of baking them in.
    * by default (false) all schema references will be inlined.
    */
-<span class="nc" id="L91">  @Parameter(name = &quot;useSchemaReferencesForAvsc&quot;,</span>
+<span class="nc" id="L107">  @Parameter(name = &quot;useSchemaReferencesForAvsc&quot;,</span>
           defaultValue = &quot;false&quot;)
   protected boolean useSchemaReferencesForAvsc = false;
 
   /**
    *  the schema artifact classifier.
    */
-<span class="nc" id="L98">  @Parameter(name = &quot;schemaArtifactClassifier&quot;, defaultValue = &quot;avsc&quot;)</span>
+<span class="nc" id="L114">  @Parameter(name = &quot;schemaArtifactClassifier&quot;, defaultValue = &quot;avsc&quot;)</span>
   protected String schemaArtifactClassifier = &quot;avsc&quot;;
 
   /**
    *  the schema artifact extension.
    */
-<span class="nc" id="L104">  @Parameter(name = &quot;schemaArtifactExtension&quot;, defaultValue = &quot;jar&quot;)</span>
+<span class="nc" id="L120">  @Parameter(name = &quot;schemaArtifactExtension&quot;, defaultValue = &quot;jar&quot;)</span>
   protected String schemaArtifactExtension = &quot;jar&quot;;
 
 
@@ -112,23 +128,34 @@ import org.spf4j.maven.Registerer;
   protected  RepositorySystem repoSystem;
 
   public final RepositorySystem getRepoSystem() {
-<span class="nc" id="L115">    return repoSystem;</span>
+<span class="nc" id="L131">    return repoSystem;</span>
   }
 
   public final MavenSession getMavenSession() {
-<span class="nc" id="L119">    return mavenSession;</span>
+<span class="nc" id="L135">    return mavenSession;</span>
   }
 
   public final MavenProject getMavenProject() {
-<span class="nc" id="L123">    return mavenProject;</span>
+<span class="nc" id="L139">    return mavenProject;</span>
   }
 
   public final File getGeneratedAvscTarget() {
-<span class="nc" id="L127">    return generatedAvscTarget;</span>
+<span class="nc" id="L143">    return generatedAvscTarget;</span>
   }
 
   public final File getTarget() {
-<span class="nc" id="L131">    return target;</span>
+<span class="nc" id="L147">    return target;</span>
+  }
+
+ private Map&lt;String, String&gt; idx2Name() throws IOException {
+<span class="nc" id="L151">    Path indexFile = generatedAvscTarget.toPath().resolve(SCHEMA_INDEX_FILENAME);</span>
+<span class="nc" id="L152">    Properties result = new Properties();</span>
+<span class="nc" id="L153">    try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L154">      result.load(br);</span>
+<span class="nc" id="L155">    } catch (NoSuchFileException ex) {</span>
+<span class="nc" id="L156">      return Collections.EMPTY_MAP;</span>
+<span class="nc" id="L157">    }</span>
+<span class="nc" id="L158">    return (Map) result;</span>
   }
 
   /**
@@ -138,12 +165,42 @@ import org.spf4j.maven.Registerer;
    */
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-<span class="nc bnc" id="L141" title="All 4 branches missed.">    if (useSchemaReferencesForAvsc &amp;&amp; SchemaRefWriter.isSchemaRefsSupported()) {</span>
-<span class="nc" id="L142">      Registerer.register(repoSystem, getMavenSession().getRepositorySession(),</span>
-<span class="nc" id="L143">              mavenProject.getRemoteProjectRepositories(),</span>
-              schemaArtifactClassifier, schemaArtifactExtension);
+<span class="nc bnc" id="L168" title="All 4 branches missed.">    if (useSchemaReferencesForAvsc &amp;&amp; SchemaRefWriter.isSchemaRefsSupported()) {</span>
+      Map&lt;String, String&gt; currentMappings;
+      try {
+<span class="nc" id="L171">        currentMappings = idx2Name();</span>
+<span class="nc" id="L172">      } catch (IOException ex) {</span>
+<span class="nc" id="L173">        throw new MojoExecutionException(&quot;Exception loading schema index: &quot;</span>
+<span class="nc" id="L174">                + generatedAvscTarget.toPath().resolve(SCHEMA_INDEX_FILENAME), ex);</span>
+<span class="nc" id="L175">      }</span>
+<span class="nc" id="L176">      MavenSchemaResolver res = new MavenSchemaResolver(repoSystem, getMavenSession().getRepositorySession(),</span>
+<span class="nc" id="L177">              mavenProject.getRemoteProjectRepositories(), schemaArtifactClassifier, schemaArtifactExtension);</span>
+<span class="nc" id="L178">      SchemaResolvers.registerDefault(new SchemaResolver() {</span>
+        @Override
+        public Schema resolveSchema(final String id) {
+<span class="nc" id="L181">          SchemaRef ref = new SchemaRef(id);</span>
+<span class="nc bnc" id="L182" title="All 2 branches missed.">          if (mavenProject.getGroupId().equals(ref.getGroupId())</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">                  &amp;&amp; mavenProject.getArtifactId().equals(ref.getArtifactId())</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">                  &amp;&amp; mavenProject.getVersion().equals(ref.getVersion())) {</span>
+<span class="nc" id="L185">            String name = currentMappings.get(ref.getRef());</span>
+<span class="nc" id="L186">            Path schemaPath = generatedAvscTarget.toPath().resolve(name.replace('.', '/') + &quot;.avsc&quot;);</span>
+<span class="nc" id="L187">            try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(schemaPath))) {</span>
+<span class="nc" id="L188">              return new Schema.Parser().parse(bis);</span>
+<span class="nc" id="L189">            } catch (IOException ex) {</span>
+<span class="nc" id="L190">              throw new UncheckedIOException(ex);</span>
+            }
+          } else {
+<span class="nc" id="L193">            return res.resolveSchema(id);</span>
+          }
+        }
+
+        @Override
+        public String getId(final Schema schema) {
+<span class="nc" id="L199">          return res.getId(schema);</span>
+        }
+      });
     }
-<span class="nc" id="L146">  }</span>
+<span class="nc" id="L203">  }</span>
 
 
 
@@ -153,7 +210,7 @@ import org.spf4j.maven.Registerer;
    */
   @Override
   public String toString() {
-<span class="nc" id="L156">    return &quot;SchemaMojoBase{&quot; + &quot;dependenciesDirectory=&quot; + dependenciesDirectory</span>
+<span class="nc" id="L213">    return &quot;SchemaMojoBase{&quot; + &quot;dependenciesDirectory=&quot; + dependenciesDirectory</span>
             + &quot;, sourceDirectory=&quot; + sourceDirectory + &quot;, generatedJavaTarget=&quot;
             + generatedJavaTarget + &quot;, generatedAvscTarget=&quot; + generatedAvscTarget + &quot;, target=&quot; + target + '}';
   }

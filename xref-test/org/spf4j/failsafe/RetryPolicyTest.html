@@ -259,7 +259,7 @@
 <a class="jxr_linenumber" name="L251" href="#L251">251</a>       Assert.assertEquals(response1, resp);
 <a class="jxr_linenumber" name="L252" href="#L252">252</a>       retryExpect.assertObservation();
 <a class="jxr_linenumber" name="L253" href="#L253">253</a>     }
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>     server.breakException(<strong class="jxr_keyword">new</strong> SocketException(<span class="jxr_string">"Bla bla"</span>));
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>     server.breakException(() -&gt; <strong class="jxr_keyword">new</strong> SocketException(<span class="jxr_string">"Bla bla"</span>));
 <a class="jxr_linenumber" name="L255" href="#L255">255</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
 <a class="jxr_linenumber" name="L256" href="#L256">256</a>             LogMatchers.hasMessageWithPattern(
 <a class="jxr_linenumber" name="L257" href="#L257">257</a>                     <span class="jxr_string">"Result java.net.SocketException, retrying ServerCall.*"</span>))) {
@@ -317,7 +317,7 @@
 <a class="jxr_linenumber" name="L309" href="#L309">309</a>       Assert.assertEquals(response1, resp);
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>       retryExpect.assertObservation();
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>     }
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>     server.breakException(<strong class="jxr_keyword">new</strong> SocketException(<span class="jxr_string">"Bla bla"</span>));
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>     server.breakException(() -&gt; <strong class="jxr_keyword">new</strong> SocketException(<span class="jxr_string">"Bla bla"</span>));
 <a class="jxr_linenumber" name="L313" href="#L313">313</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect2 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
 <a class="jxr_linenumber" name="L314" href="#L314">314</a>             LogMatchers.hasMessageWithPattern(
 <a class="jxr_linenumber" name="L315" href="#L315">315</a>                     <span class="jxr_string">"Result java.net.SocketException, retrying ServerCall.*"</span>))) {
@@ -327,59 +327,60 @@
 <a class="jxr_linenumber" name="L319" href="#L319">319</a>         Assert.fail();
 <a class="jxr_linenumber" name="L320" href="#L320">320</a>       } <strong class="jxr_keyword">catch</strong> (ExecutionException | TimeoutException ex) {
 <a class="jxr_linenumber" name="L321" href="#L321">321</a>         LOG.debug(<span class="jxr_string">"Expected exception"</span>, ex);
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>         Assert.assertEquals(SocketException.<strong class="jxr_keyword">class</strong>, Throwables.getRootCause(ex).getClass());
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>         <em class="jxr_comment">// as expected.</em>
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>       }
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>       retryExpect2.assertObservation();
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>     }
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>     Future&lt;?&gt; submit = DefaultScheduler.INSTANCE.schedule(
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>             () -&gt; server.breakException(<strong class="jxr_keyword">null</strong>), 100, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>     rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)),
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>             200, TimeUnit.MILLISECONDS).get(10, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>     submit.get(10, TimeUnit.SECONDS);
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>     <em class="jxr_comment">// Test error response</em>
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>             LogMatchers.hasMessageWithPattern(
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>                     <span class="jxr_string">"^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"</span>))) {
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>       <a href="../../../org/spf4j/failsafe/Response.html">Response</a> er = rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server,
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>               <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url3"</span>, System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>               .get(1000, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>       Assert.assertEquals(<span class="jxr_string">"boooo"</span>, er.getPayload());
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>       retryExpect3.assertObservation();
-<a class="jxr_linenumber" name="L341" href="#L341">341</a>     }
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>     <em class="jxr_comment">// Test error response the second type, to make sure predicate state is handled correctly</em>
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>             LogMatchers.hasMessageWithPattern(
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>                     <span class="jxr_string">"^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"</span>))) {
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>       <a href="../../../org/spf4j/failsafe/Response.html">Response</a> er2 = rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server,
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>               <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url3"</span>, System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>               .get(1000, TimeUnit.MILLISECONDS);
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>       Assert.assertEquals(<span class="jxr_string">"boooo"</span>, er2.getPayload());
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>       retryExpect4.assertObservation();
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>     }
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>   }
-<a class="jxr_linenumber" name="L353" href="#L353">353</a> 
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>   @Test
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSpecificExceptionRetryPolicy() <strong class="jxr_keyword">throws</strong> TimeoutException, InterruptedException {
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>     LogAssert expect = TestLoggers.sys().expect(LOG.getName(), Level.DEBUG, LogMatchers.hasFormat(<span class="jxr_string">"encountered"</span>));
-<a class="jxr_linenumber" name="L357" href="#L357">357</a>     RetryPolicy&lt;Object, Callable&lt;Object&gt;&gt; policy =
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>             RetryPolicy.newBuilder().withExceptionPartialPredicate(IllegalStateException.<strong class="jxr_keyword">class</strong>,
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>             (ex, call) -&gt; {
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>               LOG.debug(<span class="jxr_string">"encountered"</span>, ex);
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>               <strong class="jxr_keyword">return</strong> RetryDecision.abort();
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>             }).build();
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>       policy.run(() -&gt; {
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException();
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>       }, RuntimeException.<strong class="jxr_keyword">class</strong>);
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>       Assert.fail();
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>     } <strong class="jxr_keyword">catch</strong> (IllegalStateException ex) {
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>          expect.assertObservation();
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>     }
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>   }
-<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         Class&lt;? <strong class="jxr_keyword">extends</strong> Throwable&gt; aClass = Throwables.getRootCause(ex).getClass();
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>         Assert.assertTrue(SocketException.<strong class="jxr_keyword">class</strong> == aClass || TimeoutException.<strong class="jxr_keyword">class</strong> == aClass);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>         <em class="jxr_comment">// as expected.</em>
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>       }
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>       retryExpect2.assertObservation();
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>     }
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     Future&lt;?&gt; submit = DefaultScheduler.INSTANCE.schedule(
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>             () -&gt; server.breakException(<strong class="jxr_keyword">null</strong>), 100, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>     rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url1"</span>, System.currentTimeMillis() + 1000)),
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>             200, TimeUnit.MILLISECONDS).get(10, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>     submit.get(10, TimeUnit.SECONDS);
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>     <em class="jxr_comment">// Test error response</em>
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>             LogMatchers.hasMessageWithPattern(
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>                     <span class="jxr_string">"^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"</span>))) {
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>       <a href="../../../org/spf4j/failsafe/Response.html">Response</a> er = rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server,
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>               <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url3"</span>, System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>               .get(1000, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>       Assert.assertEquals(<span class="jxr_string">"boooo"</span>, er.getPayload());
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>       retryExpect3.assertObservation();
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     }
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>     <em class="jxr_comment">// Test error response the second time, to make sure predicate state is handled correctly</em>
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>     <strong class="jxr_keyword">try</strong> (LogAssert retryExpect4 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>             LogMatchers.hasMessageWithPattern(
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>                     <span class="jxr_string">"^Result Response[{]type=ERROR, payload=boooo[}], retrying ServerCall.+ with RETRY.+$"</span>))) {
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>       <a href="../../../org/spf4j/failsafe/Response.html">Response</a> er2 = rp.submit(<strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/ServerCall.html">ServerCall</a>(server,
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>               <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/failsafe/Request.html">Request</a>(<span class="jxr_string">"url3"</span>, System.currentTimeMillis() + 1000)), 1000, TimeUnit.MILLISECONDS)
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>               .get(1000, TimeUnit.MILLISECONDS);
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>       Assert.assertEquals(<span class="jxr_string">"boooo"</span>, er2.getPayload());
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>       retryExpect4.assertObservation();
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>     }
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>   }
+<a class="jxr_linenumber" name="L354" href="#L354">354</a> 
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>   @Test
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> testSpecificExceptionRetryPolicy() <strong class="jxr_keyword">throws</strong> TimeoutException, InterruptedException {
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>     LogAssert expect = TestLoggers.sys().expect(LOG.getName(), Level.DEBUG, LogMatchers.hasFormat(<span class="jxr_string">"encountered"</span>));
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>     RetryPolicy&lt;Object, Callable&lt;Object&gt;&gt; policy =
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>             RetryPolicy.newBuilder().withExceptionPartialPredicate(IllegalStateException.<strong class="jxr_keyword">class</strong>,
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>             (ex, call) -&gt; {
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>               LOG.debug(<span class="jxr_string">"encountered"</span>, ex);
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>               <strong class="jxr_keyword">return</strong> RetryDecision.abort();
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>             }).build();
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>       policy.run(() -&gt; {
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException();
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>       }, RuntimeException.<strong class="jxr_keyword">class</strong>);
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>       Assert.fail();
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     } <strong class="jxr_keyword">catch</strong> (IllegalStateException ex) {
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>          expect.assertObservation();
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>     }
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>   }
 <a class="jxr_linenumber" name="L373" href="#L373">373</a> 
-<a class="jxr_linenumber" name="L374" href="#L374">374</a> }
+<a class="jxr_linenumber" name="L374" href="#L374">374</a> 
+<a class="jxr_linenumber" name="L375" href="#L375">375</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

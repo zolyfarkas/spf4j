@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,7 @@ import org.spf4j.base.TimeSource;
 /**
  * @author Zoltan Farkas
  */
+@CleanupObligation
 public interface ObservationAssert {
 
   /**
@@ -34,27 +36,28 @@ public interface ObservationAssert {
 
 
   @SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;)
+  @DischargesObligation
   default void assertObservation(final long time, final TimeUnit tu) {
-<span class="nc" id="L38">    long deadline = TimeSource.nanoTime() + tu.toNanos(time);</span>
+<span class="nc" id="L41">    long deadline = TimeSource.nanoTime() + tu.toNanos(time);</span>
     AssertionError rae;
     do  {
       try {
-<span class="nc" id="L42">        assertObservation();</span>
-<span class="nc" id="L43">        rae = null;</span>
-<span class="nc" id="L44">      } catch (AssertionError ae) {</span>
-<span class="nc" id="L45">        rae = ae;</span>
-<span class="nc" id="L46">      }</span>
-<span class="nc bnc" id="L47" title="All 2 branches missed.">      if (rae == null) {</span>
-<span class="nc" id="L48">        return;</span>
+<span class="nc" id="L45">        assertObservation();</span>
+<span class="nc" id="L46">        rae = null;</span>
+<span class="nc" id="L47">      } catch (AssertionError ae) {</span>
+<span class="nc" id="L48">        rae = ae;</span>
+<span class="nc" id="L49">      }</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">      if (rae == null) {</span>
+<span class="nc" id="L51">        return;</span>
       }
       try {
-<span class="nc" id="L51">        Thread.sleep(250);</span>
-<span class="nc" id="L52">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L53">        Thread.currentThread().interrupt();</span>
-<span class="nc" id="L54">        throw new AssertionError(ex);</span>
-<span class="nc" id="L55">      }</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">    } while (TimeSource.nanoTime() &lt; deadline);</span>
-<span class="nc" id="L57">    throw rae;</span>
+<span class="nc" id="L54">        Thread.sleep(250);</span>
+<span class="nc" id="L55">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L56">        Thread.currentThread().interrupt();</span>
+<span class="nc" id="L57">        throw new AssertionError(ex);</span>
+<span class="nc" id="L58">      }</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">    } while (TimeSource.nanoTime() &lt; deadline);</span>
+<span class="nc" id="L60">    throw rae;</span>
   }
 
 }

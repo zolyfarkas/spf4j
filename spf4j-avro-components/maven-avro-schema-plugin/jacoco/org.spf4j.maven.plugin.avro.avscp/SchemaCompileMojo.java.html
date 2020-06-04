@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaCompileMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.8.1-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaCompileMojo.java</span></div><h1>SchemaCompileMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.maven.plugin.avro.avscp;
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SchemaCompileMojo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.8.3-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp</a> &gt; <span class="el_source">SchemaCompileMojo.java</span></div><h1>SchemaCompileMojo.java</h1><pre class="source lang-java linenums">package org.spf4j.maven.plugin.avro.avscp;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedOutputStream;
@@ -33,9 +34,11 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.avro.ExtendedParser;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaRefWriter;
+import org.apache.avro.UnresolvedExtendedParser;
 import org.apache.avro.compiler.idl.Idl;
 import org.apache.avro.compiler.idl.ParseException;
 import org.apache.avro.compiler.specific.SpecificCompiler;
@@ -71,8 +74,8 @@ import org.spf4j.maven.MavenRepositoryUtils;
 @Mojo(name = &quot;avro-compile&quot;,
         defaultPhase = LifecyclePhase.GENERATE_SOURCES,
         requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME)
-@SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
-<span class="nc" id="L75">public final class SchemaCompileMojo</span>
+@SuppressFBWarnings({ &quot;PATH_TRAVERSAL_IN&quot;, &quot;SE_BAD_FIELD_INNER_CLASS&quot; })
+<span class="nc" id="L78">public final class SchemaCompileMojo</span>
         extends SchemaMojoBase {
 
   public static final String SCHEMA_INDEX_FILENAME = &quot;schema_index.properties&quot;;
@@ -107,544 +110,566 @@ import org.spf4j.maven.MavenRepositoryUtils;
    * add maven coordinates to the schema. (group:artifact:version:ID) ID-&gt;Schema full name mapping file
    * schema_index.properties is packaged in the jar artifacts.
    */
-<span class="nc" id="L110">  @Parameter(name = &quot;addMavenId&quot;,</span>
+<span class="nc" id="L113">  @Parameter(name = &quot;addMavenId&quot;,</span>
           defaultValue = &quot;true&quot;)
   private boolean addMavenId = true;
 
   /**
    * delete Protocol java files, this is when only the schema definitions are relevant.
    */
-<span class="nc" id="L117">  @Parameter(name = &quot;deleteProtocolInterface&quot;,</span>
+<span class="nc" id="L120">  @Parameter(name = &quot;deleteProtocolInterface&quot;,</span>
           defaultValue = &quot;true&quot;)
   private boolean deleteProtocolInterface = true;
 
   /**
    * set Java system properties that might control avro behavior.
    */
-<span class="nc" id="L124">  @Parameter(name = &quot;systemProperties&quot;)</span>
+<span class="nc" id="L127">  @Parameter(name = &quot;systemProperties&quot;)</span>
   private Properties systemProperties = new Properties();
 
 
   /**
    * string type
    */
-<span class="nc" id="L131">  @Parameter(name = &quot;stringType&quot;, defaultValue = &quot;String&quot;)</span>
+<span class="nc" id="L134">  @Parameter(name = &quot;stringType&quot;, defaultValue = &quot;String&quot;)</span>
   private String stringType = &quot;String&quot;;
 
-<span class="nc" id="L134">  private int idSequence = 0;</span>
+<span class="nc" id="L137">  private int idSequence = 0;</span>
 
-<span class="nc" id="L136">  private final Map&lt;String, Schema&gt; index = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L139">  private final Map&lt;String, Schema&gt; index = new HashMap&lt;&gt;();</span>
 
 
-<span class="nc" id="L139">  private final Map&lt;String, Integer&gt; prevReleaseName2Index = new HashMap();</span>
+<span class="nc" id="L142">  private final Map&lt;String, Integer&gt; prevReleaseName2Index = new HashMap();</span>
 
   @SuppressWarnings(&quot;unchecked&quot;)
   private void loadPrevReleaseId2Map() throws IOException {
-<span class="nc" id="L143">    MavenProject mavenProject = getMavenProject();</span>
-<span class="nc" id="L144">    Log log = getLog();</span>
-<span class="nc" id="L145">    String versionRange = &quot;[,&quot; + mavenProject.getVersion() +  ')';</span>
-<span class="nc" id="L146">    String groupId = mavenProject.getGroupId();</span>
-<span class="nc" id="L147">    String artifactId = mavenProject.getArtifactId();</span>
-<span class="nc" id="L148">    List&lt;RemoteRepository&gt; remoteProjectRepositories = mavenProject.getRemoteProjectRepositories();</span>
-<span class="nc" id="L149">    RepositorySystem repoSystem = getRepoSystem();</span>
-<span class="nc" id="L150">    RepositorySystemSession repositorySession = getMavenSession().getRepositorySession();</span>
+<span class="nc" id="L146">    MavenProject mavenProject = getMavenProject();</span>
+<span class="nc" id="L147">    Log log = getLog();</span>
+<span class="nc" id="L148">    String versionRange = &quot;[,&quot; + mavenProject.getVersion() +  ')';</span>
+<span class="nc" id="L149">    String groupId = mavenProject.getGroupId();</span>
+<span class="nc" id="L150">    String artifactId = mavenProject.getArtifactId();</span>
+<span class="nc" id="L151">    List&lt;RemoteRepository&gt; remoteProjectRepositories = mavenProject.getRemoteProjectRepositories();</span>
+<span class="nc" id="L152">    RepositorySystem repoSystem = getRepoSystem();</span>
+<span class="nc" id="L153">    RepositorySystemSession repositorySession = getMavenSession().getRepositorySession();</span>
     List&lt;Version&gt; rangeVersions;
     try {
-<span class="nc" id="L153">      rangeVersions = MavenRepositoryUtils.getVersions(groupId, artifactId, versionRange,</span>
+<span class="nc" id="L156">      rangeVersions = MavenRepositoryUtils.getVersions(groupId, artifactId, versionRange,</span>
               remoteProjectRepositories, repoSystem, repositorySession);
-<span class="nc" id="L155">    } catch (VersionRangeResolutionException ex) {</span>
-<span class="nc" id="L156">      throw new RuntimeException(&quot;Invalid compatibiliy.versionRange = &quot; + versionRange + &quot; setting&quot;, ex);</span>
-<span class="nc" id="L157">    }</span>
-<span class="nc bnc" id="L158" title="All 2 branches missed.">    rangeVersions = rangeVersions.stream().filter((v) -&gt; !v.toString().endsWith(&quot;SNAPSHOT&quot;))</span>
-<span class="nc" id="L159">            .collect(Collectors.toList());</span>
-<span class="nc" id="L160">    int tSize = rangeVersions.size();</span>
-<span class="nc" id="L161">    rangeVersions = rangeVersions.subList(Math.max(tSize - 1, 0), tSize);</span>
-<span class="nc" id="L162">    log.info(&quot;Loading id 2 name map from &quot; + rangeVersions);</span>
-<span class="nc bnc" id="L163" title="All 2 branches missed.">    if (rangeVersions.isEmpty()) {</span>
-<span class="nc" id="L164">      return;</span>
+<span class="nc" id="L158">    } catch (VersionRangeResolutionException ex) {</span>
+<span class="nc" id="L159">      throw new RuntimeException(&quot;Invalid compatibiliy.versionRange = &quot; + versionRange + &quot; setting&quot;, ex);</span>
+<span class="nc" id="L160">    }</span>
+<span class="nc bnc" id="L161" title="All 2 branches missed.">    rangeVersions = rangeVersions.stream().filter((v) -&gt; !v.toString().endsWith(&quot;SNAPSHOT&quot;))</span>
+<span class="nc" id="L162">            .collect(Collectors.toList());</span>
+<span class="nc" id="L163">    int tSize = rangeVersions.size();</span>
+<span class="nc" id="L164">    rangeVersions = rangeVersions.subList(Math.max(tSize - 1, 0), tSize);</span>
+<span class="nc" id="L165">    log.info(&quot;Loading id 2 name map from &quot; + rangeVersions);</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">    if (rangeVersions.isEmpty()) {</span>
+<span class="nc" id="L167">      return;</span>
     }
-<span class="nc" id="L166">    Version version  = rangeVersions.get(0);</span>
-<span class="nc" id="L167">    Path targetPath = getTarget().toPath();</span>
+<span class="nc" id="L169">    Version version  = rangeVersions.get(0);</span>
+<span class="nc" id="L170">    Path targetPath = getTarget().toPath();</span>
     File prevSchemaArchive;
     try {
-<span class="nc" id="L170">      prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(</span>
-<span class="nc" id="L171">              groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version.toString(),</span>
+<span class="nc" id="L173">      prevSchemaArchive = MavenRepositoryUtils.resolveArtifact(</span>
+<span class="nc" id="L174">              groupId, artifactId, schemaArtifactClassifier, schemaArtifactExtension, version.toString(),</span>
               remoteProjectRepositories, repoSystem, repositorySession);
-<span class="nc" id="L173">    } catch (ArtifactResolutionException ex) {</span>
-<span class="nc" id="L174">      throw new RuntimeException(&quot;Cannot resolve previous version &quot;  + version, ex);</span>
-<span class="nc" id="L175">    }</span>
-<span class="nc" id="L176">    Path dest = targetPath.resolve(&quot;prevSchema&quot;).resolve(version.toString());</span>
-<span class="nc" id="L177">    Files.createDirectories(dest);</span>
-<span class="nc" id="L178">    log.debug(&quot;Unzipping &quot; + prevSchemaArchive + &quot; to &quot; + dest);</span>
-<span class="nc" id="L179">    List&lt;Path&gt; indexFiles = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -&gt; {</span>
-<span class="nc" id="L180">      Path fileName = p.getFileName();</span>
-<span class="nc bnc" id="L181" title="All 2 branches missed.">      if (fileName == null) {</span>
-<span class="nc" id="L182">        return false;</span>
+<span class="nc" id="L176">    } catch (ArtifactResolutionException ex) {</span>
+<span class="nc" id="L177">      throw new RuntimeException(&quot;Cannot resolve previous version &quot;  + version, ex);</span>
+<span class="nc" id="L178">    }</span>
+<span class="nc" id="L179">    Path dest = targetPath.resolve(&quot;prevSchema&quot;).resolve(version.toString());</span>
+<span class="nc" id="L180">    Files.createDirectories(dest);</span>
+<span class="nc" id="L181">    log.debug(&quot;Unzipping &quot; + prevSchemaArchive + &quot; to &quot; + dest);</span>
+<span class="nc" id="L182">    List&lt;Path&gt; indexFiles = Compress.unzip2(prevSchemaArchive.toPath(), dest, (Path p) -&gt; {</span>
+<span class="nc" id="L183">      Path fileName = p.getFileName();</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">      if (fileName == null) {</span>
+<span class="nc" id="L185">        return false;</span>
       }
-<span class="nc" id="L184">      return SCHEMA_INDEX_FILENAME.equals(fileName.toString());</span>
+<span class="nc" id="L187">      return SCHEMA_INDEX_FILENAME.equals(fileName.toString());</span>
     });
-<span class="nc" id="L186">    Properties prevIndex = new Properties();</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">    if (indexFiles.size() != 1) {</span>
-<span class="nc" id="L188">      log.info(&quot;no index file or to many in previous version: &quot; + indexFiles);</span>
+<span class="nc" id="L189">    Properties prevIndex = new Properties();</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">    if (indexFiles.size() != 1) {</span>
+<span class="nc" id="L191">      log.info(&quot;no index file or to many in previous version: &quot; + indexFiles);</span>
     } else {
       // load previous index file
-<span class="nc" id="L191">      Path indexFile = indexFiles.get(0);</span>
-<span class="nc" id="L192">      try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L193">        prevIndex.load(br);</span>
+<span class="nc" id="L194">      Path indexFile = indexFiles.get(0);</span>
+<span class="nc" id="L195">      try (BufferedReader br = Files.newBufferedReader(indexFile, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L196">        prevIndex.load(br);</span>
       }
     }
-<span class="nc bnc" id="L196" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; entry : (Set&lt;Map.Entry&lt;String, String&gt;&gt;) (Set) prevIndex.entrySet()) {</span>
-<span class="nc" id="L197">      String key = entry.getKey();</span>
-<span class="nc bnc" id="L198" title="All 2 branches missed.">      if (SCHEMA_INDEX_PGK_KEY.equals(key)) {</span>
-<span class="nc" id="L199">        continue;</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">    for (Map.Entry&lt;String, String&gt; entry : (Set&lt;Map.Entry&lt;String, String&gt;&gt;) (Set) prevIndex.entrySet()) {</span>
+<span class="nc" id="L200">      String key = entry.getKey();</span>
+<span class="nc bnc" id="L201" title="All 2 branches missed.">      if (SCHEMA_INDEX_PGK_KEY.equals(key)) {</span>
+<span class="nc" id="L202">        continue;</span>
       }
-<span class="nc" id="L201">      int idx = Integer.parseInt(key, 32);</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">      if (idx &gt;= idSequence) {</span>
-<span class="nc" id="L203">        idSequence = idx + 1;</span>
+<span class="nc" id="L204">      int idx = Integer.parseInt(key, 32);</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">      if (idx &gt;= idSequence) {</span>
+<span class="nc" id="L206">        idSequence = idx + 1;</span>
       }
-<span class="nc" id="L205">      prevReleaseName2Index.put(entry.getValue(), idx);</span>
-<span class="nc" id="L206">    }</span>
-<span class="nc" id="L207">    log.debug(&quot;loaded existing mappings: &quot; + prevReleaseName2Index);</span>
-<span class="nc" id="L208">    log.info(&quot;loaded existing mappings, new id sequence: &quot; + idSequence);</span>
-<span class="nc" id="L209">  }</span>
+<span class="nc" id="L208">      prevReleaseName2Index.put(entry.getValue(), idx);</span>
+<span class="nc" id="L209">    }</span>
+<span class="nc" id="L210">    log.debug(&quot;loaded existing mappings: &quot; + prevReleaseName2Index);</span>
+<span class="nc" id="L211">    log.info(&quot;loaded existing mappings, new id sequence: &quot; + idSequence);</span>
+<span class="nc" id="L212">  }</span>
 
   private String attachMavenId(final Schema schema) {
-<span class="nc" id="L212">    String exMvnId = schema.getProp(&quot;mvnId&quot;);</span>
-<span class="nc bnc" id="L213" title="All 2 branches missed.">    if (exMvnId == null) {</span>
-<span class="nc" id="L214">      String newId = genMnvId(schema);</span>
-<span class="nc" id="L215">      schema.addProp(&quot;mvnId&quot;, newId);</span>
-<span class="nc" id="L216">      return newId;</span>
+<span class="nc" id="L215">    String exMvnId = schema.getProp(&quot;mvnId&quot;);</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">    if (exMvnId == null) {</span>
+<span class="nc" id="L217">      String newId = genMnvId(schema);</span>
+<span class="nc" id="L218">      schema.addProp(&quot;mvnId&quot;, newId);</span>
+<span class="nc" id="L219">      return newId;</span>
     } else {
-<span class="nc" id="L218">      return exMvnId;</span>
+<span class="nc" id="L221">      return exMvnId;</span>
     }
   }
 
   public CharSequence getPackageMvnIdPrefix() {
-<span class="nc" id="L223">    StringBuilder idBuilder = new StringBuilder(64);</span>
-<span class="nc" id="L224">    idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())</span>
-<span class="nc" id="L225">            .append(':').append(mavenProject.getVersion());</span>
-<span class="nc" id="L226">    return idBuilder;</span>
+<span class="nc" id="L226">    StringBuilder idBuilder = new StringBuilder(64);</span>
+<span class="nc" id="L227">    idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())</span>
+<span class="nc" id="L228">            .append(':').append(mavenProject.getVersion());</span>
+<span class="nc" id="L229">    return idBuilder;</span>
   }
 
   public String genMnvId(final Schema schema) {
-<span class="nc" id="L230">    StringBuilder idBuilder = new StringBuilder(64);</span>
-<span class="nc" id="L231">    idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())</span>
-<span class="nc" id="L232">            .append(':').append(mavenProject.getVersion());</span>
-<span class="nc" id="L233">    Integer idx = prevReleaseName2Index.get(schema.getFullName());</span>
-<span class="nc bnc" id="L234" title="All 2 branches missed.">    if (idx == null) {</span>
-<span class="nc" id="L235">      idx = idSequence++;</span>
+<span class="nc" id="L233">    StringBuilder idBuilder = new StringBuilder(64);</span>
+<span class="nc" id="L234">    idBuilder.append(mavenProject.getGroupId()).append(':').append(mavenProject.getArtifactId())</span>
+<span class="nc" id="L235">            .append(':').append(mavenProject.getVersion());</span>
+<span class="nc" id="L236">    Integer idx = prevReleaseName2Index.get(schema.getFullName());</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">    if (idx == null) {</span>
+<span class="nc" id="L238">      idx = idSequence++;</span>
     }
-<span class="nc" id="L237">    StringBuilder idb = new StringBuilder(4);</span>
-<span class="nc" id="L238">    AppendableUtils.appendUnsignedString(idb, idx, 5);</span>
-<span class="nc" id="L239">    idBuilder.append(':').append(idb);</span>
-<span class="nc" id="L240">    index.put(idb.toString(), schema);</span>
-<span class="nc" id="L241">    return idBuilder.toString();</span>
+<span class="nc" id="L240">    StringBuilder idb = new StringBuilder(4);</span>
+<span class="nc" id="L241">    AppendableUtils.appendUnsignedString(idb, idx, 5);</span>
+<span class="nc" id="L242">    idBuilder.append(':').append(idb);</span>
+<span class="nc" id="L243">    index.put(idb.toString(), schema);</span>
+<span class="nc" id="L244">    return idBuilder.toString();</span>
   }
 
   protected void doCompileIDL(final File sourceDir,  final String filename) throws IOException {
-<span class="nc" id="L245">    Thread currentThread = Thread.currentThread();</span>
-<span class="nc" id="L246">    ClassLoader contextClassLoader = currentThread.getContextClassLoader();</span>
+<span class="nc" id="L248">    Thread currentThread = Thread.currentThread();</span>
+<span class="nc" id="L249">    ClassLoader contextClassLoader = currentThread.getContextClassLoader();</span>
     try {
-<span class="nc" id="L248">      List&lt;URL&gt; runtimeUrls = createPathUrls(sourceDir);</span>
-<span class="nc" id="L249">      URLClassLoader projPathLoader = AccessController.doPrivileged(</span>
+<span class="nc" id="L251">      List&lt;URL&gt; runtimeUrls = createPathUrls(sourceDir);</span>
+<span class="nc" id="L252">      URLClassLoader projPathLoader = AccessController.doPrivileged(</span>
               (PrivilegedAction&lt;URLClassLoader&gt;) ()
-<span class="nc" id="L251">              -&gt; new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));</span>
-<span class="nc" id="L252">      currentThread.setContextClassLoader(projPathLoader);</span>
-<span class="nc" id="L253">      File file = new File(sourceDir, filename);</span>
-<span class="nc" id="L254">      String sourceAbsolutePath = sourceDir.getAbsolutePath();</span>
+<span class="nc" id="L254">              -&gt; new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));</span>
+<span class="nc" id="L255">      currentThread.setContextClassLoader(projPathLoader);</span>
+<span class="nc" id="L256">      File file = new File(sourceDir, filename);</span>
+<span class="nc" id="L257">      String sourceAbsolutePath = sourceDir.getAbsolutePath();</span>
       // set the current dir do that sourceIdl will be computed relative to it.
       // This makes this plugin not thread safe.
       Idl parser;
-<span class="nc" id="L258">      String origCurrentDir = org.spf4j.base.Runtime.getCurrentDir();</span>
-<span class="nc" id="L259">      org.spf4j.base.Runtime.setCurrentDir(sourceAbsolutePath);</span>
+<span class="nc" id="L261">      String origCurrentDir = org.spf4j.base.Runtime.getCurrentDir();</span>
+<span class="nc" id="L262">      org.spf4j.base.Runtime.setCurrentDir(sourceAbsolutePath);</span>
       try {
-<span class="nc" id="L261">        parser = new Idl(file, projPathLoader);</span>
+<span class="nc" id="L264">        parser = new Idl(file, projPathLoader);</span>
       } finally {
-<span class="nc" id="L263">        org.spf4j.base.Runtime.setCurrentDir(origCurrentDir);</span>
+<span class="nc" id="L266">        org.spf4j.base.Runtime.setCurrentDir(origCurrentDir);</span>
       }
-<span class="nc" id="L265">      Protocol protocol = parser.CompilationUnit();</span>
-<span class="nc" id="L266">      publishSchemasAndAttachMvnIdToProtocol(protocol, false, useSchemaReferencesForAvsc);</span>
-<span class="nc" id="L267">      SpecificCompiler compiler = new SpecificCompiler(protocol);</span>
-<span class="nc" id="L268">      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;));</span>
-<span class="nc" id="L269">      compiler.setStringType(GenericData.StringType.valueOf(stringType));</span>
-<span class="nc" id="L270">      compiler.setTemplateDir(templateDirectory);</span>
-<span class="nc" id="L271">      compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));</span>
-<span class="nc" id="L272">      compiler.setCreateSetters(createSetters);</span>
-<span class="nc" id="L273">      compiler.compileToDestination(null, generatedJavaTarget);</span>
-<span class="nc" id="L274">    } catch (ParseException e) {</span>
-<span class="nc" id="L275">      throw new IOException(e);</span>
-<span class="nc" id="L276">    } catch (DependencyResolutionRequiredException drre) {</span>
-<span class="nc" id="L277">      throw new IOException(drre);</span>
+<span class="nc" id="L268">      Protocol protocol = parser.CompilationUnit();</span>
+<span class="nc" id="L269">      publishSchemasAndAttachMvnIdToProtocol(protocol, false, useSchemaReferencesForAvsc);</span>
+<span class="nc" id="L270">      SpecificCompiler compiler = new SpecificCompiler(protocol);</span>
+<span class="nc" id="L271">      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;));</span>
+<span class="nc" id="L272">      compiler.setStringType(GenericData.StringType.valueOf(stringType));</span>
+<span class="nc" id="L273">      compiler.setTemplateDir(templateDirectory);</span>
+<span class="nc" id="L274">      compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));</span>
+<span class="nc" id="L275">      compiler.setCreateSetters(createSetters);</span>
+<span class="nc" id="L276">      compiler.compileToDestination(null, generatedJavaTarget);</span>
+<span class="nc" id="L277">    } catch (ParseException e) {</span>
+<span class="nc" id="L278">      throw new IOException(e);</span>
+<span class="nc" id="L279">    } catch (DependencyResolutionRequiredException drre) {</span>
+<span class="nc" id="L280">      throw new IOException(drre);</span>
     } finally {
-<span class="nc" id="L279">      currentThread.setContextClassLoader(contextClassLoader);</span>
+<span class="nc" id="L282">      currentThread.setContextClassLoader(contextClassLoader);</span>
     }
-<span class="nc" id="L281">  }</span>
+<span class="nc" id="L284">  }</span>
 
   public List&lt;URL&gt; createPathUrls(final File sourceFolder)
           throws MalformedURLException, DependencyResolutionRequiredException {
-<span class="nc" id="L285">    List&lt;String&gt; cpElements = mavenProject.getRuntimeClasspathElements();</span>
-<span class="nc" id="L286">    List&lt;URL&gt; runtimeUrls = new ArrayList&lt;URL&gt;();</span>
-<span class="nc" id="L287">    runtimeUrls.add(sourceFolder.toURI().toURL());</span>
+<span class="nc" id="L288">    List&lt;String&gt; cpElements = mavenProject.getRuntimeClasspathElements();</span>
+<span class="nc" id="L289">    List&lt;URL&gt; runtimeUrls = new ArrayList&lt;URL&gt;();</span>
+<span class="nc" id="L290">    runtimeUrls.add(sourceFolder.toURI().toURL());</span>
     // If runtimeClasspathElements is not empty values add its values to Idl path.
-<span class="nc bnc" id="L289" title="All 4 branches missed.">    if (cpElements != null &amp;&amp; !cpElements.isEmpty()) {</span>
-<span class="nc bnc" id="L290" title="All 2 branches missed.">      for (Object runtimeClasspathElement : cpElements) {</span>
-<span class="nc" id="L291">        String element = (String) runtimeClasspathElement;</span>
-<span class="nc" id="L292">        runtimeUrls.add(new File(element).toURI().toURL());</span>
-<span class="nc" id="L293">      }</span>
+<span class="nc bnc" id="L292" title="All 4 branches missed.">    if (cpElements != null &amp;&amp; !cpElements.isEmpty()) {</span>
+<span class="nc bnc" id="L293" title="All 2 branches missed.">      for (Object runtimeClasspathElement : cpElements) {</span>
+<span class="nc" id="L294">        String element = (String) runtimeClasspathElement;</span>
+<span class="nc" id="L295">        runtimeUrls.add(new File(element).toURI().toURL());</span>
+<span class="nc" id="L296">      }</span>
     }
-<span class="nc" id="L295">    return runtimeUrls;</span>
+<span class="nc" id="L298">    return runtimeUrls;</span>
   }
 
   private File addMvnIdsToIdl(final File idl, final URLClassLoader cl)
           throws IOException, ParseException {
-<span class="nc bnc" id="L300" title="All 2 branches missed.">    if (!addMavenId) {</span>
-<span class="nc" id="L301">      return idl;</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">    if (!addMavenId) {</span>
+<span class="nc" id="L304">      return idl;</span>
     }
-<span class="nc" id="L303">    String charsetStr = mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;);</span>
-<span class="nc bnc" id="L304" title="All 2 branches missed.">    Charset charset = charsetStr == null ? Charset.defaultCharset() : Charset.forName(charsetStr);</span>
-<span class="nc" id="L305">    List&lt;String&gt; readAllLines = Files.readAllLines(idl.toPath(), charset);</span>
-<span class="nc" id="L306">    Idl parser = new Idl(idl, cl);</span>
-<span class="nc" id="L307">    Protocol protocol = parser.CompilationUnit();</span>
+<span class="nc" id="L306">    String charsetStr = mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;);</span>
+<span class="nc bnc" id="L307" title="All 2 branches missed.">    Charset charset = charsetStr == null ? Charset.defaultCharset() : Charset.forName(charsetStr);</span>
+<span class="nc" id="L308">    List&lt;String&gt; readAllLines = Files.readAllLines(idl.toPath(), charset);</span>
+<span class="nc" id="L309">    Idl parser = new Idl(idl, cl);</span>
+<span class="nc" id="L310">    Protocol protocol = parser.CompilationUnit();</span>
     // hack uses the same logic and Idl...
-<span class="nc" id="L309">    String idlSource = new File(&quot;.&quot;).toURI().relativize(idl.toURI()).toString();</span>
-<span class="nc" id="L310">    getLog().debug(&quot;Injecting mvnIds to &quot; + idlSource);</span>
-<span class="nc bnc" id="L311" title="All 2 branches missed.">    for (Schema s : protocol.getTypes()) {</span>
-<span class="nc bnc" id="L312" title="All 2 branches missed.">      if (s.getProp(&quot;mvnId&quot;) != null) {</span>
-<span class="nc" id="L313">        continue;</span>
+<span class="nc" id="L312">    String idlSource = new File(&quot;.&quot;).toURI().relativize(idl.toURI()).toString();</span>
+<span class="nc" id="L313">    getLog().debug(&quot;Injecting mvnIds to &quot; + idlSource);</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">    for (Schema s : protocol.getTypes()) {</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">      if (s.getProp(&quot;mvnId&quot;) != null) {</span>
+<span class="nc" id="L316">        continue;</span>
       }
-<span class="nc" id="L315">      String sourceIdl = s.getProp(&quot;sourceIdl&quot;);</span>
-<span class="nc bnc" id="L316" title="All 2 branches missed.">      if (sourceIdl == null) {</span>
-<span class="nc" id="L317">        getLog().warn(&quot;sourceIdl not available, will not attach mvnId for IDLs&quot;);</span>
-<span class="nc" id="L318">        continue;</span>
+<span class="nc" id="L318">      String sourceIdl = s.getProp(&quot;sourceIdl&quot;);</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">      if (sourceIdl == null) {</span>
+<span class="nc" id="L320">        getLog().warn(&quot;sourceIdl not available, will not attach mvnId for IDLs&quot;);</span>
+<span class="nc" id="L321">        continue;</span>
       }
-<span class="nc" id="L320">      SourceLocation sl = new SourceLocation(sourceIdl);</span>
-<span class="nc bnc" id="L321" title="All 2 branches missed.">      if (!idlSource.equals(sl.getFilePath())) {</span>
-<span class="nc" id="L322">        continue;</span>
+<span class="nc" id="L323">      SourceLocation sl = new SourceLocation(sourceIdl);</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">      if (!idlSource.equals(sl.getFilePath())) {</span>
+<span class="nc" id="L325">        continue;</span>
       }
-<span class="nc" id="L324">      int zbLineNr = sl.getLineNr() - 1;</span>
-<span class="nc" id="L325">      String line = readAllLines.get(zbLineNr);</span>
-<span class="nc" id="L326">      String sMvnId = genMnvId(s);</span>
-<span class="nc" id="L327">      getLog().debug(&quot;inserting mvnId: &quot; + sMvnId + &quot; at &quot;</span>
-<span class="nc" id="L328">              + sl + &quot; for line \&quot;&quot; + line + &quot;\&quot; schema: &quot; + s.getFullName());</span>
-<span class="nc" id="L329">      int zbColNr = sl.getColNr() - 1;</span>
-<span class="nc" id="L330">      readAllLines.set(zbLineNr, line.substring(0, zbColNr)</span>
+<span class="nc" id="L327">      int zbLineNr = sl.getLineNr() - 1;</span>
+<span class="nc" id="L328">      String line = readAllLines.get(zbLineNr);</span>
+<span class="nc" id="L329">      String sMvnId = genMnvId(s);</span>
+<span class="nc" id="L330">      getLog().debug(&quot;inserting mvnId: &quot; + sMvnId + &quot; at &quot;</span>
+<span class="nc" id="L331">              + sl + &quot; for line \&quot;&quot; + line + &quot;\&quot; schema: &quot; + s.getFullName());</span>
+<span class="nc" id="L332">      int zbColNr = sl.getColNr() - 1;</span>
+<span class="nc" id="L333">      readAllLines.set(zbLineNr, line.substring(0, zbColNr)</span>
               + &quot; @mvnId(\&quot;&quot; + sMvnId + &quot;\&quot;) &quot;
-<span class="nc" id="L332">              + line.substring(zbColNr, line.length()));</span>
-<span class="nc" id="L333">    }</span>
-<span class="nc" id="L334">    Path tempIdl = Files.createTempFile(this.target.toPath(), idl.getName(), &quot;.tmp&quot;);</span>
-<span class="nc" id="L335">    Files.write(tempIdl, readAllLines, charset);</span>
-<span class="nc" id="L336">    return tempIdl.toFile();</span>
+<span class="nc" id="L335">              + line.substring(zbColNr, line.length()));</span>
+<span class="nc" id="L336">    }</span>
+<span class="nc" id="L337">    Path tempIdl = Files.createTempFile(this.target.toPath(), idl.getName(), &quot;.tmp&quot;);</span>
+<span class="nc" id="L338">    Files.write(tempIdl, readAllLines, charset);</span>
+<span class="nc" id="L339">    return tempIdl.toFile();</span>
   }
 
 
   protected void doCompileSchemas(final String[] filenames)
           throws IOException {
-<span class="nc" id="L342">    Schema.Parser parser = new Schema.Parser();</span>
-<span class="nc bnc" id="L343" title="All 2 branches missed.">    for (String fileName : filenames) {</span>
-<span class="nc" id="L344">      File src = new File(sourceDirectory, fileName);</span>
-<span class="nc" id="L345">      Schema schema = parser.parse(src);</span>
-<span class="nc bnc" id="L346" title="All 2 branches missed.">      if (addMavenId) {</span>
-<span class="nc" id="L347">        attachMavenId(schema);</span>
+<span class="nc" id="L345">    ClassLoader avroLibClassLoader = org.apache.avro.Schema.class.getClassLoader();</span>
+<span class="nc" id="L346">    Thread currentThread = Thread.currentThread();</span>
+<span class="nc" id="L347">    ClassLoader contextClassLoader = currentThread.getContextClassLoader();</span>
+<span class="nc" id="L348">    currentThread.setContextClassLoader(avroLibClassLoader);</span>
+    try {
+<span class="nc" id="L350">    ExtendedParser parser = new UnresolvedExtendedParser();</span>
+<span class="nc" id="L351">    Map&lt;String, Schema&gt; schemas = Maps.newHashMapWithExpectedSize(filenames.length);</span>
+<span class="nc" id="L352">    Map&lt;String, File&gt; srcFiles = Maps.newHashMapWithExpectedSize(filenames.length);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">    for (String fileName : filenames) {</span>
+<span class="nc" id="L354">      File src = new File(sourceDirectory, fileName);</span>
+<span class="nc" id="L355">      Schema schema = parser.parse(src);</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">      if (addMavenId) {</span>
+<span class="nc" id="L357">        attachMavenId(schema);</span>
       }
-<span class="nc" id="L349">      String targetName = schema.getFullName().replace('.', File.separatorChar) + &quot;.avsc&quot;;</span>
-<span class="nc" id="L350">      Path destination = generatedAvscTarget.toPath().resolve(targetName);</span>
-<span class="nc" id="L351">      Path parent = destination.getParent();</span>
-<span class="nc bnc" id="L352" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L353">        Files.createDirectories(parent);</span>
-      }
-<span class="nc" id="L355">      Files.write(destination,</span>
-<span class="nc" id="L356">              schema.toString().getBytes(StandardCharsets.UTF_8),</span>
-              StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-<span class="nc" id="L358">      SpecificCompiler compiler = new SpecificCompiler(schema);</span>
-<span class="nc" id="L359">      compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;));</span>
-<span class="nc" id="L360">      compiler.setTemplateDir(templateDirectory);</span>
-<span class="nc" id="L361">      compiler.setStringType(GenericData.StringType.valueOf(stringType));</span>
-<span class="nc" id="L362">      compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));</span>
-<span class="nc" id="L363">      compiler.setCreateSetters(createSetters);</span>
-<span class="nc" id="L364">      compiler.compileToDestination(src, generatedJavaTarget);</span>
+<span class="nc" id="L359">      String fullName = schema.getFullName();</span>
+<span class="nc" id="L360">      schemas.put(fullName, schema);</span>
+<span class="nc" id="L361">      srcFiles.put(fullName, src);</span>
     }
-<span class="nc" id="L366">  }</span>
+<span class="nc" id="L363">    List&lt;Schema&gt; schemaList = org.apache.avro.avsc.SchemaResolver.resolve(schemas,</span>
+<span class="nc" id="L364">            Boolean.getBoolean(&quot;allowUndefinedLogicalTypes&quot;));</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">    for (Schema schema : schemaList) {</span>
+<span class="nc" id="L366">      writeSchemaToTarget(schema, srcFiles.get(schema.getFullName()));</span>
+<span class="nc" id="L367">    }</span>
+    } finally {
+<span class="nc" id="L369">      currentThread.setContextClassLoader(contextClassLoader);</span>
+    }
+<span class="nc" id="L371">  }</span>
+
+  private void writeSchemaToTarget(final Schema schema, final File src) throws IOException {
+<span class="nc" id="L374">    String targetName = schema.getFullName().replace('.', File.separatorChar) + &quot;.avsc&quot;;</span>
+<span class="nc" id="L375">    Path destination = generatedAvscTarget.toPath().resolve(targetName);</span>
+<span class="nc" id="L376">    Path parent = destination.getParent();</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">    if (parent != null) {</span>
+<span class="nc" id="L378">      Files.createDirectories(parent);</span>
+    }
+<span class="nc" id="L380">    Files.write(destination,</span>
+<span class="nc" id="L381">            schema.toString().getBytes(StandardCharsets.UTF_8),</span>
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+<span class="nc" id="L383">    SpecificCompiler compiler = new SpecificCompiler(schema);</span>
+<span class="nc" id="L384">    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;));</span>
+<span class="nc" id="L385">    compiler.setTemplateDir(templateDirectory);</span>
+<span class="nc" id="L386">    compiler.setStringType(GenericData.StringType.valueOf(stringType));</span>
+<span class="nc" id="L387">    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));</span>
+<span class="nc" id="L388">    compiler.setCreateSetters(createSetters);</span>
+<span class="nc" id="L389">    compiler.compileToDestination(src, generatedJavaTarget);</span>
+<span class="nc" id="L390">  }</span>
 
   protected void doCompileProtocol(final String filename, final Path destination) throws IOException {
-<span class="nc" id="L369">    File src = new File(sourceDirectory, filename);</span>
-<span class="nc" id="L370">    Protocol protocol = Protocol.parse(src);</span>
-<span class="nc" id="L371">    publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId, useSchemaReferencesForAvsc);</span>
-<span class="nc" id="L372">    SpecificCompiler compiler = new SpecificCompiler(protocol);</span>
-<span class="nc" id="L373">    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;));</span>
-<span class="nc" id="L374">    compiler.setTemplateDir(templateDirectory);</span>
-<span class="nc" id="L375">    compiler.setStringType(GenericData.StringType.valueOf(stringType));</span>
-<span class="nc" id="L376">    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));</span>
-<span class="nc" id="L377">    compiler.setCreateSetters(createSetters);</span>
-<span class="nc" id="L378">    compiler.compileToDestination(src, generatedJavaTarget);</span>
-<span class="nc" id="L379">    Files.write(destination,</span>
-<span class="nc" id="L380">            protocol.toString(true).getBytes(StandardCharsets.UTF_8));</span>
-<span class="nc" id="L381">  }</span>
+<span class="nc" id="L393">    File src = new File(sourceDirectory, filename);</span>
+<span class="nc" id="L394">    Protocol protocol = Protocol.parse(src);</span>
+<span class="nc" id="L395">    publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId, useSchemaReferencesForAvsc);</span>
+<span class="nc" id="L396">    SpecificCompiler compiler = new SpecificCompiler(protocol);</span>
+<span class="nc" id="L397">    compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;));</span>
+<span class="nc" id="L398">    compiler.setTemplateDir(templateDirectory);</span>
+<span class="nc" id="L399">    compiler.setStringType(GenericData.StringType.valueOf(stringType));</span>
+<span class="nc" id="L400">    compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));</span>
+<span class="nc" id="L401">    compiler.setCreateSetters(createSetters);</span>
+<span class="nc" id="L402">    compiler.compileToDestination(src, generatedJavaTarget);</span>
+<span class="nc" id="L403">    Files.write(destination,</span>
+<span class="nc" id="L404">            protocol.toString(true).getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L405">  }</span>
 
 
 
   private void publishSchemasAndAttachMvnIdToProtocol(final Protocol protocol,
           final boolean addMvnId, final boolean useSchemaReferences) throws IOException {
-<span class="nc" id="L387">    Collection&lt;Schema&gt; types = protocol.getTypes();</span>
-<span class="nc" id="L388">    Set&lt;String&gt; typeNames = Sets.newHashSetWithExpectedSize(types.size());</span>
-<span class="nc bnc" id="L389" title="All 2 branches missed.">    for (Schema schema : types) {</span>
-<span class="nc" id="L390">      String fullName = schema.getFullName();</span>
-<span class="nc bnc" id="L391" title="All 2 branches missed.">      if (!typeNames.add(fullName)) {</span>
-<span class="nc" id="L392">        continue;</span>
+<span class="nc" id="L411">    Collection&lt;Schema&gt; types = protocol.getTypes();</span>
+<span class="nc" id="L412">    Set&lt;String&gt; typeNames = Sets.newHashSetWithExpectedSize(types.size());</span>
+<span class="nc bnc" id="L413" title="All 2 branches missed.">    for (Schema schema : types) {</span>
+<span class="nc" id="L414">      String fullName = schema.getFullName();</span>
+<span class="nc bnc" id="L415" title="All 2 branches missed.">      if (!typeNames.add(fullName)) {</span>
+<span class="nc" id="L416">        continue;</span>
       }
-<span class="nc" id="L394">      String targetName = fullName.replace('.', File.separatorChar) + &quot;.avsc&quot;;</span>
-<span class="nc" id="L395">      Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);</span>
-<span class="nc" id="L396">      Path parent = destinationFile.getParent();</span>
-<span class="nc bnc" id="L397" title="All 2 branches missed.">      if (parent != null) {</span>
-<span class="nc" id="L398">        Files.createDirectories(parent);</span>
+<span class="nc" id="L418">      String targetName = fullName.replace('.', File.separatorChar) + &quot;.avsc&quot;;</span>
+<span class="nc" id="L419">      Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);</span>
+<span class="nc" id="L420">      Path parent = destinationFile.getParent();</span>
+<span class="nc bnc" id="L421" title="All 2 branches missed.">      if (parent != null) {</span>
+<span class="nc" id="L422">        Files.createDirectories(parent);</span>
       }
-<span class="nc bnc" id="L400" title="All 2 branches missed.">      if (addMvnId) {</span>
-<span class="nc" id="L401">        attachMavenId(schema);</span>
+<span class="nc bnc" id="L424" title="All 2 branches missed.">      if (addMvnId) {</span>
+<span class="nc" id="L425">        attachMavenId(schema);</span>
       }
-<span class="nc bnc" id="L403" title="All 2 branches missed.">      if (useSchemaReferences) {</span>
-<span class="nc" id="L404">        try (OutputStream fos =</span>
-<span class="nc" id="L405">                new BufferedOutputStream(Files.newOutputStream(destinationFile,</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">      if (useSchemaReferences) {</span>
+<span class="nc" id="L428">        try (OutputStream fos =</span>
+<span class="nc" id="L429">                new BufferedOutputStream(Files.newOutputStream(destinationFile,</span>
                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
-<span class="nc" id="L407">          SchemaRefWriter.write(schema, fos);</span>
-<span class="nc" id="L408">        }</span>
+<span class="nc" id="L431">          SchemaRefWriter.write(schema, fos);</span>
+<span class="nc" id="L432">        }</span>
       } else {
-<span class="nc" id="L410">        Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),</span>
+<span class="nc" id="L434">        Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),</span>
                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
       }
-<span class="nc" id="L413">    }</span>
-<span class="nc" id="L414">  }</span>
+<span class="nc" id="L437">    }</span>
+<span class="nc" id="L438">  }</span>
 
   public void deleteGeneratedAvailableInDependencies() throws IOException {
-<span class="nc" id="L417">    Path classesInfo = dependenciesDirectory.toPath().resolve(&quot;classes.txt&quot;);</span>
-<span class="nc" id="L418">    Set&lt;String&gt; classes = new HashSet(Files.readAllLines(classesInfo, StandardCharsets.UTF_8));</span>
-<span class="nc" id="L419">    Path javaPath = generatedJavaTarget.toPath();</span>
-<span class="nc" id="L420">    try (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {</span>
-<span class="nc" id="L421">      List&lt;Path&gt; dupes = fsStream</span>
-<span class="nc" id="L422">              .filter((p) -&gt; {</span>
-<span class="nc" id="L423">                Path relativize = javaPath.relativize(p);</span>
-<span class="nc" id="L424">                return classes.contains(relativize.toString().replace(&quot;.java&quot;, &quot;.class&quot;));</span>
-<span class="nc" id="L425">              }).collect(Collectors.toList());</span>
-<span class="nc bnc" id="L426" title="All 2 branches missed.">      for (Path p : dupes) {</span>
-<span class="nc" id="L427">        Files.delete(p);</span>
-<span class="nc" id="L428">        getLog().info(&quot;Deleted dupes: &quot; + dupes);</span>
-<span class="nc" id="L429">      }</span>
+<span class="nc" id="L441">    Path classesInfo = dependenciesDirectory.toPath().resolve(&quot;classes.txt&quot;);</span>
+<span class="nc" id="L442">    Set&lt;String&gt; classes = new HashSet(Files.readAllLines(classesInfo, StandardCharsets.UTF_8));</span>
+<span class="nc" id="L443">    Path javaPath = generatedJavaTarget.toPath();</span>
+<span class="nc" id="L444">    try (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {</span>
+<span class="nc" id="L445">      List&lt;Path&gt; dupes = fsStream</span>
+<span class="nc" id="L446">              .filter((p) -&gt; {</span>
+<span class="nc" id="L447">                Path relativize = javaPath.relativize(p);</span>
+<span class="nc" id="L448">                return classes.contains(relativize.toString().replace(&quot;.java&quot;, &quot;.class&quot;));</span>
+<span class="nc" id="L449">              }).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L450" title="All 2 branches missed.">      for (Path p : dupes) {</span>
+<span class="nc" id="L451">        Files.delete(p);</span>
+<span class="nc" id="L452">        getLog().info(&quot;Deleted dupes: &quot; + dupes);</span>
+<span class="nc" id="L453">      }</span>
     }
-<span class="nc" id="L431">  }</span>
+<span class="nc" id="L455">  }</span>
 
   public void deleteProtocolClasses() throws IOException {
-<span class="nc" id="L434">    String detectionString = &quot;org.apache.avro.Protocol PROTOCOL&quot;;</span>
-<span class="nc" id="L435">    Path javaPath = generatedJavaTarget.toPath();</span>
-<span class="nc" id="L436">    String mSourceEncoding = mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;);</span>
+<span class="nc" id="L458">    String detectionString = &quot;org.apache.avro.Protocol PROTOCOL&quot;;</span>
+<span class="nc" id="L459">    Path javaPath = generatedJavaTarget.toPath();</span>
+<span class="nc" id="L460">    String mSourceEncoding = mavenProject.getProperties().getProperty(&quot;project.build.sourceEncoding&quot;);</span>
     String sourceEncoding;
-<span class="nc bnc" id="L438" title="All 2 branches missed.">    if (mSourceEncoding == null) {</span>
-<span class="nc" id="L439">      sourceEncoding = Charset.defaultCharset().name();</span>
+<span class="nc bnc" id="L462" title="All 2 branches missed.">    if (mSourceEncoding == null) {</span>
+<span class="nc" id="L463">      sourceEncoding = Charset.defaultCharset().name();</span>
     } else {
-<span class="nc" id="L441">      sourceEncoding = mSourceEncoding;</span>
+<span class="nc" id="L465">      sourceEncoding = mSourceEncoding;</span>
     }
-<span class="nc" id="L443">    try (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {</span>
-<span class="nc" id="L444">      List&lt;Path&gt; protocolFiles = fsStream</span>
-<span class="nc" id="L445">              .filter((p) -&gt; {</span>
-<span class="nc" id="L446">                Path fileName = p.getFileName();</span>
-<span class="nc bnc" id="L447" title="All 4 branches missed.">                if (fileName == null || !fileName.toString().endsWith(&quot;.java&quot;)) {</span>
-<span class="nc" id="L448">                  return false;</span>
+<span class="nc" id="L467">    try (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {</span>
+<span class="nc" id="L468">      List&lt;Path&gt; protocolFiles = fsStream</span>
+<span class="nc" id="L469">              .filter((p) -&gt; {</span>
+<span class="nc" id="L470">                Path fileName = p.getFileName();</span>
+<span class="nc bnc" id="L471" title="All 4 branches missed.">                if (fileName == null || !fileName.toString().endsWith(&quot;.java&quot;)) {</span>
+<span class="nc" id="L472">                  return false;</span>
                 }
-<span class="nc" id="L450">                try (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {</span>
+<span class="nc" id="L474">                try (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {</span>
                   String line;
-<span class="nc bnc" id="L452" title="All 2 branches missed.">                  while ((line = br.readLine()) != null) {</span>
-<span class="nc bnc" id="L453" title="All 2 branches missed.">                    if (line.contains(detectionString)) {</span>
-<span class="nc" id="L454">                      return true;</span>
+<span class="nc bnc" id="L476" title="All 2 branches missed.">                  while ((line = br.readLine()) != null) {</span>
+<span class="nc bnc" id="L477" title="All 2 branches missed.">                    if (line.contains(detectionString)) {</span>
+<span class="nc" id="L478">                      return true;</span>
                     }
                   }
-<span class="nc" id="L457">                } catch (IOException ex) {</span>
-<span class="nc" id="L458">                  getLog().info(&quot;cannot read file &quot; + p + &quot;, ignoring for cleanup&quot;, ex);</span>
-<span class="nc" id="L459">                }</span>
-<span class="nc" id="L460">                return false;</span>
-<span class="nc" id="L461">              }).collect(Collectors.toList());</span>
-<span class="nc bnc" id="L462" title="All 2 branches missed.">      for (Path p : protocolFiles) {</span>
-<span class="nc" id="L463">        Files.delete(p);</span>
-<span class="nc" id="L464">      }</span>
+<span class="nc" id="L481">                } catch (IOException ex) {</span>
+<span class="nc" id="L482">                  getLog().info(&quot;cannot read file &quot; + p + &quot;, ignoring for cleanup&quot;, ex);</span>
+<span class="nc" id="L483">                }</span>
+<span class="nc" id="L484">                return false;</span>
+<span class="nc" id="L485">              }).collect(Collectors.toList());</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">      for (Path p : protocolFiles) {</span>
+<span class="nc" id="L487">        Files.delete(p);</span>
+<span class="nc" id="L488">      }</span>
     }
-<span class="nc" id="L466">  }</span>
+<span class="nc" id="L490">  }</span>
 
   public void deleteSchemasAvailableInDependencies(final Path schTargetPath) throws IOException {
-<span class="nc" id="L469">    Path classesInfo = dependenciesDirectory.toPath();</span>
-<span class="nc" id="L470">    Set&lt;Path&gt; schemas = Files.walk(classesInfo).filter(</span>
+<span class="nc" id="L493">    Path classesInfo = dependenciesDirectory.toPath();</span>
+<span class="nc" id="L494">    Set&lt;Path&gt; schemas = Files.walk(classesInfo).filter(</span>
             (p) -&gt; {
-<span class="nc" id="L472">              Path fileName = p.getFileName();</span>
-<span class="nc bnc" id="L473" title="All 2 branches missed.">              return fileName == null ? false : fileName.toString().endsWith(&quot;avsc&quot;);</span>
+<span class="nc" id="L496">              Path fileName = p.getFileName();</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">              return fileName == null ? false : fileName.toString().endsWith(&quot;avsc&quot;);</span>
             })
-<span class="nc" id="L475">            .map((p) -&gt; classesInfo.relativize(p)).collect(Collectors.toSet());</span>
-<span class="nc" id="L476">    List&lt;Path&gt; dupes = Files.walk(schTargetPath).filter((p) -&gt; schemas.contains(schTargetPath.relativize(p)))</span>
-<span class="nc" id="L477">            .collect(Collectors.toList());</span>
-<span class="nc bnc" id="L478" title="All 2 branches missed.">    for (Path p : dupes) {</span>
-<span class="nc" id="L479">      Files.delete(p);</span>
-<span class="nc" id="L480">    }</span>
-<span class="nc" id="L481">    getLog().info(&quot;Deleted dupes: &quot; + dupes);</span>
-<span class="nc" id="L482">  }</span>
+<span class="nc" id="L499">            .map((p) -&gt; classesInfo.relativize(p)).collect(Collectors.toSet());</span>
+<span class="nc" id="L500">    List&lt;Path&gt; dupes = Files.walk(schTargetPath).filter((p) -&gt; schemas.contains(schTargetPath.relativize(p)))</span>
+<span class="nc" id="L501">            .collect(Collectors.toList());</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">    for (Path p : dupes) {</span>
+<span class="nc" id="L503">      Files.delete(p);</span>
+<span class="nc" id="L504">    }</span>
+<span class="nc" id="L505">    getLog().info(&quot;Deleted dupes: &quot; + dupes);</span>
+<span class="nc" id="L506">  }</span>
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     try {
-<span class="nc" id="L487">      loadPrevReleaseId2Map();</span>
-<span class="nc" id="L488">    } catch (IOException ex) {</span>
-<span class="nc" id="L489">      throw new MojoExecutionException(&quot;Unable to proces previous release of &quot;</span>
-<span class="nc" id="L490">              + getMavenProject().getVersion(), ex);</span>
-<span class="nc" id="L491">    }</span>
-<span class="nc" id="L492">    super.execute();</span>
-<span class="nc" id="L493">    Log logger = this.getLog();</span>
-<span class="nc" id="L494">    logger.info(&quot;Generationg java code + schemas, using avro &quot;</span>
-<span class="nc" id="L495">            + PackageInfo.getPackageInfo(org.apache.avro.Schema.class.getName()));</span>
-<span class="nc" id="L496">    synchronized (String.class) {</span>
-<span class="nc" id="L497">      Properties properties = new Properties(System.getProperties());</span>
+<span class="nc" id="L511">      loadPrevReleaseId2Map();</span>
+<span class="nc" id="L512">    } catch (IOException ex) {</span>
+<span class="nc" id="L513">      throw new MojoExecutionException(&quot;Unable to proces previous release of &quot;</span>
+<span class="nc" id="L514">              + getMavenProject().getVersion(), ex);</span>
+<span class="nc" id="L515">    }</span>
+<span class="nc" id="L516">    super.execute();</span>
+<span class="nc" id="L517">    Log logger = this.getLog();</span>
+<span class="nc" id="L518">    logger.info(&quot;Generating java code + schemas, using avro &quot;</span>
+<span class="nc" id="L519">            + PackageInfo.getPackageInfo(org.apache.avro.Schema.class.getName()));</span>
+<span class="nc" id="L520">    synchronized (String.class) {</span>
+<span class="nc" id="L521">      Properties properties = new Properties(System.getProperties());</span>
       try {
-<span class="nc bnc" id="L499" title="All 2 branches missed.">        for (Map.Entry&lt;String, String&gt; entry : ((Set&lt;Map.Entry&lt;String, String&gt;&gt;) ((Set) systemProperties.entrySet()))) {</span>
-<span class="nc" id="L500">          System.setProperty(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L501">        }</span>
-<span class="nc" id="L502">        Path generatedAvscTargetPath = generatedAvscTarget.toPath();</span>
-<span class="nc" id="L503">        Files.createDirectories(generatedAvscTargetPath);</span>
-<span class="nc" id="L504">        Files.createDirectories(generatedJavaTarget.toPath());</span>
-<span class="nc" id="L505">        String[] sourceFiles = getSourceFiles(&quot;**/*.avsc&quot;);</span>
+<span class="nc bnc" id="L523" title="All 2 branches missed.">        for (Map.Entry&lt;String, String&gt; entry : ((Set&lt;Map.Entry&lt;String, String&gt;&gt;) ((Set) systemProperties.entrySet()))) {</span>
+<span class="nc" id="L524">          System.setProperty(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L525">        }</span>
+<span class="nc" id="L526">        Path generatedAvscTargetPath = generatedAvscTarget.toPath();</span>
+<span class="nc" id="L527">        Files.createDirectories(generatedAvscTargetPath);</span>
+<span class="nc" id="L528">        Files.createDirectories(generatedJavaTarget.toPath());</span>
+<span class="nc" id="L529">        String[] sourceFiles = getSourceFiles(&quot;**/*.avsc&quot;);</span>
+<span class="nc" id="L530">        Arrays.sort(sourceFiles); // make this predictable, (mostly easier to test)</span>
         try {
-<span class="nc" id="L507">          doCompileSchemas(sourceFiles);</span>
-<span class="nc" id="L508">        } catch (IOException ex) {</span>
-<span class="nc" id="L509">          throw new MojoExecutionException(&quot;cannot compile schemas &quot; + Arrays.toString(sourceFiles), ex);</span>
-<span class="nc" id="L510">        }</span>
-<span class="nc" id="L511">        Path tmpSourceTarget = this.target.toPath().resolve(&quot;avro-sources&quot;);</span>
-<span class="nc" id="L512">        compileAvpr(tmpSourceTarget);</span>
-<span class="nc" id="L513">        addMvnIdToIdlsAndMoveToDestination(tmpSourceTarget);</span>
-<span class="nc" id="L514">        compileIdl(tmpSourceTarget);</span>
+<span class="nc" id="L532">          doCompileSchemas(sourceFiles);</span>
+<span class="nc" id="L533">        } catch (IOException ex) {</span>
+<span class="nc" id="L534">          throw new MojoExecutionException(&quot;cannot compile schemas &quot; + Arrays.toString(sourceFiles), ex);</span>
+<span class="nc" id="L535">        }</span>
+<span class="nc" id="L536">        Path tmpSourceTarget = this.target.toPath().resolve(&quot;avro-sources&quot;);</span>
+<span class="nc" id="L537">        compileAvpr(tmpSourceTarget);</span>
+<span class="nc" id="L538">        addMvnIdToIdlsAndMoveToDestination(tmpSourceTarget);</span>
+<span class="nc" id="L539">        compileIdl(tmpSourceTarget);</span>
 
-<span class="nc" id="L516">        Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);</span>
+<span class="nc" id="L541">        Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);</span>
         try {
-<span class="nc" id="L518">          Files.write(codegenManifest,</span>
-<span class="nc" id="L519">                  Collections.singletonList(&quot;Build-Time=&quot; + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),</span>
+<span class="nc" id="L543">          Files.write(codegenManifest,</span>
+<span class="nc" id="L544">                  Collections.singletonList(&quot;Build-Time=&quot; + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),</span>
                   StandardCharsets.UTF_8);
-<span class="nc" id="L521">        } catch (IOException ex) {</span>
-<span class="nc" id="L522">          throw new MojoExecutionException(&quot;Cannot create codegen manifest file &quot; + codegenManifest, ex);</span>
-<span class="nc" id="L523">        }</span>
-        try {
-<span class="nc" id="L525">          deleteGeneratedAvailableInDependencies();</span>
-<span class="nc" id="L526">          deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());</span>
-<span class="nc bnc" id="L527" title="All 2 branches missed.">          if (deleteProtocolInterface) {</span>
-<span class="nc" id="L528">            deleteProtocolClasses();</span>
-          }
-<span class="nc" id="L530">        } catch (IOException ex) {</span>
-<span class="nc" id="L531">          throw new MojoExecutionException(&quot;Cannot delete dependency dupes &quot; + this, ex);</span>
-<span class="nc" id="L532">        }</span>
-<span class="nc" id="L533">        Path indexFile = generatedAvscTargetPath.resolve(SCHEMA_INDEX_FILENAME);</span>
-<span class="nc" id="L534">        try (BufferedWriter bw = Files.newBufferedWriter(indexFile,</span>
-                StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-<span class="nc" id="L536">          bw.append(SCHEMA_INDEX_PGK_KEY);</span>
-<span class="nc" id="L537">          bw.append('=');</span>
-<span class="nc" id="L538">          bw.append(getPackageMvnIdPrefix());</span>
-<span class="nc" id="L539">          bw.append('\n');</span>
-<span class="nc bnc" id="L540" title="All 2 branches missed.">          for (Map.Entry&lt;String, Schema&gt; entry : index.entrySet()) {</span>
-<span class="nc" id="L541">            bw.append(entry.getKey());</span>
-<span class="nc" id="L542">            bw.append('=');</span>
-<span class="nc" id="L543">            bw.append(entry.getValue().getFullName());</span>
-<span class="nc" id="L544">            bw.append('\n');</span>
-<span class="nc" id="L545">          }</span>
 <span class="nc" id="L546">        } catch (IOException ex) {</span>
-<span class="nc" id="L547">          throw new MojoExecutionException(&quot;Cannot generate schema index &quot; + this, ex);</span>
+<span class="nc" id="L547">          throw new MojoExecutionException(&quot;Cannot create codegen manifest file &quot; + codegenManifest, ex);</span>
 <span class="nc" id="L548">        }</span>
-<span class="nc" id="L549">        mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());</span>
-<span class="nc" id="L550">        Resource resource = new Resource();</span>
-<span class="nc" id="L551">        resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());</span>
-<span class="nc" id="L552">        resource.addInclude(&quot;**/*.avsc&quot;);</span>
-<span class="nc" id="L553">        resource.addInclude(&quot;*.properties&quot;);</span>
-<span class="nc" id="L554">        mavenProject.addResource(resource);</span>
-<span class="nc" id="L555">        Resource resource2 = new Resource();</span>
-<span class="nc" id="L556">        resource2.setDirectory(tmpSourceTarget.toString());</span>
-<span class="nc" id="L557">        resource2.addInclude(&quot;**/*.avpr&quot;);</span>
-<span class="nc" id="L558">        resource2.addInclude(&quot;**/*.avdl&quot;);</span>
-<span class="nc" id="L559">        mavenProject.addResource(resource2);</span>
-<span class="nc" id="L560">      } catch (IOException ex) {</span>
-<span class="nc" id="L561">        throw new MojoExecutionException(&quot;cannot compile schemas, cfg = &quot; + this, ex);</span>
+        try {
+<span class="nc" id="L550">          deleteGeneratedAvailableInDependencies();</span>
+<span class="nc" id="L551">          deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());</span>
+<span class="nc bnc" id="L552" title="All 2 branches missed.">          if (deleteProtocolInterface) {</span>
+<span class="nc" id="L553">            deleteProtocolClasses();</span>
+          }
+<span class="nc" id="L555">        } catch (IOException ex) {</span>
+<span class="nc" id="L556">          throw new MojoExecutionException(&quot;Cannot delete dependency dupes &quot; + this, ex);</span>
+<span class="nc" id="L557">        }</span>
+<span class="nc" id="L558">        Path indexFile = generatedAvscTargetPath.resolve(SCHEMA_INDEX_FILENAME);</span>
+<span class="nc" id="L559">        try (BufferedWriter bw = Files.newBufferedWriter(indexFile,</span>
+                StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+<span class="nc" id="L561">          bw.append(SCHEMA_INDEX_PGK_KEY);</span>
+<span class="nc" id="L562">          bw.append('=');</span>
+<span class="nc" id="L563">          bw.append(getPackageMvnIdPrefix());</span>
+<span class="nc" id="L564">          bw.append('\n');</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">          for (Map.Entry&lt;String, Schema&gt; entry : index.entrySet()) {</span>
+<span class="nc" id="L566">            bw.append(entry.getKey());</span>
+<span class="nc" id="L567">            bw.append('=');</span>
+<span class="nc" id="L568">            bw.append(entry.getValue().getFullName());</span>
+<span class="nc" id="L569">            bw.append('\n');</span>
+<span class="nc" id="L570">          }</span>
+<span class="nc" id="L571">        } catch (IOException ex) {</span>
+<span class="nc" id="L572">          throw new MojoExecutionException(&quot;Cannot generate schema index &quot; + this, ex);</span>
+<span class="nc" id="L573">        }</span>
+<span class="nc" id="L574">        mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());</span>
+<span class="nc" id="L575">        Resource resource = new Resource();</span>
+<span class="nc" id="L576">        resource.setDirectory(this.generatedAvscTarget.getAbsolutePath());</span>
+<span class="nc" id="L577">        resource.addInclude(&quot;**/*.avsc&quot;);</span>
+<span class="nc" id="L578">        resource.addInclude(&quot;*.properties&quot;);</span>
+<span class="nc" id="L579">        mavenProject.addResource(resource);</span>
+<span class="nc" id="L580">        Resource resource2 = new Resource();</span>
+<span class="nc" id="L581">        resource2.setDirectory(tmpSourceTarget.toString());</span>
+<span class="nc" id="L582">        resource2.addInclude(&quot;**/*.avpr&quot;);</span>
+<span class="nc" id="L583">        resource2.addInclude(&quot;**/*.avdl&quot;);</span>
+<span class="nc" id="L584">        mavenProject.addResource(resource2);</span>
+<span class="nc" id="L585">      } catch (IOException ex) {</span>
+<span class="nc" id="L586">        throw new MojoExecutionException(&quot;cannot compile schemas, cfg = &quot; + this, ex);</span>
       } finally {
-<span class="nc" id="L563">        System.setProperties(properties);</span>
+<span class="nc" id="L588">        System.setProperties(properties);</span>
       }
-<span class="nc" id="L565">    }</span>
-<span class="nc" id="L566">  }</span>
+<span class="nc" id="L590">    }</span>
+<span class="nc" id="L591">  }</span>
 
   public void compileIdl(final Path pSources) throws MojoExecutionException {
-<span class="nc" id="L569">    File pSourcesFile = pSources.toFile();</span>
-<span class="nc bnc" id="L570" title="All 2 branches missed.">    for (String file : getFiles(pSourcesFile, &quot;**/*.avdl&quot;)) {</span>
+<span class="nc" id="L594">    File pSourcesFile = pSources.toFile();</span>
+<span class="nc bnc" id="L595" title="All 2 branches missed.">    for (String file : getFiles(pSourcesFile, &quot;**/*.avdl&quot;)) {</span>
       try {
-<span class="nc" id="L572">        doCompileIDL(pSourcesFile, file);</span>
-<span class="nc" id="L573">      } catch (IOException ex) {</span>
-<span class="nc" id="L574">        throw new MojoExecutionException(&quot;cannot compile &quot; + file, ex);</span>
-<span class="nc" id="L575">      }</span>
+<span class="nc" id="L597">        doCompileIDL(pSourcesFile, file);</span>
+<span class="nc" id="L598">      } catch (IOException ex) {</span>
+<span class="nc" id="L599">        throw new MojoExecutionException(&quot;cannot compile &quot; + file, ex);</span>
+<span class="nc" id="L600">      }</span>
     }
-<span class="nc" id="L577">  }</span>
+<span class="nc" id="L602">  }</span>
 
   public void addMvnIdToIdlsAndMoveToDestination(final Path destPath) throws MojoExecutionException {
-<span class="nc" id="L580">    Thread currentThread = Thread.currentThread();</span>
-<span class="nc" id="L581">    ClassLoader contextClassLoader = currentThread.getContextClassLoader();</span>
+<span class="nc" id="L605">    Thread currentThread = Thread.currentThread();</span>
+<span class="nc" id="L606">    ClassLoader contextClassLoader = currentThread.getContextClassLoader();</span>
     try {
-<span class="nc" id="L583">      List&lt;URL&gt; runtimeUrls = createPathUrls(this.sourceDirectory);</span>
-<span class="nc" id="L584">      getLog().info(&quot;Compile classpath: &quot; + runtimeUrls);</span>
-<span class="nc" id="L585">      URLClassLoader projPathLoader = AccessController.doPrivileged(</span>
+<span class="nc" id="L608">      List&lt;URL&gt; runtimeUrls = createPathUrls(this.sourceDirectory);</span>
+<span class="nc" id="L609">      getLog().info(&quot;Compile classpath: &quot; + runtimeUrls);</span>
+<span class="nc" id="L610">      URLClassLoader projPathLoader = AccessController.doPrivileged(</span>
               (PrivilegedAction&lt;URLClassLoader&gt;) ()
-<span class="nc" id="L587">                      -&gt; new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));</span>
-<span class="nc" id="L588">      currentThread.setContextClassLoader(projPathLoader);</span>
-<span class="nc bnc" id="L589" title="All 2 branches missed.">      for (String file : getSourceFiles(&quot;**/*.avdl&quot;)) {</span>
-<span class="nc" id="L590">        Path destination = destPath.resolve(file);</span>
-<span class="nc" id="L591">        Path parent = destination.getParent();</span>
-<span class="nc bnc" id="L592" title="All 2 branches missed.">        if (parent != null) {</span>
-<span class="nc" id="L593">          Files.createDirectories(parent);</span>
+<span class="nc" id="L612">                      -&gt; new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));</span>
+<span class="nc" id="L613">      currentThread.setContextClassLoader(projPathLoader);</span>
+<span class="nc bnc" id="L614" title="All 2 branches missed.">      for (String file : getSourceFiles(&quot;**/*.avdl&quot;)) {</span>
+<span class="nc" id="L615">        Path destination = destPath.resolve(file);</span>
+<span class="nc" id="L616">        Path parent = destination.getParent();</span>
+<span class="nc bnc" id="L617" title="All 2 branches missed.">        if (parent != null) {</span>
+<span class="nc" id="L618">          Files.createDirectories(parent);</span>
         }
-<span class="nc" id="L595">        File idlFile = new File(sourceDirectory, file);</span>
+<span class="nc" id="L620">        File idlFile = new File(sourceDirectory, file);</span>
         try {
-<span class="nc" id="L597">          idlFile = addMvnIdsToIdl(idlFile, projPathLoader);</span>
-<span class="nc" id="L598">        } catch (ParseException | IOException | RuntimeException ex) {</span>
-<span class="nc" id="L599">          throw new MojoExecutionException(&quot;cannot add mvnId to  IDL &quot; + idlFile + &quot;, &quot; + ex.getMessage(), ex);</span>
-<span class="nc" id="L600">        }</span>
-<span class="nc" id="L601">        Files.copy(idlFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);</span>
+<span class="nc" id="L622">          idlFile = addMvnIdsToIdl(idlFile, projPathLoader);</span>
+<span class="nc" id="L623">        } catch (ParseException | IOException | RuntimeException ex) {</span>
+<span class="nc" id="L624">          throw new MojoExecutionException(&quot;cannot add mvnId to  IDL &quot; + idlFile + &quot;, &quot; + ex.getMessage(), ex);</span>
+<span class="nc" id="L625">        }</span>
+<span class="nc" id="L626">        Files.copy(idlFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);</span>
       }
-<span class="nc" id="L603">    } catch (IOException | DependencyResolutionRequiredException ex) {</span>
-<span class="nc" id="L604">      throw new MojoExecutionException(&quot;cannot add mvnId to  IDL &quot; + this, ex);</span>
+<span class="nc" id="L628">    } catch (IOException | DependencyResolutionRequiredException ex) {</span>
+<span class="nc" id="L629">      throw new MojoExecutionException(&quot;cannot add mvnId to  IDL &quot; + this, ex);</span>
     } finally {
-<span class="nc" id="L606">      currentThread.setContextClassLoader(contextClassLoader);</span>
+<span class="nc" id="L631">      currentThread.setContextClassLoader(contextClassLoader);</span>
     }
-<span class="nc" id="L608">  }</span>
+<span class="nc" id="L633">  }</span>
 
   public void compileAvpr(final Path pSources) throws MojoExecutionException {
-<span class="nc bnc" id="L611" title="All 2 branches missed.">    for (String file : getSourceFiles(&quot;**/*.avpr&quot;)) {</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">    for (String file : getSourceFiles(&quot;**/*.avpr&quot;)) {</span>
       try {
-<span class="nc" id="L613">        Path destination = pSources.resolve(file);</span>
-<span class="nc" id="L614">        Path folder = destination.getParent();</span>
-<span class="nc bnc" id="L615" title="All 2 branches missed.">        if (folder != null) {</span>
-<span class="nc" id="L616">          Files.createDirectories(folder);</span>
+<span class="nc" id="L638">        Path destination = pSources.resolve(file);</span>
+<span class="nc" id="L639">        Path folder = destination.getParent();</span>
+<span class="nc bnc" id="L640" title="All 2 branches missed.">        if (folder != null) {</span>
+<span class="nc" id="L641">          Files.createDirectories(folder);</span>
         }
-<span class="nc" id="L618">        doCompileProtocol(file, destination);</span>
-<span class="nc" id="L619">      } catch (IOException ex) {</span>
-<span class="nc" id="L620">        throw new MojoExecutionException(&quot;cannot compile protocol &quot; + file, ex);</span>
-<span class="nc" id="L621">      }</span>
+<span class="nc" id="L643">        doCompileProtocol(file, destination);</span>
+<span class="nc" id="L644">      } catch (IOException ex) {</span>
+<span class="nc" id="L645">        throw new MojoExecutionException(&quot;cannot compile protocol &quot; + file, ex);</span>
+<span class="nc" id="L646">      }</span>
     }
-<span class="nc" id="L623">  }</span>
+<span class="nc" id="L648">  }</span>
 
   public String[] getSourceFiles(final String pattern) {
-<span class="nc" id="L626">    FileSetManager fsm = new FileSetManager();</span>
-<span class="nc" id="L627">    FileSet fs = new FileSet();</span>
-<span class="nc" id="L628">    fs.setDirectory(sourceDirectory.getAbsolutePath());</span>
-<span class="nc" id="L629">    fs.addInclude(pattern);</span>
-<span class="nc" id="L630">    fs.setFollowSymlinks(false);</span>
-<span class="nc" id="L631">    return fsm.getIncludedFiles(fs);</span>
+<span class="nc" id="L651">    FileSetManager fsm = new FileSetManager();</span>
+<span class="nc" id="L652">    FileSet fs = new FileSet();</span>
+<span class="nc" id="L653">    fs.setDirectory(sourceDirectory.getAbsolutePath());</span>
+<span class="nc" id="L654">    fs.addInclude(pattern);</span>
+<span class="nc" id="L655">    fs.setFollowSymlinks(false);</span>
+<span class="nc" id="L656">    return fsm.getIncludedFiles(fs);</span>
   }
 
   public static String[] getFiles(final File directory, final String pattern) {
-<span class="nc" id="L635">    FileSetManager fsm = new FileSetManager();</span>
-<span class="nc" id="L636">    FileSet fs = new FileSet();</span>
-<span class="nc" id="L637">    fs.setDirectory(directory.getAbsolutePath());</span>
-<span class="nc" id="L638">    fs.addInclude(pattern);</span>
-<span class="nc" id="L639">    fs.setFollowSymlinks(false);</span>
-<span class="nc" id="L640">    return fsm.getIncludedFiles(fs);</span>
+<span class="nc" id="L660">    FileSetManager fsm = new FileSetManager();</span>
+<span class="nc" id="L661">    FileSet fs = new FileSet();</span>
+<span class="nc" id="L662">    fs.setDirectory(directory.getAbsolutePath());</span>
+<span class="nc" id="L663">    fs.addInclude(pattern);</span>
+<span class="nc" id="L664">    fs.setFollowSymlinks(false);</span>
+<span class="nc" id="L665">    return fsm.getIncludedFiles(fs);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L645">    return &quot;SchemaCompileMojo{&quot; + &quot;fieldVisibility=&quot; + fieldVisibility</span>
+<span class="nc" id="L670">    return &quot;SchemaCompileMojo{&quot; + &quot;fieldVisibility=&quot; + fieldVisibility</span>
             + &quot;, templateDirectory=&quot; + templateDirectory + &quot;, createSetters=&quot; + createSetters
-<span class="nc" id="L647">            + &quot;, addMavenId=&quot; + addMavenId + &quot;, &quot; + super.toString() + '}';</span>
+<span class="nc" id="L672">            + &quot;, addMavenId=&quot; + addMavenId + &quot;, &quot; + super.toString() + '}';</span>
   }
 
 }

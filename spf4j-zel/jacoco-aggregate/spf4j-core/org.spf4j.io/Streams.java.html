@@ -100,7 +100,7 @@ public final class Streams {
 <span class="fc" id="L100">        }</span>
         // there seems to be nothing available to read anymore,
         // lets flush the os instead of blocking for another read.
-<span class="fc bfc" id="L103" title="All 2 branches covered.">        if (bytesCopiedSinceLastFlush &gt; 0) {</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (bytesCopiedSinceLastFlush &gt; 0) {</span>
 <span class="fc" id="L104">          os.flush();</span>
 <span class="fc" id="L105">          bytesCopiedSinceLastFlush = 0;</span>
         }
@@ -109,14 +109,14 @@ public final class Streams {
         }
         // most likely a blocking read.
 <span class="fc" id="L111">        int nrRead = is.read(buffer, 0, buffSize);</span>
-<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (nrRead &lt; 0) {</span>
+<span class="pc bpc" id="L112" title="1 of 2 branches missed.">        if (nrRead &lt; 0) {</span>
 <span class="fc" id="L113">          break;</span>
         } else {
-<span class="fc" id="L115">          os.write(buffer, 0, nrRead);</span>
-<span class="fc" id="L116">          total += nrRead;</span>
-<span class="fc" id="L117">          bytesCopiedSinceLastFlush += nrRead;</span>
+<span class="nc" id="L115">          os.write(buffer, 0, nrRead);</span>
+<span class="nc" id="L116">          total += nrRead;</span>
+<span class="nc" id="L117">          bytesCopiedSinceLastFlush += nrRead;</span>
         }
-<span class="fc" id="L119">      }</span>
+<span class="nc" id="L119">      }</span>
     } finally {
 <span class="fc" id="L121">      ArraySuppliers.Bytes.TL_SUPPLIER.recycle(buffer);</span>
     }

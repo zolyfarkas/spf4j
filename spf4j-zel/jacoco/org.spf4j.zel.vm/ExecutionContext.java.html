@@ -419,12 +419,12 @@ public final class ExecutionContext implements VMExecutor.Suspendable&lt;Object&
 <span class="fc" id="L419">            return resultStore.getLeft();</span>
           } else {
 <span class="nc" id="L421">            nrErrors++;</span>
-<span class="nc bnc" id="L422" title="All 2 branches missed.">            if (e == null) {</span>
-<span class="nc" id="L423">              e = resultStore.getRight();</span>
-            } else {
-<span class="nc" id="L425">              e = Throwables.chain(resultStore.getRight(), e);</span>
+<span class="nc" id="L422">            ExecutionException exRes = resultStore.getRight();</span>
+<span class="nc bnc" id="L423" title="All 2 branches missed.">            if (e != null) {</span>
+<span class="nc" id="L424">              Throwables.suppressLimited(exRes, e);</span>
             }
-          }
+<span class="nc" id="L426">            e = exRes;</span>
+<span class="nc" id="L427">          }</span>
         } else {
 <span class="fc bfc" id="L429" title="All 2 branches covered.">          if (futures == null) {</span>
 <span class="fc" id="L430">            futures = new ArrayList&lt;&gt;(nr);</span>

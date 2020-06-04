@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ExpectLog.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-slf4j-test</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.test.log.annotations</a> &gt; <span class="el_source">ExpectLog.java</span></div><h1>ExpectLog.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2018 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.test.log.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.log.Level;
+
+/**
+ * Annotation to assert log behavior.
+ * This annotation will describe a expected log event. If this expected log event will not happen during the
+ * unit test execution, the unit test will fail.
+ * @author Zoltan Farkas
+ * @see org.spf4j.test.log.annotations
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Repeatable(ExpectLogs.class)
+public @interface ExpectLog {
+  /**
+   * @return the log category to expect. (&quot;&quot; is the root category).
+   */
+  String category() default &quot;&quot;;
+
+  /**
+   * @return the log category to expect. (Void.class is the root category and default).
+   */
+  Class&lt;?&gt; categoryClass() default Void.class;
+
+  /**
+   * @return expected log level.
+   */
+  Level level() default Level.ERROR;
+  /**
+   * @return regexp of expected log message.
+   */
+  String messageRegexp() default &quot;.*&quot;;
+
+  /**
+   * @return nr of times the expectation to be asserted.
+   */
+  int nrTimes() default 1;
+
+  /**
+   * @return the number of TU to wait for a log message after the unit test execution is finished.
+   */
+  long expectationTimeout() default 0;
+
+  /**
+   * @return expectation timeout unit.
+   */
+  TimeUnit timeUnit()  default TimeUnit.MILLISECONDS;
+
+  final class Util {
+    
+    private Util() { }
+
+    public static String effectiveCategory(final ExpectLog ann) {
+<span class="fc" id="L76">      Class&lt;?&gt; categoryClass = ann.categoryClass();</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">      if (categoryClass == Void.class) {</span>
+<span class="nc" id="L78">        return ann.category();</span>
+      } else {
+<span class="fc" id="L80">        return categoryClass.getName();</span>
+      }
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

@@ -390,6 +390,27 @@ public class BasicExecutionContext implements ExecutionContext {
     }
 <span class="fc" id="L391">  }</span>
 
+  @Override
+  public final synchronized void streamLogs(final Consumer&lt;Slf4jLogRecord&gt; to, final int maxNr) {
+<span class="nc bnc" id="L395" title="All 2 branches missed.">    if (logs != null) {</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">      if (maxNr &gt;= logs.size()) {</span>
+<span class="nc bnc" id="L397" title="All 2 branches missed.">        for (Slf4jLogRecord log : logs) {</span>
+<span class="nc" id="L398">          to.accept(log);</span>
+<span class="nc" id="L399">        }</span>
+      } else {
+<span class="nc" id="L401">        int i = 0;</span>
+<span class="nc" id="L402">        int toSkip = logs.size() - maxNr;</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">        for (Slf4jLogRecord log : logs) {</span>
+<span class="nc bnc" id="L404" title="All 2 branches missed.">          if (i &gt;= toSkip) {</span>
+<span class="nc" id="L405">            to.accept(log);</span>
+          } else {
+<span class="nc" id="L407">            i++;</span>
+          }
+<span class="nc" id="L409">        }</span>
+      }
+    }
+<span class="nc" id="L412">  }</span>
+
   /**
    * Overwrite for more configurable implementation.
    * @param loggerName
@@ -397,7 +418,7 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   public Level getContextMinLogLevel(final String loggerName) {
-<span class="fc" id="L400">    return MIN_LOG_LEVEL;</span>
+<span class="fc" id="L421">    return MIN_LOG_LEVEL;</span>
   }
 
   /**
@@ -407,7 +428,7 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   public synchronized Level getBackendMinLogLevel(final String loggerName) {
-<span class="fc" id="L410">    return minBackendLogLevel;</span>
+<span class="fc" id="L431">    return minBackendLogLevel;</span>
   }
 
   /**
@@ -417,19 +438,19 @@ public class BasicExecutionContext implements ExecutionContext {
    */
   @Override
   public synchronized Level setBackendMinLogLevel(final String loggerName, final Level level) {
-<span class="fc" id="L420">    Level result = minBackendLogLevel;</span>
-<span class="fc" id="L421">    minBackendLogLevel = level;</span>
-<span class="fc" id="L422">    return result;</span>
+<span class="fc" id="L441">    Level result = minBackendLogLevel;</span>
+<span class="fc" id="L442">    minBackendLogLevel = level;</span>
+<span class="fc" id="L443">    return result;</span>
   }
 
   @Override
   public final CharSequence getId() {
-<span class="fc" id="L427">    return id;</span>
+<span class="fc" id="L448">    return id;</span>
   }
 
   @Override
   public final synchronized long nextChildId() {
-<span class="fc" id="L432">    return childCount++;</span>
+<span class="fc" id="L453">    return childCount++;</span>
   }
 
   /**
@@ -440,7 +461,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public void add(final StackTraceElement[] sample) {
     // Basic Context will not staore samples
-<span class="nc" id="L443">  }</span>
+<span class="nc" id="L464">  }</span>
 
   /**
    * get the collected stack samples.
@@ -451,7 +472,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   @Nullable
   public StackSamples getAndClearStackSamples() {
-<span class="fc" id="L454">    return null;</span>
+<span class="fc" id="L475">    return null;</span>
   }
 
   /**
@@ -461,17 +482,17 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   @Nullable
   public StackSamples getStackSamples() {
-<span class="nc" id="L464">    return null;</span>
+<span class="nc" id="L485">    return null;</span>
   }
 
   @Override
   public final synchronized boolean isClosed() {
-<span class="fc" id="L469">    return isClosed;</span>
+<span class="fc" id="L490">    return isClosed;</span>
   }
 
   @Override
   public final Relation getRelationToSource() {
-<span class="fc" id="L474">    return relation;</span>
+<span class="fc" id="L495">    return relation;</span>
   }
 
   /**
@@ -481,7 +502,7 @@ public class BasicExecutionContext implements ExecutionContext {
   @Override
   public void add(final StackSamples samples) {
     //Basic Context will not staore samples
-<span class="nc" id="L484">  }</span>
+<span class="nc" id="L505">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

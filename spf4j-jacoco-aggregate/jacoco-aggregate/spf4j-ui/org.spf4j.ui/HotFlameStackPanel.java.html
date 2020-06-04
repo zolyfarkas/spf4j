@@ -90,62 +90,65 @@ public final class HotFlameStackPanel extends StackPanelBase&lt;SampleKey&gt; {
 
   private void paintGraph(
           final Graphics2D g2, final double areaWidth, final double rowHeight) {
-
-<span class="fc" id="L94">    final SampleGraph graph = new SampleGraph(getMethod(), getSamples());</span>
-<span class="fc" id="L95">    this.completeGraph = graph;</span>
-<span class="fc" id="L96">    AggSample aggRoot = graph.getAggRootVertex();</span>
-<span class="fc" id="L97">    int rootSamples = aggRoot.getNrSamples();</span>
-<span class="fc" id="L98">    final double pps = (areaWidth - 1) / rootSamples; // calculate pixe/sample</span>
-<span class="fc" id="L99">    methodLocations = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L100">    PriorityQueue&lt;AggSample&gt; traversal = new PriorityQueue&lt;&gt;(new SComparator(graph));</span>
-<span class="fc" id="L101">    traversal.add(aggRoot);</span>
-<span class="fc" id="L102">    Set&lt;AggSample&gt; drawed = new HashSet&lt;&gt;(graph.getAggNodesNr());</span>
+<span class="fc" id="L93">    SampleNode samples = getSamples();</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">    if (samples == null) {</span>
+<span class="nc" id="L95">      return;</span>
+    }
+<span class="fc" id="L97">    final SampleGraph graph = new SampleGraph(getMethod(), samples);</span>
+<span class="fc" id="L98">    this.completeGraph = graph;</span>
+<span class="fc" id="L99">    AggSample aggRoot = graph.getAggRootVertex();</span>
+<span class="fc" id="L100">    int rootSamples = aggRoot.getNrSamples();</span>
+<span class="fc" id="L101">    final double pps = (areaWidth - 1) / rootSamples; // calculate pixe/sample</span>
+<span class="fc" id="L102">    methodLocations = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L103">    PriorityQueue&lt;AggSample&gt; traversal = new PriorityQueue&lt;&gt;(new SComparator(graph));</span>
+<span class="fc" id="L104">    traversal.add(aggRoot);</span>
+<span class="fc" id="L105">    Set&lt;AggSample&gt; drawed = new HashSet&lt;&gt;(graph.getAggNodesNr());</span>
     AggSample next;
-<span class="fc bfc" id="L104" title="All 2 branches covered.">    while ((next = traversal.poll()) != null) {</span>
-<span class="fc bfc" id="L105" title="All 2 branches covered.">      if (drawed.add(next)) {</span>
-<span class="fc" id="L106">        drawMethod(g2, next, graph, pps, rowHeight);</span>
-<span class="fc" id="L107">        traversal.addAll(graph.getChildren(next));</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">    while ((next = traversal.poll()) != null) {</span>
+<span class="fc bfc" id="L108" title="All 2 branches covered.">      if (drawed.add(next)) {</span>
+<span class="fc" id="L109">        drawMethod(g2, next, graph, pps, rowHeight);</span>
+<span class="fc" id="L110">        traversal.addAll(graph.getChildren(next));</span>
       }
     }
-<span class="fc" id="L110">  }</span>
+<span class="fc" id="L113">  }</span>
 
   @SuppressFBWarnings(&quot;SE_COMPARATOR_SHOULD_BE_SERIALIZABLE&quot;)
   private static final class SComparator implements Comparator&lt;AggSample&gt; {
 
     private final SampleGraph graph;
 
-<span class="fc" id="L117">    SComparator(final SampleGraph graph) {</span>
-<span class="fc" id="L118">      this.graph = graph;</span>
-<span class="fc" id="L119">    }</span>
+<span class="fc" id="L120">    SComparator(final SampleGraph graph) {</span>
+<span class="fc" id="L121">      this.graph = graph;</span>
+<span class="fc" id="L122">    }</span>
     // This is not really a good comparator....
     public int compare(final AggSample a, final AggSample b) {
-<span class="fc" id="L122">      int as = graph.getParents(a).size();</span>
-<span class="fc" id="L123">      int bs = graph.getParents(b).size();</span>
-<span class="fc bfc" id="L124" title="All 2 branches covered.">      if (as == 1) {</span>
-<span class="fc bfc" id="L125" title="All 2 branches covered.">        if (bs == 1) {</span>
-<span class="fc bfc" id="L126" title="All 2 branches covered.">          if (a.getLevel() &lt; b.getLevel()) {</span>
-<span class="fc" id="L127">            return -1;</span>
-<span class="fc bfc" id="L128" title="All 2 branches covered.">          } else if (a.getLevel() &gt; b.getLevel()) {</span>
-<span class="fc" id="L129">            return 1;</span>
+<span class="fc" id="L125">      int as = graph.getParents(a).size();</span>
+<span class="fc" id="L126">      int bs = graph.getParents(b).size();</span>
+<span class="fc bfc" id="L127" title="All 2 branches covered.">      if (as == 1) {</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">        if (bs == 1) {</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">          if (a.getLevel() &lt; b.getLevel()) {</span>
+<span class="fc" id="L130">            return -1;</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">          } else if (a.getLevel() &gt; b.getLevel()) {</span>
+<span class="fc" id="L132">            return 1;</span>
           }
         } else {
-<span class="fc" id="L132">          return -1;</span>
+<span class="fc" id="L135">          return -1;</span>
         }
       } else {
-<span class="fc bfc" id="L135" title="All 2 branches covered.">         if (bs == 1) {</span>
-<span class="fc" id="L136">           return 1;</span>
+<span class="fc bfc" id="L138" title="All 2 branches covered.">         if (bs == 1) {</span>
+<span class="fc" id="L139">           return 1;</span>
          } else {
-<span class="fc bfc" id="L138" title="All 2 branches covered.">          if (a.getLevel() &lt; b.getLevel()) {</span>
-<span class="fc" id="L139">            return -1;</span>
-<span class="fc bfc" id="L140" title="All 2 branches covered.">          } else if (a.getLevel() &gt; b.getLevel()) {</span>
-<span class="fc" id="L141">            return 1;</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">          if (a.getLevel() &lt; b.getLevel()) {</span>
+<span class="fc" id="L142">            return -1;</span>
+<span class="fc bfc" id="L143" title="All 2 branches covered.">          } else if (a.getLevel() &gt; b.getLevel()) {</span>
+<span class="fc" id="L144">            return 1;</span>
           }
          }
       }
-<span class="fc bfc" id="L145" title="All 2 branches covered.">      if (graph.haveCommonChild(a, b)) {</span>
-<span class="fc" id="L146">        return 0;</span>
+<span class="fc bfc" id="L148" title="All 2 branches covered.">      if (graph.haveCommonChild(a, b)) {</span>
+<span class="fc" id="L149">        return 0;</span>
       } else {
-<span class="fc" id="L148">        return a.getKey().getMethod().compareTo(b.getKey().getMethod());</span>
+<span class="fc" id="L151">        return a.getKey().getMethod().compareTo(b.getKey().getMethod());</span>
       }
 
     }
@@ -159,189 +162,189 @@ public final class HotFlameStackPanel extends StackPanelBase&lt;SampleKey&gt; {
    */
   private void drawMethod(final Graphics2D g2, final AggSample sample, final SampleGraph graph,
           final double pps, final double rowHeight) {
-<span class="fc" id="L162">    Set&lt;AggSample&gt; parents = graph.getParents(sample);</span>
+<span class="fc" id="L165">    Set&lt;AggSample&gt; parents = graph.getParents(sample);</span>
     Rectangle2D.Double location;
     final List&lt;Point2D&gt; fromLinks;
-<span class="fc bfc" id="L165" title="All 2 branches covered.">    if (parents.isEmpty()) { // this is the root node.</span>
-<span class="fc" id="L166">      location = new Rectangle2D.Double(0, 0, pps * sample.getNrSamples(), rowHeight);</span>
-<span class="fc" id="L167">      fromLinks = Collections.EMPTY_LIST;</span>
-<span class="fc bfc" id="L168" title="All 2 branches covered.">    } else if (parents.size() == 1) { // single parent</span>
-<span class="fc" id="L169">      location = getLocationSingleParent(parents, graph, rowHeight, pps, sample);</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">    if (parents.isEmpty()) { // this is the root node.</span>
+<span class="fc" id="L169">      location = new Rectangle2D.Double(0, 0, pps * sample.getNrSamples(), rowHeight);</span>
 <span class="fc" id="L170">      fromLinks = Collections.EMPTY_LIST;</span>
+<span class="fc bfc" id="L171" title="All 2 branches covered.">    } else if (parents.size() == 1) { // single parent</span>
+<span class="fc" id="L172">      location = getLocationSingleParent(parents, graph, rowHeight, pps, sample);</span>
+<span class="fc" id="L173">      fromLinks = Collections.EMPTY_LIST;</span>
     } else  { // multiple parents
-<span class="fc" id="L172">      fromLinks = new ArrayList&lt;&gt;(parents.size());</span>
-<span class="fc" id="L173">      Iterator&lt;AggSample&gt; iterator = parents.iterator();</span>
-<span class="fc" id="L174">      AggSample next = iterator.next();</span>
-<span class="fc" id="L175">      double x1 = 0, x2 = 0, y = 0;</span>
-<span class="fc" id="L176">      Rectangle2D pr = methodLocations.get(next.getKey());</span>
-<span class="fc bfc" id="L177" title="All 2 branches covered.">      if (pr != null) {</span>
-<span class="fc" id="L178">        x1 = pr.getX();</span>
-<span class="fc" id="L179">        x2 = pr.getMaxX();</span>
-<span class="fc" id="L180">        y = pr.getMaxY();</span>
-<span class="fc" id="L181">        fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) y));</span>
+<span class="fc" id="L175">      fromLinks = new ArrayList&lt;&gt;(parents.size());</span>
+<span class="fc" id="L176">      Iterator&lt;AggSample&gt; iterator = parents.iterator();</span>
+<span class="fc" id="L177">      AggSample next = iterator.next();</span>
+<span class="fc" id="L178">      double x1 = 0, x2 = 0, y = 0;</span>
+<span class="fc" id="L179">      Rectangle2D pr = methodLocations.get(next.getKey());</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">      if (pr != null) {</span>
+<span class="fc" id="L181">        x1 = pr.getX();</span>
+<span class="fc" id="L182">        x2 = pr.getMaxX();</span>
+<span class="fc" id="L183">        y = pr.getMaxY();</span>
+<span class="fc" id="L184">        fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) y));</span>
       }
-<span class="fc bfc" id="L183" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
-<span class="fc" id="L184">        next = iterator.next();</span>
-<span class="fc" id="L185">        pr = methodLocations.get(next.getKey());</span>
-<span class="fc bfc" id="L186" title="All 2 branches covered.">        if (pr != null) {</span>
-<span class="fc" id="L187">          fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) pr.getMaxY()));</span>
-<span class="fc" id="L188">          x1 = Math.min(x1, pr.getX());</span>
-<span class="fc" id="L189">          x2 = Math.max(x2, pr.getMaxX());</span>
-<span class="fc" id="L190">          y = Math.max(y, pr.getMaxY());</span>
+<span class="fc bfc" id="L186" title="All 2 branches covered.">      while (iterator.hasNext()) {</span>
+<span class="fc" id="L187">        next = iterator.next();</span>
+<span class="fc" id="L188">        pr = methodLocations.get(next.getKey());</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        if (pr != null) {</span>
+<span class="fc" id="L190">          fromLinks.add(new Point2D.Float((float) pr.getCenterX(), (float) pr.getMaxY()));</span>
+<span class="fc" id="L191">          x1 = Math.min(x1, pr.getX());</span>
+<span class="fc" id="L192">          x2 = Math.max(x2, pr.getMaxX());</span>
+<span class="fc" id="L193">          y = Math.max(y, pr.getMaxY());</span>
         }
       }
-<span class="pc bpc" id="L193" title="1 of 2 branches missed.">      if (y &lt;= 0) {</span>
-<span class="nc" id="L194">        throw new IllegalStateException(&quot;No parents for &quot; + sample);</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">      if (y &lt;= 0) {</span>
+<span class="nc" id="L197">        throw new IllegalStateException(&quot;No parents for &quot; + sample);</span>
       }
-<span class="fc" id="L196">      y += rowHeight;</span>
-<span class="fc" id="L197">      double width = pps * sample.getNrSamples();</span>
-<span class="fc" id="L198">      Double result = findEmptySpace(x1, y, width, x2);</span>
-<span class="fc bfc" id="L199" title="All 2 branches covered.">      while (result == null) {</span>
+<span class="fc" id="L199">      y += rowHeight;</span>
+<span class="fc" id="L200">      double width = pps * sample.getNrSamples();</span>
+<span class="fc" id="L201">      Double result = findEmptySpace(x1, y, width, x2);</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">      while (result == null) {</span>
         // TODO: optimize this to increment with a better value
-<span class="fc" id="L201">        y += rowHeight;</span>
-<span class="fc" id="L202">        result = findEmptySpace(x1, y, width, x2);</span>
+<span class="fc" id="L204">        y += rowHeight;</span>
+<span class="fc" id="L205">        result = findEmptySpace(x1, y, width, x2);</span>
       }
-<span class="fc" id="L204">      location = new Rectangle2D.Double(result.floatValue(),  y, width, rowHeight);</span>
+<span class="fc" id="L207">      location = new Rectangle2D.Double(result.floatValue(),  y, width, rowHeight);</span>
     }
-<span class="fc" id="L206">    Set&lt;AggSample&gt; children = graph.getChildren(sample);</span>
-<span class="fc" id="L207">    final List&lt;Point2D&gt; toLinks = new ArrayList&lt;&gt;(0);</span>
-<span class="fc bfc" id="L208" title="All 2 branches covered.">    for (AggSample chs : children) {</span>
-<span class="fc" id="L209">      Rectangle2D ch = methodLocations.get(chs.getKey());</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">      if (ch != null) {</span>
-<span class="fc" id="L211">        toLinks.add(new Point2D.Float((float) ch.getCenterX(), (float) ch.getMaxY()));</span>
+<span class="fc" id="L209">    Set&lt;AggSample&gt; children = graph.getChildren(sample);</span>
+<span class="fc" id="L210">    final List&lt;Point2D&gt; toLinks = new ArrayList&lt;&gt;(0);</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">    for (AggSample chs : children) {</span>
+<span class="fc" id="L212">      Rectangle2D ch = methodLocations.get(chs.getKey());</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">      if (ch != null) {</span>
+<span class="fc" id="L214">        toLinks.add(new Point2D.Float((float) ch.getCenterX(), (float) ch.getMaxY()));</span>
       }
-<span class="fc" id="L213">    }</span>
+<span class="fc" id="L216">    }</span>
 
-<span class="fc" id="L215">    methodLocations.put(sample.getKey(), location);</span>
-<span class="fc" id="L216">    insert(location, sample.getKey());</span>
-<span class="fc" id="L217">    drawMethodRectangle(g2, location, sample, fromLinks, toLinks);</span>
+<span class="fc" id="L218">    methodLocations.put(sample.getKey(), location);</span>
+<span class="fc" id="L219">    insert(location, sample.getKey());</span>
+<span class="fc" id="L220">    drawMethodRectangle(g2, location, sample, fromLinks, toLinks);</span>
 
-<span class="fc" id="L219">  }</span>
+<span class="fc" id="L222">  }</span>
 
   public Rectangle2D.Double getLocationSingleParent(final Set&lt;AggSample&gt; parents,
           final SampleGraph graph, final double rowHeight, final double pps, final AggSample sample) {
     // single parent, will be drawed attached.
-<span class="fc" id="L224">    AggSample parent = parents.iterator().next();</span>
-<span class="fc" id="L225">    Rectangle2D pRect = methodLocations.get(parent.getKey());</span>
-<span class="fc" id="L226">    double px = pRect.getX();</span>
-<span class="fc" id="L227">    Set&lt;AggSample&gt; sibblings = graph.getChildren(parent);</span>
-<span class="fc bfc" id="L228" title="All 2 branches covered.">    for (AggSample sibbling : sibblings) {</span>
-<span class="fc bfc" id="L229" title="All 2 branches covered.">      if (graph.getParents(sibbling).size() == 1) {</span>
-<span class="fc" id="L230">        Rectangle2D l = methodLocations.get(sibbling.getKey());</span>
-<span class="fc bfc" id="L231" title="All 2 branches covered.">        if (l != null) {</span>
-<span class="fc" id="L232">          double x = l.getX() + l.getWidth();</span>
-<span class="fc bfc" id="L233" title="All 2 branches covered.">          if (x &gt; px) {</span>
-<span class="fc" id="L234">            px = x;</span>
+<span class="fc" id="L227">    AggSample parent = parents.iterator().next();</span>
+<span class="fc" id="L228">    Rectangle2D pRect = methodLocations.get(parent.getKey());</span>
+<span class="fc" id="L229">    double px = pRect.getX();</span>
+<span class="fc" id="L230">    Set&lt;AggSample&gt; sibblings = graph.getChildren(parent);</span>
+<span class="fc bfc" id="L231" title="All 2 branches covered.">    for (AggSample sibbling : sibblings) {</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">      if (graph.getParents(sibbling).size() == 1) {</span>
+<span class="fc" id="L233">        Rectangle2D l = methodLocations.get(sibbling.getKey());</span>
+<span class="fc bfc" id="L234" title="All 2 branches covered.">        if (l != null) {</span>
+<span class="fc" id="L235">          double x = l.getX() + l.getWidth();</span>
+<span class="fc bfc" id="L236" title="All 2 branches covered.">          if (x &gt; px) {</span>
+<span class="fc" id="L237">            px = x;</span>
           }
         }
       }
-<span class="fc" id="L238">    }</span>
-<span class="fc" id="L239">    return new Rectangle2D.Double(px, pRect.getY() + rowHeight,</span>
-<span class="fc" id="L240">            pps * sample.getNrSamples(), rowHeight);</span>
+<span class="fc" id="L241">    }</span>
+<span class="fc" id="L242">    return new Rectangle2D.Double(px, pRect.getY() + rowHeight,</span>
+<span class="fc" id="L243">            pps * sample.getNrSamples(), rowHeight);</span>
   }
 
 
   private void drawMethodRectangle(final Graphics2D g2, final Rectangle2D.Double location,
           final AggSample sample, final List&lt;Point2D&gt; fromLinks, final List&lt;Point2D&gt; toLinks) {
-<span class="fc" id="L246">    double x = location.getX();</span>
-<span class="fc" id="L247">    double y = location.getY();</span>
-<span class="fc" id="L248">    double width = location.getWidth();</span>
-<span class="fc" id="L249">    double height = location.getHeight();</span>
-<span class="fc" id="L250">    double newHeight = y + height;</span>
-<span class="fc bfc" id="L251" title="All 2 branches covered.">    if (totalHeight &lt; newHeight) {</span>
-<span class="fc" id="L252">      totalHeight = newHeight;</span>
+<span class="fc" id="L249">    double x = location.getX();</span>
+<span class="fc" id="L250">    double y = location.getY();</span>
+<span class="fc" id="L251">    double width = location.getWidth();</span>
+<span class="fc" id="L252">    double height = location.getHeight();</span>
+<span class="fc" id="L253">    double newHeight = y + height;</span>
+<span class="fc bfc" id="L254" title="All 2 branches covered.">    if (totalHeight &lt; newHeight) {</span>
+<span class="fc" id="L255">      totalHeight = newHeight;</span>
     }
-<span class="fc" id="L254">    FlameStackPanel.setElementColor(sample.getLevel(), g2);</span>
-<span class="fc" id="L255">    g2.setClip((int) x, (int) y, (int) width, (int) height);</span>
-<span class="fc" id="L256">    g2.fillRect((int) x, (int) y, (int) width, (int) height);</span>
-<span class="fc" id="L257">    String val = Methods.toString(sample.getKey().getMethod()) + '-' + sample.getNrSamples();</span>
-<span class="fc" id="L258">    g2.setPaint(Color.BLACK);</span>
-<span class="fc" id="L259">    g2.drawString(val, (int) x, (int) (y + height - 1));</span>
-<span class="fc" id="L260">    g2.setClip(null);</span>
-<span class="fc" id="L261">    g2.setPaint(LINK_COLOR);</span>
-<span class="fc" id="L262">    int tx = (int) (x + width / 2);</span>
-<span class="fc bfc" id="L263" title="All 2 branches covered.">    for (Point2D divLoc : fromLinks) {</span>
-<span class="fc" id="L264">      Arrow2D.draw(g2, (int) divLoc.getX(), (int) divLoc.getY(),</span>
+<span class="fc" id="L257">    FlameStackPanel.setElementColor(sample.getLevel(), g2);</span>
+<span class="fc" id="L258">    g2.setClip((int) x, (int) y, (int) width, (int) height);</span>
+<span class="fc" id="L259">    g2.fillRect((int) x, (int) y, (int) width, (int) height);</span>
+<span class="fc" id="L260">    String val = Methods.toString(sample.getKey().getMethod()) + '-' + sample.getNrSamples();</span>
+<span class="fc" id="L261">    g2.setPaint(Color.BLACK);</span>
+<span class="fc" id="L262">    g2.drawString(val, (int) x, (int) (y + height - 1));</span>
+<span class="fc" id="L263">    g2.setClip(null);</span>
+<span class="fc" id="L264">    g2.setPaint(LINK_COLOR);</span>
+<span class="fc" id="L265">    int tx = (int) (x + width / 2);</span>
+<span class="fc bfc" id="L266" title="All 2 branches covered.">    for (Point2D divLoc : fromLinks) {</span>
+<span class="fc" id="L267">      Arrow2D.draw(g2, (int) divLoc.getX(), (int) divLoc.getY(),</span>
               tx, (int) y);
-<span class="fc" id="L266">    }</span>
-<span class="fc bfc" id="L267" title="All 2 branches covered.">    for (Point2D divLoc : toLinks) {</span>
-<span class="fc" id="L268">      Arrow2D.draw(g2, tx, (int) y, (int) divLoc.getX(), (int) divLoc.getY());</span>
 <span class="fc" id="L269">    }</span>
-<span class="fc" id="L270">    g2.drawRect((int) x, (int) y, (int) width, (int) height);</span>
-<span class="fc" id="L271">  }</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">    for (Point2D divLoc : toLinks) {</span>
+<span class="fc" id="L271">      Arrow2D.draw(g2, tx, (int) y, (int) divLoc.getX(), (int) divLoc.getY());</span>
+<span class="fc" id="L272">    }</span>
+<span class="fc" id="L273">    g2.drawRect((int) x, (int) y, (int) width, (int) height);</span>
+<span class="fc" id="L274">  }</span>
 
 
   @Nullable
   private Double findEmptySpace(final double newXBase, final double newYBase,
           final double newWidth, final double maxX) {
-<span class="fc" id="L277">    double tryx =  Math.max(0, newXBase + (maxX - newXBase) / 2 - newWidth / 2);</span>
-<span class="fc" id="L278">    List&lt;SampleKey&gt; methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE - newYBase);</span>
-<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (!methods.isEmpty()) {</span>
-<span class="fc" id="L280">      tryx = Math.max(0, newXBase);</span>
-<span class="fc" id="L281">      methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE  - newYBase);</span>
-<span class="fc bfc" id="L282" title="All 2 branches covered.">      if (!methods.isEmpty()) {</span>
-<span class="fc" id="L283">        tryx = Math.max(0, maxX - newWidth);</span>
-<span class="fc" id="L284">        methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE  - newYBase);</span>
+<span class="fc" id="L280">    double tryx =  Math.max(0, newXBase + (maxX - newXBase) / 2 - newWidth / 2);</span>
+<span class="fc" id="L281">    List&lt;SampleKey&gt; methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE - newYBase);</span>
+<span class="fc bfc" id="L282" title="All 2 branches covered.">    if (!methods.isEmpty()) {</span>
+<span class="fc" id="L283">      tryx = Math.max(0, newXBase);</span>
+<span class="fc" id="L284">      methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE  - newYBase);</span>
+<span class="fc bfc" id="L285" title="All 2 branches covered.">      if (!methods.isEmpty()) {</span>
+<span class="fc" id="L286">        tryx = Math.max(0, maxX - newWidth);</span>
+<span class="fc" id="L287">        methods = search(tryx, newYBase, newWidth, Float.MAX_VALUE  - newYBase);</span>
       }
     }
-<span class="fc bfc" id="L287" title="All 2 branches covered.">    if (methods.isEmpty()) {</span>
-<span class="fc" id="L288">      return tryx;</span>
+<span class="fc bfc" id="L290" title="All 2 branches covered.">    if (methods.isEmpty()) {</span>
+<span class="fc" id="L291">      return tryx;</span>
     } else {
-<span class="fc" id="L290">      return null;</span>
+<span class="fc" id="L293">      return null;</span>
     }
   }
 
   @Override
   @Nullable
   public String getDetail(final Point location) {
-<span class="nc" id="L297">    List&lt;SampleKey&gt; tips = search(location.x, location.y, 0, 0);</span>
-<span class="nc bnc" id="L298" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L299">      final SampleKey key = tips.get(0);</span>
-<span class="nc" id="L300">      final AggSample node = completeGraph.getAggNode(key);</span>
-<span class="nc" id="L301">      StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L302">      sb.append(node).append('-').append(node.getNrSamples())</span>
-<span class="nc" id="L303">              .append(&quot;\n invoked from: &quot;);</span>
-<span class="nc" id="L304">      appendEdgeInfo(completeGraph.getParents(node), sb);</span>
-<span class="nc" id="L305">      sb.append(&quot;\n invoking: &quot;);</span>
-<span class="nc" id="L306">      appendEdgeInfo(completeGraph.getChildren(node), sb);</span>
-<span class="nc" id="L307">      return sb.toString();</span>
+<span class="nc" id="L300">    List&lt;SampleKey&gt; tips = search(location.x, location.y, 0, 0);</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L302">      final SampleKey key = tips.get(0);</span>
+<span class="nc" id="L303">      final AggSample node = completeGraph.getAggNode(key);</span>
+<span class="nc" id="L304">      StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L305">      sb.append(node).append('-').append(node.getNrSamples())</span>
+<span class="nc" id="L306">              .append(&quot;\n invoked from: &quot;);</span>
+<span class="nc" id="L307">      appendEdgeInfo(completeGraph.getParents(node), sb);</span>
+<span class="nc" id="L308">      sb.append(&quot;\n invoking: &quot;);</span>
+<span class="nc" id="L309">      appendEdgeInfo(completeGraph.getChildren(node), sb);</span>
+<span class="nc" id="L310">      return sb.toString();</span>
     } else {
-<span class="nc" id="L309">      return null;</span>
+<span class="nc" id="L312">      return null;</span>
     }
   }
 
   @Override
   public void filter() {
-<span class="nc" id="L315">    List&lt;SampleKey&gt; tips = search(xx, yy, 0, 0);</span>
-<span class="nc bnc" id="L316" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L317">      final SampleKey value = tips.get(0);</span>
-<span class="nc" id="L318">      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate&lt;&gt;(value.getMethod())));</span>
-<span class="nc" id="L319">      repaint();</span>
+<span class="nc" id="L318">    List&lt;SampleKey&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L320">      final SampleKey value = tips.get(0);</span>
+<span class="nc" id="L321">      updateSamples(getMethod(), getSamples().filteredBy(new EqualsPredicate&lt;&gt;(value.getMethod())));</span>
+<span class="nc" id="L322">      repaint();</span>
     }
-<span class="nc" id="L321">  }</span>
+<span class="nc" id="L324">  }</span>
 
   @Override
   public void drill() {
-<span class="nc" id="L325">    List&lt;SampleKey&gt; tips = search(xx, yy, 0, 0);</span>
-<span class="nc bnc" id="L326" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
-<span class="nc" id="L327">      SampleKey sample = tips.get(0);</span>
-<span class="nc" id="L328">      Set&lt;Sample&gt; samples = completeGraph.getSamples(sample);</span>
-<span class="nc" id="L329">      Iterator&lt;SampleGraph.Sample&gt; iterator = samples.iterator();</span>
-<span class="nc" id="L330">      SampleNode agg = iterator.next().getNode();</span>
-<span class="nc bnc" id="L331" title="All 2 branches missed.">      while (iterator.hasNext()) {</span>
-<span class="nc" id="L332">        agg = SampleNode.aggregate(agg, iterator.next().getNode());</span>
+<span class="nc" id="L328">    List&lt;SampleKey&gt; tips = search(xx, yy, 0, 0);</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">    if (tips.size() &gt;= 1) {</span>
+<span class="nc" id="L330">      SampleKey sample = tips.get(0);</span>
+<span class="nc" id="L331">      Set&lt;Sample&gt; samples = completeGraph.getSamples(sample);</span>
+<span class="nc" id="L332">      Iterator&lt;SampleGraph.Sample&gt; iterator = samples.iterator();</span>
+<span class="nc" id="L333">      SampleNode agg = iterator.next().getNode();</span>
+<span class="nc bnc" id="L334" title="All 2 branches missed.">      while (iterator.hasNext()) {</span>
+<span class="nc" id="L335">        agg = SampleNode.aggregate(agg, iterator.next().getNode());</span>
       }
-<span class="nc" id="L334">      updateSamples(sample.getMethod(), agg);</span>
-<span class="nc" id="L335">      repaint();</span>
+<span class="nc" id="L337">      updateSamples(sample.getMethod(), agg);</span>
+<span class="nc" id="L338">      repaint();</span>
     }
-<span class="nc" id="L337">  }</span>
+<span class="nc" id="L340">  }</span>
 
   private static void appendEdgeInfo(final Set&lt;AggSample&gt; incomming,
           final StringBuilder sb) {
-<span class="nc bnc" id="L341" title="All 2 branches missed.">    for (AggSample entry : incomming) {</span>
-<span class="nc" id="L342">      sb.append(entry.getKey()).append('-').append(entry.getNrSamples()).append(&quot;; &quot;);</span>
-<span class="nc" id="L343">    }</span>
-<span class="nc" id="L344">  }</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">    for (AggSample entry : incomming) {</span>
+<span class="nc" id="L345">      sb.append(entry.getKey()).append('-').append(entry.getNrSamples()).append(&quot;; &quot;);</span>
+<span class="nc" id="L346">    }</span>
+<span class="nc" id="L347">  }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

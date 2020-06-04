@@ -55,6 +55,7 @@ import org.spf4j.test.log.TestLogRecord;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
+import org.spf4j.test.log.ValidationUtils;
 import org.spf4j.test.log.annotations.CollectLogs;
 import org.spf4j.test.log.annotations.ExpectLog;
 import org.spf4j.test.log.annotations.ExpectLogs;
@@ -70,20 +71,21 @@ import org.spf4j.test.matchers.LogMatchers;
 @ThreadSafe
 public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
-<span class="fc" id="L73">  private static final ScheduledExecutorService SCHEDULER  =</span>
-<span class="fc" id="L74">          MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(</span>
-<span class="fc" id="L75">                  Integer.getInteger(&quot;spf4j.executors.defaultScheduler.coreThreads&quot;, 2),</span>
-                  new CustomThreadFactory(&quot;DefaultScheduler&quot;,
-<span class="fc" id="L77">                          Boolean.getBoolean(&quot;spf4j.executors.defaultScheduler.daemon&quot;),</span>
-<span class="fc" id="L78">                          Integer.getInteger(&quot;spf4j.executors.defaultScheduler.priority&quot;, Thread.NORM_PRIORITY))));</span>
+<span class="fc" id="L74">  private static final ScheduledExecutorService SCHEDULER  =</span>
+<span class="fc" id="L75">          MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(</span>
+<span class="fc" id="L76">                  Integer.getInteger(&quot;spf4j.executors.defaultScheduler.coreThreads&quot;, 2),</span>
+                  new CustomThreadFactory(&quot;SPF4j-JUNIT&quot;,
+<span class="fc" id="L78">                          Boolean.getBoolean(&quot;spf4j.executors.defaultScheduler.daemon&quot;),</span>
+<span class="fc" id="L79">                          Integer.getInteger(&quot;spf4j.executors.defaultScheduler.priority&quot;, Thread.NORM_PRIORITY))));</span>
 
-<span class="fc" id="L80">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);</span>
+<span class="fc" id="L81">  private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);</span>
 
-<span class="fc" id="L82">  private static final Spf4jTestLogRunListenerSingleton INSTANCE = new Spf4jTestLogRunListenerSingleton();</span>
+  private static volatile Spf4jTestLogRunListenerSingleton instance;
 
   static {
-<span class="fc" id="L85">    System.setProperty(&quot;spf4j.timeSource&quot;, TestTimeSource.class.getName());</span>
-<span class="fc" id="L86">  }</span>
+<span class="fc" id="L86">    ValidationUtils.validateLogger(LOG);</span>
+<span class="fc" id="L87">    System.setProperty(&quot;spf4j.timeSource&quot;, TestTimeSource.class.getName());</span>
+<span class="fc" id="L88">  }</span>
 
   private final Level minLogLevel;
 
@@ -99,232 +101,263 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final String[] excludeLogsFromCollection;
 
-<span class="fc" id="L102">  private Spf4jTestLogRunListenerSingleton() {</span>
-<span class="fc" id="L103">    minLogLevel = Level.valueOf(System.getProperty(&quot;spf4j.test.log.collectMinLevel&quot;, &quot;DEBUG&quot;));</span>
-<span class="fc" id="L104">    maxDebugLogsCollected = Integer.getInteger(&quot;spf4j.test.log.collectmaxLogs&quot;, 100);</span>
-<span class="fc" id="L105">    defaultTestTimeoutMillis =  Long.getLong(&quot;spf4j.test.log.defaultTestTimeoutMillis&quot;, 120000);</span>
-<span class="fc" id="L106">    collectPrinted = Boolean.getBoolean(&quot;spf4j.test.log.collectPrintedLogs&quot;);</span>
-<span class="fc" id="L107">    excludeLogsFromCollection = Csv.readSystemProperty(&quot;spf4j.test.log.collectExclusions&quot;);</span>
-<span class="fc" id="L108">    baggages = new ConcurrentHashMap&lt;&gt;();</span>
-<span class="fc" id="L109">    synchronized (Thread.class) {</span>
-<span class="fc" id="L110">      final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();</span>
-<span class="fc" id="L111">      uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);</span>
-<span class="fc" id="L112">      Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);</span>
-<span class="fc" id="L113">    }</span>
-<span class="fc" id="L114">  }</span>
+<span class="fc" id="L104">  private Spf4jTestLogRunListenerSingleton() {</span>
+<span class="fc" id="L105">    minLogLevel = Level.valueOf(System.getProperty(&quot;spf4j.test.log.collectMinLevel&quot;, &quot;DEBUG&quot;));</span>
+<span class="fc" id="L106">    maxDebugLogsCollected = Integer.getInteger(&quot;spf4j.test.log.collectmaxLogs&quot;, 100);</span>
+<span class="fc" id="L107">    defaultTestTimeoutMillis =  Long.getLong(&quot;spf4j.test.log.defaultTestTimeoutMillis&quot;, 120000);</span>
+<span class="fc" id="L108">    collectPrinted = Boolean.getBoolean(&quot;spf4j.test.log.collectPrintedLogs&quot;);</span>
+<span class="fc" id="L109">    excludeLogsFromCollection = Csv.readSystemProperty(&quot;spf4j.test.log.collectExclusions&quot;);</span>
+<span class="fc" id="L110">    baggages = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L111">    synchronized (Thread.class) {</span>
+<span class="fc" id="L112">      final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();</span>
+<span class="fc" id="L113">      uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);</span>
+<span class="fc" id="L114">      Thread.setDefaultUncaughtExceptionHandler(uncaughtExceptionHandler);</span>
+<span class="fc" id="L115">    }</span>
+<span class="fc" id="L116">  }</span>
 
-  public static Spf4jTestLogRunListenerSingleton getInstance() {
-<span class="fc" id="L117">    return INSTANCE;</span>
+  public static Spf4jTestLogRunListenerSingleton getOrCreateListenerInstance() {
+<span class="fc" id="L119">    Spf4jTestLogRunListenerSingleton res = instance;</span>
+<span class="pc bpc" id="L120" title="1 of 2 branches missed.">    if (res == null) {</span>
+<span class="fc" id="L121">      synchronized (Spf4jTestLogRunListenerSingleton.class) {</span>
+<span class="fc" id="L122">        res = instance;</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (res == null) {</span>
+<span class="fc" id="L124">          res = new Spf4jTestLogRunListenerSingleton();</span>
+<span class="fc" id="L125">          instance = res;</span>
+        }
+<span class="fc" id="L127">      }</span>
+    }
+<span class="fc" id="L129">    return res;</span>
+  }
+
+  @SuppressFBWarnings(&quot;WEM_WEAK_EXCEPTION_MESSAGING&quot;)
+  public static Spf4jTestLogRunListenerSingleton getListenerInstance() {
+<span class="fc" id="L134">    Spf4jTestLogRunListenerSingleton res = instance;</span>
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">    if (res == null) {</span>
+<span class="nc" id="L136">      throw new RuntimeException(&quot;Spf4jTestLogRunListener not registered, you can register it like:&quot;</span>
+              + &quot;      &lt;plugin&gt;\n&quot;
+              + &quot;        &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n&quot;
+              + &quot;        &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;\n&quot;
+              + &quot;        &lt;configuration&gt;\n&quot;
+              + &quot;          &lt;properties&gt;\n&quot;
+              + &quot;            &lt;property&gt;\n&quot;
+              + &quot;              &lt;name&gt;listener&lt;/name&gt;\n&quot;
+              + &quot;              &lt;value&gt;org.spf4j.test.log.junit4.Spf4jTestLogRunListener&lt;/value&gt;\n&quot;
+              + &quot;            &lt;/property&gt;\n&quot;
+              + &quot;          &lt;/properties&gt;\n&quot;
+              + &quot;        &lt;/configuration&gt;\n&quot;
+              + &quot;      &lt;/plugin&gt;&quot;);
+    }
+<span class="fc" id="L150">    return res;</span>
   }
 
   @Override
   public synchronized void testRunFinished(final Result result) {
-<span class="fc" id="L122">    List&lt;UncaughtExceptionDetail&gt; exceptions = uncaughtExceptionHandler.getUncaughtExceptions();</span>
-<span class="pc bpc" id="L123" title="1 of 2 branches missed.">    if (!exceptions.isEmpty()) {</span>
-<span class="nc" id="L124">      AssertionError assertionError = new AssertionError(&quot;Uncaught exceptions encountered &quot; + exceptions);</span>
-<span class="nc bnc" id="L125" title="All 2 branches missed.">      for (UncaughtExceptionDetail ex : exceptions) {</span>
-<span class="nc" id="L126">        Throwable throwable = ex.getThrowable();</span>
-<span class="nc" id="L127">        assertionError.addSuppressed(throwable);</span>
-<span class="nc" id="L128">        LOG.info(&quot;Uncaught exceptions, failures = {} in thread {}&quot;, result.getFailures(),</span>
-<span class="nc" id="L129">                ex.getThread(), throwable);</span>
-<span class="nc" id="L130">      }</span>
-<span class="nc" id="L131">      throw assertionError;</span>
+<span class="fc" id="L155">    List&lt;UncaughtExceptionDetail&gt; exceptions = uncaughtExceptionHandler.getUncaughtExceptions();</span>
+<span class="pc bpc" id="L156" title="1 of 2 branches missed.">    if (!exceptions.isEmpty()) {</span>
+<span class="nc" id="L157">      AssertionError assertionError = new AssertionError(&quot;Uncaught exceptions encountered &quot; + exceptions);</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">      for (UncaughtExceptionDetail ex : exceptions) {</span>
+<span class="nc" id="L159">        Throwable throwable = ex.getThrowable();</span>
+<span class="nc" id="L160">        assertionError.addSuppressed(throwable);</span>
+<span class="nc" id="L161">        LOG.info(&quot;Uncaught exceptions, failures = {} in thread {}&quot;, result.getFailures(),</span>
+<span class="nc" id="L162">                ex.getThread(), throwable);</span>
+<span class="nc" id="L163">      }</span>
+<span class="nc" id="L164">      throw assertionError;</span>
     }
-<span class="fc" id="L133">  }</span>
+<span class="fc" id="L166">  }</span>
 
   private void dumpDebugInfo(final Collection&lt;TestLogRecord&gt; logs,
           final Description description) {
-<span class="nc" id="L137">    Iterator&lt;TestLogRecord&gt; iterator = logs.iterator();</span>
-<span class="nc bnc" id="L138" title="All 2 branches missed.">    if (iterator.hasNext()) {</span>
-<span class="nc" id="L139">      synchronized (System.out) { // do not interleave other stuff.</span>
-<span class="nc" id="L140">        LogPrinter.PRINTER.printTo(System.out, new TestLogRecordImpl(&quot;test&quot;, Level.INFO,</span>
-<span class="nc" id="L141">                &quot;Dumping last {} logs collected for debug for {}&quot;, maxDebugLogsCollected, description), &quot;&quot;);</span>
-<span class="nc" id="L142">        TestLogRecord record = iterator.next();</span>
-<span class="nc" id="L143">        LogPrinter.PRINTER.printTo(System.out, record, &quot;&quot;);</span>
-<span class="nc bnc" id="L144" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
-<span class="nc" id="L145">          record = iterator.next();</span>
-<span class="nc" id="L146">          LogPrinter.PRINTER.printTo(System.out, record, &quot;&quot;);</span>
+<span class="nc" id="L170">    Iterator&lt;TestLogRecord&gt; iterator = logs.iterator();</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">    if (iterator.hasNext()) {</span>
+<span class="nc" id="L172">      synchronized (System.out) { // do not interleave other stuff.</span>
+<span class="nc" id="L173">        LogPrinter.PRINTER.printTo(System.out, new TestLogRecordImpl(&quot;test&quot;, Level.INFO,</span>
+<span class="nc" id="L174">                &quot;Dumping last {} logs collected for debug for {}&quot;, maxDebugLogsCollected, description), &quot;&quot;);</span>
+<span class="nc" id="L175">        TestLogRecord record = iterator.next();</span>
+<span class="nc" id="L176">        LogPrinter.PRINTER.printTo(System.out, record, &quot;&quot;);</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">        while (iterator.hasNext()) {</span>
+<span class="nc" id="L178">          record = iterator.next();</span>
+<span class="nc" id="L179">          LogPrinter.PRINTER.printTo(System.out, record, &quot;&quot;);</span>
         }
-<span class="nc" id="L148">        LogPrinter.PRINTER.printTo(System.out, new TestLogRecordImpl(&quot;test&quot;, Level.INFO,</span>
+<span class="nc" id="L181">        LogPrinter.PRINTER.printTo(System.out, new TestLogRecordImpl(&quot;test&quot;, Level.INFO,</span>
                 &quot;End debug log dump for {}&quot;, description), &quot;&quot;);
-<span class="nc" id="L150">      }</span>
+<span class="nc" id="L183">      }</span>
     }
 
-<span class="nc" id="L153">  }</span>
+<span class="nc" id="L186">  }</span>
 
   private static void registerDeadlockLogger(final Description description,
           final ExecutionContext ctx, final long delay, final TimeUnit tu) {
-<span class="fc" id="L157">    final long delayMillis = Math.max(tu.toMillis(delay) - 10,  0);</span>
-<span class="fc" id="L158">    ScheduledFuture&lt;?&gt; future = SCHEDULER.schedule(() -&gt; {</span>
-<span class="nc" id="L159">      LOG.info(&quot;Unit test  {} did not finish after {} {}, dumping thread stacks&quot;, description, delay, tu);</span>
-<span class="nc" id="L160">      Threads.dumpToPrintStream(System.err);</span>
-<span class="nc" id="L161">    }, delayMillis, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L162">    ctx.addCloseable(() -&gt; {</span>
-<span class="fc" id="L163">          future.cancel(true);</span>
-<span class="fc" id="L164">        });</span>
-<span class="fc" id="L165">  }</span>
+<span class="fc" id="L190">    final long delayMillis = Math.max(tu.toMillis(delay) - 10,  0);</span>
+<span class="fc" id="L191">    ScheduledFuture&lt;?&gt; future = SCHEDULER.schedule(() -&gt; {</span>
+<span class="nc" id="L192">      LOG.info(&quot;Unit test  {} did not finish after {} {}, dumping thread stacks&quot;, description, delay, tu);</span>
+<span class="nc" id="L193">      Threads.dumpToPrintStream(System.err);</span>
+<span class="nc" id="L194">    }, delayMillis, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L195">    ctx.addCloseable(() -&gt; {</span>
+<span class="fc" id="L196">          future.cancel(true);</span>
+<span class="fc" id="L197">        });</span>
+<span class="fc" id="L198">  }</span>
 
   @Override
   @SuppressFBWarnings(&quot;PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS&quot;)
   public synchronized void testStarted(final Description description) throws Exception {
-<span class="fc" id="L170">    Test ta = description.getAnnotation(Test.class);</span>
+<span class="fc" id="L203">    Test ta = description.getAnnotation(Test.class);</span>
     ExecutionContext ctx;
-<span class="pc bpc" id="L172" title="1 of 2 branches missed.">    if (TestUtils.isExecutedWithDebuggerAgent()) {</span>
-<span class="nc" id="L173">      ctx = ExecutionContexts.start(description.getDisplayName());</span>
-<span class="pc bpc" id="L174" title="1 of 4 branches missed.">    } else if (ta != null &amp;&amp; ta.timeout() &gt; 0) {</span>
-<span class="fc" id="L175">      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L176">      registerDeadlockLogger(description, ctx, ta.timeout(), TimeUnit.MILLISECONDS);</span>
+<span class="pc bpc" id="L205" title="1 of 2 branches missed.">    if (TestUtils.isExecutedWithDebuggerAgent()) {</span>
+<span class="nc" id="L206">      ctx = ExecutionContexts.start(description.getDisplayName());</span>
+<span class="pc bpc" id="L207" title="1 of 4 branches missed.">    } else if (ta != null &amp;&amp; ta.timeout() &gt; 0) {</span>
+<span class="fc" id="L208">      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L209">      registerDeadlockLogger(description, ctx, ta.timeout(), TimeUnit.MILLISECONDS);</span>
     } else {
-<span class="fc" id="L178">      ctx = ExecutionContexts.start(description.getDisplayName(), defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);</span>
-<span class="fc" id="L179">      registerDeadlockLogger(description, ctx, defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L211">      ctx = ExecutionContexts.start(description.getDisplayName(), defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L212">      registerDeadlockLogger(description, ctx, defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);</span>
     }
-<span class="fc" id="L181">    TestLoggers sysTest = TestLoggers.sys();</span>
-<span class="fc" id="L182">    LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collectLogs = handleLogCollections(description, sysTest);</span>
-<span class="fc" id="L183">    List&lt;LogAssert&gt; logExpectations = setUpUnitTestLogExpectations(description, sysTest);</span>
-<span class="fc" id="L184">    baggages.put(description, new TestBaggage(ctx, collectLogs, logExpectations));</span>
-<span class="fc" id="L185">    handlePrintLogAnnotations(description, sysTest);</span>
-<span class="fc" id="L186">    super.testStarted(description);</span>
-<span class="fc" id="L187">  }</span>
+<span class="fc" id="L214">    TestLoggers sysTest = TestLoggers.sys();</span>
+<span class="fc" id="L215">    LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; collectLogs = handleLogCollections(description, sysTest);</span>
+<span class="fc" id="L216">    List&lt;LogAssert&gt; logExpectations = setUpUnitTestLogExpectations(description, sysTest);</span>
+<span class="fc" id="L217">    baggages.put(description, new TestBaggage(ctx, collectLogs, logExpectations));</span>
+<span class="fc" id="L218">    handlePrintLogAnnotations(description, sysTest);</span>
+<span class="fc" id="L219">    super.testStarted(description);</span>
+<span class="fc" id="L220">  }</span>
 
     private List&lt;LogAssert&gt; setUpUnitTestLogExpectations(final Description description,
           final TestLoggers sysTest) {
-<span class="fc" id="L191">      List&lt;LogAssert&gt; assertions = new ArrayList&lt;&gt;(2);</span>
-<span class="fc" id="L192">      assertions.add(</span>
-<span class="fc" id="L193">                  sysTest.dontExpect(&quot;&quot;, Level.ERROR,</span>
-<span class="fc" id="L194">                  Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),</span>
-<span class="fc" id="L195">                  LogMatchers.hasNotLogger(sysTest::isInExpectingErrorCategories),</span>
-<span class="fc" id="L196">                  LogMatchers.hasLevel(Level.ERROR))));</span>
-<span class="fc" id="L197">      ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);</span>
-<span class="pc bpc" id="L198" title="1 of 2 branches missed.">      if (expectLogs != null) {</span>
-<span class="nc" id="L199">        ExpectLog[] value = expectLogs.value();</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">        for (ExpectLog expect : value) {</span>
-<span class="nc" id="L201">          assertions.add(</span>
-<span class="nc" id="L202">                  sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),</span>
-<span class="nc" id="L203">                          expect.expectationTimeout(), expect.timeUnit(),</span>
-<span class="nc" id="L204">                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),</span>
-<span class="nc" id="L205">                  LogMatchers.hasLevel(expect.level()))));</span>
+<span class="fc" id="L224">      List&lt;LogAssert&gt; assertions = new ArrayList&lt;&gt;(2);</span>
+<span class="fc" id="L225">      assertions.add(</span>
+<span class="fc" id="L226">                  sysTest.dontExpect(&quot;&quot;, Level.ERROR,</span>
+<span class="fc" id="L227">                  Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),</span>
+<span class="fc" id="L228">                  LogMatchers.hasNotLogger(sysTest::isInExpectingErrorCategories),</span>
+<span class="fc" id="L229">                  LogMatchers.hasLevel(Level.ERROR))));</span>
+<span class="fc" id="L230">      ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">      if (expectLogs != null) {</span>
+<span class="nc" id="L232">        ExpectLog[] value = expectLogs.value();</span>
+<span class="nc bnc" id="L233" title="All 2 branches missed.">        for (ExpectLog expect : value) {</span>
+<span class="nc" id="L234">          assertions.add(</span>
+<span class="nc" id="L235">                  sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),</span>
+<span class="nc" id="L236">                          expect.expectationTimeout(), expect.timeUnit(),</span>
+<span class="nc" id="L237">                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),</span>
+<span class="nc" id="L238">                  LogMatchers.hasLevel(expect.level()))));</span>
         }
-<span class="nc" id="L207">      } else {</span>
-<span class="fc" id="L208">          ExpectLog expect = description.getAnnotation(ExpectLog.class);</span>
-<span class="fc bfc" id="L209" title="All 2 branches covered.">          if (expect != null) {</span>
-<span class="fc" id="L210">            assertions.add(</span>
-<span class="fc" id="L211">                  sysTest.expect(expect.category(), expect.level(), expect.nrTimes(),</span>
-<span class="fc" id="L212">                  expect.expectationTimeout(), expect.timeUnit(),</span>
-<span class="fc" id="L213">                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),</span>
-<span class="fc" id="L214">                  LogMatchers.hasLevel(expect.level()))));</span>
+<span class="nc" id="L240">      } else {</span>
+<span class="fc" id="L241">          ExpectLog expect = description.getAnnotation(ExpectLog.class);</span>
+<span class="fc bfc" id="L242" title="All 2 branches covered.">          if (expect != null) {</span>
+<span class="fc" id="L243">            assertions.add(</span>
+<span class="fc" id="L244">                  sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),</span>
+<span class="fc" id="L245">                  expect.expectationTimeout(), expect.timeUnit(),</span>
+<span class="fc" id="L246">                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),</span>
+<span class="fc" id="L247">                  LogMatchers.hasLevel(expect.level()))));</span>
           }
       }
-<span class="fc" id="L217">      return assertions;</span>
+<span class="fc" id="L250">      return assertions;</span>
     }
 
   private LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; handleLogCollections(final Description description,
           final TestLoggers sysTest) {
-<span class="fc" id="L222">    CollectLogs ca = description.getAnnotation(CollectLogs.class);</span>
+<span class="fc" id="L255">    CollectLogs ca = description.getAnnotation(CollectLogs.class);</span>
     Level mll;
     boolean clp;
     int nrLogs;
     String include;
     String[] exclude;
-<span class="fc bfc" id="L228" title="All 2 branches covered.">    if (ca == null) {</span>
-<span class="fc" id="L229">      mll = minLogLevel;</span>
-<span class="fc" id="L230">      clp = collectPrinted;</span>
-<span class="fc" id="L231">      nrLogs = maxDebugLogsCollected;</span>
-<span class="fc" id="L232">      include = &quot;&quot;;</span>
-<span class="fc" id="L233">      exclude = excludeLogsFromCollection;</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">    if (ca == null) {</span>
+<span class="fc" id="L262">      mll = minLogLevel;</span>
+<span class="fc" id="L263">      clp = collectPrinted;</span>
+<span class="fc" id="L264">      nrLogs = maxDebugLogsCollected;</span>
+<span class="fc" id="L265">      include = &quot;&quot;;</span>
+<span class="fc" id="L266">      exclude = excludeLogsFromCollection;</span>
     } else {
-<span class="fc" id="L235">      mll = ca.minLevel();</span>
-<span class="fc" id="L236">      clp = ca.collectPrinted();</span>
-<span class="fc" id="L237">      nrLogs = ca.nrLogs();</span>
-<span class="fc" id="L238">      include = ca.includeLogs();</span>
-<span class="fc" id="L239">      exclude = ca.excludeLogs();</span>
+<span class="fc" id="L268">      mll = ca.minLevel();</span>
+<span class="fc" id="L269">      clp = ca.collectPrinted();</span>
+<span class="fc" id="L270">      nrLogs = ca.nrLogs();</span>
+<span class="fc" id="L271">      include = ca.includeLogs();</span>
+<span class="fc" id="L272">      exclude = ca.excludeLogs();</span>
     }
-<span class="fc" id="L241">    return sysTest.collect(mll, nrLogs, clp, include, exclude);</span>
+<span class="fc" id="L274">    return sysTest.collect(mll, nrLogs, clp, include, exclude);</span>
   }
 
   private void handlePrintLogAnnotations(final Description description, final TestLoggers sysTest) {
-<span class="fc" id="L245">    PrintLogsConfigs prtAnnots = description.getAnnotation(PrintLogsConfigs.class);</span>
-<span class="fc bfc" id="L246" title="All 2 branches covered.">    if (prtAnnots != null) {</span>
-<span class="fc bfc" id="L247" title="All 2 branches covered.">      for (PrintLogs prtAnnot : prtAnnots.value()) {</span>
-<span class="pc bpc" id="L248" title="1 of 2 branches missed.">        sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE</span>
-<span class="pc" id="L249">                ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());</span>
+<span class="fc" id="L278">    PrintLogsConfigs prtAnnots = description.getAnnotation(PrintLogsConfigs.class);</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">    if (prtAnnots != null) {</span>
+<span class="fc bfc" id="L280" title="All 2 branches covered.">      for (PrintLogs prtAnnot : prtAnnots.value()) {</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">        sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE</span>
+<span class="pc" id="L282">                ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());</span>
       }
     } else {
-<span class="fc" id="L252">      PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);</span>
-<span class="fc bfc" id="L253" title="All 2 branches covered.">      if (prtAnnot != null) {</span>
-<span class="pc bpc" id="L254" title="1 of 2 branches missed.">        sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE</span>
-<span class="pc" id="L255">                ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());</span>
+<span class="fc" id="L285">      PrintLogs prtAnnot = description.getAnnotation(PrintLogs.class);</span>
+<span class="fc bfc" id="L286" title="All 2 branches covered.">      if (prtAnnot != null) {</span>
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">        sysTest.print(prtAnnot.category(), TestLoggers.EXECUTED_FROM_IDE</span>
+<span class="pc" id="L288">                ? prtAnnot.ideMinLevel() : prtAnnot.minLevel(), prtAnnot.greedy());</span>
       }
     }
-<span class="fc" id="L258">  }</span>
+<span class="fc" id="L291">  }</span>
 
 
   @Override
   @SuppressFBWarnings(&quot;AFBR_ABNORMAL_FINALLY_BLOCK_RETURN&quot;)
   public synchronized void testFinished(final Description description) {
-<span class="fc" id="L264">    TestTimeSource.clear();</span>
-<span class="fc" id="L265">    TestBaggage baggage = baggages.remove(description);</span>
-<span class="fc" id="L266">    try (LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; h = baggage.getLogCollection()) {</span>
-<span class="fc" id="L267">      handleUncaughtExceptions(description, h.get());</span>
+<span class="fc" id="L297">    TestTimeSource.clear();</span>
+<span class="fc" id="L298">    TestBaggage baggage = baggages.remove(description);</span>
+<span class="fc" id="L299">    try (LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; h = baggage.getLogCollection()) {</span>
+<span class="fc" id="L300">      handleUncaughtExceptions(description, h.get());</span>
     } finally {
       try {
-<span class="fc bfc" id="L270" title="All 2 branches covered.">        for (LogAssert assertion : baggage.getAssertions()) {</span>
+<span class="fc bfc" id="L303" title="All 2 branches covered.">        for (LogAssert assertion : baggage.getAssertions()) {</span>
           try {
-<span class="fc" id="L272">            assertion.assertObservation();</span>
-<span class="nc" id="L273">          } catch (AssertionError ae) {</span>
-<span class="nc" id="L274">            throw new AssertionError(&quot;Failed test &quot; + description + &quot;, &quot; + ae.getMessage(), ae);</span>
-<span class="fc" id="L275">          }</span>
-<span class="fc" id="L276">        }</span>
+<span class="fc" id="L305">            assertion.assertObservation();</span>
+<span class="nc" id="L306">          } catch (AssertionError ae) {</span>
+<span class="nc" id="L307">            throw new AssertionError(&quot;Failed test &quot; + description + &quot;, &quot; + ae.getMessage(), ae);</span>
+<span class="fc" id="L308">          }</span>
+<span class="fc" id="L309">        }</span>
       } finally {
-<span class="fc" id="L278">        closeAllContextCloseables(baggage);</span>
+<span class="fc" id="L311">        closeAllContextCloseables(baggage);</span>
       }
     }
-<span class="fc" id="L281">  }</span>
+<span class="fc" id="L314">  }</span>
 
   private void closeAllContextCloseables(final TestBaggage baggage) {
-<span class="fc" id="L284">    ExecutionContext ctx = baggage.getCtx();</span>
-<span class="fc" id="L285">    ExecutionContext currentThreadContext = ExecutionContexts.current();</span>
-<span class="pc bpc" id="L286" title="1 of 2 branches missed.">    if (ctx == currentThreadContext) {</span>
-<span class="fc" id="L287">      ctx.close();</span>
+<span class="fc" id="L317">    ExecutionContext ctx = baggage.getCtx();</span>
+<span class="fc" id="L318">    ExecutionContext currentThreadContext = ExecutionContexts.current();</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">    if (ctx == currentThreadContext) {</span>
+<span class="fc" id="L320">      ctx.close();</span>
     } else {
-<span class="nc" id="L289">      throw new IllegalStateException(&quot;JUnit Threading model not as expected &quot; + ctx + &quot; != &quot;</span>
+<span class="nc" id="L322">      throw new IllegalStateException(&quot;JUnit Threading model not as expected &quot; + ctx + &quot; != &quot;</span>
               + currentThreadContext);
     }
-<span class="fc" id="L292">  }</span>
+<span class="fc" id="L325">  }</span>
 
   @Override
   public synchronized void testFailure(final Failure failure) {
-<span class="nc" id="L296">    Description description = failure.getDescription();</span>
-<span class="nc" id="L297">    TestBaggage bg = baggages.get(description);</span>
-<span class="nc bnc" id="L298" title="All 2 branches missed.">    if (bg != null) { // will Happen when a Uncaught Exception causes a test to fail.</span>
-<span class="nc" id="L299">      LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; handler = bg.getLogCollection();</span>
-<span class="nc" id="L300">      try (LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; h = handler) {</span>
-<span class="nc" id="L301">        dumpDebugInfo(h.get(), description);</span>
+<span class="nc" id="L329">    Description description = failure.getDescription();</span>
+<span class="nc" id="L330">    TestBaggage bg = baggages.get(description);</span>
+<span class="nc bnc" id="L331" title="All 2 branches missed.">    if (bg != null) { // will Happen when a Uncaught Exception causes a test to fail.</span>
+<span class="nc" id="L332">      LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; handler = bg.getLogCollection();</span>
+<span class="nc" id="L333">      try (LogCollection&lt;ArrayDeque&lt;TestLogRecord&gt;&gt; h = handler) {</span>
+<span class="nc" id="L334">        dumpDebugInfo(h.get(), description);</span>
       }
     }
-<span class="nc" id="L304">  }</span>
+<span class="nc" id="L337">  }</span>
 
   private void handleUncaughtExceptions(final Description description,
           @WillNotClose final Collection&lt;TestLogRecord&gt; logs) {
-<span class="fc" id="L308">    List&lt;UncaughtExceptionDetail&gt; exceptions = uncaughtExceptionHandler.getUncaughtExceptions();</span>
-<span class="pc bpc" id="L309" title="1 of 2 branches missed.">    if (!exceptions.isEmpty()) {</span>
-<span class="nc" id="L310">      AssertionError assertionError = new AssertionError(&quot;Uncaught exceptions encountered &quot; + exceptions);</span>
-<span class="nc bnc" id="L311" title="All 2 branches missed.">      for (UncaughtExceptionDetail ex : exceptions) {</span>
-<span class="nc" id="L312">        Throwable throwable = ex.getThrowable();</span>
-<span class="nc" id="L313">        LOG.info(&quot;Uncaught exceptions during {} in thread {}&quot;, description, ex.getThread(), ex.getThrowable());</span>
-<span class="nc" id="L314">        assertionError.addSuppressed(throwable);</span>
-<span class="nc" id="L315">      }</span>
-<span class="nc" id="L316">      dumpDebugInfo(logs, description);</span>
-<span class="nc" id="L317">      throw assertionError;</span>
+<span class="fc" id="L341">    List&lt;UncaughtExceptionDetail&gt; exceptions = uncaughtExceptionHandler.getUncaughtExceptions();</span>
+<span class="pc bpc" id="L342" title="1 of 2 branches missed.">    if (!exceptions.isEmpty()) {</span>
+<span class="nc" id="L343">      AssertionError assertionError = new AssertionError(&quot;Uncaught exceptions encountered &quot; + exceptions);</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">      for (UncaughtExceptionDetail ex : exceptions) {</span>
+<span class="nc" id="L345">        Throwable throwable = ex.getThrowable();</span>
+<span class="nc" id="L346">        LOG.info(&quot;Uncaught exceptions during {} in thread {}&quot;, description, ex.getThread(), ex.getThrowable());</span>
+<span class="nc" id="L347">        assertionError.addSuppressed(throwable);</span>
+<span class="nc" id="L348">      }</span>
+<span class="nc" id="L349">      dumpDebugInfo(logs, description);</span>
+<span class="nc" id="L350">      throw assertionError;</span>
     }
-<span class="fc" id="L319">  }</span>
+<span class="fc" id="L352">  }</span>
 
   public ExceptionHandoverRegistry getUncaughtExceptionHandler() {
-<span class="fc" id="L322">    return uncaughtExceptionHandler;</span>
+<span class="fc" id="L355">    return uncaughtExceptionHandler;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L327">    return &quot;DetailOnFailureRunListener{&quot; + &quot;minLogLevel=&quot; + minLogLevel</span>
+<span class="nc" id="L360">    return &quot;DetailOnFailureRunListener{&quot; + &quot;minLogLevel=&quot; + minLogLevel</span>
             + &quot;, maxDebugLogsCollected=&quot; + maxDebugLogsCollected + &quot;, baggages=&quot;
             + baggages + &quot;, collectPrinted=&quot; + collectPrinted + '}';
   }
