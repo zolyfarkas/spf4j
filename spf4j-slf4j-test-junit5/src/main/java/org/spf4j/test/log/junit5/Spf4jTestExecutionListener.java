@@ -18,8 +18,6 @@ package org.spf4j.test.log.junit5;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
