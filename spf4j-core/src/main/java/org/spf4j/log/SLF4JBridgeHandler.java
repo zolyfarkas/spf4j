@@ -388,14 +388,14 @@ public final class SLF4JBridgeHandler extends Handler {
       }
     }
     Object[] params = record.getParameters();
-    StringBuilder msg = SB.get().get();
-    if (msg == null) {
-      msg = new StringBuilder(64);
-      SB.set(new SoftReference<>(msg));
-    } else  {
-      msg.setLength(0);
-    }
     if (params != null && params.length > 0) {
+      StringBuilder msg = SB.get().get();
+      if (msg == null) {
+        msg = new StringBuilder(64);
+        SB.set(new SoftReference<>(msg));
+      } else  {
+        msg.setLength(0);
+      }
       try {
         boolean[] used;
         try {
