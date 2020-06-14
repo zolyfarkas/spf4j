@@ -89,6 +89,7 @@ public final class SLF4JBridgeHandler extends Handler {
 
   };
 
+  private static final MessageFormat INVALID_FORMAT = new MessageFormat("SPF4J Invalid Message Format");
 
   private static final LoadingCache<String, MessageFormat> FORMAT_CACHE
           = CacheBuilder.newBuilder()
@@ -96,7 +97,13 @@ public final class SLF4JBridgeHandler extends Handler {
                   1024)).build(new CacheLoader<String, MessageFormat>() {
             @Override
             public MessageFormat load(final String key) {
-              return new MessageFormat(key);
+              try {
+                return new MessageFormat(key);
+              } catch (IllegalArgumentException ex) {
+                // certain loggers extend LogMessage with printf syntax...
+                LoggerFactory.getLogger(SLF4JBridgeHandler.class).trace("Unable to forrmat {}", key, ex);
+                return INVALID_FORMAT;
+              }
             }
           });
 
@@ -392,7 +399,14 @@ public final class SLF4JBridgeHandler extends Handler {
       try {
         boolean[] used;
         try {
-          used =  FORMAT_CACHE.getUnchecked(message).format(params, msg);
+          MessageFormat msgFormat = FORMAT_CACHE.getUnchecked(message);
+          if (msgFormat != INVALID_FORMAT) {
+            used =  msgFormat.format(params, msg);
+          } else {
+            // Some libraries like jboss log manager embeded do unkosher stuff,
+            // like printf style formatting see ExtLogRecord...
+            return Pair.of(record.getMessage(), record.getParameters());
+          }
         } catch (IOException ex) {
           throw new UncheckedIOException(ex);
         }
