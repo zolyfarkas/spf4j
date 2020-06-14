@@ -28,6 +28,7 @@ import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
+import org.spf4j.base.Arrays;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
@@ -50,14 +51,19 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
     instance = Spf4jTestLogRunListenerSingleton.getOrCreateListenerInstance();
   }
 
-  private static Annotation[] getMethodAnntations(final String className,
+  private static Annotation[] getMethodAnnotations(final String className,
           final String methodName, final String paramsCsv) {
     try {
-      List<String> params = Csv.readRow(paramsCsv);
-      Class<?>[] pTypes = new Class[params.size()];
-      int i = 0;
-      for (String pType : params) {
-        pTypes[i++] = Class.forName(pType);
+      Class<?>[] pTypes;
+      if (paramsCsv.isEmpty()) {
+        pTypes = Arrays.EMPTY_CLASS_ARRAY;
+      } else {
+        List<String> params = Csv.readRow(paramsCsv);
+        pTypes = new Class[params.size()];
+        int i = 0;
+        for (String pType : params) {
+          pTypes[i++] = Class.forName(pType);
+        }
       }
       return Class.forName(className).getMethod(methodName, pTypes).getAnnotations();
     } catch (CsvParseException | ClassNotFoundException | NoSuchMethodException ex) {
@@ -75,7 +81,7 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
           String className = ms.getClassName();
           String methodName = ms.getMethodName();
           Description descr = Description.createTestDescription(className, methodName,
-                  getMethodAnntations(className, methodName, ms.getMethodParameterTypes()));
+                  getMethodAnnotations(className, methodName, ms.getMethodParameterTypes()));
           resultListener.testStarted(descr);
           instance.testStarted(descr);
         } catch (Exception ex) {
@@ -96,7 +102,7 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
           String className = ms.getClassName();
           String methodName = ms.getMethodName();
           Description description = Description.createTestDescription(className, methodName,
-                  getMethodAnntations(className, methodName, ms.getMethodParameterTypes()));
+                  getMethodAnnotations(className, methodName, ms.getMethodParameterTypes()));
           if (testExecutionResult.getStatus() != TestExecutionResult.Status.SUCCESSFUL) {
             Optional<Throwable> throwable = testExecutionResult.getThrowable();
             Failure failure = new Failure(description, throwable.isPresent() ? throwable.get() : null);
@@ -105,6 +111,8 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
           }
           resultListener.testFinished(description);
           instance.testFinished(description);
+        } catch (RuntimeException ex) {
+          throw ex;
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         }
