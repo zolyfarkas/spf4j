@@ -18,6 +18,9 @@ package org.spf4j.test.log.junit5;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -117,6 +120,17 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
           throw new RuntimeException(ex);
         }
       }
+    }
+  }
+
+  public void testPlanExecutionStarted(final TestPlan testPlan) {
+    try {
+      instance.testRunStarted(Description.createSuiteDescription(testPlan.getRoots().stream()
+              .map(TestIdentifier::getDisplayName).collect(Collectors.joining(","))));
+    } catch (RuntimeException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
     }
   }
 
