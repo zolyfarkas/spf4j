@@ -58,6 +58,17 @@ with tons of debug info dumped to output all the time. But making it available w
  NOTE: since logging is JVM global, you should run your unit tests single threaded to be able to easily reason about your logging,
  and more accurate log message attribution.
 
+ When using junit 5 you will need to use:
+
+      <dependency>
+        <groupId>org.spf4j</groupId>
+        <artifactId>spf4j-slf4j-test-junit5</artifactId>
+        <scope>test</scope>
+        <version>LATEST</version>
+      </dependency>
+
+ you will not need to manually specify the listener, this will happen automatically through the ServiceLoader mechanism.
+
 ### JDK 9+ notes
 
 When running on java 9 or higher you will receive warnings like:
