@@ -42,6 +42,7 @@ import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.logging.Handler;
@@ -90,6 +91,31 @@ public final class SLF4JBridgeHandler extends Handler {
   };
 
   private static final MessageFormat INVALID_FORMAT = new MessageFormat("SPF4J Invalid Message Format");
+
+  private static class Lazy {
+    private static final LoadingCache<Locale, LoadingCache<String, MessageFormat>> LOCALIZED_FORMAT_CACHE
+          = CacheBuilder.newBuilder()
+                  .build(new CacheLoader<Locale, LoadingCache<String, MessageFormat>>() {
+                    @Override
+                    public LoadingCache<String, MessageFormat> load(final Locale locale) throws Exception {
+                      return CacheBuilder.newBuilder()
+                              .maximumSize(Integer.getInteger("spf4j.julBridge.MaxFormatCacheSize",
+                                      1024)).build(new CacheLoader<String, MessageFormat>() {
+                                @Override
+                                public MessageFormat load(final String key) {
+                                  try {
+                                    return new MessageFormat(key, locale);
+                                  } catch (IllegalArgumentException ex) {
+                                    // certain loggers extend LogMessage with printf syntax...
+                                    LoggerFactory.getLogger(Lazy.class).trace("Unable to forrmat {}", key, ex);
+                                    return INVALID_FORMAT;
+                                  }
+                                }
+                              });
+                    }
+                  }
+                  );
+  }
 
   private static final LoadingCache<String, MessageFormat> FORMAT_CACHE
           = CacheBuilder.newBuilder()
@@ -399,7 +425,12 @@ public final class SLF4JBridgeHandler extends Handler {
       try {
         boolean[] used;
         try {
-          MessageFormat msgFormat = FORMAT_CACHE.getUnchecked(message);
+          MessageFormat msgFormat;
+          if (bundle == null) {
+            msgFormat = FORMAT_CACHE.getUnchecked(message);
+          } else {
+            msgFormat = Lazy.LOCALIZED_FORMAT_CACHE.getUnchecked(bundle.getLocale()).getUnchecked(message);
+          }
           if (msgFormat != INVALID_FORMAT) {
             used =  msgFormat.format(params, msg);
           } else {
