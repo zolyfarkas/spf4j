@@ -122,6 +122,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
         res = instance;
         if (res == null) {
           res = new Spf4jTestLogRunListenerSingleton();
+          LOG.info("Spf4jTestLogRunListener instantiated");
           instance = res;
         }
       }
