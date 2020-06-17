@@ -19,6 +19,7 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.junit.Test;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
@@ -40,6 +41,10 @@ import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
  */
 public final class Spf4jTestExecutionListener implements TestExecutionListener {
 
+  static {
+    System.setProperty("junit.jupiter.extensions.autodetection.enabled", "true");
+  }
+
   private final Spf4jTestLogRunListenerSingleton instance;
 
   private final Result result;
@@ -49,7 +54,17 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
   public Spf4jTestExecutionListener() {
     result = new Result();
     resultListener = result.createListener();
-    instance = Spf4jTestLogRunListenerSingleton.getOrCreateListenerInstance();
+    instance = Spf4jTestLogRunListenerSingleton
+            .getOrCreateListenerInstance(Spf4jTestExecutionListener::getTimeoutMillis);
+  }
+
+  public static long getTimeoutMillis(final Description desc, final long defaultTestTimeoutMillis) {
+              Test ta = desc.getAnnotation(Test.class);
+    if (ta != null && ta.timeout() > 0) {
+      return ta.timeout();
+    } else {
+      return Spf4jTestLogRunListenerSingleton.getTimeoutMillis(desc, defaultTestTimeoutMillis);
+    }
   }
 
   private static Annotation[] getMethodAnnotations(final String className,
@@ -84,7 +99,6 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
           Description descr = Description.createTestDescription(className, methodName,
                   getMethodAnnotations(className, methodName, ms.getMethodParameterTypes()));
           resultListener.testStarted(descr);
-          instance.testStarted(descr);
         } catch (Exception ex) {
           throw new RuntimeException(ex);
         }
@@ -111,7 +125,7 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
             instance.testFailure(failure);
           }
           resultListener.testFinished(description);
-          instance.testFinished(description);
+          instance.cleanupAfterTestFinish(description);
         } catch (RuntimeException ex) {
           throw ex;
         } catch (Exception ex) {
@@ -140,7 +154,5 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
   public String toString() {
     return "Spf4jTestExecutionListener{" + "instance=" + instance + ", result=" + result + '}';
   }
-
-
 
 }
