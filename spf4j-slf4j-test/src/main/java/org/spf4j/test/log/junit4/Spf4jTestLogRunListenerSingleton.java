@@ -224,36 +224,36 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     super.testStarted(description);
   }
 
-    private List<LogAssert> setUpUnitTestLogExpectations(final Description description,
+  private List<LogAssert> setUpUnitTestLogExpectations(final Description description,
           final TestLoggers sysTest) {
-      List<LogAssert> assertions = new ArrayList<>(2);
-      assertions.add(
-                  sysTest.dontExpect("", Level.ERROR,
-                  Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),
-                  LogMatchers.hasNotLogger(sysTest::isInExpectingErrorCategories),
-                  LogMatchers.hasLevel(Level.ERROR))));
-      ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);
-      if (expectLogs != null) {
-        ExpectLog[] value = expectLogs.value();
-        for (ExpectLog expect : value) {
-          assertions.add(
-                  sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),
-                          expect.expectationTimeout(), expect.timeUnit(),
-                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
-                  LogMatchers.hasLevel(expect.level()))));
-        }
-      } else {
-          ExpectLog expect = description.getAnnotation(ExpectLog.class);
-          if (expect != null) {
-            assertions.add(
-                  sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),
-                  expect.expectationTimeout(), expect.timeUnit(),
-                  Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
-                  LogMatchers.hasLevel(expect.level()))));
-          }
+    List<LogAssert> assertions = new ArrayList<>(2);
+    assertions.add(
+            sysTest.dontExpect("", Level.ERROR,
+                    Matchers.allOf(LogMatchers.noAttachment(Attachments.ASSERTED),
+                            LogMatchers.hasNotLogger(sysTest::isInExpectingErrorCategories),
+                            LogMatchers.hasLevel(Level.ERROR))));
+    ExpectLogs expectLogs = description.getAnnotation(ExpectLogs.class);
+    if (expectLogs != null) {
+      ExpectLog[] value = expectLogs.value();
+      for (ExpectLog expect : value) {
+        assertions.add(
+                sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),
+                        expect.expectationTimeout(), expect.timeUnit(),
+                        Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
+                                LogMatchers.hasLevel(expect.level()))));
       }
-      return assertions;
+    } else {
+      ExpectLog expect = description.getAnnotation(ExpectLog.class);
+      if (expect != null) {
+        assertions.add(
+                sysTest.expect(ExpectLog.Util.effectiveCategory(expect), expect.level(), expect.nrTimes(),
+                        expect.expectationTimeout(), expect.timeUnit(),
+                        Matchers.allOf(LogMatchers.hasMessageWithPattern(expect.messageRegexp()),
+                                LogMatchers.hasLevel(expect.level()))));
+      }
     }
+    return assertions;
+  }
 
   private LogCollection<ArrayDeque<TestLogRecord>> handleLogCollections(final Description description,
           final TestLoggers sysTest) {
