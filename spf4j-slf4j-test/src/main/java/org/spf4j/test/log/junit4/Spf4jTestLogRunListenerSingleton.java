@@ -28,6 +28,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.annotation.WillNotClose;
 import javax.annotation.concurrent.ThreadSafe;
 import org.hamcrest.Matchers;
@@ -101,13 +102,33 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   private final String[] excludeLogsFromCollection;
 
+  public interface TimeoutSupplier {
+    long getTimeoutMillis(Description desc, long defaultTestTimeoutMillis);
+  }
+
+  private final TimeoutSupplier timeoutSupplier;
+
   private Spf4jTestLogRunListenerSingleton() {
+    this(Spf4jTestLogRunListenerSingleton::getTimeoutMillis);
+  }
+
+  public static long getTimeoutMillis(final Description desc, final long defaultTestTimeoutMillis) {
+              Test ta = desc.getAnnotation(Test.class);
+    if (ta != null && ta.timeout() > 0) {
+      return ta.timeout();
+    } else {
+      return defaultTestTimeoutMillis;
+    }
+  }
+
+  private Spf4jTestLogRunListenerSingleton(final TimeoutSupplier timeoutSupplier) {
     minLogLevel = Level.valueOf(System.getProperty("spf4j.test.log.collectMinLevel", "DEBUG"));
     maxDebugLogsCollected = Integer.getInteger("spf4j.test.log.collectmaxLogs", 100);
     defaultTestTimeoutMillis =  Long.getLong("spf4j.test.log.defaultTestTimeoutMillis", 120000);
     collectPrinted = Boolean.getBoolean("spf4j.test.log.collectPrintedLogs");
     excludeLogsFromCollection = Csv.readSystemProperty("spf4j.test.log.collectExclusions");
     baggages = new ConcurrentHashMap<>();
+    this.timeoutSupplier = timeoutSupplier;
     synchronized (Thread.class) {
       final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
       uncaughtExceptionHandler = new ExceptionAsserterUncaughtExceptionHandler(defaultHandler);
@@ -116,12 +137,21 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   }
 
   public static Spf4jTestLogRunListenerSingleton getOrCreateListenerInstance() {
+    return getOrCreateListenerInstance(null);
+  }
+
+  public static Spf4jTestLogRunListenerSingleton getOrCreateListenerInstance(
+          @Nullable final TimeoutSupplier timeoutSupplier) {
     Spf4jTestLogRunListenerSingleton res = instance;
     if (res == null) {
       synchronized (Spf4jTestLogRunListenerSingleton.class) {
         res = instance;
         if (res == null) {
-          res = new Spf4jTestLogRunListenerSingleton();
+          if (timeoutSupplier == null) {
+            res = new Spf4jTestLogRunListenerSingleton();
+          } else {
+            res = new Spf4jTestLogRunListenerSingleton(timeoutSupplier);
+          }
           instance = res;
         }
       }
@@ -205,16 +235,13 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   @Override
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public synchronized void testStarted(final Description description) throws Exception {
-    Test ta = description.getAnnotation(Test.class);
     ExecutionContext ctx;
     if (TestUtils.isExecutedWithDebuggerAgent()) {
       ctx = ExecutionContexts.start(description.getDisplayName());
-    } else if (ta != null && ta.timeout() > 0) {
-      ctx = ExecutionContexts.start(description.getDisplayName(), ta.timeout(), TimeUnit.MILLISECONDS);
-      registerDeadlockLogger(description, ctx, ta.timeout(), TimeUnit.MILLISECONDS);
     } else {
-      ctx = ExecutionContexts.start(description.getDisplayName(), defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);
-      registerDeadlockLogger(description, ctx, defaultTestTimeoutMillis, TimeUnit.MILLISECONDS);
+      long timeoutMillis = timeoutSupplier.getTimeoutMillis(description, defaultTestTimeoutMillis);
+      ctx = ExecutionContexts.start(description.getDisplayName(), timeoutMillis, TimeUnit.MILLISECONDS);
+      registerDeadlockLogger(description, ctx, timeoutMillis, TimeUnit.MILLISECONDS);
     }
     TestLoggers sysTest = TestLoggers.sys();
     LogCollection<ArrayDeque<TestLogRecord>> collectLogs = handleLogCollections(description, sysTest);
@@ -295,26 +322,34 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-
-  @Override
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-  public synchronized void testFinished(final Description description) {
+  public void assertionsAfterTestExecution(final Description description) {
     TestTimeSource.clear();
-    TestBaggage baggage = baggages.remove(description);
+    TestBaggage baggage = baggages.get(description);
     try (LogCollection<ArrayDeque<TestLogRecord>> h = baggage.getLogCollection()) {
       handleUncaughtExceptions(description, h.get());
     } finally {
-      try {
-        for (LogAssert assertion : baggage.getAssertions()) {
-          try {
-            assertion.assertObservation();
-          } catch (AssertionError ae) {
-            throw new AssertionError("Failed test " + description + ", " + ae.getMessage(), ae);
-          }
+      for (LogAssert assertion : baggage.getAssertions()) {
+        try {
+          assertion.assertObservation();
+        } catch (AssertionError ae) {
+          throw new AssertionError("Failed test " + description + ", " + ae.getMessage(), ae);
         }
-      } finally {
-        closeAllContextCloseables(baggage);
       }
+    }
+  }
+
+  public void cleanupAfterTestFinish(final Description description) {
+    TestBaggage baggage = baggages.remove(description);
+    closeAllContextCloseables(baggage);
+  }
+
+  @Override
+  public synchronized void testFinished(final Description description) {
+    try {
+      assertionsAfterTestExecution(description);
+    } finally {
+      cleanupAfterTestFinish(description);
     }
   }
 
