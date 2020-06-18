@@ -323,7 +323,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   }
 
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-  public void assertionsAfterTestExecution(final Description description) {
+  public synchronized void assertionsAfterTestExecution(final Description description) {
     TestTimeSource.clear();
     TestBaggage baggage = baggages.get(description);
     try (LogCollection<ArrayDeque<TestLogRecord>> h = baggage.getLogCollection()) {
@@ -339,7 +339,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  public void cleanupAfterTestFinish(final Description description) {
+  public synchronized void cleanupAfterTestFinish(final Description description) {
     TestBaggage baggage = baggages.remove(description);
     closeAllContextCloseables(baggage);
   }
