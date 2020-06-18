@@ -36,13 +36,34 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
     private static final String LOGGER_FACTORY_CLASS_STR = TestLoggers.class.getName();
 
     /**
+    static final ClassLoader PLATFORM_CLASS_LOADER;
+
+    static {
+        ClassLoader cl = null;
+        try {
+            cl = (ClassLoader) ClassLoader.class.getDeclaredMethod("getPlatformClassLoader").invoke(null);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+          throw new ExceptionInInitializerError(e);
+        }
+        PLATFORM_CLASS_LOADER = cl;
+    }
+    */
+
+    /**
      * The ILoggerFactory instance returned by the {@link #getLoggerFactory}
      * method should always be the same object
      */
     private final ILoggerFactory loggerFactory;
 
     private StaticLoggerBinder() {
+      Thread currentThread = Thread.currentThread();
+      ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+      currentThread.setContextClassLoader(ClassLoader.getSystemClassLoader());
+      try {
         loggerFactory = TestLoggers.sys();
+      } finally {
+         currentThread.setContextClassLoader(contextClassLoader);
+      }
     }
 
     /**

@@ -59,9 +59,7 @@ import sun.misc.Contended;
 @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 public final class TestLoggers implements ILoggerFactory {
 
-  public static final  boolean EXECUTED_FROM_IDE = TestUtils.isExecutedFromIDE();
-
-  private static final TestLoggers INSTANCE = new TestLoggers();
+  public static final boolean EXECUTED_FROM_IDE = TestUtils.isExecutedFromIDE();
 
   private final ConcurrentMap<String, Logger> loggerMap;
 
@@ -75,12 +73,16 @@ public final class TestLoggers implements ILoggerFactory {
 
   private final SortedSet<String> expectingErrorsIn;
 
+  private static class Lazy {
+    private static final TestLoggers INSTANCE = new TestLoggers();
+  }
+
   @GuardedBy("sync")
   @Contended
   private volatile LogConfig config;
 
   public static TestLoggers sys() {
-    return INSTANCE;
+    return Lazy.INSTANCE;
   }
 
   @SuppressWarnings("checkstyle:regexp")
