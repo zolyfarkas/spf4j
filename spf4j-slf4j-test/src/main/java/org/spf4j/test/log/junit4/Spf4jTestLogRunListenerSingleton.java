@@ -72,6 +72,17 @@ import org.spf4j.test.matchers.LogMatchers;
 @ThreadSafe
 public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
+  public static final ExecutionContext.SimpleTag<TestBaggage> BAG_TAG
+          = new ExecutionContext.SimpleTag<TestBaggage>() {
+
+    @Override
+    public String toString() {
+      return "BaggageTag";
+    }
+
+  };
+
+
   private static final ScheduledExecutorService SCHEDULER  =
           MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(
                   Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
@@ -79,12 +90,25 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
                           Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
                           Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY))));
 
-  private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);
+  private static class Lazy {
+    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
+  }
+
+  private static Logger getLogger() {
+    Thread currentThread = Thread.currentThread();
+    ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+    try {
+      currentThread.setContextClassLoader(ClassLoader.getSystemClassLoader());
+      return Lazy.LOG;
+    } finally {
+      currentThread.setContextClassLoader(contextClassLoader);
+    }
+  }
 
   private static volatile Spf4jTestLogRunListenerSingleton instance;
 
   static {
-    ValidationUtils.validateLogger(LOG);
+    ValidationUtils.validateLogger(getLogger());
     System.setProperty("spf4j.timeSource", TestTimeSource.class.getName());
   }
 
@@ -161,7 +185,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public void testRunStarted(final Description description) {
-    LOG.info("Started test run: {}", description);
+    getLogger().info("Started test run: {}", description);
   }
 
   @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
@@ -193,7 +217,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       for (UncaughtExceptionDetail ex : exceptions) {
         Throwable throwable = ex.getThrowable();
         assertionError.addSuppressed(throwable);
-        LOG.info("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
+        getLogger().info("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
                 ex.getThread(), throwable);
       }
       throw assertionError;
@@ -224,7 +248,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
           final ExecutionContext ctx, final long delay, final TimeUnit tu) {
     final long delayMillis = Math.max(tu.toMillis(delay) - 10,  0);
     ScheduledFuture<?> future = SCHEDULER.schedule(() -> {
-      LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
+      getLogger().info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
       Threads.dumpToPrintStream(System.err);
     }, delayMillis, TimeUnit.MILLISECONDS);
     ctx.addCloseable(() -> {
@@ -246,7 +270,9 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     TestLoggers sysTest = TestLoggers.sys();
     LogCollection<ArrayDeque<TestLogRecord>> collectLogs = handleLogCollections(description, sysTest);
     List<LogAssert> logExpectations = setUpUnitTestLogExpectations(description, sysTest);
-    baggages.put(description, new TestBaggage(ctx, collectLogs, logExpectations));
+    TestBaggage testBaggage = new TestBaggage(ctx, collectLogs, logExpectations);
+    baggages.put(description, testBaggage);
+    ctx.put(BAG_TAG, testBaggage);
     handlePrintLogAnnotations(description, sysTest);
     super.testStarted(description);
   }
@@ -323,9 +349,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   }
 
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-  public synchronized void assertionsAfterTestExecution(final Description description) {
+  public synchronized void assertionsAfterTestExecution(final Description description, final TestBaggage baggage) {
     TestTimeSource.clear();
-    TestBaggage baggage = baggages.get(description);
     try (LogCollection<ArrayDeque<TestLogRecord>> h = baggage.getLogCollection()) {
       handleUncaughtExceptions(description, h.get());
     } finally {
@@ -339,17 +364,21 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  public synchronized void cleanupAfterTestFinish(final Description description) {
-    TestBaggage baggage = baggages.remove(description);
+  public synchronized void cleanupAfterTestFinish(final Description description, final TestBaggage baggage) {
+    if (baggage == null) {
+      throw new IllegalStateException("Test baggage for " + description + "missing."
+           + "please consult documentattion for correct usage and/or report this issue.");
+    }
     closeAllContextCloseables(baggage);
   }
 
   @Override
   public synchronized void testFinished(final Description description) {
+    TestBaggage baggage = baggages.remove(description);
     try {
-      assertionsAfterTestExecution(description);
+      assertionsAfterTestExecution(description, baggage);
     } finally {
-      cleanupAfterTestFinish(description);
+      cleanupAfterTestFinish(description, baggage);
     }
   }
 
@@ -383,7 +412,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
       for (UncaughtExceptionDetail ex : exceptions) {
         Throwable throwable = ex.getThrowable();
-        LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
+        getLogger().info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
         assertionError.addSuppressed(throwable);
       }
       dumpDebugInfo(logs, description);
