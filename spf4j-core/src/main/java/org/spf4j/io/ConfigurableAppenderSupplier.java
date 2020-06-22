@@ -73,7 +73,8 @@ public final class ConfigurableAppenderSupplier implements ObjectAppenderSupplie
     }
     if (registerFromServiceLoader) {
       @SuppressWarnings("unchecked")
-      ServiceLoader<ObjectAppender<?>> load = (ServiceLoader) ServiceLoader.load(ObjectAppender.class);
+      ServiceLoader<ObjectAppender<?>> load = (ServiceLoader) ServiceLoader.load(ObjectAppender.class,
+              ObjectAppender.class.getClassLoader());
       Iterator<ObjectAppender<?>> iterator = load.iterator();
       while (iterator.hasNext()) {
         ObjectAppender<?> appender = iterator.next();
