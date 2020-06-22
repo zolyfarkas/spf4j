@@ -25,7 +25,7 @@ import org.spf4j.test.log.TestLogRecord;
 /**
  * @author Zoltan Farkas
  */
-final class TestBaggage {
+public final class TestBaggage {
   private final ExecutionContext ctx;
   private final LogCollection<ArrayDeque<TestLogRecord>> logCollection;
   private final List<LogAssert> assertions;

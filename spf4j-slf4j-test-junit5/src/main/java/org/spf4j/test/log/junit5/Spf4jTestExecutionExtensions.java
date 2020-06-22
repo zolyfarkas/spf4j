@@ -16,6 +16,7 @@
 package org.spf4j.test.log.junit5;
 
 import java.lang.reflect.Method;
+import org.junit.Test;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -32,7 +33,16 @@ public final class Spf4jTestExecutionExtensions implements BeforeTestExecutionCa
 
   public Spf4jTestExecutionExtensions() {
     instance = Spf4jTestLogRunListenerSingleton
-            .getOrCreateListenerInstance(Spf4jTestExecutionListener::getTimeoutMillis);
+            .getOrCreateListenerInstance(Spf4jTestExecutionExtensions::getTimeoutMillis);
+  }
+
+  public static long getTimeoutMillis(final Description desc, final long defaultTestTimeoutMillis) {
+              Test ta = desc.getAnnotation(Test.class);
+    if (ta != null && ta.timeout() > 0) {
+      return ta.timeout();
+    } else {
+      return Spf4jTestLogRunListenerSingleton.getTimeoutMillis(desc, defaultTestTimeoutMillis);
+    }
   }
 
   @Override

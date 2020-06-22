@@ -18,22 +18,20 @@ package org.spf4j.test.log.junit5;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import org.junit.Test;
 import org.junit.platform.engine.TestExecutionResult;
 import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.TestIdentifier;
-import org.junit.platform.launcher.TestPlan;
 import org.junit.runner.Description;
-import org.junit.runner.Result;
-import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
+import org.slf4j.LoggerFactory;
 import org.spf4j.base.Arrays;
+import org.spf4j.base.ExecutionContext;
+import org.spf4j.base.ExecutionContexts;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
+import org.spf4j.test.log.junit4.TestBaggage;
 
 /**
  *
@@ -43,29 +41,11 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
 
   static {
     System.setProperty("junit.jupiter.extensions.autodetection.enabled", "true");
+    System.setProperty("org.jboss.logging.provider", "slf4j");
+    LoggerFactory.getLogger(Spf4jTestExecutionListener.class).info("Spf4jTestExecutionListener initialized");
   }
 
-  private final Spf4jTestLogRunListenerSingleton instance;
-
-  private final Result result;
-
-  private final RunListener resultListener;
-
-  public Spf4jTestExecutionListener() {
-    result = new Result();
-    resultListener = result.createListener();
-    instance = Spf4jTestLogRunListenerSingleton
-            .getOrCreateListenerInstance(Spf4jTestExecutionListener::getTimeoutMillis);
-  }
-
-  public static long getTimeoutMillis(final Description desc, final long defaultTestTimeoutMillis) {
-              Test ta = desc.getAnnotation(Test.class);
-    if (ta != null && ta.timeout() > 0) {
-      return ta.timeout();
-    } else {
-      return Spf4jTestLogRunListenerSingleton.getTimeoutMillis(desc, defaultTestTimeoutMillis);
-    }
-  }
+  private final int maxDebugLogsCollected = Integer.getInteger("spf4j.test.log.collectmaxLogs", 100);
 
   private static Annotation[] getMethodAnnotations(final String className,
           final String methodName, final String paramsCsv) {
@@ -87,25 +67,6 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
     }
   }
 
-  public void executionStarted(final TestIdentifier testIdentifier) {
-    Optional<TestSource> source = testIdentifier.getSource();
-    if (source.isPresent()) {
-      TestSource ts = source.get();
-      if (ts instanceof MethodSource) {
-        MethodSource ms = (MethodSource) ts;
-        try {
-          String className = ms.getClassName();
-          String methodName = ms.getMethodName();
-          Description descr = Description.createTestDescription(className, methodName,
-                  getMethodAnnotations(className, methodName, ms.getMethodParameterTypes()));
-          resultListener.testStarted(descr);
-        } catch (Exception ex) {
-          throw new RuntimeException(ex);
-        }
-      }
-    }
-  }
-
   public void executionFinished(final TestIdentifier testIdentifier,
           final TestExecutionResult testExecutionResult) {
     Optional<TestSource> source = testIdentifier.getSource();
@@ -118,14 +79,14 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
           String methodName = ms.getMethodName();
           Description description = Description.createTestDescription(className, methodName,
                   getMethodAnnotations(className, methodName, ms.getMethodParameterTypes()));
-          if (testExecutionResult.getStatus() != TestExecutionResult.Status.SUCCESSFUL) {
-            Optional<Throwable> throwable = testExecutionResult.getThrowable();
-            Failure failure = new Failure(description, throwable.isPresent() ? throwable.get() : null);
-            resultListener.testFailure(failure);
-            instance.testFailure(failure);
+          ExecutionContext ctx = ExecutionContexts.current();
+          if (ctx != null) {
+            TestBaggage tb = ctx.get(Spf4jTestLogRunListenerSingleton.BAG_TAG);
+            if (testExecutionResult.getStatus() != TestExecutionResult.Status.SUCCESSFUL) {
+              Spf4jTestLogRunListenerSingleton.dumpDebugInfoOnFailure(tb, description, maxDebugLogsCollected);
+            }
+            Spf4jTestLogRunListenerSingleton.cleanupAfterTestFinish(description, tb);
           }
-          resultListener.testFinished(description);
-          instance.cleanupAfterTestFinish(description);
         } catch (RuntimeException ex) {
           throw ex;
         } catch (Exception ex) {
@@ -135,24 +96,11 @@ public final class Spf4jTestExecutionListener implements TestExecutionListener {
     }
   }
 
-  public void testPlanExecutionStarted(final TestPlan testPlan) {
-    try {
-      instance.testRunStarted(Description.createSuiteDescription(testPlan.getRoots().stream()
-              .map(TestIdentifier::getDisplayName).collect(Collectors.joining(","))));
-    } catch (RuntimeException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new RuntimeException(ex);
-    }
-  }
 
-  public void testPlanExecutionFinished(final TestPlan testPlan) {
-    instance.testRunFinished(result);
-  }
 
   @Override
   public String toString() {
-    return "Spf4jTestExecutionListener{" + "instance=" + instance + ", result=" + result + '}';
+    return "Spf4jTestExecutionListener";
   }
 
 }

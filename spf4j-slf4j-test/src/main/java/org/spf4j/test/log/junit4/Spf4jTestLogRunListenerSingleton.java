@@ -90,26 +90,15 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
                           Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
                           Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY))));
 
-  private static class Lazy {
-    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
-
-  private static Logger getLogger() {
-    Thread currentThread = Thread.currentThread();
-    ClassLoader contextClassLoader = currentThread.getContextClassLoader();
-    try {
-      currentThread.setContextClassLoader(ClassLoader.getSystemClassLoader());
-      return Lazy.LOG;
-    } finally {
-      currentThread.setContextClassLoader(contextClassLoader);
-    }
-  }
 
   private static volatile Spf4jTestLogRunListenerSingleton instance;
 
   static {
-    ValidationUtils.validateLogger(getLogger());
     System.setProperty("spf4j.timeSource", TestTimeSource.class.getName());
+  }
+
+  private static class Lazy {
+    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
   }
 
   private final Level minLogLevel;
@@ -185,7 +174,8 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public void testRunStarted(final Description description) {
-    getLogger().info("Started test run: {}", description);
+    ValidationUtils.validateLogger(Lazy.LOG);
+    Lazy.LOG.info("Started test run: {}", description);
   }
 
   @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
@@ -217,15 +207,15 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       for (UncaughtExceptionDetail ex : exceptions) {
         Throwable throwable = ex.getThrowable();
         assertionError.addSuppressed(throwable);
-        getLogger().info("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
+        Lazy.LOG.info("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
                 ex.getThread(), throwable);
       }
       throw assertionError;
     }
   }
 
-  private void dumpDebugInfo(final Collection<TestLogRecord> logs,
-          final Description description) {
+  private static void dumpDebugInfo(final Collection<TestLogRecord> logs,
+          final Description description, final int maxDebugLogsCollected) {
     Iterator<TestLogRecord> iterator = logs.iterator();
     if (iterator.hasNext()) {
       synchronized (System.out) { // do not interleave other stuff.
@@ -244,11 +234,11 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   }
 
-  private static void registerDeadlockLogger(final Description description,
+  private void registerDeadlockLogger(final Description description,
           final ExecutionContext ctx, final long delay, final TimeUnit tu) {
     final long delayMillis = Math.max(tu.toMillis(delay) - 10,  0);
     ScheduledFuture<?> future = SCHEDULER.schedule(() -> {
-      getLogger().info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
+      Lazy.LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
       Threads.dumpToPrintStream(System.err);
     }, delayMillis, TimeUnit.MILLISECONDS);
     ctx.addCloseable(() -> {
@@ -272,7 +262,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     List<LogAssert> logExpectations = setUpUnitTestLogExpectations(description, sysTest);
     TestBaggage testBaggage = new TestBaggage(ctx, collectLogs, logExpectations);
     baggages.put(description, testBaggage);
-    ctx.put(BAG_TAG, testBaggage);
+    ctx.putToRootParent(BAG_TAG, testBaggage);
     handlePrintLogAnnotations(description, sysTest);
     super.testStarted(description);
   }
@@ -348,8 +338,13 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
+  public void assertionsAfterTestExecution(final Description description) {
+    TestBaggage baggage = baggages.remove(description);
+    assertionsAfterTestExecution(description, baggage);
+  }
+
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
-  public synchronized void assertionsAfterTestExecution(final Description description, final TestBaggage baggage) {
+  public  void assertionsAfterTestExecution(final Description description, final TestBaggage baggage) {
     TestTimeSource.clear();
     try (LogCollection<ArrayDeque<TestLogRecord>> h = baggage.getLogCollection()) {
       handleUncaughtExceptions(description, h.get());
@@ -364,7 +359,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  public synchronized void cleanupAfterTestFinish(final Description description, final TestBaggage baggage) {
+  public static void cleanupAfterTestFinish(final Description description, final TestBaggage baggage) {
     if (baggage == null) {
       throw new IllegalStateException("Test baggage for " + description + "missing."
            + "please consult documentattion for correct usage and/or report this issue.");
@@ -382,7 +377,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
-  private void closeAllContextCloseables(final TestBaggage baggage) {
+  private static void closeAllContextCloseables(final TestBaggage baggage) {
     ExecutionContext ctx = baggage.getCtx();
     ExecutionContext currentThreadContext = ExecutionContexts.current();
     if (ctx == currentThreadContext) {
@@ -397,10 +392,15 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   public synchronized void testFailure(final Failure failure) {
     Description description = failure.getDescription();
     TestBaggage bg = baggages.get(description);
+    dumpDebugInfoOnFailure(bg, description, maxDebugLogsCollected);
+  }
+
+  public static void dumpDebugInfoOnFailure(final TestBaggage bg, final Description description,
+          final int maxDebugLogsCollected) {
     if (bg != null) { // will Happen when a Uncaught Exception causes a test to fail.
       LogCollection<ArrayDeque<TestLogRecord>> handler = bg.getLogCollection();
       try (LogCollection<ArrayDeque<TestLogRecord>> h = handler) {
-        dumpDebugInfo(h.get(), description);
+        dumpDebugInfo(h.get(), description, maxDebugLogsCollected);
       }
     }
   }
@@ -412,10 +412,10 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
       for (UncaughtExceptionDetail ex : exceptions) {
         Throwable throwable = ex.getThrowable();
-        getLogger().info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
+        Lazy.LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
         assertionError.addSuppressed(throwable);
       }
-      dumpDebugInfo(logs, description);
+      dumpDebugInfo(logs, description, maxDebugLogsCollected);
       throw assertionError;
     }
   }

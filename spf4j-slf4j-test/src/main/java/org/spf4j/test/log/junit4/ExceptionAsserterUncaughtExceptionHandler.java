@@ -29,7 +29,9 @@ import org.spf4j.test.log.UncaughtExceptionConsumer;
  */
 class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler, ExceptionHandoverRegistry {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ExceptionAsserterUncaughtExceptionHandler.class);
+  private static class Lazy {
+    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
+  }
 
   private final Thread.UncaughtExceptionHandler wrapped;
 
@@ -58,7 +60,7 @@ class ExceptionAsserterUncaughtExceptionHandler implements Thread.UncaughtExcept
     if (wrapped != null) {
       wrapped.uncaughtException(t, e);
     } else {
-      LOG.debug("Uncaught Exception in thread {}", t, e);
+      Lazy.LOG.debug("Uncaught Exception in thread {}", t, e);
     }
     UncaughtExceptionDetail exDetail = new UncaughtExceptionDetail(t, e);
     boolean accepted = false;
