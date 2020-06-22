@@ -67,9 +67,11 @@ final class LogConfigImpl implements LogConfig {
         ch.put(category, hndlrs);
         hndlrs.add(handler);
       } else {
-        hndlrs = new ArrayList<>(hndlrs);
-        ch.put(category, hndlrs);
+        List<LogHandler> exHandlers = hndlrs;
+        hndlrs = new ArrayList<>(exHandlers.size() + 1);
+        hndlrs.addAll(exHandlers);
         hndlrs.add(whereTo.applyAsInt(hndlrs), handler);
+        ch.put(category, hndlrs);
       }
     }
     return new LogConfigImpl(rh, ch);
@@ -92,6 +94,8 @@ final class LogConfigImpl implements LogConfig {
         hndlrs.remove(handler);
         if (hndlrs.isEmpty()) {
           ch.remove(category);
+        } else {
+          ch.put(category, hndlrs);
         }
       }
     }
