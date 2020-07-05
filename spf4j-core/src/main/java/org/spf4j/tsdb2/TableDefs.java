@@ -78,7 +78,7 @@ public final class TableDefs {
 
   public static Schema createSchema(final TableDef td) {
     String rawName = td.getName();
-    Schema recSchema = AvroCompatUtils.createRecordSchema(rawName.replace('.', '_'),
+    Schema recSchema = AvroCompatUtils.createRecordSchema(rawName.replace('.', '_').replace(',', '_'),
             td.getDescription(), null, false, false);
     List<ColumnDef> columns = td.getColumns();
     List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
