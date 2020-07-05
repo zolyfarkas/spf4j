@@ -126,7 +126,7 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
             new SpecificDatumReader<>(TableDef.class))) {
       for (TableDef td : stream) {
         String name = td.getName();
-        if (filter.test(name)) {
+        if (filter.test(TableDefs.sanitizeName(name))) {
           Pair<Schema, Set<Long>> exSch = result.get(name);
           if (exSch == null) {
             Schema sch = TableDefs.createSchema(td);

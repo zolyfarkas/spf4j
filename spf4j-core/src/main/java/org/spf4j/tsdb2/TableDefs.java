@@ -76,9 +76,13 @@ public final class TableDefs {
             "", columns, sampleTimeMillis, measurement.getMeasurementType());
   }
 
+  public static String sanitizeName(final String name) {
+    return name.replace('.', '_').replace(',', '_');
+  }
+
   public static Schema createSchema(final TableDef td) {
     String rawName = td.getName();
-    Schema recSchema = AvroCompatUtils.createRecordSchema(rawName.replace('.', '_').replace(',', '_'),
+    Schema recSchema = AvroCompatUtils.createRecordSchema(sanitizeName(rawName),
             td.getDescription(), null, false, false);
     List<ColumnDef> columns = td.getColumns();
     List<Schema.Field> fields = new ArrayList<>(columns.size() + 1);
