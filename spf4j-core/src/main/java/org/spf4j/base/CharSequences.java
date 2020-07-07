@@ -580,6 +580,26 @@ public final class CharSequences {
     return false;
   }
 
+  public static boolean isValidJavaId(final CharSequence name) {
+    int length = name.length();
+    if (length == 0) {
+      return false;
+    }
+    char first = name.charAt(0);
+    if (!(Character.isLetter(first) || first == '_')) {
+      return false;
+    }
+    for (int i = 1; i < length; i++) {
+      char c = name.charAt(i);
+      if (!(Character.isLetterOrDigit(c) || c == '_')) {
+        return false;
+      }
+
+    }
+    return true;
+  }
+
+
   public static boolean isValidFileName(@Nonnull final CharSequence fileName) {
     return !containsAnyChar(fileName, '/', '\\');
   }
