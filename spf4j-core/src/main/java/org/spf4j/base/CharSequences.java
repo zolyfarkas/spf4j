@@ -586,17 +586,17 @@ public final class CharSequences {
       return false;
     }
     char first = name.charAt(0);
-    if (!(Character.isLetter(first) || first == '_')) {
+    if (Character.isLetter(first) || first == '_') {
+      for (int i = 1; i < length; i++) {
+        char c = name.charAt(i);
+        if (c != '_' && !Character.isLetterOrDigit(c)) {
+          return false;
+        }
+      }
+      return true;
+    } else {
       return false;
     }
-    for (int i = 1; i < length; i++) {
-      char c = name.charAt(i);
-      if (!(Character.isLetterOrDigit(c) || c == '_')) {
-        return false;
-      }
-
-    }
-    return true;
   }
 
 

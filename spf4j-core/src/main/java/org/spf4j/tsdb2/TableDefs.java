@@ -39,6 +39,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.base.LangIdEncDec;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.tsdb2.avro.Aggregation;
@@ -77,7 +78,7 @@ public final class TableDefs {
   }
 
   public static String sanitizeName(final String name) {
-    return name.replace('.', '_').replace(',', '_');
+    return LangIdEncDec.lossyEncode(name);
   }
 
   public static Schema createSchema(final TableDef td) {
