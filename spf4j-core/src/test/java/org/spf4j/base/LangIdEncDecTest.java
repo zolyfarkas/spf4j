@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -43,6 +44,7 @@ public class LangIdEncDecTest {
   }
 
   @Test
+  @SuppressFBWarnings("ES_COMPARING_STRINGS_WITH_EQ")
   public void testLossyEnc2() {
     Assert.assertSame("abcd", LangIdEncDec.lossyEncode("abcd"));
   }
