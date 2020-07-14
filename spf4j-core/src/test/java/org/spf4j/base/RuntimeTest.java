@@ -136,6 +136,7 @@ public final class RuntimeTest {
 
   @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
   @Test(expected = CancellationException.class, timeout = 30000)
+  @ExpectLog(level = Level.ERROR, category = "org.spf4j.os")
   public void testExitCode5() throws InterruptedException, ExecutionException, TimeoutException {
     final CountDownLatch latch = new CountDownLatch(1);
     final CountDownLatch canCancel = new CountDownLatch(1);
@@ -147,10 +148,10 @@ public final class RuntimeTest {
           canCancel.countDown();
           Runtime.jrun(RuntimeTest.TestError3.class, 10000);
         } catch (InterruptedException ex) {
-          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+          LOG.info("Interrupted jrun TestError3", ex);
           latch.countDown();
         } catch (Exception ex) {
-          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+          LOG.info("Exception jrun TestError3", ex);
         }
       }
     });
