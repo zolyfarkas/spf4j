@@ -175,7 +175,6 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
   @Override
   public void testRunStarted(final Description description) {
     ValidationUtils.validateLogger(Lazy.LOG);
-    Lazy.LOG.info("Started test run: {}", description);
   }
 
   @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
