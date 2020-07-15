@@ -52,6 +52,7 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
   @Override
   public void assertObservation() {
+    close();
     if (!streamMatcher.isMatched()) {
       throw new AssertionError(streamMatcher.toString());
     }
