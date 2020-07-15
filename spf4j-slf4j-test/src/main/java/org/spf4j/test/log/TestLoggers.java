@@ -415,8 +415,8 @@ public final class TestLoggers implements ILoggerFactory {
   @SafeVarargs
   private final LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category, final long timeout, final TimeUnit unit, final Matcher<TestLogRecord>... matchers) {
-    LogMatchingHandler handler =
-            new LogMatchingHandlerAsync(assertSeen, category, minimumLogLevel, timeout, unit, matchers) {
+    LogMatchingHandler handler = new LogMatchingHandlerAsync(minimumLogLevel, timeout, unit,
+                    new ExactLogStreamMatcher(assertSeen, matchers)) {
 
       private boolean isClosed = false;
 
@@ -440,7 +440,8 @@ public final class TestLoggers implements ILoggerFactory {
   @SafeVarargs
   private final LogAssert logAssert(final boolean assertSeen, final Level minimumLogLevel,
           final String category,  final Matcher<TestLogRecord>... matchers) {
-    LogMatchingHandler handler = new LogMatchingHandler(assertSeen, category, minimumLogLevel, matchers) {
+    LogMatchingHandler handler = new LogMatchingHandler(minimumLogLevel,
+            new ExactLogStreamMatcher(assertSeen, matchers)) {
 
       private boolean isClosed = false;
 

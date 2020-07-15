@@ -16,7 +16,6 @@
 package org.spf4j.test.log;
 
 import java.util.concurrent.TimeUnit;
-import org.hamcrest.Matcher;
 import org.spf4j.base.TimeSource;
 import org.spf4j.log.Level;
 
@@ -28,41 +27,45 @@ abstract class LogMatchingHandlerAsync extends LogMatchingHandler {
 
   private final long timeout;
   private final TimeUnit tu;
+  private final Object sync;
 
-  @SafeVarargs
-  LogMatchingHandlerAsync(final boolean assertSeen, final String category,
-          final Level minLevel, final long timeout, final TimeUnit tu,  final Matcher<TestLogRecord>... matchers) {
-    super(assertSeen, category, minLevel, matchers);
+  LogMatchingHandlerAsync(
+          final Level minLevel, final long timeout, final TimeUnit tu, final LogStreamMatcher streamMatcher) {
+    super(minLevel, streamMatcher);
     this.timeout = timeout;
     this.tu = tu;
+    this.sync = new Object();
   }
 
   public abstract void close();
 
+
   @Override
-  public void matched() {
-    sync.notifyAll();
+  public TestLogRecord handle(final TestLogRecord record) {
+    TestLogRecord result = super.handle(record);
+    synchronized (sync) {
+      sync.notifyAll();
+    }
+    return result;
   }
+
+
 
   @Override
   public void assertObservation() {
     long deadline = TimeSource.nanoTime() + tu.toNanos(timeout);
     try {
       synchronized (sync) {
-        while (assertSeen ? at < matchers.length : at >= matchers.length) {
+        while (!streamMatcher.isMatched()) {
           long nanosToDeadline = deadline - TimeSource.nanoTime();
           if (nanosToDeadline <= 0) {
-            if (assertSeen) {
-              throw new AssertionError(seenDescription().toString());
-            } else {
-              throw new AssertionError(notSeenDescription().toString());
-            }
+              throw new AssertionError(this);
           }
           TimeUnit.NANOSECONDS.timedWait(sync, nanosToDeadline);
         }
       }
     } catch (InterruptedException ex) {
-      throw new AssertionError("Interrupted " + this, ex);
+      Thread.currentThread().isInterrupted();
     }
   }
 

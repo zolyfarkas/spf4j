@@ -59,6 +59,11 @@ public @interface ExpectLog {
   int nrTimes() default 1;
 
   /**
+   * @return the meaning of nrTimes.
+   */
+  OccurenceType occurenceType() default OccurenceType.EXACT;
+
+  /**
    * @return the number of TU to wait for a log message after the unit test execution is finished.
    */
   long expectationTimeout() default 0;
@@ -69,7 +74,7 @@ public @interface ExpectLog {
   TimeUnit timeUnit()  default TimeUnit.MILLISECONDS;
 
   final class Util {
-    
+
     private Util() { }
 
     public static String effectiveCategory(final ExpectLog ann) {

@@ -16,12 +16,6 @@
 package org.spf4j.test.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.StringDescription;
 import org.spf4j.log.Level;
 
 /**
@@ -31,32 +25,13 @@ import org.spf4j.log.Level;
 @SuppressWarnings("checkstyle:VisibilityModifier")
 abstract class LogMatchingHandler implements LogHandler, LogAssert {
 
-  private final String category;
-
   private final Level minLevel;
 
-  protected final Matcher<TestLogRecord>[] matchers;
+  final LogStreamMatcher streamMatcher;
 
-  protected final List<TestLogRecord> matched;
-
-  protected int at;
-
-  protected final boolean assertSeen;
-
-  protected final Object sync;
-
-  LogMatchingHandler(final boolean assertSeen, final String category,
-          final Level minLevel, final Matcher<TestLogRecord>... matchers) {
-    if (matchers.length < 1) {
-      throw new IllegalArgumentException("You need to provide at least a matcher " + Arrays.toString(matchers));
-    }
-    this.matchers = matchers;
-    this.matched = new ArrayList<>(matchers.length);
-    this.at = 0;
+  LogMatchingHandler(final Level minLevel, final LogStreamMatcher streamMatcher) {
+    this.streamMatcher = streamMatcher;
     this.minLevel = minLevel;
-    this.assertSeen = assertSeen;
-    this.category = category;
-    this.sync = new Object();
   }
 
   public abstract void close();
@@ -70,92 +45,22 @@ abstract class LogMatchingHandler implements LogHandler, LogAssert {
   @Override
   @SuppressFBWarnings("CFS_CONFUSING_FUNCTION_SEMANTICS")
   public TestLogRecord handle(final TestLogRecord record) {
-    synchronized (sync) {
-      if (at < matchers.length && matchers[at].matches(record)) {
-        at++;
-        record.attach(Attachments.ASSERTED);
-        matched.add(record);
-        matched();
-      }
-    }
+    streamMatcher.accept(record);
     return record;
   }
 
-  /**
-   * Override if you want to do a notify on the sync object.
-   * @param sync
-   */
-  @SuppressFBWarnings("ACEM_ABSTRACT_CLASS_EMPTY_METHODS")
-  public void matched() {
-  }
 
   @Override
   public void assertObservation() {
-    if (assertSeen) {
-      assertSeen();
-    } else {
-      assertNotSeen();
+    if (!streamMatcher.isMatched()) {
+      throw new AssertionError(streamMatcher.toString());
     }
   }
 
-  /**
-   * Assert that a sequence of leg messages has been seen.
-   */
-  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  private void assertSeen() {
-    close();
-    synchronized (sync) {
-      if (at < matchers.length) {
-        throw new AssertionError(seenDescription().toString());
-      }
-    }
-  }
-
-  Description seenDescription() {
-    Description description = new StringDescription();
-    description.appendText("Expected in category: ").appendText("\"").appendText(category).appendText("\"")
-            .appendText(" and minLevel: ").appendText(minLevel.toString()).appendText(":\n");
-    matchers[0].describeTo(description);
-    for (int i = 1; i < matchers.length; i++) {
-      description.appendText("\n");
-      matchers[i].describeTo(description);
-    }
-    description.appendText("\n");
-    description.appendText("Matched " + at);
-    return description;
-  }
-
-  /**
-   * Assert that a sequence of messages has not been seen.
-   */
-  @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
-  private void assertNotSeen() {
-    close();
-    synchronized (sync) {
-      if (at >= matchers.length) {
-        throw new AssertionError(notSeenDescription().toString());
-      }
-    }
-  }
-
-  Description notSeenDescription() {
-    Description description = new StringDescription();
-    description.appendText("Not expected in category:").appendText("\"").appendText(category).appendText("\"")
-            .appendText(" and minLevel:").appendText(minLevel.toString()).appendText(":\n");
-    matchers[0].describeTo(description);
-    for (int i = 1; i < matchers.length; i++) {
-      description.appendText("\n");
-      matchers[i].describeTo(description);
-    }
-    description.appendText("\n");
-    description.appendValueList("But seen:\n", ",", " logs", matched);
-    return description;
-  }
 
   @Override
   public String toString() {
-    return "LogMatchingHandler{" + "minLevel=" + minLevel + ", matchers=" + Arrays.toString(matchers)
-            + ", at=" + at + '}';
+    return "LogMatchingHandler{" + "minLevel=" + minLevel + ", matchers=" + streamMatcher + '}';
   }
 
 

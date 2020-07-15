@@ -37,7 +37,7 @@ public interface ObservationAssert {
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
   @DischargesObligation
-  default void assertObservation(final long time, final TimeUnit tu) {
+  default void assertObservation(final long time, final TimeUnit tu) throws InterruptedException {
     long deadline = TimeSource.nanoTime() + tu.toNanos(time);
     AssertionError rae;
     do  {
@@ -50,12 +50,7 @@ public interface ObservationAssert {
       if (rae == null) {
         return;
       }
-      try {
-        Thread.sleep(250);
-      } catch (InterruptedException ex) {
-        Thread.currentThread().interrupt();
-        throw new AssertionError(ex);
-      }
+      Thread.sleep(100);
     } while (TimeSource.nanoTime() < deadline);
     throw rae;
   }
