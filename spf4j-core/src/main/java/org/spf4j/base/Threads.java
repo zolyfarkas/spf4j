@@ -108,26 +108,6 @@ public final class Threads {
 
     }
 
-    @Nullable
-    public Thread getThreadByName(final String name) {
-      for (Thread t : getThreads()) {
-        if (name.equals(t.getName())) {
-          return t;
-        }
-      }
-      return null;
-    }
-
-   @Nullable
-    public Thread getThreadById(final long id) {
-      for (Thread t : getThreads()) {
-        if (id == t.getId()) {
-          return t;
-        }
-      }
-      return null;
-    }
-
     @Override
     @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
     public Thread[] getThreads() {
@@ -186,6 +166,26 @@ public final class Threads {
     }
     Arrays.fill(threads, nr, length, null);
     return nr;
+  }
+
+  @Nullable
+  public static Thread getThreadByName(final String name) {
+    for (Thread t : getThreads()) {
+      if (name.equals(t.getName())) {
+        return t;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static Thread getThreadById(final long id) {
+    for (Thread t : getThreads()) {
+      if (id == t.getId()) {
+        return t;
+      }
+    }
+    return null;
   }
 
   public static StackTraceElement[][] getStackTraces(final Thread... threads) {
