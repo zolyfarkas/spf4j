@@ -44,6 +44,7 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 /**
  * Thread utilities.
@@ -105,6 +106,26 @@ public final class Threads {
         throw new ExceptionInInitializerError(ex);
       }
 
+    }
+
+    @Nullable
+    public Thread getThreadByName(final String name) {
+      for (Thread t : getThreads()) {
+        if (name.equals(t.getName())) {
+          return t;
+        }
+      }
+      return null;
+    }
+
+   @Nullable
+    public Thread getThreadById(final long id) {
+      for (Thread t : getThreads()) {
+        if (id == t.getId()) {
+          return t;
+        }
+      }
+      return null;
     }
 
     @Override
