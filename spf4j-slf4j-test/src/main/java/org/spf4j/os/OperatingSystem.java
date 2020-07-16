@@ -278,21 +278,24 @@ public final class OperatingSystem {
           final long timeout, final TimeUnit unit)
           throws InterruptedException, ExecutionException, TimeoutException {
     long startTime = TimeSource.nanoTime();
-    long rem = unit.toNanos(timeout);
+    long timeoutNanos = unit.toNanos(timeout);
+    long rem = timeoutNanos;
     do {
       try {
         return process.exitValue();
       } catch (IllegalThreadStateException ex) {
+        rem = timeoutNanos - (TimeSource.nanoTime() - startTime);
         if (rem > 0) {
-          Thread.sleep(Math.min(TimeUnit.NANOSECONDS.toMillis(rem) + 1, 100));
+          TimeUnit.NANOSECONDS.sleep(rem);
+        } else {
+          break;
         }
       }
-      rem = unit.toNanos(timeout) - (TimeSource.nanoTime() - startTime);
       Throwable get = exr.get();
       if (get != null) {
         throw new ExecutionException(get);
       }
-    } while (rem > 0);
+    } while (true);
     throw new TimeoutException("Process " + process + " timed out after " + timeout + " " + unit);
   }
 
