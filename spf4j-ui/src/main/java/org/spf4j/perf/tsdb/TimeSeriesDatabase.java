@@ -667,7 +667,7 @@ public final class TimeSeriesDatabase implements Closeable {
           throws IOException {
     Map<String, TSTable> lastState = new HashMap<>();
     long lastSize = 0;
-    while (!Thread.interrupted() && !handler.finish()) {
+    while (!Thread.currentThread().isInterrupted() && !handler.finish()) {
       long currSize = this.file.length();
       if (currSize > lastSize) {
         // see if we have new Tables;

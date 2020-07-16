@@ -99,6 +99,17 @@ public final class CharSeparatedValues {
     writer.append('\n');
   }
 
+  @SafeVarargs
+  public final String toCsvRowString(final Object... elems) {
+    StringBuilder result = new StringBuilder(elems.length * 8);
+    try {
+      writeCsvRowNoEOL(result, elems);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    return result.toString();
+  }
+
   public void writeCsvRowNoEOL(final Appendable writer, final Object... elems) throws IOException {
     if (elems.length > 0) {
       int i = 0;

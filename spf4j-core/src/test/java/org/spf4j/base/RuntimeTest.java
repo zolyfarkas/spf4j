@@ -136,7 +136,7 @@ public final class RuntimeTest {
 
   @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
   @Test(expected = CancellationException.class, timeout = 30000)
-  @ExpectLog(level = Level.ERROR, category = "org.spf4j.os")
+  @ExpectLog(level = Level.ERROR, category = "org.spf4j.os", nrTimes = 2)
   public void testExitCode5() throws InterruptedException, ExecutionException, TimeoutException {
     final CountDownLatch latch = new CountDownLatch(1);
     final CountDownLatch canCancel = new CountDownLatch(1);
@@ -158,8 +158,9 @@ public final class RuntimeTest {
     if (!canCancel.await(3000, TimeUnit.MILLISECONDS)) {
       Assert.fail("exec should happen");
     }
+    LOG.debug("cancelling {}", submit);
     submit.cancel(true);
-    if (!latch.await(15000, TimeUnit.SECONDS)) {
+    if (!latch.await(1, TimeUnit.SECONDS)) {
       Assert.fail("exec should be cancelled");
     }
     submit.get(10000, TimeUnit.MILLISECONDS);

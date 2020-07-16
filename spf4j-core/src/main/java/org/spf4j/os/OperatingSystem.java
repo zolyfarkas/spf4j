@@ -64,6 +64,7 @@ import org.spf4j.base.SysExits;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.concurrent.Futures;
+import org.spf4j.io.csv.CharSeparatedValues;
 import org.spf4j.unix.CLibrary;
 import org.spf4j.unix.Lsof;
 import org.spf4j.unix.UnixException;
@@ -258,7 +259,12 @@ public final class OperatingSystem {
   public static <T, E> ProcessResponse<T, E> forkExec(final String[] command, final ProcessHandler<T, E> handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    LOG.log(Level.FINE, "Executing {0}", (Object) command);
+    LOG.log(Level.FINE, "Executing {0}", new Object() {
+      @Override
+      public String toString() {
+        return  new CharSeparatedValues(' ').toCsvRowString((Object[]) command);
+      }
+    });
     final Process proc = java.lang.Runtime.getRuntime().exec(command);
     handler.started(proc);
     try (InputStream pos = proc.getInputStream();
@@ -337,14 +343,13 @@ public final class OperatingSystem {
           throws InterruptedException, ExecutionException, TimeoutException {
     long startTime = TimeSource.nanoTime();
     long timeoutNanos = unit.toNanos(timeout);
-    long rem = timeoutNanos;
     do {
       try {
         return process.exitValue();
       } catch (IllegalThreadStateException ex) {
-        rem = timeoutNanos - (TimeSource.nanoTime() - startTime);
+        long rem = timeoutNanos - (TimeSource.nanoTime() - startTime);
         if (rem > 0) {
-          TimeUnit.NANOSECONDS.sleep(rem);
+          TimeUnit.NANOSECONDS.sleep(Math.min(rem, 100000000)); //poll sleep.
         } else {
           break;
         }

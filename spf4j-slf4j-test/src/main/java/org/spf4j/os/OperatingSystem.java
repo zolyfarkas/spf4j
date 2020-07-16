@@ -49,16 +49,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.JNA;
 import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.SysExits;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.Futures;
+import org.spf4j.io.csv.CharSeparatedValues;
 import org.spf4j.unix.UnixException;
 import org.spf4j.unix.UnixResources;
 
@@ -70,7 +70,8 @@ import org.spf4j.unix.UnixResources;
 @SuppressFBWarnings({"FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY", "HES_EXECUTOR_NEVER_SHUTDOWN"})
 public final class OperatingSystem {
 
-  private static final Logger LOG = LoggerFactory.getLogger(OperatingSystem.class);
+  private static final java.util.logging.Logger LOG =
+          java.util.logging.Logger.getLogger(OperatingSystem.class.getName());
 
   private static final ExecutorService EXEC =
           MoreExecutors.getExitingExecutorService(new ThreadPoolExecutor(0, Integer.MAX_VALUE,
@@ -200,7 +201,12 @@ public final class OperatingSystem {
   public static <T, E> ProcessResponse<T, E> forkExec(final String[] command, final ProcessHandler<T, E> handler,
           final long timeoutMillis, final long terminationTimeoutMillis)
           throws IOException, InterruptedException, ExecutionException, TimeoutException {
-    LOG.debug("Executing {}", (Object) command);
+    LOG.log(Level.FINE, "Executing {0}", new Object() {
+      @Override
+      public String toString() {
+        return  new CharSeparatedValues(' ').toCsvRowString((Object[]) command);
+      }
+    });
     final Process proc = java.lang.Runtime.getRuntime().exec(command);
     handler.started(proc);
     try (InputStream pos = proc.getInputStream();
@@ -279,21 +285,20 @@ public final class OperatingSystem {
           throws InterruptedException, ExecutionException, TimeoutException {
     long startTime = TimeSource.nanoTime();
     long timeoutNanos = unit.toNanos(timeout);
-    long rem = timeoutNanos;
     do {
       try {
         return process.exitValue();
       } catch (IllegalThreadStateException ex) {
-        rem = timeoutNanos - (TimeSource.nanoTime() - startTime);
+        Throwable get = exr.get();
+        if (get != null) {
+          throw new ExecutionException(get);
+        }
+        long rem = timeoutNanos - (TimeSource.nanoTime() - startTime);
         if (rem > 0) {
-          TimeUnit.NANOSECONDS.sleep(rem);
+          TimeUnit.NANOSECONDS.sleep(Math.min(rem, 100000000)); //poll sleep.
         } else {
           break;
         }
-      }
-      Throwable get = exr.get();
-      if (get != null) {
-        throw new ExecutionException(get);
       }
     } while (true);
     throw new TimeoutException("Process " + process + " timed out after " + timeout + " " + unit);

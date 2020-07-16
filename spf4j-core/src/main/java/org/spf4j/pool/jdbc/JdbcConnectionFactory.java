@@ -91,7 +91,10 @@ public final class JdbcConnectionFactory implements RecyclingSupplier.Factory<Co
     try {
       return RetryPolicy.defaultPolicy().call(() -> DriverManager.getConnection(url, props),
               SQLException.class, loginTimeoutSeconds, TimeUnit.SECONDS);
-    } catch (InterruptedException | TimeoutException | SQLException ex) {
+    } catch (TimeoutException | SQLException ex) {
+      throw new ObjectCreationException("Cannot connect to " + url  + " in " + loginTimeoutSeconds + " s", ex);
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
       throw new ObjectCreationException("Cannot connect to " + url  + " in " + loginTimeoutSeconds + " s", ex);
     }
   }

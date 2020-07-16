@@ -42,17 +42,20 @@ import org.spf4j.recyclable.RecyclingSupplier;
  * @author zoly
  */
 public final class LeaseImpl<T> implements Lease<T> {
-    
+
     private final T leased;
-    
+
     private final RecyclingSupplier<T> rs;
-    
+
     public LeaseImpl(final RecyclingSupplier<T> rs) {
         this.rs = rs;
         try {
             leased = rs.get();
-        } catch (ObjectCreationException | ObjectBorrowException | InterruptedException | TimeoutException ex) {
+        } catch (ObjectCreationException | ObjectBorrowException | TimeoutException ex) {
             throw new RuntimeException(ex);
+        } catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
+          throw new RuntimeException(ex);
         }
     }
 
@@ -70,5 +73,5 @@ public final class LeaseImpl<T> implements Lease<T> {
     public String toString() {
         return "LeaseImpl{" + "leased=" + leased + '}';
     }
-    
+
 }

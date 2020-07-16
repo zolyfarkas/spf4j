@@ -101,7 +101,7 @@ public class LifoThreadPoolExecutorTest {
         try {
           Thread.sleep(10000);
         } catch (InterruptedException ex) {
-          Thread.interrupted();
+          Thread.currentThread().interrupt();
         }
       });
       executor.execute(() -> {
@@ -132,7 +132,7 @@ public class LifoThreadPoolExecutorTest {
         try {
           Thread.sleep(10000);
         } catch (InterruptedException ex) {
-          Thread.interrupted();
+          Thread.currentThread().interrupt();
         }
       });
       executor.execute(() -> {

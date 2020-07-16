@@ -134,6 +134,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
             executionService.execute(runnable);
           }
         } catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
           LOG.debug("Interrupted Retry manager, shuting down, events scheduled: {}", executionEvents, ex);
           break;
         }

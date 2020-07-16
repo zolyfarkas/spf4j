@@ -535,9 +535,11 @@ public final class JdbcHeartBeat implements AutoCloseable {
         if (nanosSinceLastBeat > tryBeatThresholdNanos) {
           try {
             beat();
-          } catch (RuntimeException | SQLException | InterruptedException ex) {
+          } catch (RuntimeException | SQLException ex) {
             HeartBeatError err = new HeartBeatError("System failed heartbeat", ex);
             handleError(err);
+          } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
           }
         }
     }
