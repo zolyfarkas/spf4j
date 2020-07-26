@@ -40,6 +40,24 @@ public final class Env {
     }
   }
 
+  public static float getValue(final String envname, final float defaultValue) {
+    String v = System.getenv(envname);
+    if (v == null) {
+      return defaultValue;
+    } else {
+      return Float.parseFloat(v);
+    }
+  }
+
+  public static double getValue(final String envname, final double defaultValue) {
+    String v = System.getenv(envname);
+    if (v == null) {
+      return defaultValue;
+    } else {
+      return Float.parseFloat(v);
+    }
+  }
+
   public static boolean getValue(final String envname, final boolean defaultValue) {
     String v = System.getenv(envname);
     if (v == null) {
