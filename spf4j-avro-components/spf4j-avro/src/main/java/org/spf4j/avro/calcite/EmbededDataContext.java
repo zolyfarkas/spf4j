@@ -28,7 +28,7 @@ import org.apache.calcite.linq4j.QueryProvider;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.tools.Frameworks;
 import org.spf4j.avro.schema.Schemas;
-import org.spf4j.security.SecurityContext;
+import org.spf4j.security.AbacSecurityContext;
 
 /**
  * @author Zoltan Farkas
@@ -66,7 +66,7 @@ public final class EmbededDataContext implements DataContext {
 
   private final ConcurrentMap<String, Object> data;
 
-  public EmbededDataContext(final JavaTypeFactory typeFact, @Nullable final SecurityContext ctx) {
+  public EmbededDataContext(final JavaTypeFactory typeFact, @Nullable final AbacSecurityContext ctx) {
     this.typeFact = typeFact;
     this.data = new ConcurrentHashMap<>();
     this.data.put(DEPRECATIONS, new HashMap<Object, Object>(4));

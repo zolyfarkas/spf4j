@@ -347,16 +347,16 @@ public final class OperatingSystem {
       try {
         return process.exitValue();
       } catch (IllegalThreadStateException ex) {
+        Throwable get = exr.get();
+        if (get != null) {
+          throw new ExecutionException(get);
+        }
         long rem = timeoutNanos - (TimeSource.nanoTime() - startTime);
         if (rem > 0) {
           TimeUnit.NANOSECONDS.sleep(Math.min(rem, 100000000)); //poll sleep.
         } else {
           break;
         }
-      }
-      Throwable get = exr.get();
-      if (get != null) {
-        throw new ExecutionException(get);
       }
     } while (true);
     throw new TimeoutException("Process " + process + " timed out after " + timeout + " " + unit);

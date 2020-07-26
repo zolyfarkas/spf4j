@@ -32,15 +32,14 @@
 package org.spf4j.security;
 
 import java.security.Principal;
-import java.util.Properties;
 import javax.annotation.Nullable;
 
 /**
+ * Role based access control: https://en.wikipedia.org/wiki/Role-based_access_control
  * @author Zoltan Farkas
  */
-public interface SecurityContext {
-
-  /**
+public interface RbacSecurityContext {
+ /**
    * Returns a <code>java.security.Principal</code> object containing the name of the current authenticated user. If the
    * user has not been authenticated, the method returns null.
    *
@@ -61,31 +60,4 @@ public interface SecurityContext {
    * @throws java.lang.IllegalStateException if called outside the scope of a request
    */
   boolean isUserInRole(String role);
-
-  /**
-   * Attribute bases access control, see https://en.wikipedia.org/wiki/Attribute-based_access_control
-   * @param resource  the properties of the accessed resource.
-   * @param action the properties of the action attempted.
-   * @param env environment params.
-   * @return
-   */
-  boolean canAccess(Properties resource, Properties action, Properties env);
-
-  SecurityContext NOAUTH = new SecurityContext() {
-    @Override
-    public Principal getUserPrincipal() {
-      return null;
-    }
-
-    @Override
-    public boolean isUserInRole(final String role) {
-      return false;
-    }
-
-    @Override
-    public boolean canAccess(final Properties resource, final Properties action, final Properties env) {
-      return false;
-    }
-  };
-
 }

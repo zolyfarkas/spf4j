@@ -18,6 +18,10 @@ package org.spf4j.security;
 import java.security.Principal;
 import java.util.Properties;
 
+/**
+ * Attribute based access control. (https://en.wikipedia.org/wiki/Attribute-based_access_control)
+ * @author Zoltan Farkas
+ */
 public interface AbacAuthorizer {
 
   /**

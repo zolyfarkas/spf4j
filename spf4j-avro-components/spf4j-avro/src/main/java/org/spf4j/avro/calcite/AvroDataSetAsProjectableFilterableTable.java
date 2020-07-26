@@ -39,7 +39,7 @@ import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.base.CloseableIterator;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.security.SecurityContext;
+import org.spf4j.security.AbacSecurityContext;
 
 /**
  * An avro table when the data is provided by the provided Supplier of CloseableIterable of IndexedRecord
@@ -107,9 +107,9 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     if (timeoutMillis == null) {
       timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);
     }
-    SecurityContext sc = (SecurityContext) root.get("security-context");
+    AbacSecurityContext sc = (AbacSecurityContext) root.get("security-context");
     if (sc == null) {
-      sc = SecurityContext.NOAUTH;
+      sc = AbacSecurityContext.NOAUTH;
     }
     CloseableIterable<IndexedRecord> it;
     Set<AvroDataSet.Feature> features = dataSet.getFeatures();
