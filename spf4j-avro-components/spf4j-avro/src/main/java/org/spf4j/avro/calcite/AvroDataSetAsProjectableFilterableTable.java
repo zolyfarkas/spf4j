@@ -19,6 +19,7 @@ import com.google.common.collect.Iterables;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.avro.AvroDataSet;
 import org.spf4j.avro.SqlPredicate;
+import static org.spf4j.avro.calcite.EmbededDataContext.SECURITY_CONTEXT;
 import org.spf4j.avro.schema.Schemas;
 import org.spf4j.base.CloseableIterable;
 import org.spf4j.base.CloseableIterator;
@@ -61,7 +63,7 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
   public AvroDataSet<? extends IndexedRecord> getDataSet() {
     return dataSet;
   }
-  
+
   @Override
   public Statistic getStatistic() {
     long rowCountStatistic = dataSet.getRowCountStatistic();
@@ -107,10 +109,25 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
     if (timeoutMillis == null) {
       timeoutMillis = ExecutionContexts.getTimeToDeadlineUnchecked(TimeUnit.MILLISECONDS);
     }
-    AbacSecurityContext sc = (AbacSecurityContext) root.get("security-context");
+    AbacSecurityContext sc = (AbacSecurityContext) root.get(SECURITY_CONTEXT);
     if (sc == null) {
       sc = AbacSecurityContext.NOAUTH;
     }
+    String objectName = this.getComponentType().getFullName();
+    List<String> colNames = SqlConverters.projectionToString(projection, rowType);
+    Properties env = new Properties();
+    Properties readAction = AbacSecurityContext.action("read");
+    // this ent check probably needs to be re-thinked.
+    if (!sc.canAccess(AbacSecurityContext.resource("table", objectName), readAction, env)) {
+      throw new TableAccessDeniedException("No read permission for " + objectName);
+    }
+    for (String colName : colNames) {
+      String colObject = objectName + '.' + colName;
+      if (!sc.canAccess(AbacSecurityContext.resource("column", colObject), readAction, env)) {
+        throw new TableAccessDeniedException("No read permission for " + colObject);
+      }
+    }
+
     CloseableIterable<IndexedRecord> it;
     Set<AvroDataSet.Feature> features = dataSet.getFeatures();
     if (features.contains(AvroDataSet.Feature.FILTERABLE)) {
@@ -124,21 +141,18 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
       }
       if (predicate != null) {
         if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
-          List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-          it = dataSet.getData(predicate, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+          it = dataSet.getData(predicate, colNames, sc, timeoutMillis, TimeUnit.MINUTES);
         } else {
           it = project(dataSet.getData(predicate, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
         }
         filters.clear();
       } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
-        List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-        it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+        it = dataSet.getData((SqlPredicate) null, colNames, sc, timeoutMillis, TimeUnit.MINUTES);
       } else {
         it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
       }
     } else if (features.contains(AvroDataSet.Feature.PROJECTABLE)) {
-      List<String> projectionString = SqlConverters.projectionToString(projection, rowType);
-      it = dataSet.getData((SqlPredicate) null, projectionString, sc, timeoutMillis, TimeUnit.MINUTES);
+      it = dataSet.getData((SqlPredicate) null, colNames, sc, timeoutMillis, TimeUnit.MINUTES);
     } else {
       it = project(dataSet.getData((SqlPredicate) null, null, sc, timeoutMillis, TimeUnit.MINUTES), projection);
     }

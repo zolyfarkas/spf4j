@@ -39,6 +39,34 @@ import java.util.Properties;
  */
 public interface AbacSecurityContext extends RbacSecurityContext {
 
+  String RESOURCE_TYPE = "resourceType";
+
+  String RESOURCE_ID = "resourceId";
+
+  String ACTION = "action";
+
+  String ENVIRONMENT = "env";
+
+
+  static Properties resource(final String type, final String id) {
+    Properties result = new Properties();
+    result.setProperty(RESOURCE_TYPE, type);
+    result.setProperty(RESOURCE_TYPE, id);
+    return result;
+  }
+
+  static Properties action(final String action) {
+    Properties result = new Properties();
+    result.setProperty(ACTION, action);
+    return result;
+  }
+
+  static Properties env(final String env) {
+    Properties result = new Properties();
+    result.setProperty(ENVIRONMENT, env);
+    return result;
+  }
+
   static AbacSecurityContext from(final RbacSecurityContext rbac, final AbacAuthorizer abacAuth) {
     return new AbacSecurityContext() {
       @Override

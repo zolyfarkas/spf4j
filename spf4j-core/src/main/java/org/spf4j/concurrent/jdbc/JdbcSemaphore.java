@@ -64,10 +64,11 @@ import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 
 /**
- * A jdbc table based semaphore implementation. Similar with a semaphore implemented with zookeeper, we rely on
+ * A jdbc table based distributes semaphore implementation.
+ * Similar with a semaphore implemented with zookeeper, we rely on
  * heartbeats to detect dead members. If you have a zookeeper instance accessible you should probably use a semaphore
- * implemented with it... If you are already connecting to a database. this should be a reliable and low overhead (no
- * calls from DBA) implementation. (at leat that is my goal) Using a crappy database will give you crappy results.
+ * implemented with it... If you are already connecting to a database, this should be a reliable and low overhead
+ * implementation. Using a crappy database will give you crappy results.
  *
  * There are 3 tables involved:
  *
