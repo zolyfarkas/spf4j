@@ -18,6 +18,7 @@ package org.spf4j.avro.calcite;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexInputRef;
@@ -28,16 +29,16 @@ import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
+@ParametersAreNonnullByDefault
 public final class SqlConverters {
 
   private SqlConverters() { }
 
   private static final RexSqlStandardConvertletTable TABLE = new RexSqlStandardConvertletTable();
 
-  @Nullable
   public static List<String> projectionToString(@Nullable final int[] projection, final RelDataType rowType) {
     if (projection == null) {
-      return null;
+      return rowType.getFieldNames();
     }
     List<String> result = new ArrayList<>(projection.length);
     List<String> fieldNames = rowType.getFieldNames();

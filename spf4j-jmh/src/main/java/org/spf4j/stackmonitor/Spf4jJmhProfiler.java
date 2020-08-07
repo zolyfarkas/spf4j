@@ -56,7 +56,7 @@ import org.spf4j.ssdump2.Converter;
 
 /**
  * Improved implementation of the spf4j profiler to get extra profiling
- * data granularity to be able to corelate to iteration number.
+ * data granularity to be able to correlate to iteration number.
  *
  * @author zoly
  */
