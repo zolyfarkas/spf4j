@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
@@ -48,6 +49,7 @@ import org.spf4j.security.AbacSecurityContext;
  *
  * @author Zoltan Farkas
  */
+@ParametersAreNonnullByDefault
 public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroTable
         implements ProjectableFilterableTable {
 
@@ -127,7 +129,6 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
         throw new TableAccessDeniedException("No read permission for " + colObject);
       }
     }
-
     CloseableIterable<IndexedRecord> it;
     Set<AvroDataSet.Feature> features = dataSet.getFeatures();
     if (features.contains(AvroDataSet.Feature.FILTERABLE)) {
