@@ -250,6 +250,22 @@ public final class CharSequences {
 
   }
 
+  public static boolean startsWith(final CharSequence sequence, final CharSequence prefix, final int toffset) {
+    int to = toffset;
+    int po = 0;
+    int pc = prefix.length();
+    int sl = sequence.length();
+    if ((toffset < 0) || (toffset > sl - pc)) {
+      return false;
+    }
+    while (--pc >= 0) {
+      if (sequence.charAt(to++) != prefix.charAt(po++)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   public static boolean endsWith(final CharSequence qc, final CharSequence with) {
     int l = qc.length();
     int start = l - with.length();
