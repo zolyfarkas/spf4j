@@ -19,9 +19,7 @@ import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.rules.FilterJoinRule;
-import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
-import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
+import org.apache.calcite.rel.rules.CoreRules;
 
 /**
  *
@@ -34,10 +32,10 @@ public final class PlannerUtils {
   public static RelNode pushDownPredicatesAndProjection(final RelNode rootRel) {
     final HepProgram hepProgram = new HepProgramBuilder()
         //push down predicates
-        .addRuleInstance(FilterJoinRule.FilterIntoJoinRule.FILTER_ON_JOIN)
+        .addRuleInstance(CoreRules.FILTER_INTO_JOIN)
         //push down projections
-        .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)
-        .addRuleInstance(FilterProjectTransposeRule.INSTANCE)
+        .addRuleInstance(CoreRules.PROJECT_JOIN_TRANSPOSE)
+        .addRuleInstance(CoreRules.FILTER_PROJECT_TRANSPOSE)
             .build();
     final HepPlanner planner = new HepPlanner(hepProgram);
     planner.setRoot(rootRel);

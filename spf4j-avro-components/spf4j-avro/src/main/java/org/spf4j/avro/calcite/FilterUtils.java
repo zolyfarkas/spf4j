@@ -85,9 +85,9 @@ public final class FilterUtils {
     SqlNode parse = planner.parse("select * from r where " + sqlExpr);
     parse = planner.validate(parse);
     RelNode project = planner.rel(parse).project();
-    List<RexNode> childExps = ((LogicalFilter) project.getInput(0)).getChildExps();
+    RexNode childExps = ((LogicalFilter) project.getInput(0)).getCondition();
     RelDataType from = Types.from(javaTypeFactoryImpl, recSchema, new HashMap<Schema, RelDataType>());
-    return toPredicate(childExps, javaTypeFactoryImpl, from);
+    return toPredicate(Collections.singletonList(childExps), javaTypeFactoryImpl, from);
   }
 
   public static Predicate<IndexedRecord> toPredicate(final List<RexNode> filter, final RelDataType rowType) {
