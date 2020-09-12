@@ -28,7 +28,6 @@ import java.util.SortedSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.logging.LogManager;
@@ -64,8 +63,6 @@ public final class TestLoggers implements ILoggerFactory {
   private final ConcurrentMap<String, Logger> loggerMap;
 
   private final Object sync;
-
-  private final Function<String, Logger> computer;
 
   private final java.util.logging.Logger julGlobal;
 
@@ -123,7 +120,6 @@ public final class TestLoggers implements ILoggerFactory {
     } else {
       catHandlers = Collections.EMPTY_MAP;
     }
-    computer = (k) -> new TestLogger(k, TestLoggers.this::getConfig);
     String vals = Env.getSystemProperty("spf4j.test.log.expectingErrorsIn", "spf4j.testLog.expectingErrorsIn");
     if (vals != null) {
       expectingErrorsIn = ImmutableSortedSet.orderedBy(LogConfigImpl.REV_STR_COMPARATOR).add(vals.split(",")).build();
@@ -586,7 +582,13 @@ public final class TestLoggers implements ILoggerFactory {
    * Return an appropriate {@link SimpleLogger} instance by name.
    */
   public Logger getLogger(final String name) {
-    return loggerMap.computeIfAbsent(name, computer);
+    Logger result = loggerMap.get(name);
+    if (result == null) {
+      // Racy on purpose. computeIfAbsent is not really re-entrant.
+      result = new TestLogger(name, TestLoggers.this::getConfig);
+      loggerMap.put(name, result);
+    }
+    return result;
   }
 
   public java.util.logging.Logger getJulGlobal() {
