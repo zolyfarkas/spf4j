@@ -100,7 +100,7 @@ public final class FileMonitorAspectTest {
     Assert.assertThat(collect, (Matcher)
             Matchers.hasItem("file-read,org.spf4j.perf.aspects.FileMonitorAspectTest"));
     Collection<Schema> fmw = query.getMeasurements((x)
-            -> "file-write,org.spf4j.perf.aspects.FileMonitorAspectTest".equals(x));
+            -> "file_write_org_spf4j_perf_aspects_FileMonitorAspectTest".equals(x));
     try (AvroCloseableIterable<Observation>
             obs = query.getObservations(fmw.iterator().next(), Instant.EPOCH, Instant.now())) {
       Assert.assertTrue(obs.iterator().hasNext());
