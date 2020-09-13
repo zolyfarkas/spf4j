@@ -3,7 +3,6 @@ dist: trusty
 language: java
 
 jdk:
-  - oraclejdk11
   - oraclejdk8
   
 before_script:
@@ -11,7 +10,8 @@ before_script:
 
 script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install sonar:sonar
 
-before_install: 
+before_install:
+  - ~/bin/install-jdk.sh --target "/home/travis/oraclejdk11" --workspace "/home/travis/.cache/install-jdk" --feature "11" --license "BCL"
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
   - sudo apt-get install jq
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
