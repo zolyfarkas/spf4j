@@ -18,6 +18,7 @@ package org.spf4j.avro.calcite;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rex.RexInputRef;
@@ -28,64 +29,64 @@ import org.apache.calcite.sql.SqlIdentifier;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.parser.SqlParserPos;
 
+@ParametersAreNonnullByDefault
 public final class SqlConverters {
 
   private SqlConverters() { }
 
-<span class="nc" id="L35">  private static final RexSqlStandardConvertletTable TABLE = new RexSqlStandardConvertletTable();</span>
+<span class="nc" id="L37">  private static final RexSqlStandardConvertletTable TABLE = new RexSqlStandardConvertletTable();</span>
 
-  @Nullable
   public static List&lt;String&gt; projectionToString(@Nullable final int[] projection, final RelDataType rowType) {
-<span class="nc bnc" id="L39" title="All 2 branches missed.">    if (projection == null) {</span>
-<span class="nc" id="L40">      return null;</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">    if (projection == null) {</span>
+<span class="nc" id="L41">      return rowType.getFieldNames();</span>
     }
-<span class="nc" id="L42">    List&lt;String&gt; result = new ArrayList&lt;&gt;(projection.length);</span>
-<span class="nc" id="L43">    List&lt;String&gt; fieldNames = rowType.getFieldNames();</span>
-<span class="nc bnc" id="L44" title="All 2 branches missed.">    for (int i = 0; i &lt; projection.length; i++) {</span>
-<span class="nc" id="L45">      result.add(fieldNames.get(projection[i]));</span>
+<span class="nc" id="L43">    List&lt;String&gt; result = new ArrayList&lt;&gt;(projection.length);</span>
+<span class="nc" id="L44">    List&lt;String&gt; fieldNames = rowType.getFieldNames();</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">    for (int i = 0; i &lt; projection.length; i++) {</span>
+<span class="nc" id="L46">      result.add(fieldNames.get(projection[i]));</span>
     }
-<span class="nc" id="L47">    return result;</span>
+<span class="nc" id="L48">    return result;</span>
   }
 
   @Nullable
   public static SqlNode convert(final RexNode node, final RelDataType rowType) {
-<span class="nc" id="L52">   RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {</span>
+<span class="nc" id="L53">   RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {</span>
      @Override
      public SqlNode convertInputRef(final RexInputRef ref) {
-<span class="nc" id="L55">       return new SqlIdentifier(rowType.getFieldNames().get(ref.getIndex()), SqlParserPos.ZERO);</span>
+<span class="nc" id="L56">       return new SqlIdentifier(rowType.getFieldNames().get(ref.getIndex()), SqlParserPos.ZERO);</span>
      }
    };
-<span class="nc" id="L58">   return conv.convertNode(node);</span>
+<span class="nc" id="L59">   return conv.convertNode(node);</span>
   }
 
   public static List&lt;SqlNode&gt; convert(final List&lt;RexNode&gt; filters, final RelDataType rowType) {
-<span class="nc" id="L62">    List&lt;SqlNode&gt; result = new ArrayList&lt;&gt;(filters.size());</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">    for (RexNode node : filters) {</span>
-<span class="nc" id="L64">      result.add(convert(node, rowType));</span>
-<span class="nc" id="L65">    }</span>
-<span class="nc" id="L66">    return result;</span>
+<span class="nc" id="L63">    List&lt;SqlNode&gt; result = new ArrayList&lt;&gt;(filters.size());</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    for (RexNode node : filters) {</span>
+<span class="nc" id="L65">      result.add(convert(node, rowType));</span>
+<span class="nc" id="L66">    }</span>
+<span class="nc" id="L67">    return result;</span>
   }
 
 
   @Nullable
   public static SqlNode convert(final RexNode node, final Schema rowSchema) {
-<span class="nc" id="L72">   RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {</span>
+<span class="nc" id="L73">   RexToSqlNodeConverterImpl conv = new RexToSqlNodeConverterImpl(TABLE) {</span>
      @Override
      public SqlNode convertInputRef(final RexInputRef ref) {
-<span class="nc" id="L75">       return new SqlIdentifier(rowSchema.getFields().get(ref.getIndex()).name(), SqlParserPos.ZERO);</span>
+<span class="nc" id="L76">       return new SqlIdentifier(rowSchema.getFields().get(ref.getIndex()).name(), SqlParserPos.ZERO);</span>
      }
 
    };
-<span class="nc" id="L79">   return conv.convertNode(node);</span>
+<span class="nc" id="L80">   return conv.convertNode(node);</span>
   }
 
   public static List&lt;SqlNode&gt; convert(final List&lt;RexNode&gt; filters, final Schema rowSchema) {
-<span class="nc" id="L83">    List&lt;SqlNode&gt; result = new ArrayList&lt;&gt;(filters.size());</span>
-<span class="nc bnc" id="L84" title="All 2 branches missed.">    for (RexNode node : filters) {</span>
-<span class="nc" id="L85">      result.add(convert(node, rowSchema));</span>
-<span class="nc" id="L86">    }</span>
-<span class="nc" id="L87">    return result;</span>
+<span class="nc" id="L84">    List&lt;SqlNode&gt; result = new ArrayList&lt;&gt;(filters.size());</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">    for (RexNode node : filters) {</span>
+<span class="nc" id="L86">      result.add(convert(node, rowSchema));</span>
+<span class="nc" id="L87">    }</span>
+<span class="nc" id="L88">    return result;</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

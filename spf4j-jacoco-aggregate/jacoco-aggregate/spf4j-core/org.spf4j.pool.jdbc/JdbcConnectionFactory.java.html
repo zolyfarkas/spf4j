@@ -91,29 +91,32 @@ public final class JdbcConnectionFactory implements RecyclingSupplier.Factory&lt
     try {
 <span class="fc" id="L92">      return RetryPolicy.defaultPolicy().call(() -&gt; DriverManager.getConnection(url, props),</span>
               SQLException.class, loginTimeoutSeconds, TimeUnit.SECONDS);
-<span class="nc" id="L94">    } catch (InterruptedException | TimeoutException | SQLException ex) {</span>
+<span class="nc" id="L94">    } catch (TimeoutException | SQLException ex) {</span>
 <span class="nc" id="L95">      throw new ObjectCreationException(&quot;Cannot connect to &quot; + url  + &quot; in &quot; + loginTimeoutSeconds + &quot; s&quot;, ex);</span>
+<span class="nc" id="L96">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L97">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L98">      throw new ObjectCreationException(&quot;Cannot connect to &quot; + url  + &quot; in &quot; + loginTimeoutSeconds + &quot; s&quot;, ex);</span>
     }
   }
 
   @Override
   public void dispose(final Connection object) throws ObjectDisposeException {
     try {
-<span class="nc" id="L102">      object.close();</span>
-<span class="nc" id="L103">    } catch (SQLException ex) {</span>
-<span class="nc" id="L104">      throw new ObjectDisposeException(ex);</span>
-<span class="nc" id="L105">    }</span>
-<span class="nc" id="L106">  }</span>
+<span class="nc" id="L105">      object.close();</span>
+<span class="nc" id="L106">    } catch (SQLException ex) {</span>
+<span class="nc" id="L107">      throw new ObjectDisposeException(ex);</span>
+<span class="nc" id="L108">    }</span>
+<span class="nc" id="L109">  }</span>
 
   @Override
   public boolean validate(final Connection object, final Exception e) throws SQLException {
-<span class="nc" id="L110">    return object.isValid(60);</span>
+<span class="nc" id="L113">    return object.isValid(60);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L115">    return &quot;JdbcConnectionFactory{&quot; + &quot;url=&quot; + url + '}';</span>
+<span class="nc" id="L118">    return &quot;JdbcConnectionFactory{&quot; + &quot;url=&quot; + url + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

@@ -543,33 +543,35 @@
 <a class="jxr_linenumber" name="L535" href="#L535">535</a>         <strong class="jxr_keyword">if</strong> (nanosSinceLastBeat &gt; tryBeatThresholdNanos) {
 <a class="jxr_linenumber" name="L536" href="#L536">536</a>           <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L537" href="#L537">537</a>             beat();
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>           } <strong class="jxr_keyword">catch</strong> (RuntimeException | SQLException | InterruptedException ex) {
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>           } <strong class="jxr_keyword">catch</strong> (RuntimeException | SQLException ex) {
 <a class="jxr_linenumber" name="L539" href="#L539">539</a>             <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a> err = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a>(<span class="jxr_string">"System failed heartbeat"</span>, ex);
 <a class="jxr_linenumber" name="L540" href="#L540">540</a>             handleError(err);
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>           }
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>         }
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>     }
-<a class="jxr_linenumber" name="L544" href="#L544">544</a> 
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> handleError(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a> err) {
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>       <strong class="jxr_keyword">for</strong> (LifecycleHook hook : lifecycleHooks) {
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>         hook.onError(err);
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>       }
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>       RuntimeException ex = Iterables.forAll(lifecycleHooks, (<strong class="jxr_keyword">final</strong> LifecycleHook t) -&gt; {
-<a class="jxr_linenumber" name="L550" href="#L550">550</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>           t.onClose();
-<a class="jxr_linenumber" name="L552" href="#L552">552</a>         } <strong class="jxr_keyword">catch</strong> (SQLException e) {
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>         }
-<a class="jxr_linenumber" name="L555" href="#L555">555</a>       });
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>       <strong class="jxr_keyword">if</strong> (ex != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>         err.addSuppressed(ex);
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>       }
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>       lifecycleHooks.clear();
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>       <strong class="jxr_keyword">throw</strong> err;
-<a class="jxr_linenumber" name="L561" href="#L561">561</a>     }
-<a class="jxr_linenumber" name="L562" href="#L562">562</a>   }
-<a class="jxr_linenumber" name="L563" href="#L563">563</a> 
-<a class="jxr_linenumber" name="L564" href="#L564">564</a> }
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>           } <strong class="jxr_keyword">catch</strong> (InterruptedException ex) {
+<a class="jxr_linenumber" name="L542" href="#L542">542</a>             Thread.currentThread().interrupt();
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>           }
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         }
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>     }
+<a class="jxr_linenumber" name="L546" href="#L546">546</a> 
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> handleError(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/concurrent/jdbc/HeartBeatError.html">HeartBeatError</a> err) {
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>       <strong class="jxr_keyword">for</strong> (LifecycleHook hook : lifecycleHooks) {
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>         hook.onError(err);
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>       }
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>       RuntimeException ex = Iterables.forAll(lifecycleHooks, (<strong class="jxr_keyword">final</strong> LifecycleHook t) -&gt; {
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>           t.onClose();
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>         } <strong class="jxr_keyword">catch</strong> (SQLException e) {
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> RuntimeException(e);
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>         }
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>       });
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>       <strong class="jxr_keyword">if</strong> (ex != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>         err.addSuppressed(ex);
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>       }
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>       lifecycleHooks.clear();
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>       <strong class="jxr_keyword">throw</strong> err;
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>     }
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>   }
+<a class="jxr_linenumber" name="L565" href="#L565">565</a> 
+<a class="jxr_linenumber" name="L566" href="#L566">566</a> }
 </pre>
 <hr/>
 <div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>

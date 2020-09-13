@@ -134,111 +134,112 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
 <span class="fc" id="L134">            executionService.execute(runnable);</span>
           }
 <span class="fc" id="L136">        } catch (InterruptedException ex) {</span>
-<span class="fc" id="L137">          LOG.debug(&quot;Interrupted Retry manager, shuting down, events scheduled: {}&quot;, executionEvents, ex);</span>
-<span class="fc" id="L138">          break;</span>
-<span class="fc" id="L139">        }</span>
+<span class="fc" id="L137">          Thread.currentThread().interrupt();</span>
+<span class="fc" id="L138">          LOG.debug(&quot;Interrupted Retry manager, shuting down, events scheduled: {}&quot;, executionEvents, ex);</span>
+<span class="fc" id="L139">          break;</span>
+<span class="fc" id="L140">        }</span>
       }
-<span class="fc" id="L141">    }</span>
+<span class="fc" id="L142">    }</span>
 
   }
 
-<span class="fc" id="L145">  public FailSafeExecutorImpl(final ExecutorService exec) {</span>
-<span class="fc" id="L146">    executionService = exec;</span>
-<span class="fc" id="L147">  }</span>
+<span class="fc" id="L146">  public FailSafeExecutorImpl(final ExecutorService exec) {</span>
+<span class="fc" id="L147">    executionService = exec;</span>
+<span class="fc" id="L148">  }</span>
 
   @Override
   public void close() throws InterruptedException {
-<span class="fc" id="L151">    synchronized (sync) {</span>
-<span class="fc" id="L152">      Future&lt;?&gt; rmf = this.retryManagerFuture;</span>
-<span class="pc bpc" id="L153" title="2 of 4 branches missed.">      if (rmf != null &amp;&amp; rmf != SHUTDOWN) {</span>
-<span class="fc" id="L154">        this.retryManagerFuture = SHUTDOWN;</span>
-<span class="fc" id="L155">        rmf.cancel(true);</span>
+<span class="fc" id="L152">    synchronized (sync) {</span>
+<span class="fc" id="L153">      Future&lt;?&gt; rmf = this.retryManagerFuture;</span>
+<span class="pc bpc" id="L154" title="2 of 4 branches missed.">      if (rmf != null &amp;&amp; rmf != SHUTDOWN) {</span>
+<span class="fc" id="L155">        this.retryManagerFuture = SHUTDOWN;</span>
+<span class="fc" id="L156">        rmf.cancel(true);</span>
         try {
-<span class="nc" id="L157">          rmf.get();</span>
-<span class="nc" id="L158">        } catch (ExecutionException ex) {</span>
-<span class="nc" id="L159">          throw new UncheckedExecutionException(ex);</span>
-<span class="fc" id="L160">        } catch (CancellationException ex) {</span>
+<span class="nc" id="L158">          rmf.get();</span>
+<span class="nc" id="L159">        } catch (ExecutionException ex) {</span>
+<span class="nc" id="L160">          throw new UncheckedExecutionException(ex);</span>
+<span class="fc" id="L161">        } catch (CancellationException ex) {</span>
           // ignore, since we are the source
-<span class="nc" id="L162">        }</span>
+<span class="nc" id="L163">        }</span>
       }
-<span class="fc" id="L164">    }</span>
-<span class="fc" id="L165">  }</span>
+<span class="fc" id="L165">    }</span>
+<span class="fc" id="L166">  }</span>
 
   public void initiateClose() {
-<span class="fc" id="L168">    shutdownRetryManager();</span>
-<span class="fc" id="L169">  }</span>
+<span class="fc" id="L169">    shutdownRetryManager();</span>
+<span class="fc" id="L170">  }</span>
 
 
   @Override
   public &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;? extends A&gt; task,
           final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate) {
-<span class="fc" id="L175">    RetryFutureTask&lt;A&gt; result =</span>
+<span class="fc" id="L176">    RetryFutureTask&lt;A&gt; result =</span>
             new RetryFutureTask(task, (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents,
               this::startRetryManager);
 
-<span class="fc" id="L179">    executionService.execute(result);</span>
-<span class="fc" id="L180">    return (Future&lt;A&gt;) result;</span>
+<span class="fc" id="L180">    executionService.execute(result);</span>
+<span class="fc" id="L181">    return (Future&lt;A&gt;) result;</span>
   }
 
   @Override
   public &lt;A&gt; CompletableFuture&lt;A&gt; submitRx(final Callable&lt;? extends A&gt; task,
           final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate,
           final Supplier&lt;InterruptibleCompletableFuture&lt;A&gt;&gt; cfSupplier) {
-<span class="nc" id="L187">    InterruptibleCompletableFuture&lt;A&gt; result = cfSupplier.get();</span>
-<span class="nc" id="L188">    ConsumableRetryFutureTask&lt;A&gt; rft =</span>
+<span class="nc" id="L188">    InterruptibleCompletableFuture&lt;A&gt; result = cfSupplier.get();</span>
+<span class="nc" id="L189">    ConsumableRetryFutureTask&lt;A&gt; rft =</span>
             new ConsumableRetryFutureTask&lt;&gt;(f -&gt; {
               A r;
               try {
-<span class="nc" id="L192">                r = f.get();</span>
-<span class="nc" id="L193">              } catch (ExecutionException ex)  {</span>
-<span class="nc" id="L194">                return result.completeExceptionally(ex.getCause());</span>
-<span class="nc" id="L195">              } catch (Throwable ex)  {</span>
-<span class="nc" id="L196">                return result.completeExceptionally(ex);</span>
-<span class="nc" id="L197">              }</span>
-<span class="nc" id="L198">              return result.complete(r);</span>
+<span class="nc" id="L193">                r = f.get();</span>
+<span class="nc" id="L194">              } catch (ExecutionException ex)  {</span>
+<span class="nc" id="L195">                return result.completeExceptionally(ex.getCause());</span>
+<span class="nc" id="L196">              } catch (Throwable ex)  {</span>
+<span class="nc" id="L197">                return result.completeExceptionally(ex);</span>
+<span class="nc" id="L198">              }</span>
+<span class="nc" id="L199">              return result.complete(r);</span>
             }, (Callable&lt;A&gt;) task,
                     (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents,
               this::startRetryManager);
-<span class="nc" id="L202">    result.setToCancel(rft);</span>
-<span class="nc" id="L203">    executionService.execute(rft);</span>
-<span class="nc" id="L204">    return result;</span>
+<span class="nc" id="L203">    result.setToCancel(rft);</span>
+<span class="nc" id="L204">    executionService.execute(rft);</span>
+<span class="nc" id="L205">    return result;</span>
   }
 
   @Override
   public &lt;A&gt; Future&lt;A&gt; submit(final Callable&lt;? extends A&gt; task,
           final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate,
           final int nrHedges, final long hedgeDelay, final TimeUnit unit) {
-<span class="pc bpc" id="L211" title="1 of 2 branches missed.">    if (nrHedges &lt;= 0) {</span>
-<span class="nc" id="L212">      return submit(task, predicate);</span>
+<span class="pc bpc" id="L212" title="1 of 2 branches missed.">    if (nrHedges &lt;= 0) {</span>
+<span class="nc" id="L213">      return submit(task, predicate);</span>
     }
-<span class="fc" id="L214">    int nrFut = nrHedges + 1;</span>
-<span class="fc" id="L215">    final Future[] futures = new Future[nrFut];</span>
-<span class="fc" id="L216">    ArrayBlockingQueue&lt;Future&lt;A&gt;&gt; queue = new ArrayBlockingQueue&lt;&gt;(1);</span>
-<span class="fc" id="L217">    FirstFuture&lt;A&gt; result = new FirstFuture&lt;A&gt;(futures, queue);</span>
-<span class="fc" id="L218">    ConsumableRetryFutureTask&lt;A&gt; future =  new ConsumableRetryFutureTask(result, task,</span>
+<span class="fc" id="L215">    int nrFut = nrHedges + 1;</span>
+<span class="fc" id="L216">    final Future[] futures = new Future[nrFut];</span>
+<span class="fc" id="L217">    ArrayBlockingQueue&lt;Future&lt;A&gt;&gt; queue = new ArrayBlockingQueue&lt;&gt;(1);</span>
+<span class="fc" id="L218">    FirstFuture&lt;A&gt; result = new FirstFuture&lt;A&gt;(futures, queue);</span>
+<span class="fc" id="L219">    ConsumableRetryFutureTask&lt;A&gt; future =  new ConsumableRetryFutureTask(result, task,</span>
             (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents, this::startRetryManager);
-<span class="fc" id="L220">    startRetryManager();</span>
-<span class="fc" id="L221">    futures[0] = future;</span>
-<span class="fc" id="L222">    Runnable[] submits = new Runnable[nrFut];</span>
-<span class="fc" id="L223">    submits[0] = () -&gt; executionService.execute(future);</span>
-<span class="fc bfc" id="L224" title="All 2 branches covered.">    for (int i = 1; i &lt; nrFut; i++) {</span>
-<span class="fc" id="L225">      ConsumableRetryFutureTask&lt;A&gt; f = new ConsumableRetryFutureTask(</span>
+<span class="fc" id="L221">    startRetryManager();</span>
+<span class="fc" id="L222">    futures[0] = future;</span>
+<span class="fc" id="L223">    Runnable[] submits = new Runnable[nrFut];</span>
+<span class="fc" id="L224">    submits[0] = () -&gt; executionService.execute(future);</span>
+<span class="fc bfc" id="L225" title="All 2 branches covered.">    for (int i = 1; i &lt; nrFut; i++) {</span>
+<span class="fc" id="L226">      ConsumableRetryFutureTask&lt;A&gt; f = new ConsumableRetryFutureTask(</span>
                 result, task, (RetryPredicate) predicate, executionEvents,
                 this::startRetryManager);
-<span class="fc" id="L228">      futures[i] = f;</span>
-<span class="fc bfc" id="L229" title="All 2 branches covered.">      if (hedgeDelay &gt; 0) {</span>
-<span class="fc" id="L230">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  delayedExecution = new DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;(</span>
-<span class="fc" id="L231">                f, unit.toNanos(hedgeDelay));</span>
-<span class="fc" id="L232">        f.setExec(delayedExecution);</span>
-<span class="fc" id="L233">        submits[i] = () -&gt; executionEvents.add(delayedExecution);</span>
-<span class="fc" id="L234">      } else {</span>
-<span class="fc" id="L235">        submits[i] = () -&gt; executionService.execute(f);</span>
+<span class="fc" id="L229">      futures[i] = f;</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">      if (hedgeDelay &gt; 0) {</span>
+<span class="fc" id="L231">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  delayedExecution = new DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;(</span>
+<span class="fc" id="L232">                f, unit.toNanos(hedgeDelay));</span>
+<span class="fc" id="L233">        f.setExec(delayedExecution);</span>
+<span class="fc" id="L234">        submits[i] = () -&gt; executionEvents.add(delayedExecution);</span>
+<span class="fc" id="L235">      } else {</span>
+<span class="fc" id="L236">        submits[i] = () -&gt; executionService.execute(f);</span>
       }
     }
-<span class="fc bfc" id="L238" title="All 2 branches covered.">    for (Runnable submit : submits) {</span>
-<span class="fc" id="L239">      submit.run();</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">    for (Runnable submit : submits) {</span>
+<span class="fc" id="L240">      submit.run();</span>
     }
-<span class="fc" id="L241">    return result;</span>
+<span class="fc" id="L242">    return result;</span>
   }
 
   @Override
@@ -246,66 +247,66 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
           final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate,
           final int nrHedges, final long hedgeDelay, final TimeUnit unit,
           final Supplier&lt;InterruptibleCompletableFuture&lt;A&gt;&gt; cfSupplier) {
-<span class="nc bnc" id="L249" title="All 2 branches missed.">    if (nrHedges &lt;= 0) {</span>
-<span class="nc" id="L250">      return submitRx(task, predicate);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">    if (nrHedges &lt;= 0) {</span>
+<span class="nc" id="L251">      return submitRx(task, predicate);</span>
     }
-<span class="nc" id="L252">    InterruptibleCompletableFuture&lt;A&gt; result = cfSupplier.get();</span>
-<span class="nc" id="L253">    int nrFut = nrHedges + 1;</span>
-<span class="nc" id="L254">    final Future&lt;A&gt;[] futures = new Future[nrFut];</span>
-<span class="nc" id="L255">    ArrayBlockingQueue&lt;Future&lt;A&gt;&gt; queue = new ArrayBlockingQueue&lt;&gt;(1);</span>
-<span class="nc" id="L256">    FirstFuture&lt;A&gt; resultX = new FirstFuture&lt;A&gt;(futures, queue) {</span>
+<span class="nc" id="L253">    InterruptibleCompletableFuture&lt;A&gt; result = cfSupplier.get();</span>
+<span class="nc" id="L254">    int nrFut = nrHedges + 1;</span>
+<span class="nc" id="L255">    final Future&lt;A&gt;[] futures = new Future[nrFut];</span>
+<span class="nc" id="L256">    ArrayBlockingQueue&lt;Future&lt;A&gt;&gt; queue = new ArrayBlockingQueue&lt;&gt;(1);</span>
+<span class="nc" id="L257">    FirstFuture&lt;A&gt; resultX = new FirstFuture&lt;A&gt;(futures, queue) {</span>
       @Override
       @SuppressFBWarnings({ &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;, &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot; })
       public boolean accept(final Future&lt;A&gt; finished) {
-<span class="nc" id="L260">        boolean accepted = super.accept(finished);</span>
-<span class="nc bnc" id="L261" title="All 2 branches missed.">          if (accepted) {</span>
+<span class="nc" id="L261">        boolean accepted = super.accept(finished);</span>
+<span class="nc bnc" id="L262" title="All 2 branches missed.">          if (accepted) {</span>
             A r;
             try {
-<span class="nc" id="L264">              r = finished.get();</span>
-<span class="nc" id="L265">            } catch (ExecutionException ex) {</span>
-<span class="nc bnc" id="L266" title="All 2 branches missed.">              if (!result.completeExceptionally(ex.getCause())) {</span>
-<span class="nc" id="L267">                throw new IllegalStateException(ex);</span>
+<span class="nc" id="L265">              r = finished.get();</span>
+<span class="nc" id="L266">            } catch (ExecutionException ex) {</span>
+<span class="nc bnc" id="L267" title="All 2 branches missed.">              if (!result.completeExceptionally(ex.getCause())) {</span>
+<span class="nc" id="L268">                throw new IllegalStateException(ex);</span>
               }
-<span class="nc" id="L269">              return true;</span>
-<span class="nc" id="L270">            } catch (Throwable ex) {</span>
-<span class="nc bnc" id="L271" title="All 2 branches missed.">              if (!result.completeExceptionally(ex)) {</span>
-<span class="nc" id="L272">                throw new IllegalStateException(ex);</span>
+<span class="nc" id="L270">              return true;</span>
+<span class="nc" id="L271">            } catch (Throwable ex) {</span>
+<span class="nc bnc" id="L272" title="All 2 branches missed.">              if (!result.completeExceptionally(ex)) {</span>
+<span class="nc" id="L273">                throw new IllegalStateException(ex);</span>
               }
-<span class="nc" id="L274">              return true;</span>
-<span class="nc" id="L275">            }</span>
-<span class="nc bnc" id="L276" title="All 2 branches missed.">            if (!result.complete(r)) {</span>
-<span class="nc" id="L277">              throw new IllegalStateException();</span>
+<span class="nc" id="L275">              return true;</span>
+<span class="nc" id="L276">            }</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">            if (!result.complete(r)) {</span>
+<span class="nc" id="L278">              throw new IllegalStateException();</span>
             }
-<span class="nc" id="L279">            return true;</span>
+<span class="nc" id="L280">            return true;</span>
           }
-<span class="nc" id="L281">          return false;</span>
+<span class="nc" id="L282">          return false;</span>
       }
     };
-<span class="nc" id="L284">    result.setToCancel(resultX);</span>
-<span class="nc" id="L285">    ConsumableRetryFutureTask&lt;A&gt; future =  new ConsumableRetryFutureTask(resultX, task,</span>
+<span class="nc" id="L285">    result.setToCancel(resultX);</span>
+<span class="nc" id="L286">    ConsumableRetryFutureTask&lt;A&gt; future =  new ConsumableRetryFutureTask(resultX, task,</span>
             (RetryPredicate&lt;A, Callable&lt;? extends A&gt;&gt;) predicate, executionEvents, this::startRetryManager);
-<span class="nc" id="L287">    startRetryManager();</span>
-<span class="nc" id="L288">    futures[0] = future;</span>
-<span class="nc" id="L289">    Runnable[] submits = new Runnable[nrFut];</span>
-<span class="nc" id="L290">    submits[0] = () -&gt; executionService.execute(future);</span>
-<span class="nc bnc" id="L291" title="All 2 branches missed.">    for (int i = 1; i &lt; nrFut; i++) {</span>
-<span class="nc" id="L292">      ConsumableRetryFutureTask&lt;A&gt; f = new ConsumableRetryFutureTask(</span>
+<span class="nc" id="L288">    startRetryManager();</span>
+<span class="nc" id="L289">    futures[0] = future;</span>
+<span class="nc" id="L290">    Runnable[] submits = new Runnable[nrFut];</span>
+<span class="nc" id="L291">    submits[0] = () -&gt; executionService.execute(future);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">    for (int i = 1; i &lt; nrFut; i++) {</span>
+<span class="nc" id="L293">      ConsumableRetryFutureTask&lt;A&gt; f = new ConsumableRetryFutureTask(</span>
                 resultX, task, (RetryPredicate) predicate, executionEvents,
                 this::startRetryManager);
-<span class="nc" id="L295">      futures[i] = f;</span>
-<span class="nc bnc" id="L296" title="All 2 branches missed.">      if (hedgeDelay &gt; 0) {</span>
-<span class="nc" id="L297">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  delayedExecution = new DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;(</span>
-<span class="nc" id="L298">                f, unit.toNanos(hedgeDelay));</span>
-<span class="nc" id="L299">        f.setExec(delayedExecution);</span>
-<span class="nc" id="L300">        submits[i] = () -&gt; executionEvents.add(delayedExecution);</span>
-<span class="nc" id="L301">      } else {</span>
-<span class="nc" id="L302">        submits[i] = () -&gt; executionService.execute(f);</span>
+<span class="nc" id="L296">      futures[i] = f;</span>
+<span class="nc bnc" id="L297" title="All 2 branches missed.">      if (hedgeDelay &gt; 0) {</span>
+<span class="nc" id="L298">        DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;  delayedExecution = new DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;(</span>
+<span class="nc" id="L299">                f, unit.toNanos(hedgeDelay));</span>
+<span class="nc" id="L300">        f.setExec(delayedExecution);</span>
+<span class="nc" id="L301">        submits[i] = () -&gt; executionEvents.add(delayedExecution);</span>
+<span class="nc" id="L302">      } else {</span>
+<span class="nc" id="L303">        submits[i] = () -&gt; executionService.execute(f);</span>
       }
     }
-<span class="nc bnc" id="L305" title="All 2 branches missed.">    for (Runnable submit : submits) {</span>
-<span class="nc" id="L306">      submit.run();</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">    for (Runnable submit : submits) {</span>
+<span class="nc" id="L307">      submit.run();</span>
     }
-<span class="nc" id="L308">    return result;</span>
+<span class="nc" id="L309">    return result;</span>
   }
 
 
@@ -313,14 +314,14 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
   @Override
   public &lt;A&gt; void execute(final Callable&lt;? extends A&gt; task,
           final RetryPredicate&lt;A, ? extends Callable&lt;? extends A&gt;&gt; predicate) {
-<span class="nc" id="L316">    RetryFutureTask&lt;A&gt; result = new RetryFutureTask(task, predicate, executionEvents, this::startRetryManager);</span>
-<span class="nc" id="L317">    executionService.execute(result);</span>
-<span class="nc" id="L318">  }</span>
+<span class="nc" id="L317">    RetryFutureTask&lt;A&gt; result = new RetryFutureTask(task, predicate, executionEvents, this::startRetryManager);</span>
+<span class="nc" id="L318">    executionService.execute(result);</span>
+<span class="nc" id="L319">  }</span>
 
 
   @Override
   public String toString() {
-<span class="nc" id="L323">    return &quot;RetryExecutor{&quot; + &quot;executionService=&quot; + executionService + &quot;, executionEvents=&quot; + executionEvents</span>
+<span class="nc" id="L324">    return &quot;RetryExecutor{&quot; + &quot;executionService=&quot; + executionService + &quot;, executionEvents=&quot; + executionEvents</span>
             + &quot;, retryManagerFuture=&quot; + retryManagerFuture
             + &quot;, sync=&quot; + sync + '}';
   }
@@ -330,86 +331,86 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
 
     private final Future&lt;T&gt;[] futures;
     private final BlockingQueue&lt;Future&lt;T&gt;&gt; queue;
-<span class="fc" id="L333">    private boolean first = true;</span>
+<span class="fc" id="L334">    private boolean first = true;</span>
 
     FirstFuture(final Future&lt;T&gt;[] futures,
-<span class="fc" id="L336">            final BlockingQueue&lt;Future&lt;T&gt;&gt; queue) {</span>
-<span class="fc" id="L337">      this.futures = futures;</span>
-<span class="fc" id="L338">      this.queue = queue;</span>
-<span class="fc" id="L339">    }</span>
+<span class="fc" id="L337">            final BlockingQueue&lt;Future&lt;T&gt;&gt; queue) {</span>
+<span class="fc" id="L338">      this.futures = futures;</span>
+<span class="fc" id="L339">      this.queue = queue;</span>
+<span class="fc" id="L340">    }</span>
 
     @Override
     public boolean accept(final Future&lt;T&gt; finished) {
-<span class="fc" id="L343">      synchronized (this) {</span>
-<span class="fc bfc" id="L344" title="All 2 branches covered.">        if (first) {</span>
-<span class="fc" id="L345">          first = false;</span>
-<span class="fc" id="L346">          queue.add(finished);</span>
-<span class="fc bfc" id="L347" title="All 2 branches covered.">          for (int i = 0;  i &lt; futures.length; i++) {</span>
-<span class="fc" id="L348">            Future f = futures[i];</span>
-<span class="pc bpc" id="L349" title="1 of 4 branches missed.">            if (f != null &amp;&amp; f != finished) {</span>
-<span class="fc" id="L350">              f.cancel(true);</span>
+<span class="fc" id="L344">      synchronized (this) {</span>
+<span class="fc bfc" id="L345" title="All 2 branches covered.">        if (first) {</span>
+<span class="fc" id="L346">          first = false;</span>
+<span class="fc" id="L347">          queue.add(finished);</span>
+<span class="fc bfc" id="L348" title="All 2 branches covered.">          for (int i = 0;  i &lt; futures.length; i++) {</span>
+<span class="fc" id="L349">            Future f = futures[i];</span>
+<span class="pc bpc" id="L350" title="1 of 4 branches missed.">            if (f != null &amp;&amp; f != finished) {</span>
+<span class="fc" id="L351">              f.cancel(true);</span>
             }
-<span class="fc" id="L352">            futures[i] = null;</span>
+<span class="fc" id="L353">            futures[i] = null;</span>
           }
-<span class="fc" id="L354">          return true;</span>
+<span class="fc" id="L355">          return true;</span>
         }
-<span class="fc" id="L356">        return false;</span>
+<span class="fc" id="L357">        return false;</span>
       }
     }
 
     @Override
     public boolean cancel(final boolean mayInterruptIfRunning) {
-<span class="fc" id="L362">      synchronized (this) {</span>
-<span class="fc" id="L363">        boolean result = true;</span>
-<span class="fc bfc" id="L364" title="All 2 branches covered.">        for (int i = 0, l = futures.length; i &lt; l; i++) {</span>
-<span class="fc" id="L365">          Future f = futures[i];</span>
-<span class="pc bpc" id="L366" title="1 of 4 branches missed.">          if (f != null &amp;&amp; !f.cancel(mayInterruptIfRunning)) {</span>
-<span class="nc" id="L367">            result = false;</span>
+<span class="fc" id="L363">      synchronized (this) {</span>
+<span class="fc" id="L364">        boolean result = true;</span>
+<span class="fc bfc" id="L365" title="All 2 branches covered.">        for (int i = 0, l = futures.length; i &lt; l; i++) {</span>
+<span class="fc" id="L366">          Future f = futures[i];</span>
+<span class="pc bpc" id="L367" title="1 of 4 branches missed.">          if (f != null &amp;&amp; !f.cancel(mayInterruptIfRunning)) {</span>
+<span class="nc" id="L368">            result = false;</span>
           }
         }
-<span class="fc" id="L370">        return result;</span>
+<span class="fc" id="L371">        return result;</span>
       }
     }
 
     @Override
     public boolean isCancelled() {
-<span class="nc" id="L376">      synchronized (this) {</span>
-<span class="nc" id="L377">        boolean result = true;</span>
-<span class="nc bnc" id="L378" title="All 2 branches missed.">        for (int i = 0, l = futures.length; i &lt; l; i++) {</span>
-<span class="nc" id="L379">          Future f = futures[i];</span>
-<span class="nc bnc" id="L380" title="All 4 branches missed.">          if (f != null &amp;&amp; !f.isCancelled()) {</span>
-<span class="nc" id="L381">            result = false;</span>
+<span class="nc" id="L377">      synchronized (this) {</span>
+<span class="nc" id="L378">        boolean result = true;</span>
+<span class="nc bnc" id="L379" title="All 2 branches missed.">        for (int i = 0, l = futures.length; i &lt; l; i++) {</span>
+<span class="nc" id="L380">          Future f = futures[i];</span>
+<span class="nc bnc" id="L381" title="All 4 branches missed.">          if (f != null &amp;&amp; !f.isCancelled()) {</span>
+<span class="nc" id="L382">            result = false;</span>
           }
         }
-<span class="nc" id="L384">        return result;</span>
+<span class="nc" id="L385">        return result;</span>
       }
     }
 
     @Override
     public boolean isDone() {
-<span class="fc" id="L390">      boolean result = true;</span>
-<span class="fc bfc" id="L391" title="All 2 branches covered.">      for (int i = 0, l =  futures.length; i &lt; l; i++) {</span>
-<span class="fc" id="L392">        Future f  = futures[i];</span>
-<span class="pc bpc" id="L393" title="3 of 4 branches missed.">        if (f != null &amp;&amp; !f.isDone()) {</span>
-<span class="nc" id="L394">          result =  false;</span>
+<span class="fc" id="L391">      boolean result = true;</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">      for (int i = 0, l =  futures.length; i &lt; l; i++) {</span>
+<span class="fc" id="L393">        Future f  = futures[i];</span>
+<span class="pc bpc" id="L394" title="3 of 4 branches missed.">        if (f != null &amp;&amp; !f.isDone()) {</span>
+<span class="nc" id="L395">          result =  false;</span>
         }
       }
-<span class="fc" id="L397">      return result;</span>
+<span class="fc" id="L398">      return result;</span>
     }
 
     @Override
     public T get() throws InterruptedException, ExecutionException {
-<span class="fc" id="L402">      return queue.take().get();</span>
+<span class="fc" id="L403">      return queue.take().get();</span>
     }
 
     @Override
     public T get(final long timeout, final TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-<span class="fc" id="L408">      Future&lt;T&gt; poll = queue.poll(timeout, unit);</span>
-<span class="fc bfc" id="L409" title="All 2 branches covered.">      if (poll == null) {</span>
-<span class="fc" id="L410">        throw new TimeoutException(&quot;Timed out after &quot; + timeout + &quot; &quot; + unit);</span>
+<span class="fc" id="L409">      Future&lt;T&gt; poll = queue.poll(timeout, unit);</span>
+<span class="fc bfc" id="L410" title="All 2 branches covered.">      if (poll == null) {</span>
+<span class="fc" id="L411">        throw new TimeoutException(&quot;Timed out after &quot; + timeout + &quot; &quot; + unit);</span>
       } else {
-<span class="fc" id="L412">        return poll.get();</span>
+<span class="fc" id="L413">        return poll.get();</span>
       }
     }
   }
@@ -422,16 +423,16 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
             final RetryPredicate&lt;T, Callable&lt;? extends T&gt;&gt; retryPredicate,
             final DelayQueue&lt;DelayedTask&lt;RetryFutureTask&lt;?&gt;&gt;&gt; delayedTasks,
             final Runnable onRetry) {
-<span class="fc" id="L425">      super(callable, retryPredicate, delayedTasks, onRetry);</span>
-<span class="fc" id="L426">      this.consumer = consumer;</span>
-<span class="fc" id="L427">    }</span>
+<span class="fc" id="L426">      super(callable, retryPredicate, delayedTasks, onRetry);</span>
+<span class="fc" id="L427">      this.consumer = consumer;</span>
+<span class="fc" id="L428">    }</span>
 
     @Override
     public void done() {
-<span class="fc" id="L431">      consumer.accept(this);</span>
-<span class="fc" id="L432">    }</span>
+<span class="fc" id="L432">      consumer.accept(this);</span>
+<span class="fc" id="L433">    }</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

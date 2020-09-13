@@ -535,31 +535,33 @@ public final class JdbcHeartBeat implements AutoCloseable {
 <span class="fc bfc" id="L535" title="All 2 branches covered.">        if (nanosSinceLastBeat &gt; tryBeatThresholdNanos) {</span>
           try {
 <span class="fc" id="L537">            beat();</span>
-<span class="nc" id="L538">          } catch (RuntimeException | SQLException | InterruptedException ex) {</span>
+<span class="nc" id="L538">          } catch (RuntimeException | SQLException ex) {</span>
 <span class="nc" id="L539">            HeartBeatError err = new HeartBeatError(&quot;System failed heartbeat&quot;, ex);</span>
 <span class="nc" id="L540">            handleError(err);</span>
-<span class="fc" id="L541">          }</span>
+<span class="nc" id="L541">          } catch (InterruptedException ex) {</span>
+<span class="nc" id="L542">            Thread.currentThread().interrupt();</span>
+<span class="pc" id="L543">          }</span>
         }
-<span class="fc" id="L543">    }</span>
+<span class="fc" id="L545">    }</span>
 
     public void handleError(final HeartBeatError err) {
-<span class="nc bnc" id="L546" title="All 2 branches missed.">      for (LifecycleHook hook : lifecycleHooks) {</span>
-<span class="nc" id="L547">        hook.onError(err);</span>
-<span class="nc" id="L548">      }</span>
-<span class="nc" id="L549">      RuntimeException ex = Iterables.forAll(lifecycleHooks, (final LifecycleHook t) -&gt; {</span>
+<span class="nc bnc" id="L548" title="All 2 branches missed.">      for (LifecycleHook hook : lifecycleHooks) {</span>
+<span class="nc" id="L549">        hook.onError(err);</span>
+<span class="nc" id="L550">      }</span>
+<span class="nc" id="L551">      RuntimeException ex = Iterables.forAll(lifecycleHooks, (final LifecycleHook t) -&gt; {</span>
         try {
-<span class="nc" id="L551">          t.onClose();</span>
-<span class="nc" id="L552">        } catch (SQLException e) {</span>
-<span class="nc" id="L553">          throw new RuntimeException(e);</span>
-<span class="nc" id="L554">        }</span>
-<span class="nc" id="L555">      });</span>
-<span class="nc bnc" id="L556" title="All 2 branches missed.">      if (ex != null) {</span>
-<span class="nc" id="L557">        err.addSuppressed(ex);</span>
+<span class="nc" id="L553">          t.onClose();</span>
+<span class="nc" id="L554">        } catch (SQLException e) {</span>
+<span class="nc" id="L555">          throw new RuntimeException(e);</span>
+<span class="nc" id="L556">        }</span>
+<span class="nc" id="L557">      });</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">      if (ex != null) {</span>
+<span class="nc" id="L559">        err.addSuppressed(ex);</span>
       }
-<span class="nc" id="L559">      lifecycleHooks.clear();</span>
-<span class="nc" id="L560">      throw err;</span>
+<span class="nc" id="L561">      lifecycleHooks.clear();</span>
+<span class="nc" id="L562">      throw err;</span>
     }
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

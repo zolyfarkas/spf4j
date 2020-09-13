@@ -42,34 +42,37 @@ import org.spf4j.recyclable.RecyclingSupplier;
  * @author zoly
  */
 public final class LeaseImpl&lt;T&gt; implements Lease&lt;T&gt; {
-    
+
     private final T leased;
-    
+
     private final RecyclingSupplier&lt;T&gt; rs;
-    
+
 <span class="nc" id="L50">    public LeaseImpl(final RecyclingSupplier&lt;T&gt; rs) {</span>
 <span class="nc" id="L51">        this.rs = rs;</span>
         try {
 <span class="nc" id="L53">            leased = rs.get();</span>
-<span class="nc" id="L54">        } catch (ObjectCreationException | ObjectBorrowException | InterruptedException | TimeoutException ex) {</span>
+<span class="nc" id="L54">        } catch (ObjectCreationException | ObjectBorrowException | TimeoutException ex) {</span>
 <span class="nc" id="L55">            throw new RuntimeException(ex);</span>
-<span class="nc" id="L56">        }</span>
-<span class="nc" id="L57">    }</span>
+<span class="nc" id="L56">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L57">          Thread.currentThread().interrupt();</span>
+<span class="nc" id="L58">          throw new RuntimeException(ex);</span>
+<span class="nc" id="L59">        }</span>
+<span class="nc" id="L60">    }</span>
 
     @Override
     public T get() {
-<span class="nc" id="L61">        return leased;</span>
+<span class="nc" id="L64">        return leased;</span>
     }
 
     @Override
     public void close() {
-<span class="nc" id="L66">        rs.recycle(leased);</span>
-<span class="nc" id="L67">    }</span>
+<span class="nc" id="L69">        rs.recycle(leased);</span>
+<span class="nc" id="L70">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L71">        return &quot;LeaseImpl{&quot; + &quot;leased=&quot; + leased + '}';</span>
+<span class="nc" id="L74">        return &quot;LeaseImpl{&quot; + &quot;leased=&quot; + leased + '}';</span>
     }
-    
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

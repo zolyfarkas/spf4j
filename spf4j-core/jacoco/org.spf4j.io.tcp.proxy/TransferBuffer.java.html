@@ -78,15 +78,15 @@ public final class TransferBuffer {
 <span class="fc" id="L78">  }</span>
 
   public synchronized int read(final SocketChannel channel) {
-<span class="fc bfc" id="L81" title="All 2 branches covered.">    if (lastOperation == Operation.WRITE) {</span>
-<span class="fc" id="L82">      buffer.compact();</span>
-<span class="fc" id="L83">      lastOperation = Operation.READ;</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">    if (lastOperation == Operation.WRITE) {</span>
+<span class="nc" id="L82">      buffer.compact();</span>
+<span class="nc" id="L83">      lastOperation = Operation.READ;</span>
     }
     int nrRead;
 <span class="fc" id="L86">    IOException oex = null;</span>
     try {
 <span class="fc" id="L88">      nrRead = channel.read(buffer);</span>
-<span class="fc bfc" id="L89" title="All 4 branches covered.">      if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
+<span class="pc bpc" id="L89" title="1 of 4 branches missed.">      if (incomingSniffer != null &amp;&amp; (nrRead != 0)) {</span>
 <span class="fc" id="L90">        nrRead = incomingSniffer.received(buffer, nrRead);</span>
       }
 <span class="nc" id="L92">    } catch (IOException ex) {</span>
@@ -217,4 +217,4 @@ public final class TransferBuffer {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

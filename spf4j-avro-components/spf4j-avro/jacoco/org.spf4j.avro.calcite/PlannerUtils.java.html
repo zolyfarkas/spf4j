@@ -19,9 +19,7 @@ import org.apache.calcite.plan.hep.HepPlanner;
 import org.apache.calcite.plan.hep.HepProgram;
 import org.apache.calcite.plan.hep.HepProgramBuilder;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.rules.FilterJoinRule;
-import org.apache.calcite.rel.rules.FilterProjectTransposeRule;
-import org.apache.calcite.rel.rules.ProjectJoinTransposeRule;
+import org.apache.calcite.rel.rules.CoreRules;
 
 /**
  *
@@ -32,17 +30,17 @@ public final class PlannerUtils {
   private PlannerUtils() { }
 
   public static RelNode pushDownPredicatesAndProjection(final RelNode rootRel) {
-<span class="fc" id="L35">    final HepProgram hepProgram = new HepProgramBuilder()</span>
+<span class="fc" id="L33">    final HepProgram hepProgram = new HepProgramBuilder()</span>
         //push down predicates
-<span class="fc" id="L37">        .addRuleInstance(FilterJoinRule.FilterIntoJoinRule.FILTER_ON_JOIN)</span>
+<span class="fc" id="L35">        .addRuleInstance(CoreRules.FILTER_INTO_JOIN)</span>
         //push down projections
-<span class="fc" id="L39">        .addRuleInstance(ProjectJoinTransposeRule.INSTANCE)</span>
-<span class="fc" id="L40">        .addRuleInstance(FilterProjectTransposeRule.INSTANCE)</span>
-<span class="fc" id="L41">            .build();</span>
-<span class="fc" id="L42">    final HepPlanner planner = new HepPlanner(hepProgram);</span>
-<span class="fc" id="L43">    planner.setRoot(rootRel);</span>
-<span class="fc" id="L44">    return planner.findBestExp();</span>
+<span class="fc" id="L37">        .addRuleInstance(CoreRules.PROJECT_JOIN_TRANSPOSE)</span>
+<span class="fc" id="L38">        .addRuleInstance(CoreRules.FILTER_PROJECT_TRANSPOSE)</span>
+<span class="fc" id="L39">            .build();</span>
+<span class="fc" id="L40">    final HepPlanner planner = new HepPlanner(hepProgram);</span>
+<span class="fc" id="L41">    planner.setRoot(rootRel);</span>
+<span class="fc" id="L42">    return planner.findBestExp();</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

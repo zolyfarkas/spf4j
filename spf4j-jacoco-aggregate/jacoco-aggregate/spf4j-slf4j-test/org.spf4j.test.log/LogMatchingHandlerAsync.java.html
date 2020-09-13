@@ -16,7 +16,6 @@
 package org.spf4j.test.log;
 
 import java.util.concurrent.TimeUnit;
-import org.hamcrest.Matcher;
 import org.spf4j.base.TimeSource;
 import org.spf4j.log.Level;
 
@@ -28,48 +27,52 @@ abstract class LogMatchingHandlerAsync extends LogMatchingHandler {
 
   private final long timeout;
   private final TimeUnit tu;
+  private final Object sync;
 
-  @SafeVarargs
-  LogMatchingHandlerAsync(final boolean assertSeen, final String category,
-          final Level minLevel, final long timeout, final TimeUnit tu,  final Matcher&lt;TestLogRecord&gt;... matchers) {
-<span class="fc" id="L35">    super(assertSeen, category, minLevel, matchers);</span>
-<span class="fc" id="L36">    this.timeout = timeout;</span>
-<span class="fc" id="L37">    this.tu = tu;</span>
+  LogMatchingHandlerAsync(
+          final Level minLevel, final long timeout, final TimeUnit tu, final LogStreamMatcher streamMatcher) {
+<span class="fc" id="L34">    super(minLevel, streamMatcher);</span>
+<span class="fc" id="L35">    this.timeout = timeout;</span>
+<span class="fc" id="L36">    this.tu = tu;</span>
+<span class="fc" id="L37">    this.sync = new Object();</span>
 <span class="fc" id="L38">  }</span>
 
   public abstract void close();
 
+
   @Override
-  public void matched() {
-<span class="fc" id="L44">    sync.notifyAll();</span>
-<span class="fc" id="L45">  }</span>
+  public TestLogRecord handle(final TestLogRecord record) {
+<span class="fc" id="L45">    TestLogRecord result = super.handle(record);</span>
+<span class="fc" id="L46">    synchronized (sync) {</span>
+<span class="fc" id="L47">      sync.notifyAll();</span>
+<span class="fc" id="L48">    }</span>
+<span class="fc" id="L49">    return result;</span>
+  }
+
+
 
   @Override
   public void assertObservation() {
-<span class="fc" id="L49">    long deadline = TimeSource.nanoTime() + tu.toNanos(timeout);</span>
+<span class="fc" id="L56">    long deadline = TimeSource.nanoTime() + tu.toNanos(timeout);</span>
     try {
-<span class="fc" id="L51">      synchronized (sync) {</span>
-<span class="pc bpc" id="L52" title="3 of 6 branches missed.">        while (assertSeen ? at &lt; matchers.length : at &gt;= matchers.length) {</span>
-<span class="fc" id="L53">          long nanosToDeadline = deadline - TimeSource.nanoTime();</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">          if (nanosToDeadline &lt;= 0) {</span>
-<span class="pc bpc" id="L55" title="1 of 2 branches missed.">            if (assertSeen) {</span>
-<span class="fc" id="L56">              throw new AssertionError(seenDescription().toString());</span>
-            } else {
-<span class="nc" id="L58">              throw new AssertionError(notSeenDescription().toString());</span>
-            }
+<span class="fc" id="L58">      synchronized (sync) {</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">        while (!streamMatcher.isMatched()) {</span>
+<span class="fc" id="L60">          long nanosToDeadline = deadline - TimeSource.nanoTime();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">          if (nanosToDeadline &lt;= 0) {</span>
+<span class="fc" id="L62">              throw new AssertionError(this);</span>
           }
-<span class="fc" id="L61">          TimeUnit.NANOSECONDS.timedWait(sync, nanosToDeadline);</span>
-<span class="fc" id="L62">        }</span>
-<span class="fc" id="L63">      }</span>
-<span class="nc" id="L64">    } catch (InterruptedException ex) {</span>
-<span class="nc" id="L65">      throw new AssertionError(&quot;Interrupted &quot; + this, ex);</span>
-<span class="fc" id="L66">    }</span>
-<span class="fc" id="L67">  }</span>
+<span class="fc" id="L64">          TimeUnit.NANOSECONDS.timedWait(sync, nanosToDeadline);</span>
+<span class="fc" id="L65">        }</span>
+<span class="fc" id="L66">      }</span>
+<span class="nc" id="L67">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L68">      Thread.currentThread().isInterrupted();</span>
+<span class="fc" id="L69">    }</span>
+<span class="fc" id="L70">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L71">    return &quot;LogMatchingHandlerAsync{&quot; + &quot;timeout=&quot; + timeout + &quot;, tu=&quot; + tu + &quot;, super = &quot; + super.toString() + '}';</span>
+<span class="fc" id="L74">    return &quot;LogMatchingHandlerAsync{&quot; + &quot;timeout=&quot; + timeout + &quot;, tu=&quot; + tu + &quot;, super = &quot; + super.toString() + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
