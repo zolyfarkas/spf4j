@@ -136,7 +136,7 @@ public final class RuntimeTest {
 
   @SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
   @Test(expected = CancellationException.class, timeout = 30000)
-  @ExpectLog(level = Level.ERROR, category = "org.spf4j.os", nrTimes = 2)
+//  @ExpectLog(level = Level.ERROR, category = "org.spf4j.os", nrTimes = 2)
   public void testExitCode5() throws InterruptedException, ExecutionException, TimeoutException {
     final CountDownLatch latch = new CountDownLatch(1);
     final CountDownLatch canCancel = new CountDownLatch(1);
