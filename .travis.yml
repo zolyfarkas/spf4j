@@ -11,8 +11,8 @@ before_script:
 script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install sonar:sonar
 
 before_install:
-  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh && . ./install-jdk.sh -F 11 -L GPL --target /home/travis/openjdk11 --os linux-x64
-  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh && . ./install-jdk.sh -F 8 -L GPL --target /home/travis/openjdk8 --os linux-x64
+  - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh && . ./install-jdk.sh -F 11 --target /home/travis/openjdk11 --os linux-x64
+  - . ./install-jdk.sh -F 8  --target /home/travis/openjdk8 --os linux-x64
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
   - sudo apt-get install jq
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
