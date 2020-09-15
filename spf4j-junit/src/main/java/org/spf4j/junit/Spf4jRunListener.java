@@ -40,6 +40,7 @@ import org.junit.runner.Result;
 import org.junit.runner.notification.RunListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.perf.ProcessVitals;
 import org.spf4j.stackmonitor.FastStackCollector;
 import org.spf4j.stackmonitor.Sampler;
 
@@ -90,6 +91,8 @@ public final class Spf4jRunListener extends RunListener {
 
   private volatile File lastWrittenFile;
 
+  private ProcessVitals vitals;
+
   public Spf4jRunListener() {
     sampler = new Sampler(Integer.getInteger("spf4j.junit.sampleTimeMillis", 5),
           Integer.getInteger("spf4j.junit.dumpAfterMillis", Integer.MAX_VALUE),
@@ -116,11 +119,14 @@ public final class Spf4jRunListener extends RunListener {
   @Override
   public void testRunFinished(final Result result) throws InterruptedException {
     sampler.stop();
+    vitals.close();
   }
 
   @Override
   public void testRunStarted(final Description description)  {
    sampler.start();
+   vitals = ProcessVitals.getOrCreate();
+   vitals.start();
   }
 
   public Sampler getSampler() {

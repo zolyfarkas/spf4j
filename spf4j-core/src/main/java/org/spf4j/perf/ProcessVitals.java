@@ -38,10 +38,12 @@ import org.spf4j.perf.memory.GCUsageSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 
 /**
- * Utility monitoring to collect
+ * Utility to collect process vitals. (cpu, memory, ...)
  * @author Zoltan Farkas
  */
 public final class ProcessVitals implements AutoCloseable {
+
+  private static ProcessVitals vitalsSigleton;
 
   private final int openFilesSampleTimeMillis;
 
@@ -53,16 +55,7 @@ public final class ProcessVitals implements AutoCloseable {
 
   private final int cpuUseSampleTimeMillis;
 
-  public ProcessVitals() {
-    this(Integer.getInteger("spf4j.vitals.openFilesSampleTimeMillis", 60000),
-         Integer.getInteger("spf4j.vitals.memoryUseSampleTimeMillis", 6000),
-         Integer.getInteger("spf4j.vitals.gcUseSampleTimeMillis", 10000),
-         Integer.getInteger("spf4j.vitals.threadUseSampleTimeMillis", 10000),
-         Integer.getInteger("spf4j.vitals.cpuUseSampleTimeMillis", 10000));
-  }
-
-
-  public ProcessVitals(final int openFilesSampleTimeMillis,
+  private ProcessVitals(final int openFilesSampleTimeMillis,
           final int memoryUseSampleTimeMillis,
           final int gcUseSampleTimeMillis,
           final int threadUseSampleTimeMillis,
@@ -75,6 +68,33 @@ public final class ProcessVitals implements AutoCloseable {
   }
 
 
+  public static synchronized ProcessVitals get() {
+    return vitalsSigleton;
+  }
+
+  public static ProcessVitals getOrCreate() {
+    return getOrCreate(Integer.getInteger("spf4j.vitals.openFilesSampleTimeMillis", 60000),
+         Integer.getInteger("spf4j.vitals.memoryUseSampleTimeMillis", 5000),
+         Integer.getInteger("spf4j.vitals.gcUseSampleTimeMillis", 5000),
+         Integer.getInteger("spf4j.vitals.threadUseSampleTimeMillis", 5000),
+         Integer.getInteger("spf4j.vitals.cpuUseSampleTimeMillis", 5000));
+  }
+
+  public static synchronized ProcessVitals getOrCreate(final int openFilesSampleTimeMillis,
+          final int memoryUseSampleTimeMillis,
+          final int gcUseSampleTimeMillis,
+          final int threadUseSampleTimeMillis,
+          final int cpuUseSampleTimeMillis) {
+    ProcessVitals current = vitalsSigleton;
+    if (current != null) {
+      return current;
+    }
+    current = new ProcessVitals(openFilesSampleTimeMillis,
+            memoryUseSampleTimeMillis, gcUseSampleTimeMillis,
+            threadUseSampleTimeMillis, cpuUseSampleTimeMillis);
+    vitalsSigleton = current;
+    return current;
+  }
 
 
   public void start() {

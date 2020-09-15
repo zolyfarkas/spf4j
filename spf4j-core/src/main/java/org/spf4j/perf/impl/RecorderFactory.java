@@ -55,10 +55,10 @@ import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.perf.CloseableMeasurementRecorderSource;
-import org.spf4j.perf.MeasurementRecorder;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MultiMeasurementRecorder;
+import org.spf4j.perf.impl.acc.CountAccumulator;
 import org.spf4j.perf.impl.ms.Flusher;
 import org.spf4j.perf.impl.ms.MultiStore;
 import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStore;
@@ -164,7 +164,7 @@ public final class RecorderFactory {
    * @param quantasPerMagnitude number of equally divided measurement buckets per magnitude. ex: 10
    * @return a measurement recorder that
    */
-  public static MeasurementRecorder createScalableQuantizedRecorder(
+  public static CloseableMeasurementRecorder createScalableQuantizedRecorder(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis,
           final int factor, final int lowerMagnitude,
           final int higherMagnitude, final int quantasPerMagnitude) {
@@ -186,15 +186,39 @@ public final class RecorderFactory {
     return mr;
   }
 
-  public static MeasurementRecorder createScalableCountingRecorder(
-          final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+  /**
+   * This will accumulate a sum of all the recorded numbers +
+   * the number fo record method invocations.
+   * @param forWhat entity we measure
+   * @param unitOfMeasurement the unit of measurement
+   * @param bucketTimeMillis the bucket time in milliseconds.
+   * @return
+   */
+  public static CloseableMeasurementRecorder createScalableCountingRecorder(
+          final Object forWhat, final String unitOfMeasurement, final int bucketTimeMillis) {
     ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new AddAndCountAccumulator(forWhat, "",
-            unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
+            unitOfMeasurement), bucketTimeMillis, MEASUREMENT_STORE, true);
     mr.registerJmx();
     return mr;
   }
 
-  public static MeasurementRecorder createScalableMinMaxAvgRecorder(
+
+  /**
+   * This will accumulate a sum of all the recorded numbers
+   * @param forWhat entity we measure
+   * @param unitOfMeasurement the unit of measurement
+   * @param bucketTimeMillis the bucket time in milliseconds.
+   * @return
+   */
+  public static CloseableMeasurementRecorder createScalableSimpleCountingRecorder(
+          final Object forWhat, final String unitOfMeasurement, final int bucketTimeMillis) {
+    ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new CountAccumulator(forWhat, "",
+            unitOfMeasurement), bucketTimeMillis, MEASUREMENT_STORE, true);
+    mr.registerJmx();
+    return mr;
+  }
+
+  public static CloseableMeasurementRecorder createScalableMinMaxAvgRecorder(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorder mr = new ScalableMeasurementRecorder(new MinMaxAvgAccumulator(forWhat, "",
             unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
@@ -283,20 +307,22 @@ public final class RecorderFactory {
     return mr;
   }
 
-  public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement) {
+  public static CloseableMeasurementRecorder createDirectRecorder(final Object forWhat,
+          final String unitOfMeasurement) {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
     mr.registerJmx();
     return mr;
   }
 
-  public static MeasurementRecorder createDirectRecorder(final Object forWhat, final String unitOfMeasurement,
+  public static CloseableMeasurementRecorder createDirectRecorder(final Object forWhat,
+          final String unitOfMeasurement,
           final MeasurementType type) {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE, type);
     mr.registerJmx();
     return mr;
   }
 
-  public static MeasurementRecorder createDirectRecorder(final Object forWhat,
+  public static CloseableMeasurementRecorder createDirectRecorder(final Object forWhat,
           final String unitOfMeasurement, final int sampleTimeMillis) {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(
             forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE);
@@ -304,7 +330,7 @@ public final class RecorderFactory {
     return mr;
   }
 
-  public static MeasurementRecorder createDirectRecorder(final Object forWhat,
+  public static CloseableMeasurementRecorder createDirectRecorder(final Object forWhat,
           final String unitOfMeasurement, final int sampleTimeMillis, final MeasurementType type) {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(
             forWhat, "", unitOfMeasurement, sampleTimeMillis, MEASUREMENT_STORE, type);
@@ -317,7 +343,7 @@ public final class RecorderFactory {
     return new DirectRecorderSource(forWhat, "", unitOfMeasurement, 0, MEASUREMENT_STORE);
   }
 
-  public static MeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
+  public static CloseableMeasurementRecorder createDirectGraphiteUdpRecorder(final Object forWhat,
           final String unitOfMeasurement,
           final String graphiteHost, final int graphitePort) throws ObjectCreationException {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0,
@@ -326,7 +352,7 @@ public final class RecorderFactory {
     return mr;
   }
 
-  public static MeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
+  public static CloseableMeasurementRecorder createDirectGraphiteTcpRecorder(final Object forWhat,
           final String unitOfMeasurement,
           final String graphiteHost, final int graphitePort) throws ObjectCreationException {
     DirectStoreAccumulator mr = new DirectStoreAccumulator(forWhat, "", unitOfMeasurement, 0,

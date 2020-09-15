@@ -42,28 +42,26 @@ import org.spf4j.tsdb2.avro.MeasurementType;
 /**
  * @author zoly
  */
-public final class AddAndCountAccumulator
+public final class CountAccumulator
         extends AbstractMeasurementAccumulator {
 
-  private static final String[] MEASUREMENTS = {"count", "total"};
+  private static final String[] MEASUREMENTS = {"count"};
 
-  private static final Aggregation[] AGGS = {Aggregation.SUM, Aggregation.SUM};
+  private static final Aggregation[] AGGS = {Aggregation.SUM};
 
   private long counter;
-  private long total;
   private final MeasurementsInfo info;
 
-  private AddAndCountAccumulator(final Object measuredEntity, final String description,
-          final String unitOfMeasurement, final long counter, final long total) {
+  private CountAccumulator(final Object measuredEntity, final String description,
+          final String unitOfMeasurement, final long counter) {
     this.info = new MeasurementsInfoImpl(measuredEntity, description,
-            MEASUREMENTS, new String[]{"count", unitOfMeasurement}, AGGS, MeasurementType.SUMMARY);
+            MEASUREMENTS, new String[]{"count", unitOfMeasurement}, AGGS, MeasurementType.COUNTER);
     this.counter = counter;
-    this.total = total;
   }
 
-  public AddAndCountAccumulator(final Object measuredEntity, final String description,
+  public CountAccumulator(final Object measuredEntity, final String description,
           final String unitOfMeasurement) {
-    this(measuredEntity, description, unitOfMeasurement, 0, 0);
+    this(measuredEntity, description, unitOfMeasurement, 0);
   }
 
   public String getUnitOfMeasurement() {
@@ -72,14 +70,12 @@ public final class AddAndCountAccumulator
 
   @Override
   public synchronized void increment() {
-    total++;
     counter++;
   }
 
   @Override
   public synchronized void record(final long measurement) {
-    total += measurement;
-    counter++;
+    counter += measurement;
   }
 
   @Override
@@ -89,20 +85,20 @@ public final class AddAndCountAccumulator
     if (counter == 0) {
       return null;
     } else {
-      return new long[]{counter, total};
+      return new long[]{counter};
     }
   }
 
   @SuppressFBWarnings({"CLI_CONSTANT_LIST_INDEX", "NOS_NON_OWNED_SYNCHRONIZATION"})
   @Override
   public MeasurementAccumulator aggregate(final MeasurementAccumulator mSource) {
-    if (mSource instanceof AddAndCountAccumulator) {
-      AddAndCountAccumulator other = (AddAndCountAccumulator) mSource;
+    if (mSource instanceof CountAccumulator) {
+      CountAccumulator other = (CountAccumulator) mSource;
       long[] measurements = other.get();
       if (measurements != null) {
         synchronized (this) {
-          return new AddAndCountAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
-                  getUnitOfMeasurement(), counter + measurements[0], total + measurements[1]);
+          return new CountAccumulator(this.info.getMeasuredEntity(), this.info.getDescription(),
+                  getUnitOfMeasurement(), counter + measurements[0]);
         }
       } else {
         return this.createClone();
@@ -113,14 +109,14 @@ public final class AddAndCountAccumulator
   }
 
   @Override
-  public synchronized AddAndCountAccumulator createClone() {
-    return new AddAndCountAccumulator(this.info.getMeasuredEntity(),
-            this.info.getDescription(), getUnitOfMeasurement(), counter, total);
+  public synchronized CountAccumulator createClone() {
+    return new CountAccumulator(this.info.getMeasuredEntity(),
+            this.info.getDescription(), getUnitOfMeasurement(), counter);
   }
 
   @Override
-  public AddAndCountAccumulator createLike(final Object entity) {
-    return new AddAndCountAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());
+  public CountAccumulator createLike(final Object entity) {
+    return new CountAccumulator(entity, this.info.getDescription(), getUnitOfMeasurement());
   }
 
   @Override
@@ -136,7 +132,6 @@ public final class AddAndCountAccumulator
     } else {
       MeasurementAccumulator result = this.createClone();
       counter = 0;
-      total = 0;
       return result;
     }
   }
@@ -155,7 +150,7 @@ public final class AddAndCountAccumulator
 
   @Override
   public String toString() {
-    return "CountingAccumulator{" + "counter=" + counter + ", total=" + total + ", info=" + info + '}';
+    return "CountingAccumulator{" + "counter=" + counter + ", info=" + info + '}';
   }
 
 }

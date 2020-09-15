@@ -38,11 +38,22 @@ package org.spf4j.perf;
 public interface MeasurementRecorder {
 
     /**
+     * Increment measurement by one.
+     */
+    default void increment() {
+      record(1L);
+    }
+    /**
      * record a measurement for current time. System.currentTimeMillis().
      * @param measurement the measurement value
      */
     void record(long measurement);
 
+    /**
+     * Point in time value recording.
+     * @param timestampMillis
+     * @param measurement
+     */
     void recordAt(long timestampMillis, long measurement);
 
 }
