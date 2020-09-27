@@ -267,6 +267,15 @@ public final class RecorderFactory {
     return mrs;
   }
 
+  public static CloseableMeasurementRecorderSource createScalableSimpleCountingRecorderSource(
+          final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
+    ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(
+            new CountAccumulator(forWhat, "",
+                    unitOfMeasurement), sampleTimeMillis, MEASUREMENT_STORE, true);
+    mrs.registerJmx();
+    return mrs;
+  }
+
   public static CloseableMeasurementRecorderSource createScalableCountingRecorderSource2(
           final Object forWhat, final String unitOfMeasurement, final int sampleTimeMillis) {
     ScalableMeasurementRecorderSource mrs = new ScalableMeasurementRecorderSource(

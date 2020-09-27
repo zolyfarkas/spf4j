@@ -55,7 +55,7 @@ public final class CountAccumulator
   private CountAccumulator(final Object measuredEntity, final String description,
           final String unitOfMeasurement, final long counter) {
     this.info = new MeasurementsInfoImpl(measuredEntity, description,
-            MEASUREMENTS, new String[]{"count", unitOfMeasurement}, AGGS, MeasurementType.COUNTER);
+            MEASUREMENTS, new String[]{unitOfMeasurement}, AGGS, MeasurementType.COUNTER);
     this.counter = counter;
   }
 
@@ -65,7 +65,7 @@ public final class CountAccumulator
   }
 
   public String getUnitOfMeasurement() {
-    return info.getMeasurementUnit(1);
+    return info.getMeasurementUnit(0);
   }
 
   @Override
