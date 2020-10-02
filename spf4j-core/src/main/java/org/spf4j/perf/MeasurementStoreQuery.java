@@ -110,9 +110,9 @@ public interface MeasurementStoreQuery {
   default AvroCloseableIterable<TimeSeriesRecord> getAggregatedMeasurementData(
           final Schema measurement,
           final Instant from, final Instant to,
-          final int aggFreq,  final TimeUnit tu) throws IOException {
+          final long aggFreq,  final TimeUnit tu) throws IOException {
     long aggTime = tu.toMillis(aggFreq);
-    int frequencyMillis = TimeSeriesRecord.getFrequencyMillis(measurement);
+    long frequencyMillis = TimeSeriesRecord.getFrequencyMillis(measurement);
     AvroCloseableIterable<TimeSeriesRecord> iterable = getMeasurementData(measurement, from, to);
     return AvroCloseableIterable.from(() -> new TimeSeriesAggregatingIterator<>(iterable,
             (TimeSeriesRecord rec) -> rec.getTimeStamp().toEpochMilli(),
