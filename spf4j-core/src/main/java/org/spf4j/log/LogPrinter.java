@@ -384,7 +384,7 @@ public final class LogPrinter {
     wrapper.append(':');
     wrapper.append(record.getTrId());
     wr.append("\" \"");
-    wrapper.append(record.getMsg());
+    Slf4jMessageFormatter.format(wrapper, record.getMsg(), record.getMsgArgs().toArray());
     wr.append("\" ");
     Map<String, Object> attrs = record.getAttrs();
     List<Object> xtra = record.getXtra();

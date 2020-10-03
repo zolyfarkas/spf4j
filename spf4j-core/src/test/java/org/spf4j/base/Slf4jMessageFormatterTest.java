@@ -56,6 +56,15 @@ public class Slf4jMessageFormatterTest {
   private static final Logger LOG = LoggerFactory.getLogger(Slf4jMessageFormatterTest.class);
 
   @Test
+  public void testGetFormatParameterNumber() {
+    Assert.assertEquals(0, Slf4jMessageFormatter.getFormatParameterNumber("bla bla"));
+    Assert.assertEquals(1, Slf4jMessageFormatter.getFormatParameterNumber("bla bla {}"));
+    Assert.assertEquals(2, Slf4jMessageFormatter.getFormatParameterNumber("{} bla bla {}"));
+    Assert.assertEquals(1, Slf4jMessageFormatter.getFormatParameterNumber("\\{} bla bla {}"));
+  }
+
+
+  @Test
   public void testFormatter() throws IOException {
     StringBuilder sb = new StringBuilder();
     Slf4jMessageFormatter.format(sb, "bla bla");

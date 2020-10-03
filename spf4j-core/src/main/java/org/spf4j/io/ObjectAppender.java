@@ -110,6 +110,12 @@ public interface ObjectAppender<T> extends BiConsumer<T, Appendable> {
     }
   }
 
+  default String toString(final T object) {
+    StringBuilder sb = new StringBuilder();
+    this.accept(object, sb);
+    return sb.toString();
+  }
+
   /**
    * A simple Object appender that invokes the toString method of the object and writes the object out.
    */

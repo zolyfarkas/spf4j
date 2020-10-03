@@ -62,7 +62,7 @@ public class AvroMeasurementStoreTest {
   private static final Logger LOG = LoggerFactory.getLogger(AvroMeasurementStoreTest.class);
 
   @Test
-  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
+  @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "AFBR_ABNORMAL_FINALLY_BLOCK_RETURN" })
   public void testStore() throws IOException {
     AvroMeasurementStore store = new AvroMeasurementStore(org.spf4j.base.Runtime.TMP_FOLDER_PATH,
             "testMetrics", false);

@@ -159,6 +159,34 @@ public final class Slf4jMessageFormatter {
     return format(Slf4jMessageFormatter::exHandle, firstArgIdx, to, messagePattern, appSupplier, argArray);
   }
 
+
+  public static int getFormatParameterNumber(@Nonnull final String messagePattern) {
+    int nrParams = 0;
+    int i = 0;
+    int j;
+    while ((j = messagePattern.indexOf(DELIM_STR, i)) >= 0) {
+        if (isEscapedDelimeter(messagePattern, j)) {
+          if (isDoubleEscaped(messagePattern, j)) {
+            // The escape character preceding the delimiter start is
+            // itself escaped: "abc x:\\{}"
+            // we have to consume one backward slash
+            nrParams++;
+            i = j + 2;
+          } else {
+            i = j + 1;
+          }
+        } else {
+          // normal case
+          nrParams++;
+          i = j + 2;
+        }
+    }
+    return nrParams;
+  }
+
+
+
+
   /**
    * Slf4j message formatter.
    *
@@ -186,18 +214,18 @@ public final class Slf4jMessageFormatter {
         break;
       } else {
         if (isEscapedDelimeter(messagePattern, j)) {
-          if (!isDoubleEscaped(messagePattern, j)) {
-            k--; // DELIM_START was escaped, thus should not be incremented
-            to.append(messagePattern, i, j - 1);
-            to.append(DELIM_START);
-            i = j + 1;
-          } else {
+          if (isDoubleEscaped(messagePattern, j)) {
             // The escape character preceding the delimiter start is
             // itself escaped: "abc x:\\{}"
             // we have to consume one backward slash
             to.append(messagePattern, i, j - 1);
             deeplyAppendParameter(exHandler, to, argArray[k], new THashSet<>(), appSupplier);
             i = j + 2;
+          } else {
+            k--; // DELIM_START was escaped, thus should not be incremented
+            to.append(messagePattern, i, j - 1);
+            to.append(DELIM_START);
+            i = j + 1;
           }
         } else {
           // normal case

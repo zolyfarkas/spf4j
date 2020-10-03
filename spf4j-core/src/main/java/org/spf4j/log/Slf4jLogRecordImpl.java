@@ -127,8 +127,12 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   @Override
   public final int getNrMessageArguments() {
-    materializeMessage();
-    return this.startExtra;
+    int sx = this.startExtra;
+    if (sx < 0) {
+        sx = Slf4jMessageFormatter.getFormatParameterNumber(messageFormat);
+      this.startExtra = sx;
+    }
+    return sx;
   }
 
   @Override
@@ -163,9 +167,9 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   @Nonnull
   @Override
   public final Object[] getExtraArgumentsRaw() {
-    materializeMessage();
-    if (startExtra < arguments.length) {
-        return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
+    int sx = getNrMessageArguments();
+    if (sx < arguments.length) {
+        return java.util.Arrays.copyOfRange(arguments, sx, arguments.length);
     } else {
       return Arrays.EMPTY_OBJ_ARRAY;
     }
@@ -174,15 +178,15 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   @Nonnull
   @Override
   public final Object[] getExtraArguments() {
-    materializeMessage();
-    if (startExtra < arguments.length) {
+    int sx = getNrMessageArguments();
+    if (sx < arguments.length) {
       int nrExtraThrowables = getNrExtraThrowables();
       if (nrExtraThrowables <= 0) {
-        return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);
+        return java.util.Arrays.copyOfRange(arguments, sx, arguments.length);
       } else {
-        Object[] result = new Object[arguments.length - startExtra - nrExtraThrowables];
+        Object[] result = new Object[arguments.length - sx - nrExtraThrowables];
         int i = 0;
-        for (int j = startExtra; j < arguments.length; j++) {
+        for (int j = sx; j < arguments.length; j++) {
           Object argument = arguments[j];
           if (!(argument instanceof Throwable)) {
             result[i++]  =  argument;
@@ -196,9 +200,9 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   }
 
   private  int getNrExtraThrowables() {
-    materializeMessage();
+    int sx = getNrMessageArguments();
     int count = 0;
-    for (int i = startExtra; i < arguments.length; i++) {
+    for (int i = sx; i < arguments.length; i++) {
       Object argument = arguments[i];
       if (argument instanceof Throwable) {
         count++;
@@ -210,9 +214,9 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   @Nullable
   @Override
   public final Throwable getExtraThrowable() {
-    materializeMessage();
+    int sx = getNrMessageArguments();
     Throwable result = null;
-    for (int i = startExtra; i < arguments.length; i++) {
+    for (int i = sx; i < arguments.length; i++) {
       Object argument = arguments[i];
       if (argument instanceof Throwable) {
         if (result == null) {
@@ -242,7 +246,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
    */
   @Override
   public void writeJsonTo(final Appendable appendable) throws IOException {
-    JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));
+    JsonGenerator gen = Lazy.JSON.createGenerator(new AppendableWriter(appendable));
     gen.setCodec(Lazy.MAPPER);
     gen.writeStartObject();
     gen.writeFieldName("ts");

@@ -48,12 +48,17 @@ import org.spf4j.base.avro.Converters;
 import static org.spf4j.base.avro.Converters.convert;
 import org.spf4j.base.avro.LogRecord;
 import org.spf4j.base.avro.StackSampleElement;
+import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
  * @author Zoltan Farkas
  */
 public interface Slf4jLogRecord {
 
+  /**
+   * @return all slf4j log arguments, getNrMessageArguments() message arguments followed by additional payload
+   * like exceptions, or other data.
+   */
   @SuppressFBWarnings(value = "EI_EXPOSE_REP")
   @Nonnull
   Object[] getArguments();
@@ -183,9 +188,28 @@ public interface Slf4jLogRecord {
         }
       }
     }
+    int nrMsgArgs = this.getNrMessageArguments();
+    List<String> messageArgs;
+    if (nrMsgArgs == 0) {
+        messageArgs = Collections.EMPTY_LIST;
+    } else {
+        Object[] args = this.getArguments();
+        String[] ma = new String[args.length];
+        int i = 0;
+        for (Object arg : args) {
+          if (arg == null) {
+            ma[i] = "null";
+          } else {
+             ma[i] = ObjectAppenderSupplier.TO_STRINGER.get(arg.getClass()).toString(arg);
+          }
+          i++;
+        }
+        messageArgs = Arrays.asList(ma);
+    }
     return new LogRecord(origin, traceId, this.getLevel().getAvroLevel(),
             Instant.ofEpochMilli(this.getTimeStamp()),
-            this.getLoggerName(), this.getThreadName(), this.getMessage(), xArgs,
+            this.getLoggerName(), this.getThreadName(), this.getMessageFormat(),
+            messageArgs, xArgs,
             attribs == null ? Collections.EMPTY_MAP : attribs,
             extraThrowable == null ? null : convert(extraThrowable), profiles);
   }
