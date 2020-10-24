@@ -310,14 +310,15 @@ public final class SchemaCompileMojo
     Protocol protocol = parser.CompilationUnit();
     // hack uses the same logic and Idl...
     String idlSource = new File(".").toURI().relativize(idl.toURI()).toString();
-    getLog().debug("Injecting mvnIds to " + idlSource);
+    Log log = getLog();
+    log.debug("Injecting mvnIds to " + idlSource);
     for (Schema s : protocol.getTypes()) {
       if (s.getProp("mvnId") != null) {
         continue;
       }
       String sourceIdl = s.getProp("sourceIdl");
       if (sourceIdl == null) {
-        getLog().warn("sourceIdl not available, will not attach mvnId for IDLs");
+        log.warn("sourceIdl not available, will not attach mvnId for IDLs");
         continue;
       }
       SourceLocation sl = new SourceLocation(sourceIdl);
@@ -327,7 +328,7 @@ public final class SchemaCompileMojo
       int zbLineNr = sl.getLineNr() - 1;
       String line = readAllLines.get(zbLineNr);
       String sMvnId = genMnvId(s);
-      getLog().debug("inserting mvnId: " + sMvnId + " at "
+      log.debug("inserting mvnId: " + sMvnId + " at "
               + sl + " for line \"" + line + "\" schema: " + s.getFullName());
       int zbColNr = sl.getColNr() - 1;
       readAllLines.set(zbLineNr, line.substring(0, zbColNr)
