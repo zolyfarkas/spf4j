@@ -829,7 +829,7 @@ public final class Schemas {
 
   public static Schema temporalString() {
     Schema schema = Schema.create(Schema.Type.STRING);
-    schema.addProp("logicalType", "any_temporal");
+    schema.addProp("logicalType", "temporal");
     schema.setLogicalType(LogicalTypes.fromSchema(schema));
     return schema;
   }
