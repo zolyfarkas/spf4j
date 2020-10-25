@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
@@ -63,6 +64,8 @@ public final class Json {
     for (Module mod : loader) {
       MAPPER.registerModule(mod);
     }
+    MAPPER.disable(SerializationFeature.FLUSH_AFTER_WRITE_VALUE);
+    FACTORY.setCodec(MAPPER);
   }
 
   private static void loadServices(final SimpleModule module) {
