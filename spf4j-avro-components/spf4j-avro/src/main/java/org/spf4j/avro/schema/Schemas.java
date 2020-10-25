@@ -62,6 +62,8 @@ import org.apache.avro.Schema.Field;
 import org.apache.avro.generic.GenericData;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.generic.IndexedRecord;
+import org.apache.avro.logical_types.InstantLogicalType;
+import org.apache.avro.logical_types.Temporal;
 import org.apache.avro.reflect.ExtendedReflectData;
 import org.apache.avro.specific.SpecificData;
 import org.spf4j.avro.AvroCompatUtils;
@@ -815,22 +817,19 @@ public final class Schemas {
 
   public static Schema dateString() {
     Schema schema = Schema.create(Schema.Type.STRING);
-    schema.addProp("logicalType", "date");
-    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    LogicalTypes.date().addToSchema(schema);
     return schema;
   }
 
   public static Schema instantString() {
     Schema schema = Schema.create(Schema.Type.STRING);
-    schema.addProp("logicalType", "instant");
-    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    InstantLogicalType.instance().addToSchema(schema);
     return schema;
   }
 
   public static Schema temporalString() {
     Schema schema = Schema.create(Schema.Type.STRING);
-    schema.addProp("logicalType", "temporal");
-    schema.setLogicalType(LogicalTypes.fromSchema(schema));
+    Temporal.instance().addToSchema(schema);
     return schema;
   }
 
