@@ -35,10 +35,12 @@ import com.google.common.primitives.Longs;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileStream;
@@ -76,22 +78,48 @@ public final class AvroMeasurementStore
 
   private final AvroMeasurementStoreReader reader;
 
-
-  public AvroMeasurementStore(final Path destinationPath, final String fileNameBase) throws IOException {
-    this(destinationPath, fileNameBase,
-            Boolean.parseBoolean(System.getProperty("spf4j.perf.avro.snappyEnable", "true")));
+  public enum Compressor {
+    SNAPPY, ZSTANDARD
   }
 
-  public AvroMeasurementStore(final Path destinationPath, final String fileNameBase, final boolean snappyCompress)
+  private static Compressor getConfiguredCompressor() {
+    if (Boolean.parseBoolean(System.getProperty("spf4j.perf.avro.snappyEnable", "false"))) {
+      return Compressor.SNAPPY;
+    }
+    return Compressor.valueOf(System.getProperty("spf4j.perf.avro.compressor", "ZSTANDARD"));
+  }
+
+  public AvroMeasurementStore(final Path destinationPath, final String fileNameBase) throws IOException {
+    this(destinationPath, fileNameBase, getConfiguredCompressor());
+  }
+
+  public AvroMeasurementStore(final Path destinationPath, final String fileNameBase,
+          @Nullable final Compressor compressor)
   throws IOException {
-    if (snappyCompress) {
-      try {
-        Class.forName("org.xerial.snappy.Snappy");
-        codecFact = CodecFactory.snappyCodec();
-      } catch (ClassNotFoundException ex) {
-        Logger.getLogger(AvroMeasurementStore.class.getName())
-                .info("Snappy compression not available for metrics store");
-        codecFact = null;
+    if (compressor != null) {
+      switch (compressor) {
+        case SNAPPY:
+          try {
+            Class.forName("org.xerial.snappy.Snappy");
+            codecFact = CodecFactory.snappyCodec();
+          } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AvroMeasurementStore.class.getName())
+                    .info("Snappy compression not available for metrics store");
+            codecFact = null;
+          }
+          break;
+        case ZSTANDARD:
+          try {
+            Class.forName("com.github.luben.zstd.Zstd");
+            codecFact = CodecFactory.zstandardCodec(-2, true);
+          } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AvroMeasurementStore.class.getName())
+                    .info("Zstandard compression not available for metrics store");
+            codecFact = null;
+          }
+          break;
+        default:
+          throw new UnsupportedOperationException("Unsuppored compressor " + compressor);
       }
     } else {
       codecFact = null;
@@ -138,8 +166,9 @@ public final class AvroMeasurementStore
       writer = writer.appendTo(file.toFile());
     } else {
       try {
-        writer.create(clasz.newInstance().getSchema(), file.toFile());
-      } catch (InstantiationException | IllegalAccessException ex) {
+        writer.create(clasz.getConstructor().newInstance().getSchema(), file.toFile());
+      } catch (InstantiationException | IllegalAccessException
+              | NoSuchMethodException | InvocationTargetException ex) {
         throw new RuntimeException(ex);
       }
       initNrRecords = 0L;

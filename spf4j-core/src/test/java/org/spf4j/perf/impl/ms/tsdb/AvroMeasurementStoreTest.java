@@ -50,6 +50,7 @@ import org.spf4j.base.avro.AvroCloseableIterable;
 import org.spf4j.perf.MeasurementStoreQuery;
 import org.spf4j.perf.TimeSeriesRecord;
 import org.spf4j.perf.impl.MeasurementsInfoImpl;
+import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStore.Compressor;
 import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
 
@@ -65,7 +66,7 @@ public class AvroMeasurementStoreTest {
   @SuppressFBWarnings({ "PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS", "AFBR_ABNORMAL_FINALLY_BLOCK_RETURN" })
   public void testStore() throws IOException {
     AvroMeasurementStore store = new AvroMeasurementStore(org.spf4j.base.Runtime.TMP_FOLDER_PATH,
-            "testMetrics", false);
+            "testMetrics", Compressor.ZSTANDARD);
     try {
       long mid = store.alocateMeasurements(new MeasurementsInfoImpl("test", "test", new String[]{"v1", "v2"},
               new String[]{"t1", "t2"},
