@@ -133,13 +133,13 @@ public final class MemoryUsageSampler {
     private final CloseableMeasurementRecorder nonHeapUsed;
 
     AccumulatorRunnable(final int accumulationIntervalMillis) {
-      heapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_commited",
+      heapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2("process.heap_commited",
                       "bytes", accumulationIntervalMillis);
-      heapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2("heap_used",
+      heapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2("process.heap_used",
                       "bytes", accumulationIntervalMillis);
-      nonHeapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2("non_heap_commited",
+      nonHeapCommited = RecorderFactory.createScalableMinMaxAvgRecorder2("process.non_heap_commited",
                       "bytes", accumulationIntervalMillis);
-      nonHeapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2("non_heap_used",
+      nonHeapUsed = RecorderFactory.createScalableMinMaxAvgRecorder2("process.non_heap_used",
                       "bytes", accumulationIntervalMillis);
     }
 

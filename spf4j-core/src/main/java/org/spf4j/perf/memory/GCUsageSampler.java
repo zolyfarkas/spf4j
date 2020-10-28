@@ -79,7 +79,7 @@ public final class GCUsageSampler {
   public static synchronized void start(@JmxExport("sampleTimeMillis") final int sampleTime) {
     if (samplingFuture == null) {
       final MeasurementRecorder gcUsage
-              = RecorderFactory.createDirectRecorder("gc_time", "ms", sampleTime, MeasurementType.COUNTER);
+              = RecorderFactory.createDirectRecorder("process.gc_time", "ms", sampleTime, MeasurementType.COUNTER);
       samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {
 
         private final TObjectLongMap lastValues = new TObjectLongHashMap();

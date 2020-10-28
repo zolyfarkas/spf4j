@@ -38,9 +38,9 @@ import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.impl.RecorderFactory;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.os.OperatingSystem;
 import org.spf4j.base.Runtime;
 import org.spf4j.base.SysExits;
@@ -62,8 +62,6 @@ public final class OpenFilesSampler {
 
   private static ScheduledFuture<?> samplingFuture;
   private static AccumulatorRunnable accumulator;
-
-  private static final Logger LOG = LoggerFactory.getLogger(OpenFilesSampler.class);
 
   private static volatile CharSequence lastWarnLsof = "";
 
@@ -184,7 +182,7 @@ public final class OpenFilesSampler {
       this.errorThreshold = errorThreshold;
       this.shutdownOnError = shutdownOnError;
       this.warnThreshold = warnThreshold;
-      this.nrOpenFiles = RecorderFactory.createDirectRecorder("nr_open_files", "count",
+      this.nrOpenFiles = RecorderFactory.createDirectRecorder("process.nr_open_files", "count",
               sampleMillis, MeasurementType.GAUGE);
     }
 
@@ -196,20 +194,22 @@ public final class OpenFilesSampler {
       if (nrOf > errorThreshold) {
         lastWarnLsof = Lsof.getLsofOutput();
         lastWarnLsofTime = Instant.now();
-        LOG.error("Nr open files is {} and exceeds error threshold {}, detail:\n{}",
-                nrOf, errorThreshold, lastWarnLsof);
+        Logger log = Logger.getLogger(OpenFilesSampler.class.getName());
+        log.log(Level.SEVERE, "Nr open files is {0} and exceeds error threshold {1}, detail:\n{2}",
+                new Object[] {nrOf, errorThreshold, lastWarnLsof});
         if (shutdownOnError) {
           Runtime.goDownWithError(null, SysExits.EX_IOERR);
         }
       } else if (nrOf > warnThreshold) {
         lastWarnLsof = Lsof.getLsofOutput();
         lastWarnLsofTime = Instant.now();
-        LOG.warn("Nr open files is {} and exceeds warn threshold {}, detail:\n{} ",
-                nrOf, warnThreshold, lastWarnLsof);
+        Logger log = Logger.getLogger(OpenFilesSampler.class.getName());
+        log.log(Level.WARNING, "Nr open files is {0} and exceeds warn threshold {1}, detail:\n{2} ",
+                new Object[] {nrOf, warnThreshold, lastWarnLsof});
         if (!Runtime.gc(60000)) {
-          LOG.warn("Unable to trigger GC although running low on file resources");
+          log.warning("Unable to trigger GC although running low on file resources");
         } else {
-          LOG.warn("gc executed nr open files reduced by {} files",
+          log.log(Level.WARNING, "gc executed nr open files reduced by {0} files",
                   nrOf - OperatingSystem.getOpenFileDescriptorCount());
         }
       }

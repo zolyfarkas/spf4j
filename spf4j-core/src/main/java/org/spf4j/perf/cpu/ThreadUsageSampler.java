@@ -216,12 +216,12 @@ public final class ThreadUsageSampler {
 
   private static final class ThreadStateRecorder extends AbstractRunnable {
 
-    private final MeasurementRecorder cpuUsage;
+    private final MeasurementRecorder threadCounter;
     private final boolean withStackTraces;
 
     ThreadStateRecorder(final int sampleTime, final boolean withStackTraces) {
-      this.cpuUsage
-              = RecorderFactory.createDirectRecorder("peak_thread_count", "count", sampleTime);
+      this.threadCounter
+              = RecorderFactory.createDirectRecorder("process.peak_thread_count", "count", sampleTime);
       this.withStackTraces = withStackTraces;
     }
     private int maxThreadsNr = 0;
@@ -229,7 +229,7 @@ public final class ThreadUsageSampler {
     @Override
     public void doRun() {
       final int peakThreadCount = TH_BEAN.getPeakThreadCount();
-      cpuUsage.record(peakThreadCount);
+      threadCounter.record(peakThreadCount);
       if (TH_BEAN.getThreadCount() > maxThreadsNr) {
         synchronized (ThreadUsageSampler.class) {
           Thread[] ths = Threads.getThreads();
