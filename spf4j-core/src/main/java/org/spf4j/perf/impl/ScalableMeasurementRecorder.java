@@ -45,7 +45,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import org.apache.avro.Schema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
@@ -55,6 +57,8 @@ import org.spf4j.jmx.DynamicMBeanBuilder;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.perf.JmxSupport;
+import org.spf4j.perf.MeasurmentStoreUtils;
+import org.spf4j.perf.TimeSeriesRecord;
 
 /**
  *
@@ -70,6 +74,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
 
   private final Map<Thread, MeasurementAccumulator> threadLocalRecorders;
   private final ThreadLocal<MeasurementAccumulator> threadLocalRecorder;
+  private final int sampleTimeMillis;
   private final ScheduledFuture<?> samplingFuture;
   private final MeasurementAccumulator processorTemplate;
   private final Persister persister;
@@ -82,6 +87,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
     }
     threadLocalRecorders = new HashMap<>();
     processorTemplate = processor;
+    this.sampleTimeMillis = sampleTimeMillis;
     threadLocalRecorder = new ThreadLocal<MeasurementAccumulator>() {
 
       @Override
@@ -156,6 +162,16 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
       throw new UncheckedIOException(ex);
     }
     return sw.toString();
+  }
+
+  @Nullable
+  public TimeSeriesRecord getMeasurement() {
+    final long[] values = get();
+    if (values == null) {
+      return null;
+    }
+    final Schema schema = MeasurmentStoreUtils.toSchema(getInfo(), sampleTimeMillis);
+    return MeasurmentStoreUtils.toRecord(schema, System.currentTimeMillis(), values);
   }
 
   @JmxExport
