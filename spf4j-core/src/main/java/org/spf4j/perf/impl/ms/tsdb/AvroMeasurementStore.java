@@ -102,7 +102,7 @@ public final class AvroMeasurementStore
           try {
             Class.forName("org.xerial.snappy.Snappy");
             codecFact = CodecFactory.snappyCodec();
-          } catch (ClassNotFoundException ex) {
+          } catch (ClassNotFoundException | UnsatisfiedLinkError ex) {
             Logger.getLogger(AvroMeasurementStore.class.getName())
                     .info("Snappy compression not available for metrics store");
             codecFact = null;
@@ -112,7 +112,7 @@ public final class AvroMeasurementStore
           try {
             Class.forName("com.github.luben.zstd.Zstd");
             codecFact = CodecFactory.zstandardCodec(-2, true);
-          } catch (ClassNotFoundException ex) {
+          } catch (ClassNotFoundException | UnsatisfiedLinkError ex) {
             Logger.getLogger(AvroMeasurementStore.class.getName())
                     .info("Zstandard compression not available for metrics store");
             codecFact = null;
