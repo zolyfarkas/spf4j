@@ -142,7 +142,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
   }
 
   @JmxExport(description = "measurements as csv")
-  public String getMeasurementsAsString() {
+  public String getMeasurementsAsCsv() {
     StringWriter sw = new StringWriter(128);
     MeasurementsInfo info = getInfo();
     try {

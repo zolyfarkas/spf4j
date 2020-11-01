@@ -59,13 +59,13 @@ public interface MeasurementStoreQuery {
     @SuppressWarnings("unchecked")
     Collection<Long> mids = (Collection<Long>) measurement.getObjectProp(TimeSeriesRecord.IDS_PROP);
     @SuppressWarnings("unchecked")
-    long fromMs;
+    final long fromMs;
     if (from == null) {
       fromMs = Long.MIN_VALUE;
     } else {
       fromMs = from.toEpochMilli();
     }
-    long toMs;
+    final long toMs;
     if (to == null) {
       toMs = Long.MAX_VALUE;
     } else {
@@ -102,7 +102,7 @@ public interface MeasurementStoreQuery {
           final Instant from, final Instant to) throws IOException {
     AvroCloseableIterable<Observation> observations = getObservations(measurement, from, to);
     Iterable<TimeSeriesRecord> tsr = Iterables.transform(observations,
-             (obs) -> TableDefs.toRecord(measurement, obs));
+             obs -> TableDefs.toRecord(measurement, obs));
     return AvroCloseableIterable.from(tsr, observations, measurement);
   }
 
