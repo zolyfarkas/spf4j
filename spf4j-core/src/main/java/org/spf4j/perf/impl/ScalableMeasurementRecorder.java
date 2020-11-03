@@ -45,11 +45,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.apache.avro.Schema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
@@ -69,8 +69,6 @@ import org.spf4j.perf.TimeSeriesRecord;
 @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumulator
   implements CloseableMeasurementRecorder, JmxSupport {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorder.class);
 
   private final Map<Thread, MeasurementAccumulator> threadLocalRecorders;
   private final ThreadLocal<MeasurementAccumulator> threadLocalRecorder;
@@ -190,6 +188,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
   }
 
   @SuppressWarnings("unchecked")
+  @Override
   public void registerJmx() {
     MeasurementsInfo info = processorTemplate.getInfo();
     new DynamicMBeanBuilder().withJmxExportObject(this)
@@ -199,6 +198,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
   }
 
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
+  @Override
   public void close() {
     synchronized (persister) {
       if (!samplingFuture.isCancelled()) {
@@ -291,8 +291,10 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
           measurementStore.saveMeasurements(tableId, currentTime, measurements);
         }
       } else if (warn) {
-        LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
-                processor.getInfo(), lastRun, currentTime);
+        Logger.getLogger(ScalableMeasurementRecorder.class.getName())
+                .log(Level.WARNING,
+                        "Last measurement recording for {0} was at {1} current run is {2}, something is wrong",
+                        new Object[] {processor.getInfo(), lastRun, currentTime});
       }
     }
   }

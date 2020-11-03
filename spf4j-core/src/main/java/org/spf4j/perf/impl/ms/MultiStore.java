@@ -44,6 +44,7 @@ import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementStoreQuery;
 
 /**
+ * A multi store implementation.
  *
  * @author zoly
  */
@@ -52,6 +53,7 @@ public final class MultiStore implements MeasurementStore {
   private final MeasurementStore[] stores;
   private final TLongObjectMap<long[]> idToIds;
   private final TObjectLongMap<MeasurementsInfo> infoToId;
+  private final MeasurementStoreQuery query;
   private long idSeq;
 
   public MultiStore(final MeasurementStore... stores) {
@@ -62,6 +64,19 @@ public final class MultiStore implements MeasurementStore {
     this.idToIds = new TLongObjectHashMap<>();
     this.infoToId = new TObjectLongHashMap<>();
     this.idSeq = 1L;
+
+    MeasurementStoreQuery q = null;
+    for (MeasurementStore store : stores) {
+      MeasurementStoreQuery lq = store.query();
+      if (lq != null) {
+        if (q != null) {
+          throw new IllegalArgumentException("Youcannot have multiple queryable stores: " + Arrays.toString(stores));
+        } else {
+          q = lq;
+        }
+      }
+    }
+    this.query = q;
   }
 
   @Override
@@ -168,13 +183,7 @@ public final class MultiStore implements MeasurementStore {
 
   @Override
   public MeasurementStoreQuery query() {
-    for (MeasurementStore store : stores) {
-      MeasurementStoreQuery query = store.query();
-      if (query != null) {
-        return query;
-      }
-    }
-    return null;
+    return query;
   }
 
 

@@ -36,32 +36,15 @@ import org.spf4j.perf.impl.acc.DirectStoreAccumulator;
 import org.spf4j.perf.impl.acc.QuantizedAccumulator;
 import org.spf4j.perf.impl.acc.AddAndCountAccumulator;
 import org.spf4j.perf.impl.acc.MinMaxAvgAccumulator;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.perf.impl.ms.StoreType;
 import org.spf4j.perf.impl.ms.graphite.GraphiteTcpStore;
 import org.spf4j.perf.impl.ms.graphite.GraphiteUdpStore;
-import java.io.IOException;
-import java.io.StringReader;
-import java.lang.management.ManagementFactory;
-import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spf4j.base.CharSequences;
-import org.spf4j.io.Csv;
-import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.perf.CloseableMeasurementRecorder;
 import org.spf4j.perf.CloseableMeasurementRecorderSource;
 import org.spf4j.perf.MeasurementRecorderSource;
 import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MultiMeasurementRecorder;
 import org.spf4j.perf.impl.acc.CountAccumulator;
-import org.spf4j.perf.impl.ms.Flusher;
-import org.spf4j.perf.impl.ms.MultiStore;
-import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStore;
 import org.spf4j.recyclable.ObjectCreationException;
 import org.spf4j.tsdb2.avro.Aggregation;
 import org.spf4j.tsdb2.avro.MeasurementType;
@@ -72,68 +55,22 @@ import org.spf4j.tsdb2.avro.MeasurementType;
  */
 public final class RecorderFactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RecorderFactory.class);
-
-  public static final MeasurementStore MEASUREMENT_STORE;
-
-  static {
-    MeasurementStore mStore;
-    try {
-      mStore = buildStoreFromConfig(System.getProperty("spf4j.perf.ms.config", null));
-    } catch (IOException | ObjectCreationException ex) {
-      LOG.error("Cannot initialize measurement store, installing NOP store", ex);
-      mStore = new NopMeasurementStore();
-    }
-    if (!(mStore instanceof NopMeasurementStore) && Boolean.getBoolean("spf4j.perf.ms.periodicFlush")) {
-      Flusher.flushEvery(Integer.getInteger("spf4j.perf.ms.flushIntervalMillis", 60000), mStore);
-    }
-    MEASUREMENT_STORE = mStore;
-  }
+  /**
+   * @deprecated use ProcessMeasurementStore.getMeasurementStore() instead.
+   */
+  @Deprecated
+  public static final MeasurementStore MEASUREMENT_STORE = ProcessMeasurementStore.getMeasurementStore();
 
   private RecorderFactory() {
   }
 
+  /**
+   * @return process measurement store instance.
+   * @deprecated use ProcessMeasurementStore.getMeasurementStore() instead.
+   */
+  @Deprecated
   public static MeasurementStore getMeasurementStore() {
     return MEASUREMENT_STORE;
-  }
-
-  /**
-   * Configuration is a coma separated list of stores:
-   * TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
-   *
-   * @param configuration
-   * @return a measurement store.
-   */
-  @Nonnull
-  @SuppressFBWarnings("PATH_TRAVERSAL_IN") // the config is not supplied by a user.
-  private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
-          throws IOException, ObjectCreationException {
-
-    if (configuration == null || configuration.trim().isEmpty()) {
-      return new AvroMeasurementStore(Paths.get(System.getProperty("spf4j.perf.ms.defaultTsdbFolderPath",
-                      System.getProperty("java.io.tmpdir"))),
-              CharSequences.validatedFileName(System.getProperty("spf4j.perf.ms.defaultTsdbFileNamePrefix",
-                      ManagementFactory.getRuntimeMXBean().getName())));
-    }
-
-    List<String> stores;
-    try {
-      stores = Csv.readRow(new StringReader(configuration));
-    } catch (CsvParseException ex) {
-      throw new IllegalArgumentException("Invalid configuration " + configuration, ex);
-    }
-    final int size = stores.size();
-    if (size == 1) {
-      return StoreType.fromString(stores.get(0));
-    } else {
-      MeasurementStore[] mstores = new MeasurementStore[size];
-      int i = 0;
-      for (String config : stores) {
-        mstores[i] = StoreType.fromString(config);
-        i++;
-      }
-      return new MultiStore(mstores);
-    }
   }
 
   /**

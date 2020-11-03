@@ -42,6 +42,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.management.openmbean.CompositeData;
@@ -51,8 +53,6 @@ import javax.management.openmbean.OpenDataException;
 import javax.management.openmbean.OpenType;
 import javax.management.openmbean.TabularDataSupport;
 import javax.management.openmbean.TabularType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
@@ -75,8 +75,6 @@ import org.spf4j.perf.MeasurementRecorderSource;
 @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL")
 public final class ScalableMeasurementRecorderSource implements
         MeasurementRecorderSource, MeasurementsSource, CloseableMeasurementRecorderSource, JmxSupport {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ScalableMeasurementRecorderSource.class);
 
   private final Map<Thread, Map<Object, MeasurementAccumulator>> measurementProcessorMap;
 
@@ -397,8 +395,10 @@ public final class ScalableMeasurementRecorderSource implements
           }
         }
       } else if (warn) {
-        LOG.warn("Last measurement recording for {} was at {} current run is {}, something is wrong",
-                processor.getInfo(), lastRun, currentTime);
+        Logger.getLogger(ScalableMeasurementRecorderSource.class.getName())
+                .log(Level.WARNING,
+                        "Last measurement recording for {0} was at {1} current run is {2}, something is wrong",
+                        new Object[] {processor.getInfo(), lastRun, currentTime});
       }
     }
   }

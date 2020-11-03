@@ -74,6 +74,8 @@ public interface MeasurementStore extends Closeable {
 
   /**
    * @return a query-able interface for the store.
+   * Not all stores will be directly query-able, like most remote stores.
+   * This method will apply usually only to node local stores.
    */
   @Nullable
   MeasurementStoreQuery query();
