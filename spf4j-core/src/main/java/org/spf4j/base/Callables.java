@@ -438,7 +438,7 @@ public final class Callables {
     private final Callable<R> newCallable;
 
     private RetryDecision(final Type decisionType, final long delayMillis,
-            final Exception exception, final Callable<R> newCallable) {
+            final Exception exception, @Nullable final Callable<R> newCallable) {
       this.decisionType = decisionType;
       this.delayMillis = delayMillis;
       this.exception = exception;
@@ -469,7 +469,7 @@ public final class Callables {
       return exception;
     }
 
-    @Nonnull
+    @Nullable
     public Callable<R> getNewCallable() {
       return newCallable;
     }

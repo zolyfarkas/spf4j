@@ -48,6 +48,7 @@ import java.util.concurrent.Future;
 import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.openmbean.OpenDataException;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -115,7 +116,7 @@ public class OpenTypeConverterTest {
     LOG.debug("OpenValue = {}", toOpenValue);
     Object fromOpenValue = mxBeanMapping2.fromOpenValue(toOpenValue);
     LOG.debug("Back to object = {}", fromOpenValue);
-    Assert.assertTrue("must be set, not " + fromOpenValue.getClass(), fromOpenValue instanceof Set);
+    Assert.assertThat(fromOpenValue, Matchers.instanceOf(Set.class));
   }
 
   @Test
@@ -132,7 +133,7 @@ public class OpenTypeConverterTest {
     LOG.debug("To open value: {}", toOpenValue);
     Object fromOpenValue = mxBeanMapping2.fromOpenValue(toOpenValue);
     LOG.debug("Back to object: {}", fromOpenValue);
-    Assert.assertTrue("must be Iterable, not " + fromOpenValue.getClass(), fromOpenValue instanceof Iterable);
+    Assert.assertThat(fromOpenValue, Matchers.instanceOf(Iterable.class));
   }
 
   @Test
@@ -272,7 +273,7 @@ public class OpenTypeConverterTest {
     java.time.LocalDate now = java.time.LocalDate.now();
     Object ov = get.toOpenValue(now);
     LOG.debug("Open Value = {}", ov);
-    Assert.assertTrue(ov instanceof CompositeData);
+    Assert.assertThat(ov, Matchers.instanceOf(CompositeData.class));
   }
 
   @Test
