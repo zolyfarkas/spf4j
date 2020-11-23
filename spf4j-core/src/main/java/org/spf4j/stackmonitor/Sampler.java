@@ -312,7 +312,7 @@ public final class Sampler {
   /**
    * Dump  collected samples to disk.
    * @param destinationFolder the destination folder.
-   * @param baseFileName file name base, will be URLEncoded.
+   * @param pbaseFileName file name base, will be URLEncoded.
    * The appropriate extension will be added depending on situation.
    * either ssdump2 or ssdump3 will be used depending on the number of sample aggregate groups.
    * additionally .gz will be added if compression is enabled.
