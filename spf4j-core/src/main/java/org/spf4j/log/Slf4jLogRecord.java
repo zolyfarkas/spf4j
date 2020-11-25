@@ -139,7 +139,7 @@ public interface Slf4jLogRecord {
     String traceId = ptraceId;
     List<StackSampleElement> profiles = Collections.EMPTY_LIST;
     if (extraArguments.length == 0) {
-      xArgs = Collections.EMPTY_LIST;
+      xArgs = Collections.emptyList();
     } else {
       int nrAttribs = 0;
       for (Object obj : extraArguments) {
@@ -191,18 +191,17 @@ public interface Slf4jLogRecord {
     int nrMsgArgs = this.getNrMessageArguments();
     List<String> messageArgs;
     if (nrMsgArgs == 0) {
-        messageArgs = Collections.EMPTY_LIST;
+        messageArgs = Collections.emptyList();
     } else {
         Object[] args = this.getArguments();
         String[] ma = new String[args.length];
-        int i = 0;
-        for (Object arg : args) {
+        for (int i = 0; i < nrMsgArgs; i++) {
+          Object arg = args[i];
           if (arg == null) {
             ma[i] = "null";
           } else {
-             ma[i] = ObjectAppenderSupplier.TO_STRINGER.get(arg.getClass()).toString(arg);
+            ma[i] = ObjectAppenderSupplier.TO_STRINGER.get(arg.getClass()).toString(arg);
           }
-          i++;
         }
         messageArgs = Arrays.asList(ma);
     }
@@ -210,7 +209,7 @@ public interface Slf4jLogRecord {
             Instant.ofEpochMilli(this.getTimeStamp()),
             this.getLoggerName(), this.getThreadName(), this.getMessageFormat(),
             messageArgs, xArgs,
-            attribs == null ? Collections.EMPTY_MAP : attribs,
+            attribs == null ? Collections.emptyMap() : attribs,
             extraThrowable == null ? null : convert(extraThrowable), profiles);
   }
 
