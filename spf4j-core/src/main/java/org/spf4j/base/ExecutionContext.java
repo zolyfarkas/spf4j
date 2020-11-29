@@ -220,10 +220,20 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   void streamLogs(Consumer<Slf4jLogRecord> to, int nrLogs);
 
+  /**
+   * Detach this execution context from the current Thread.
+   */
   void detach();
 
+  /**
+   * Attach execution context to the current thread.
+   * A thread will typically have a stack of execution contexts attached to it.
+   */
   void attach();
 
+  /**
+   * @return true if execution context is attached to a thread or not.
+   */
   boolean isAttached();
 
   @Nonnegative
