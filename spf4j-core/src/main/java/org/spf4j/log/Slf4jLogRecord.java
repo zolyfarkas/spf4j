@@ -194,7 +194,7 @@ public interface Slf4jLogRecord {
         messageArgs = Collections.emptyList();
     } else {
         Object[] args = this.getArguments();
-        String[] ma = new String[args.length];
+        String[] ma = new String[nrMsgArgs];
         for (int i = 0; i < nrMsgArgs; i++) {
           Object arg = args[i];
           if (arg == null) {
