@@ -63,7 +63,7 @@ public class RecorderFactoryTest {
       sum += i;
     }
     String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
-            "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsString");
+            "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsCsv");
     Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
     rec.close();
   }
