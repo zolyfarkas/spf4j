@@ -114,6 +114,17 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     return new AsyncRetryExecutorImpl<>(this, hedgePolicy, exec);
   }
 
+  public final AsyncRetryExecutor<T, C> async(final Supplier<HedgePolicy> hedgePolicy,
+          final FailSafeExecutor exec) {
+    return new AsyncRetryExecutorImpl<>(() -> this, hedgePolicy, exec);
+  }
+
+  public static <T, C extends Callable<? extends T>> AsyncRetryExecutor<T, C>
+         async(final Supplier<RetryPolicy<T, C>> retry,
+          final Supplier<HedgePolicy> hedgePolicy,
+          final FailSafeExecutor exec) {
+    return new AsyncRetryExecutorImpl<>(retry, hedgePolicy, exec);
+  }
 
   public final AsyncRetryExecutor async() {
     return async(DefaultFailSafeExecutor.instance());
