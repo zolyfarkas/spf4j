@@ -38,6 +38,7 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -114,14 +115,14 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
     return new AsyncRetryExecutorImpl<>(this, hedgePolicy, exec);
   }
 
-  public final AsyncRetryExecutor<T, C> async(final Supplier<HedgePolicy> hedgePolicy,
+  public final AsyncRetryExecutor<T, C> async(final Function<C, HedgePolicy> hedgePolicy,
           final FailSafeExecutor exec) {
-    return new AsyncRetryExecutorImpl<>(() -> this, hedgePolicy, exec);
+    return new AsyncRetryExecutorImpl<>(c -> this, hedgePolicy, exec);
   }
 
   public static <T, C extends Callable<? extends T>> AsyncRetryExecutor<T, C>
-         async(final Supplier<RetryPolicy<T, C>> retry,
-          final Supplier<HedgePolicy> hedgePolicy,
+         async(final Function<C, RetryPolicy<T, C>> retry,
+          final Function<C, HedgePolicy> hedgePolicy,
           final FailSafeExecutor exec) {
     return new AsyncRetryExecutorImpl<>(retry, hedgePolicy, exec);
   }

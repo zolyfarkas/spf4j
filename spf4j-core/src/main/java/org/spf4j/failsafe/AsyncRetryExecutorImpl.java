@@ -37,6 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.spf4j.concurrent.InterruptibleCompletableFuture;
 import org.spf4j.failsafe.concurrent.FailSafeExecutor;
@@ -49,18 +50,19 @@ import org.spf4j.failsafe.concurrent.FailSafeExecutor;
 final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
         implements AsyncRetryExecutor<T, C> {
 
-  private final Supplier<RetryPolicy<T, C>> retryPolicy;
+  private final Function<C, RetryPolicy<T, C>> retryPolicy;
 
-  private final Supplier<HedgePolicy> hedgePolicy;
+  private final Function<C, HedgePolicy> hedgePolicy;
 
   private final FailSafeExecutor executor;
 
   AsyncRetryExecutorImpl(final RetryPolicy<T, C> retryPolicy, final HedgePolicy hedgePolicy,
           final FailSafeExecutor executor) {
-    this(() -> retryPolicy, () -> hedgePolicy, executor);
+    this(c -> retryPolicy, c -> hedgePolicy, executor);
   }
 
-  AsyncRetryExecutorImpl(final Supplier<RetryPolicy<T, C>> retryPolicy, final Supplier<HedgePolicy> hedgePolicy,
+  AsyncRetryExecutorImpl(final Function<C, RetryPolicy<T, C>> retryPolicy,
+          final Function<C, HedgePolicy> hedgePolicy,
           final FailSafeExecutor executor) {
     this.executor = executor;
     this.retryPolicy = retryPolicy;
@@ -71,12 +73,14 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
   @Override
   public <R extends T, W extends C> Future<R> submit(final W pwhat,
           final long startTimeNanos, final long deadlineNanos) {
-    Hedge hedge = hedgePolicy.get().getHedge(startTimeNanos, deadlineNanos);
+    Hedge hedge = hedgePolicy.apply(pwhat).getHedge(startTimeNanos, deadlineNanos);
     int hedgeCount = hedge.getHedgeCount();
     if (hedgeCount <= 0) {
-      return (Future<R>) executor.submit(pwhat, retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos));
+      return (Future<R>) executor.submit(pwhat,
+              retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos));
     } else {
-      return (Future<R>) executor.submit(pwhat, retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos),
+      return (Future<R>) executor.submit(pwhat,
+              retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos),
               hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
     }
   }
@@ -86,31 +90,31 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
   public <R extends T, W extends C> CompletableFuture<R> submitRx(final W pwhat,
           final long startTimeNanos, final long deadlineNanos,
           final Supplier<InterruptibleCompletableFuture<R>> cfSupplier) {
-    Hedge hedge = hedgePolicy.get().getHedge(startTimeNanos, deadlineNanos);
+    Hedge hedge = hedgePolicy.apply(pwhat).getHedge(startTimeNanos, deadlineNanos);
     int hedgeCount = hedge.getHedgeCount();
     if (hedgeCount <= 0) {
       return  executor.submitRx((Callable) pwhat,
-              (RetryPredicate) retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);
+              (RetryPredicate) retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);
     } else {
       long hedgeDelayNanos = hedge.getHedgeDelayNanos();
       if (hedgeDelayNanos >= (deadlineNanos - startTimeNanos)) {
         return executor.submitRx((Callable) pwhat,
-              (RetryPredicate) retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);
+              (RetryPredicate) retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos), cfSupplier);
       }
       return (CompletableFuture<R>) executor.submitRx((Callable) pwhat,
-              (RetryPredicate) retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos),
+              (RetryPredicate) retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos),
               hedgeCount, hedgeDelayNanos, TimeUnit.NANOSECONDS, cfSupplier);
     }
   }
 
 
   public <W extends C> void execute(final W pwhat, final long startTimeNanos, final long deadlineNanos) {
-    Hedge hedge = hedgePolicy.get().getHedge(startTimeNanos, deadlineNanos);
+    Hedge hedge = hedgePolicy.apply(pwhat).getHedge(startTimeNanos, deadlineNanos);
     int hedgeCount = hedge.getHedgeCount();
     if (hedgeCount <= 0) {
-      executor.execute(pwhat, retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos));
+      executor.execute(pwhat, retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos));
     } else {
-      executor.submit(pwhat, retryPolicy.get().getRetryPredicate(startTimeNanos, deadlineNanos),
+      executor.submit(pwhat, retryPolicy.apply(pwhat).getRetryPredicate(startTimeNanos, deadlineNanos),
               hedgeCount, hedge.getHedgeDelayNanos(), TimeUnit.NANOSECONDS);
     }
   }
@@ -123,7 +127,7 @@ final class AsyncRetryExecutorImpl<T, C extends Callable<? extends T>>
   @Override
   public <R extends T, W extends C, EX extends Exception> R call(final W pwhat, final Class<EX> exceptionClass,
           final long startNanos, final long deadlineNanos) throws InterruptedException, TimeoutException, EX {
-    return retryPolicy.get().call(pwhat, exceptionClass, startNanos, deadlineNanos);
+    return retryPolicy.apply(pwhat).call(pwhat, exceptionClass, startNanos, deadlineNanos);
   }
 
 
