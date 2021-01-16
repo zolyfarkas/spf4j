@@ -33,7 +33,6 @@ package org.spf4j.perf.aspects;
 
 import com.google.common.base.Strings;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.perf.impl.RecorderFactory;
 import java.io.IOException;
 import java.util.Collection;
 import org.apache.avro.Schema;
@@ -41,7 +40,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.perf.MeasurementStore;
 import org.spf4j.perf.MeasurementStoreQuery;
+import org.spf4j.perf.impl.ProcessMeasurementStore;
 import org.spf4j.perf.io.OpenFilesSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 import org.spf4j.perf.memory.TestClass;
@@ -80,9 +81,10 @@ public final class AllocationMonitorAspectTest {
     }
     testAllocInStaticContext();
     TestClass.testAllocInStaticContext();
-    RecorderFactory.MEASUREMENT_STORE.flush();
-    MeasurementStoreQuery query = RecorderFactory.MEASUREMENT_STORE.query();
-    Collection<Schema> measurements = query.getMeasurements((x) -> "heap_used".equals(x));
+    MeasurementStore measurementStore = ProcessMeasurementStore.getMeasurementStore();
+    measurementStore.flush();
+    MeasurementStoreQuery query = measurementStore.query();
+    Collection<Schema> measurements = query.getMeasurements((x) -> "process_heap_used".equals(x));
     Assert.assertEquals(1, measurements.size());
     MemoryUsageSampler.stop();
     OpenFilesSampler.stop();
