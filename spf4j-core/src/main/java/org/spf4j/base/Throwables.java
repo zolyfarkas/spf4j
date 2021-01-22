@@ -36,9 +36,6 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Field;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.util.ArrayDeque;
@@ -82,22 +79,6 @@ public final class Throwables {
 
   private static final int MAX_SUPPRESS_CHAIN
           = Integer.getInteger("spf4j.throwables.defaultMaxSuppressChain", 100);
-
-  private static final Field SUPPRESSED_FIELD;
-
-  static {
-
-    SUPPRESSED_FIELD = AccessController.doPrivileged((PrivilegedAction<Field>) () -> {
-      Field suppressedField;
-      try {
-        suppressedField = Throwable.class.getDeclaredField("suppressedExceptions");
-      } catch (NoSuchFieldException | SecurityException ex) {
-        throw new ExceptionInInitializerError(ex);
-      }
-      suppressedField.setAccessible(true);
-      return suppressedField;
-    });
-  }
 
   private static final PackageDetail DEFAULT_PACKAGE_DETAIL
           = PackageDetail.valueOf(System.getProperty("spf4j.throwables.defaultStackTracePackageDetail", "SHORT"));
@@ -193,65 +174,40 @@ public final class Throwables {
 
 
   public static int getNrSuppressedExceptions(final Throwable t) {
-    try {
-      final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
-      if (suppressedExceptions != null) {
-        return suppressedExceptions.size();
-      } else {
-        return 0;
-      }
-    } catch (IllegalArgumentException | IllegalAccessException ex) {
-      throw new RuntimeException(ex);
-    }
+    return UnsafeThrowable.getSuppressedNoCopy(t).size();
   }
 
   public static int getNrRecursiveSuppressedExceptions(final Throwable t) {
-    try {
-      final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
-      if (suppressedExceptions != null) {
-        int count = 0;
-        for (Throwable se : suppressedExceptions) {
-          count += 1 + getNrRecursiveSuppressedExceptions(se);
-        }
-        return count;
-      } else {
-        return 0;
-      }
-    } catch (IllegalArgumentException | IllegalAccessException ex) {
-      throw new RuntimeException(ex);
+    final List<Throwable> suppressedExceptions = UnsafeThrowable.getSuppressedNoCopy(t);
+    int count = 0;
+    for (Throwable se : suppressedExceptions) {
+      count += 1 + getNrRecursiveSuppressedExceptions(se);
     }
+    return count;
   }
 
   @Nullable
   public static Throwable removeOldestSuppressedRecursive(final Throwable t) {
-    try {
-      final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
-      if (suppressedExceptions != null && !suppressedExceptions.isEmpty()) {
+      final List<Throwable> suppressedExceptions = UnsafeThrowable.getSuppressedNoCopy(t);
+      if (suppressedExceptions.isEmpty()) {
+        return null;
+      } else {
         Throwable ex = suppressedExceptions.get(0);
         if (getNrSuppressedExceptions(ex) > 0) {
           return removeOldestSuppressedRecursive(ex);
         } else {
           return suppressedExceptions.remove(0);
         }
-      } else {
-        return null;
       }
-    } catch (IllegalArgumentException | IllegalAccessException ex) {
-      throw new RuntimeException(ex);
-    }
   }
 
   @Nullable
   public static Throwable removeOldestSuppressed(final Throwable t) {
-    try {
-      final List<Throwable> suppressedExceptions = (List<Throwable>) SUPPRESSED_FIELD.get(t);
-      if (suppressedExceptions != null && !suppressedExceptions.isEmpty()) {
-        return suppressedExceptions.remove(0);
-      } else {
-        return null;
-      }
-    } catch (IllegalArgumentException | IllegalAccessException ex) {
-      throw new RuntimeException(ex);
+    final List<Throwable> suppressedExceptions = UnsafeThrowable.getSuppressedNoCopy(t);
+    if (suppressedExceptions.isEmpty()) {
+      return null;
+    } else {
+      return suppressedExceptions.remove(0);
     }
   }
 

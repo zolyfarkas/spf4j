@@ -35,8 +35,6 @@ package org.spf4j.base;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
@@ -44,18 +42,12 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import javax.annotation.Nonnull;
 //CHECKSTYLE:OFF
 import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
 //CHECKSTYLE:ON
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 /**
@@ -65,14 +57,6 @@ import javax.annotation.Nullable;
 @SuppressFBWarnings("IICU_INCORRECT_INTERNAL_CLASS_USE")
 public final class Strings {
 
-  /**
-   * This field is byte[] in JDK11.
-   */
-  private static final MethodHandle CHARS_FIELD_GET;
-
-  //String(char[] value, boolean share) {
-  private static final MethodHandle PROTECTED_STR_CONSTR_HANDLE;
-  private static final Class<?>[] PROTECTED_STR_CONSTR_PARAM_TYPES;
 
   public static final String EOL = System.getProperty("line.separator", "\n");
 
@@ -136,7 +120,15 @@ public final class Strings {
     return UNESCAPE_JAVA.translate(what);
   }
 
+  /**
+   * @deprecated use containsAnyChars instead.
+   */
+  @Deprecated
   public static boolean contains(final String string, final char... chars) {
+    return containsAnyChars(string, chars);
+  }
+
+  public static boolean containsAnyChars(final String string, final char... chars) {
     for (char c : chars) {
       if (string.indexOf(c) >= 0) {
         return true;
@@ -180,72 +172,6 @@ public final class Strings {
     }
   }
 
-  static {
-    Field charsField = AccessController.doPrivileged(new PrivilegedAction<Field>() {
-      @Override
-      public Field run() {
-        Field charsField;
-        try {
-          charsField = String.class.getDeclaredField("value");
-          charsField.setAccessible(true);
-        } catch (NoSuchFieldException ex) {
-          Logger logger = Logger.getLogger(Strings.class.getName());
-          logger.warning("char array stealing from String not supported");
-          logger.log(Level.FINEST, "Exception detail", ex);
-          charsField = null;
-        }
-        return charsField;
-      }
-    });
-    MethodHandles.Lookup lookup = MethodHandles.lookup();
-    if (charsField != null && char[].class == charsField.getType()) {
-      try {
-        CHARS_FIELD_GET = lookup.unreflectGetter(charsField);
-      } catch (IllegalAccessException ex) {
-        throw new ExceptionInInitializerError(ex);
-      }
-    } else {
-      CHARS_FIELD_GET = null;
-    }
-
-    // up until u45 String(int offset, int count, char value[]) {
-    // u45 reverted to: String(char[] value, boolean share) {
-    Constructor<String> prConstr = AccessController.doPrivileged(
-            new PrivilegedAction<Constructor<String>>() {
-      @Override
-      public Constructor<String> run() {
-        Constructor<String> constr;
-        try {
-          constr = String.class.getDeclaredConstructor(char[].class, boolean.class);
-          constr.setAccessible(true);
-        } catch (NoSuchMethodException ex) {
-          try {
-            constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);
-            constr.setAccessible(true);
-          } catch (NoSuchMethodException ex2) {
-            ex2.addSuppressed(ex);
-            Logger logger = Logger.getLogger(Strings.class.getName());
-            logger.log(Level.FINE, "Building String from char[] without copy not supported");
-            logger.log(Level.FINEST, "Exception detail", ex2);
-            constr = null;
-          }
-        }
-        return constr;
-      }
-    });
-
-    if (prConstr == null) {
-      PROTECTED_STR_CONSTR_PARAM_TYPES = null;
-      PROTECTED_STR_CONSTR_HANDLE = null;
-    } else {
-      PROTECTED_STR_CONSTR_PARAM_TYPES = prConstr.getParameterTypes();
-      try {
-        PROTECTED_STR_CONSTR_HANDLE = lookup.unreflectConstructor(prConstr);
-      } catch (IllegalAccessException ex) {
-        throw new ExceptionInInitializerError(ex);
-      }
-    }
-  }
 
   /**
    * Steal the underlying character array of a String.
@@ -254,17 +180,7 @@ public final class Strings {
    * @return
    */
   public static char[] steal(final String str) {
-    if (CHARS_FIELD_GET == null) {
-      return str.toCharArray();
-    } else {
-      try {
-        return (char[]) CHARS_FIELD_GET.invokeExact(str);
-      } catch (Throwable ex) {
-        UnknownError err = new UnknownError("Error while stealing String char array");
-        err.addSuppressed(ex);
-        throw err;
-      }
-    }
+    return UnsafeString.steal(str);
   }
 
   /**
@@ -274,21 +190,7 @@ public final class Strings {
    * @return
    */
   public static String wrap(final char[] chars) {
-    if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {
-      try {
-        if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {
-          return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);
-        } else {
-          return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);
-        }
-      } catch (Throwable ex) {
-        UnknownError err = new UnknownError("Error while wrapping String char array");
-        err.addSuppressed(ex);
-        throw err;
-      }
-    } else {
-      return new String(chars);
-    }
+    return UnsafeString.wrap(chars);
   }
 
   public static CharsetEncoder createUtf8Encoder() {
