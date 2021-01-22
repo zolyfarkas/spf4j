@@ -364,7 +364,7 @@ public final class Throwables {
       while (it.hasNext()) {
         Object next = it.next();
         if (next instanceof Throwable) {
-          if (ignore.contains((Throwable) next)) {
+          if (ignore.contains(next)) {
             continue;
           }
           suppressed.add((Throwable) next);
@@ -374,7 +374,7 @@ public final class Throwables {
         }
       }
       for (Throwable st : t.getSuppressed()) {
-        if (ignore.contains((Throwable) st)) {
+        if (ignore.contains(st)) {
           continue;
         }
         suppressed.add(st);
