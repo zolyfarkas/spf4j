@@ -140,7 +140,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
    */
   @Override
   public String toString() {
-    return "RetryPolicy{" + "retryPredicate=" + retryPredSupplier
+    return "RetryPolicy{retryPredicate=" + retryPredSupplier
             + ", maxExceptionChain=" + maxExceptionChain + '}';
   }
 
@@ -394,7 +394,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       TimedSupplier[] eps = exceptionPredicates.toArray(new TimedSupplier[exceptionPredicates.size()]);
       TimedSupplier<RetryPredicate<T, C>> retryPredicate
               = (s, e) -> new DefaultRetryPredicate(log, s, e, () -> new TypeBasedRetryDelaySupplier<>(
-              (x) -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialImmediateRetries,
+              x -> new JitteredDelaySupplier(new FibonacciRetryDelaySupplier(nrInitialImmediateRetries,
                       startDelayNanos, maxDelayNanos), jitterFactor)), rps, eps);
       return new RetryPolicy<>(retryPredicate, maxExceptionChain);
     }
