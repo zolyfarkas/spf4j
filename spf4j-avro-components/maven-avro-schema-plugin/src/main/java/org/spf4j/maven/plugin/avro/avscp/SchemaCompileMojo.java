@@ -249,6 +249,7 @@ public final class SchemaCompileMojo
     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
     try {
       List<URL> runtimeUrls = createPathUrls(sourceDir);
+      getLog().info("IDL Compile classpath: " + runtimeUrls);
       URLClassLoader projPathLoader = AccessController.doPrivileged(
               (PrivilegedAction<URLClassLoader>) ()
               -> new URLClassLoader(runtimeUrls.toArray(new URL[runtimeUrls.size()]), contextClassLoader));
@@ -286,12 +287,11 @@ public final class SchemaCompileMojo
   public List<URL> createPathUrls(final File sourceFolder)
           throws MalformedURLException, DependencyResolutionRequiredException {
     List<String> cpElements = mavenProject.getRuntimeClasspathElements();
-    List<URL> runtimeUrls = new ArrayList<URL>();
+    List<URL> runtimeUrls = new ArrayList<>();
     runtimeUrls.add(sourceFolder.toURI().toURL());
     // If runtimeClasspathElements is not empty values add its values to Idl path.
     if (cpElements != null && !cpElements.isEmpty()) {
-      for (Object runtimeClasspathElement : cpElements) {
-        String element = (String) runtimeClasspathElement;
+      for (String element : cpElements) {
         runtimeUrls.add(new File(element).toURI().toURL());
       }
     }
@@ -343,6 +343,7 @@ public final class SchemaCompileMojo
 
   protected void doCompileSchemas(final String[] filenames)
           throws IOException {
+    getLog().debug("Compiling: " + Arrays.toString(filenames) + ", from " + sourceDirectory);
     ClassLoader avroLibClassLoader = org.apache.avro.Schema.class.getClassLoader();
     Thread currentThread = Thread.currentThread();
     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
