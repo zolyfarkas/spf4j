@@ -21,13 +21,22 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- *
+ * A partial retry predicate for a Callable&lt;T&gt&
  * @author Zoltan Farkas
+ * @param <T> the return type for the Callable that is retried.
+ * @param <C> the Callable that is retried.
+ * @param <E> The Exception type that this predicate applies to.
  */
 @FunctionalInterface
 public interface PartialTypedExceptionRetryPredicate<T, C extends Callable<? extends T>, E extends Throwable>
         extends BiFunction<E, C, RetryDecision<T, C>> {
 
+  /**
+   * @param value the exception instance to evaluate.
+   * @param what the callable that failed with the exception.
+   * @return the retry decision, null implies that this predicate made no decision,
+   * and will defer to the next predicate
+   */
   @Nullable
   RetryDecision<T, C> getExceptionDecision(@Nonnull E value, @Nonnull C what);
 
