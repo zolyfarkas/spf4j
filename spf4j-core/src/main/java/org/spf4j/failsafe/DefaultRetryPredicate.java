@@ -98,7 +98,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
         return decision;
       }
     }
-    return RetryDecision.abort();
+    return RetryDecision.abortReturn(value);
   }
 
   @Override
@@ -119,7 +119,7 @@ final class DefaultRetryPredicate<T> implements RetryPredicate<T, Callable<T>> {
         return decision;
       }
     }
-    return RetryDecision.abort();
+    return RetryDecision.abortThrow(value);
 
   }
 

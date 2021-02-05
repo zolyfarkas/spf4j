@@ -63,12 +63,18 @@ public interface RetryPredicate<T, C extends Callable<? extends T>> {
    * Get the RetryDecision for the result value returned by Callable C.
    * @param value the operation result.
    * @param what the operation.
-   * @return
+   * @return the retry decision.
    */
   @Nonnull
   RetryDecision<T, C> getDecision(@Nullable T value, @Nonnull C what);
 
 
+  /**
+   * Get the retryDecision for the exceptional result of a Callable C.
+   * @param value the Exception instance.
+   * @param what the callable that failed.
+   * @return the retry decision.
+   */
   @Nonnull
   RetryDecision<T, C> getExceptionDecision(@Nonnull Throwable value, @Nonnull C what);
 

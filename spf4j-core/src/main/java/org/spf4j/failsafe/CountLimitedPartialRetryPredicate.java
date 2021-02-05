@@ -44,6 +44,9 @@ final class CountLimitedPartialRetryPredicate<T, V, C extends Callable<? extends
     if (decision == null) {
       return null;
     }
+    if (decision.getDecisionType() == RetryDecision.Type.Abort) {
+      return decision;
+    }
     if (count <= 0) {
       return RetryDecision.abort();
     }

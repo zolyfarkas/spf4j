@@ -81,7 +81,7 @@ public abstract class Either<A, B> {
 
     @Override
     public String toString() {
-        return "Either{" + "value=" + value + '}';
+        return "Either(" + value + ')';
     }
 
 

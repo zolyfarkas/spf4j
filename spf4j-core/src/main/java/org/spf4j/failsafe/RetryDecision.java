@@ -29,7 +29,24 @@ import org.spf4j.base.Either;
  */
 public interface RetryDecision<T, C extends Callable<? extends T>> {
 
-  RetryDecision<?, ?> ABORT  = new RetryDecision() {
+  AbortRetryDecision ABORT = new AbortRetryDecision();
+
+  class AbortRetryDecision<T, C extends Callable<? extends T>> implements RetryDecision {
+
+    private final Either<Throwable, T> result;
+
+    AbortRetryDecision(final Throwable exception) {
+      this.result =  Either.left(exception);
+    }
+
+    AbortRetryDecision(final T value) {
+      this.result =  Either.right(value);
+    }
+
+    AbortRetryDecision() {
+       this.result = null;
+    }
+
     @Override
     public Type getDecisionType() {
       return Type.Abort;
@@ -41,33 +58,29 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
     }
 
     @Override
-    @Nullable
-    public Either<Throwable, ?> getResult() {
-      return null;
-    }
-
-    @Override
-    public Callable getNewCallable() {
+    public C getNewCallable() {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public String toString() {
-      return "ABORT";
+    public Either<Throwable, T> getResult() {
+      return result;
     }
 
+    @Override
+    public String toString() {
+      return "ABORT(" + result + ')';
+    }
+  }
 
-
-  };
 
   /**
-   * @return Create Abort retry decision. The last successful result or exception is returned.
+   * @return abort retry decision, the execution will abort with the last return or exception.
    */
   @CheckReturnValue
   static RetryDecision abort() {
     return ABORT;
   }
-
 
 /**
    * Abort operation with a custom Exception.
@@ -76,35 +89,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
    */
   @CheckReturnValue
   static RetryDecision abortThrow(@Nonnull final Throwable exception) {
-    return new RetryDecision() {
-      @Override
-      public Type getDecisionType() {
-        return Type.Abort;
-      }
-
-      @Override
-      public long getDelayNanos() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public Callable<?> getNewCallable() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public Either getResult() {
-        return Either.left(exception);
-      }
-
-      @Override
-      public String toString() {
-        return "ABORT(" + exception.getClass() + ')';
-      }
-
-
-
-    };
+    return new AbortRetryDecision(exception);
   }
 
   /**
@@ -113,36 +98,8 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
    * @return
    */
   @CheckReturnValue
-  static <T> RetryDecision<T, ? extends Callable<? extends T>> abortReturn(final T result) {
-    return new RetryDecision<T, Callable<T>>() {
-      @Override
-      public Type getDecisionType() {
-        return Type.Abort;
-      }
-
-      @Override
-      public long getDelayNanos() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public Either<Throwable, T> getResult() {
-        return Either.right(result);
-      }
-
-      @Override
-      public Callable<T> getNewCallable() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public String toString() {
-        return "ABORT(" + result + ')';
-      }
-
-
-
-    };
+  static <T, C extends Callable<? extends T>> RetryDecision<T, C> abortReturn(final T result) {
+    return new AbortRetryDecision(result);
   }
 
   @CheckReturnValue
@@ -180,8 +137,6 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
        return "RETRY(" + retryNanos + "ns, " + callable + ')';
      }
 
-
-
    };
   }
 
@@ -214,8 +169,6 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
        return "RETRY(" + callable + ')';
      }
 
-
-
    };
   }
 
@@ -238,12 +191,20 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
   @CheckReturnValue
   long getDelayNanos();
 
+  /**
+   * @return The result returned or thrown if applicable. When null the last result(or throwable) is returned.
+   */
   @CheckReturnValue
   @Nullable
   Either<Throwable, T> getResult();
 
+  /**
+   * A retry decision the decides to retry, can provide a New Callable to retry.
+   * @return the Callable that will be retried.
+   */
   @CheckReturnValue
   @Nonnull
   C getNewCallable();
+
 
 }
