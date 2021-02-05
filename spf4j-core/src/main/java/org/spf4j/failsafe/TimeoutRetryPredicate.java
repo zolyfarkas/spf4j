@@ -18,7 +18,7 @@ package org.spf4j.failsafe;
 import java.util.concurrent.Callable;
 import org.spf4j.base.TimeSource;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.spf4j.base.Timing;
 
 /**
  * @author Zoltan Farkas
@@ -41,8 +41,9 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
-         return (RetryDecision) RetryDecision.abortThrow(new TimeoutException("Time to deadline not enough "
-                  + timeToDeadlineNanos + " ns, last result = " + value));
+         return (RetryDecision) RetryDecision.abortThrow(new NotEnoughTimeToRetry("Time to deadline not enough "
+                  + timeToDeadlineNanos + " ns, deadline = "
+                 + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos) + ", last result = " + value));
       }
     }
     return decision;
@@ -54,10 +55,9 @@ final class TimeoutRetryPredicate<T, C extends Callable<T>> implements RetryPred
     if (decision.getDecisionType() == RetryDecision.Type.Retry) {
       long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);
       if (timeToDeadlineNanos < decision.getDelayNanos()) {
-        //throw exception. attach explanation why retry not done.
-        value.addSuppressed(new NotEnoughTimeToRetry("Time to deadline not enough "
-                + timeToDeadlineNanos + " ns "));
-        return (RetryDecision) RetryDecision.abortThrow(value);
+        return (RetryDecision) RetryDecision.abortThrow(new NotEnoughTimeToRetry("Time to deadline not enough "
+                + timeToDeadlineNanos + " ns, deadline = "
+                + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos), value));
       }
     }
     return decision;

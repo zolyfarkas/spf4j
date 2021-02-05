@@ -21,6 +21,7 @@ import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.TimeSource;
+import org.spf4j.base.Timing;
 
 /**
  * @author Zoltan Farkas
@@ -30,7 +31,7 @@ final class TimeLimitedPartialRetryPredicate<T, V, C extends Callable<? extends 
         implements BiFunction<V, C, RetryDecision<T, C>> {
 
   private final BiFunction<V, C, RetryDecision<T, C>> wrapped;
-  private long nanosDeadline;
+  private long deadlineNanos;
 
   TimeLimitedPartialRetryPredicate(final long startTimeNanos, final long deadlineNanos,
           final long time, final TimeUnit tu,
@@ -38,7 +39,7 @@ final class TimeLimitedPartialRetryPredicate<T, V, C extends Callable<? extends 
     this.wrapped = wrapped;
     long ttd = deadlineNanos - startTimeNanos;
     long tun = tu.toNanos(time);
-    this.nanosDeadline = (ttd < tun) ? deadlineNanos : startTimeNanos + tun;
+    this.deadlineNanos = (ttd < tun) ? deadlineNanos : startTimeNanos + tun;
   }
 
   @Override
@@ -48,15 +49,22 @@ final class TimeLimitedPartialRetryPredicate<T, V, C extends Callable<? extends 
     if (decision == null) {
       return null;
     }
-    if (TimeSource.nanoTime() >= nanosDeadline) {
-      return RetryDecision.abort();
+    if (decision.getDecisionType() == RetryDecision.Type.Abort) {
+      return decision;
+    }
+    long currNanoTime = TimeSource.nanoTime();
+    if (currNanoTime >= deadlineNanos) {
+      Timing currentTiming = Timing.getCurrentTiming();
+      return RetryDecision.abortThrow(new NotEnoughTimeToRetry("Past deadline: "
+                + currentTiming.fromNanoTimeToInstant(currNanoTime) + ", deadline = "
+                + currentTiming.fromNanoTimeToInstant(deadlineNanos)));
     }
     return decision;
   }
 
   @Override
   public String toString() {
-    return "TimeLimitedPartialRetryPredicate{" + "wrapped=" + wrapped + ", nanosDeadline=" + nanosDeadline + '}';
+    return "TimeLimitedPartialRetryPredicate{" + "wrapped=" + wrapped + ", nanosDeadline=" + deadlineNanos + '}';
   }
 
 }

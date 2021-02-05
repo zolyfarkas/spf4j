@@ -259,7 +259,7 @@ public class RetryPolicyTest {
         rp.run(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)), IOException.class,
                 1000, TimeUnit.MILLISECONDS);
         Assert.fail();
-      } catch (SocketException ex) {
+      } catch (SocketException | TimeoutException ex) {
         LOG.debug("Expected exception", ex);
         // as expected.
       }

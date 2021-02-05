@@ -33,6 +33,7 @@ package org.spf4j.failsafe;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -55,9 +56,9 @@ public class SyncRetryExecutorTest {
       }, RuntimeException.class,
               TimeSource.nanoTime() - 10000000);
       Assert.fail();
-    } catch (RuntimeException ex) {
+    } catch (TimeoutException ex) {
       LOG.debug("Expected exception", ex);
-      Assert.assertEquals("fail", ex.getMessage());
+     Assert.assertThat(ex.getMessage(), Matchers.containsString("Time to deadline not enough"));
     }
   }
 
@@ -70,7 +71,7 @@ public class SyncRetryExecutorTest {
       Assert.fail();
     } catch (ExecutionException ex) {
       LOG.debug("Expected exception", ex);
-      Throwable t = ex.getCause();
+      Throwable t = ex.getCause().getCause();
       Assert.assertEquals("fail", t.getMessage());
     }
   }
