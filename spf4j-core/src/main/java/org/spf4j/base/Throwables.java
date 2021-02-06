@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -53,6 +54,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLKeyException;
 import org.spf4j.base.avro.AThrowables;
 import org.spf4j.base.avro.RemoteException;
 import org.spf4j.ds.IdentityHashSet;
@@ -109,43 +111,33 @@ public final class Throwables {
   };
 
 
-  private static volatile Predicate<Throwable> isRetryablePredicate = new Predicate<Throwable>() {
-
+  private static volatile Function<Throwable, Boolean> isRetryablePredicate =
+          new Function<Throwable, Boolean>() {
     /**
-     * A default predicate that will return true if a exception is retry-able...
+     * A default predicate that will return true if a exception is retry-able, false if it is not...
      * @param t
      * @return
      */
     @Override
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public boolean test(final Throwable t) {
+    public Boolean apply(final Throwable t) {
       // non recoverables are not retryable.
       if (Throwables.containsNonRecoverable(t)) {
-        return false;
-      }
-      // Root Cause
-      Throwable rootCause = com.google.common.base.Throwables.getRootCause(t);
-      if (rootCause instanceof SSLException) {
-        return false;
-      }
-      if (rootCause instanceof RuntimeException) {
-        String name = rootCause.getClass().getName();
-        if (name.contains("NonTransient") || !name.contains("Transient")) {
-          return false;
-        }
+        return Boolean.FALSE;
       }
       // check causal chaing
       Throwable e = Throwables.firstCause(t,
-              (ex) -> {
+              ex -> {
                 String exClassName = ex.getClass().getName();
                 return (ex instanceof SQLTransientException
               || ex instanceof SQLRecoverableException
               || (ex instanceof IOException && !exClassName.contains("Json"))
               || ex instanceof TimeoutException
+              || ex instanceof UncheckedTimeoutException
               || (exClassName.contains("Transient")
                         && !exClassName.contains("NonTransient")));
                         });
-      return e != null;
+      return e != null ? Boolean.TRUE : null;
     }
   };
 
@@ -158,17 +150,21 @@ public final class Throwables {
    * If while executing a operation a exception is returned, that exception is retryable if retrying the operation
    * can potentially succeed.
    * @param value
-   * @return
+   * @return true/false is retry-able or not, null when this is not clear and can be context dependent.
    */
+  @CheckReturnValue
   public static boolean isRetryable(final Throwable value) {
-    return isRetryablePredicate.test(value);
+    Boolean result = isRetryablePredicate.apply(value);
+    return result == null ? false : result;
   }
 
-  public static Predicate<Throwable> getIsRetryablePredicate() {
+  @Nonnull
+  @CheckReturnValue
+  public static Function<Throwable, Boolean> getIsRetryablePredicate() {
     return isRetryablePredicate;
   }
 
-  public static void setIsRetryablePredicate(final Predicate<Throwable> isRetryablePredicate) {
+  public static void setIsRetryablePredicate(final Function<Throwable, Boolean> isRetryablePredicate) {
     Throwables.isRetryablePredicate = isRetryablePredicate;
   }
 
