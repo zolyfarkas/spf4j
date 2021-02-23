@@ -53,8 +53,6 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLKeyException;
 import org.spf4j.base.avro.AThrowables;
 import org.spf4j.base.avro.RemoteException;
 import org.spf4j.ds.IdentityHashSet;
