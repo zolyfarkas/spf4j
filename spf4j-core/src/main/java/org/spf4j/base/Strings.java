@@ -149,17 +149,60 @@ public final class Strings {
     if (str.isEmpty()) {
       return str;
     }
-    if (Character.isLowerCase(str.charAt(0))) {
+    char fc = str.charAt(0);
+    if (Character.isLowerCase(fc)) {
       return str;
     }
     int l = str.length();
     StringBuilder result = new StringBuilder(l);
-    result.append(Character.toLowerCase(str.charAt(0)));
+    result.append(Character.toLowerCase(fc));
     for (int i = 1; i < l; i++) {
       result.append(str.charAt(i));
     }
     return result.toString();
   }
+
+  /**
+   * A get/set/is prefixed method name to attribute name converter.
+   * @param prefix
+   * @param str
+   * @return
+   */
+  public static String methodToAttribute(final String prefix, final String str) {
+    int length = str.length();
+    int pl = prefix.length();
+    StringBuilder result = new StringBuilder(length - pl);
+    char fc = str.charAt(pl);
+    if (Character.isLowerCase(fc)) {
+      result.append(str, pl, length);
+    } else {
+      result.append(Character.toLowerCase(fc));
+      result.append(str, pl + 1, length);
+    }
+    return result.toString();
+  }
+
+  /**
+   * A attribute to get/set/is method name converter.
+   * @param prefix
+   * @param str
+   * @return
+   */
+  public static String attributeToMethod(final String prefix, final String str) {
+    int length = str.length();
+    StringBuilder result = new StringBuilder(length + prefix.length());
+    result.append(prefix);
+    char fc = str.charAt(0);
+    if (Character.isLowerCase(fc)) {
+      result.append(Character.toUpperCase(fc));
+      result.append(str, 1, length);
+    } else {
+      result.append(str);
+    }
+    return result.toString();
+  }
+
+
 
   public static void writeReplaceWhitespaces(final String str, final char replacement, final Appendable writer)
           throws IOException {

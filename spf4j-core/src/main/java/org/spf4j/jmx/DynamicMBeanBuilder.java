@@ -290,13 +290,9 @@ static void exportMethod(final Method method,
     String methodName = method.getName();
     int nrParams = method.getParameterCount();
     if (nrParams == 0 && methodName.startsWith("get")) {
-      String valueName = methodName.substring("get".length());
-      valueName = Strings.withFirstCharLower(valueName);
-      addGetter(valueName, exportedAttributes, annot, method, object);
+      addGetter("get", methodName, exportedAttributes, annot, method, object);
     } else if (nrParams == 0 && methodName.startsWith("is")) {
-      String valueName = methodName.substring("is".length());
-      valueName = Strings.withFirstCharLower(valueName);
-      addGetter(valueName, exportedAttributes, annot, method, object);
+      addGetter("is", methodName, exportedAttributes, annot, method, object);
     } else if (nrParams == 1 && methodName.startsWith("set")) {
       addSetter(methodName, exportedAttributes, method, object, annot);
     } else {
@@ -313,13 +309,13 @@ static void exportMethod(final Method method,
     }
   }
 
-  private static void addSetter(final String methodName, final Map<String, ExportedValue<?>> exportedAttributes,
+  private static void addSetter(
+          final String methodName, final Map<String, ExportedValue<?>> exportedAttributes,
           final Method method, final Object object, final JmxExport annot) {
     String customName = annot.value();
     String valueName;
     if ("".equals(customName)) {
-      valueName = methodName.substring("set".length());
-      valueName = Strings.withFirstCharLower(valueName);
+      valueName = Strings.methodToAttribute("set", methodName);
     } else {
       valueName = customName;
     }
@@ -339,11 +335,16 @@ static void exportMethod(final Method method,
     exportedAttributes.put(valueName, existing);
   }
 
-  private static void addGetter(final String pvalueName,
+  private static void addGetter(final String prefix, final String methodName,
           final Map<String, ExportedValue<?>> exported,
           final JmxExport annot, final Method method, final Object object) {
     String customName = annot.value();
-    String valueName = "".equals(customName) ? pvalueName : customName;
+    String valueName;
+    if ("".equals(customName)) {
+      valueName = Strings.methodToAttribute(prefix, methodName);
+    } else {
+      valueName = customName;
+    }
     BeanExportedValue existing = (BeanExportedValue) exported.get(valueName);
     if (existing == null) {
       existing = new BeanExportedValue(
