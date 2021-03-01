@@ -15,16 +15,34 @@
  */
 package org.spf4j.avro.official;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import org.apache.avro.Schema;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.io.EncoderFactory;
 import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.io.AppendableWriter;
 
 /**
  * Adapter for the official library.
  * @author Zoltan Farkas
  */
-public final class OriginUtilInterface implements AvroCompatUtils.UtilInterface {
+public final class OfficialAvroAdapter implements AvroCompatUtils.UtilInterface {
 
+  private EncoderFactory factory = EncoderFactory.get();
+
+  @Override
+  public Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+    return factory.jsonEncoder(writerSchema, os);
+  }
+
+  @Override
+  public Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
+    return factory.jsonEncoder(writerSchema, new AppendableWriter(os));
+  }
+
+  
   @Override
   public Schema.Field createField(final String name, final Schema schema, final String doc,
           final Object defaultVal,

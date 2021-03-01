@@ -15,15 +15,31 @@
  */
 package org.spf4j.avro.zfork;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import org.apache.avro.Schema;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.io.ExtendedJsonEncoder;
 import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.io.AppendableWriter;
 
 /**
  * Adapter for the zolyfarkas/avro fork.
  * @author Zoltan Farkas
  */
-public final class ZFUtilInterface implements AvroCompatUtils.UtilInterface {
+public final class ZForkAvroAdapter implements AvroCompatUtils.UtilInterface {
+
+  @Override
+  public Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+    return new ExtendedJsonEncoder(writerSchema, os);
+  }
+
+  @Override
+  public Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
+    return new ExtendedJsonEncoder(writerSchema,
+            Schema.FACTORY.createGenerator(new AppendableWriter(os)));
+  }
 
   @Override
   public Schema.Field createField(final String name, final Schema schema, final String doc,

@@ -15,13 +15,15 @@
  */
 package org.spf4j.avro;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import org.apache.avro.Schema;
-import org.spf4j.avro.official.OriginUtilInterface;
-import org.spf4j.avro.zfork.ZFUtilInterface;
+import org.apache.avro.io.Encoder;
+import org.spf4j.avro.official.OfficialAvroAdapter;
+import org.spf4j.avro.zfork.ZForkAvroAdapter;
 import org.spf4j.base.Reflections;
-
 /**
  * A set of Utils to abstract away differences between zolyfarkas/avro forrk and apache/avro
  * @author Zoltan Farkas
@@ -34,7 +36,7 @@ public final class AvroCompatUtils {
     Constructor<?> c = Reflections.getConstructor(Schema.Field.class, String.class, Schema.class,
             String.class,  Object.class,
             boolean.class, boolean.class, Schema.Field.Order.class);
-    INTF = c == null ? new OriginUtilInterface() : new ZFUtilInterface();
+    INTF = c == null ? new OfficialAvroAdapter() : new ZForkAvroAdapter();
   }
 
   private AvroCompatUtils() {
@@ -51,6 +53,11 @@ public final class AvroCompatUtils {
 
     Schema createRecordSchema(String name, String doc, String namespace,
                                     boolean isError,  boolean validateName);
+
+    Encoder getJsonEncoder(Schema writerSchema, OutputStream os) throws IOException;
+
+    Encoder getJsonEncoder(Schema writerSchema, Appendable os) throws IOException;
+
 
   }
 
@@ -70,6 +77,14 @@ public final class AvroCompatUtils {
   public static Schema createRecordSchema(final String name, final String doc, final String namespace,
                                     final boolean isError, final boolean validateName) {
     return INTF.createRecordSchema(name, doc, namespace, isError, validateName);
+  }
+
+  public static Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+    return INTF.getJsonEncoder(writerSchema, os);
+  }
+
+  public static Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
+    return INTF.getJsonEncoder(writerSchema, os);
   }
 
 

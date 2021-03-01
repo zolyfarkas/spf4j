@@ -36,6 +36,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.apache.avro.specific.SpecificRecord;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 
@@ -56,7 +57,7 @@ public class SpecificRecordJsonAppender implements ObjectAppender<SpecificRecord
   public final void append(final SpecificRecord object, final Appendable appendTo) throws IOException {
       final Schema schema = object.getSchema();
       SpecificDatumWriter<SpecificRecord> writer = new SpecificDatumWriter<>(schema);
-      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, appendTo);
+      Encoder jsonEncoder = AvroCompatUtils.getJsonEncoder(schema, appendTo);
       writer.write(object, jsonEncoder);
       jsonEncoder.flush();
   }

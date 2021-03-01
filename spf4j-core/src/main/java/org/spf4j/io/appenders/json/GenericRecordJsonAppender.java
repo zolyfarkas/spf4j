@@ -37,6 +37,7 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Encoder;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 /**
@@ -56,7 +57,7 @@ public class GenericRecordJsonAppender implements ObjectAppender<GenericRecord> 
   public final void append(final GenericRecord object, final Appendable appendTo) throws IOException {
       final Schema schema = object.getSchema();
       GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>(schema);
-      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, appendTo);
+      Encoder jsonEncoder = AvroCompatUtils.getJsonEncoder(schema, appendTo);
       writer.write(object, jsonEncoder);
       jsonEncoder.flush();
   }
