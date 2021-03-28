@@ -308,8 +308,11 @@ public final class Throwables {
   public static Throwable[] getSuppressed(final Throwable t) {
     if (t instanceof Iterable) {
       // see SQLException
-      List<Throwable> suppressed = new ArrayList<>(java.util.Arrays.asList(t.getSuppressed()));
+      Throwable[] osuppressed = t.getSuppressed();
+      List<Throwable> suppressed = new ArrayList<>(osuppressed.length);
       Set<Throwable> ignore = new IdentityHashSet<>();
+      ignore.addAll(java.util.Arrays.asList(osuppressed));
+      suppressed.addAll(ignore);
       ignore.addAll(com.google.common.base.Throwables.getCausalChain(t));
       Iterator it = ((Iterable) t).iterator();
       while (it.hasNext()) {
@@ -323,12 +326,6 @@ public final class Throwables {
         } else {
           break;
         }
-      }
-      for (Throwable st : t.getSuppressed()) {
-        if (ignore.contains(st)) {
-          continue;
-        }
-        suppressed.add(st);
       }
       return suppressed.toArray(new Throwable[suppressed.size()]);
     } else {
