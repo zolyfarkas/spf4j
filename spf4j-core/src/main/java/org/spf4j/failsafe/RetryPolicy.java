@@ -237,7 +237,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return withExceptionPartialPredicateSupplier((s, d)
               -> {
         TimeLimitedPartialRetryPredicate<T, Throwable, C> p =
-                new TimeLimitedPartialRetryPredicate<>(s, d, maxTime, tu, predicate);
+                new TimeLimitedPartialRetryPredicate<>(s, d, maxTime, tu, 1.0d, predicate);
         return (PartialExceptionRetryPredicate<T, C>) (Throwable value, C what) -> p.apply(value, what);
       });
     }

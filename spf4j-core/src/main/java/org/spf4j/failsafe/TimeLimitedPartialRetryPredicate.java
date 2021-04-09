@@ -35,11 +35,16 @@ final class TimeLimitedPartialRetryPredicate<T, V, C extends Callable<? extends 
 
   TimeLimitedPartialRetryPredicate(final long startTimeNanos, final long deadlineNanos,
           final long time, final TimeUnit tu,
+          final double maxTimeToRetryFactor,
           final BiFunction<V, C, RetryDecision<T, C>> wrapped) {
     this.wrapped = wrapped;
-    long ttd = deadlineNanos - startTimeNanos;
-    long tun = tu.toNanos(time);
-    this.deadlineNanos = (ttd < tun) ? deadlineNanos : startTimeNanos + tun;
+    long ttd = (long) ((deadlineNanos - startTimeNanos) * maxTimeToRetryFactor);
+    if (time > 0) {
+      long tun = tu.toNanos(time);
+      this.deadlineNanos = (ttd < tun) ? startTimeNanos + ttd : startTimeNanos + tun;
+    } else {
+      this.deadlineNanos = startTimeNanos + ttd;
+    }
   }
 
   @Override

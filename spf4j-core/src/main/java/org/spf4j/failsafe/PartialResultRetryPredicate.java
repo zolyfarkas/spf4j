@@ -21,7 +21,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- *
+ * Chainable Result predicate.
+ * This predicate will not return a RetryDecision (null) when if want to deffer the retry decision.
  * @author Zoltan Farkas
  */
 @FunctionalInterface

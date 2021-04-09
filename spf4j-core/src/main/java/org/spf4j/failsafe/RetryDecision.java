@@ -140,7 +140,13 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
    };
   }
 
-
+  /**
+   * The default retry algo will be used.
+   * @param <T>
+   * @param <C>
+   * @param callable
+   * @return
+   */
   @CheckReturnValue
   static <T, C extends Callable<? extends T>> RetryDecision<T, C> retryDefault(@Nonnull final C callable) {
    return new RetryDecision<T, C>() {

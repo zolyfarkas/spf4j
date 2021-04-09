@@ -16,46 +16,14 @@
 package org.spf4j.failsafe;
 
 import java.util.concurrent.Callable;
-import org.spf4j.base.Callables;
 
 /**
- *
+ * Chain-able Exception predicate.
+ * This predicate will not return a RetryDecision (null) when if want to deffer the retry decision.
  * @author Zoltan Farkas
  */
 @FunctionalInterface
 public interface PartialExceptionRetryPredicate<T, C extends Callable<? extends T>>
         extends PartialTypedExceptionRetryPredicate<T, C, Throwable> {
-
-  /**
-   * @deprecated use this method to migrate from deprecated API to new APIs (failsafe)
-   */
-  @Deprecated
-  static PartialExceptionRetryPredicate<?, ? extends Callable<?>> from(
-          final Callables.AdvancedRetryPredicate<Exception> oldStyle) {
-    return new PartialExceptionRetryPredicate<Object, Callable<? extends Object>>() {
-      @Override
-      public org.spf4j.failsafe.RetryDecision getExceptionDecision(final Throwable value, final Callable what) {
-        RetryDecision abort = org.spf4j.failsafe.RetryDecision.abort();
-        if (!(value instanceof Exception)) {
-          return abort;
-        }
-        Callables.AdvancedAction aa = oldStyle.apply((Exception) value);
-        switch (aa) {
-          case ABORT:
-            return abort;
-          case RETRY:
-          case RETRY_DELAYED:
-            return org.spf4j.failsafe.RetryDecision.retryDefault(what);
-          case RETRY_IMMEDIATE:
-            return org.spf4j.failsafe.RetryDecision.retry(0, what);
-          default:
-            throw new IllegalStateException("Invalid enum value " + aa);
-        }
-      }
-    };
-  }
-
-
-
 
 }

@@ -18,7 +18,6 @@ package org.spf4j.failsafe;
 import java.util.function.LongSupplier;
 
 /**
- *
  * @author Zoltan Farkas
  */
 public interface RetryDelaySupplier

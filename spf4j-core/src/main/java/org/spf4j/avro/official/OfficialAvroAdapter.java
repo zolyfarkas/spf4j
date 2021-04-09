@@ -16,9 +16,12 @@
 package org.spf4j.avro.official;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import org.apache.avro.Schema;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.spf4j.avro.AvroCompatUtils;
@@ -30,19 +33,21 @@ import org.spf4j.io.AppendableWriter;
  */
 public final class OfficialAvroAdapter implements AvroCompatUtils.UtilInterface {
 
-  private EncoderFactory factory = EncoderFactory.get();
+  private final EncoderFactory encFactory = EncoderFactory.get();
+
+  private final DecoderFactory decFactory = DecoderFactory.get();
 
   @Override
   public Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
-    return factory.jsonEncoder(writerSchema, os);
+    return encFactory.jsonEncoder(writerSchema, os);
   }
 
   @Override
   public Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
-    return factory.jsonEncoder(writerSchema, new AppendableWriter(os));
+    return encFactory.jsonEncoder(writerSchema, new AppendableWriter(os));
   }
 
-  
+
   @Override
   public Schema.Field createField(final String name, final Schema schema, final String doc,
           final Object defaultVal,
@@ -60,6 +65,16 @@ public final class OfficialAvroAdapter implements AvroCompatUtils.UtilInterface 
   public Schema createRecordSchema(final String name,
           final String doc, final String namespace, final boolean isError, final boolean validateName) {
     return Schema.createRecord(name, doc, namespace, isError);
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final InputStream is) throws IOException {
+    return decFactory.jsonDecoder(writerSchema, is);
+  }
+
+  @Override
+  public String toString() {
+    return "OfficialAvroAdapter{" + "encFactory=" + encFactory + ", decFactory=" + decFactory + '}';
   }
 
 }

@@ -16,10 +16,12 @@
 package org.spf4j.avro;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import org.apache.avro.Schema;
+import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 import org.spf4j.avro.official.OfficialAvroAdapter;
 import org.spf4j.avro.zfork.ZForkAvroAdapter;
@@ -58,6 +60,7 @@ public final class AvroCompatUtils {
 
     Encoder getJsonEncoder(Schema writerSchema, Appendable os) throws IOException;
 
+    Decoder getJsonDecoder(Schema writerSchema, InputStream is) throws IOException;
 
   }
 
@@ -85,6 +88,10 @@ public final class AvroCompatUtils {
 
   public static Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
     return INTF.getJsonEncoder(writerSchema, os);
+  }
+
+  public static Decoder getJsonDecoder(final Schema writerSchema, final InputStream is) throws IOException {
+     return INTF.getJsonDecoder(writerSchema, is);
   }
 
 

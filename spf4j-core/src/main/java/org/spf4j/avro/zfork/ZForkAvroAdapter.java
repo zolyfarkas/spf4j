@@ -16,10 +16,13 @@
 package org.spf4j.avro.zfork;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import org.apache.avro.Schema;
+import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.ExtendedJsonEncoder;
 import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.io.AppendableWriter;
@@ -58,6 +61,11 @@ public final class ZForkAvroAdapter implements AvroCompatUtils.UtilInterface {
   public Schema createRecordSchema(final String name, final String doc,
           final String namespace, final boolean isError, final boolean validateName) {
     return Schema.createRecord(name, doc, namespace, isError, validateName);
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final InputStream is) throws IOException {
+    return new ExtendedJsonDecoder(writerSchema, is, true);
   }
 
 }

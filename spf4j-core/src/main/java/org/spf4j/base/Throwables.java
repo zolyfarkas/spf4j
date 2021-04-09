@@ -112,12 +112,13 @@ public final class Throwables {
   private static volatile Function<Throwable, Boolean> isRetryablePredicate =
           new Function<Throwable, Boolean>() {
     /**
-     * A default predicate that will return true if a exception is retry-able, false if it is not...
+     * A default predicate that will answer if a exception is retry-able or not.
      * @param t
-     * @return
+     * @return true if a exception is retry-able, false if it is not, null if this is not known.
      */
     @Override
-    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    @SuppressFBWarnings({"ITC_INHERITANCE_TYPE_CHECKING", "NP_BOOLEAN_RETURN_NULL" })
+    @Nullable
     public Boolean apply(final Throwable t) {
       // non recoverables are not retryable.
       if (Throwables.containsNonRecoverable(t)) {
