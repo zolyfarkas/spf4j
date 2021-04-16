@@ -619,7 +619,11 @@ public final class Schemas {
         }
         return Schema.createUnion(nTypes);
       default:
-        return null;
+        if (paths.contains(Collections.emptyList())) {
+          return schema;
+        } else {
+          return null;
+        }
     }
   }
 
