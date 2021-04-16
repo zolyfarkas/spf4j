@@ -13,6 +13,7 @@ before_script:
 script: mvn -B -Djava8.home=${JAVA_HOME} -Djava11.home=/home/travis/openjdk11 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install sonar:sonar
 
 before_install:
+  - cp .travis.settings.xml $HOME/.m2/settings.xml
   - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh && . ./install-jdk.sh -F 11 --target /home/travis/openjdk11 --os linux-x64
   - jdk_switcher use oraclejdk8
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
