@@ -386,15 +386,15 @@ public final class CsvDecoder extends ParsingDecoder {
       if (readerSchema == null) {
         record = Schema.createRecord("DynCsv", "Infered schema", "org.spf4j.avro", false);
         List<Schema.Field> bfields = new ArrayList<>();
-        reader.readRow((cs) -> {
+        reader.readRow(cs ->
           bfields.add(AvroCompatUtils.createField(cs.toString(), Schema.create(Schema.Type.STRING),
-                  null, null, false, false, Schema.Field.Order.IGNORE));
-        });
+                  null, null, false, false, Schema.Field.Order.IGNORE))
+        );
         record.setFields(bfields);
       } else {
         Schema elementType = readerSchema.getElementType();
         List<CharSequence> list = new ArrayList<>(elementType.getFields().size());
-        reader.readRow((cs) -> list.add(cs.toString()));
+        reader.readRow(cs -> list.add(cs.toString()));
         record = Schemas.project(elementType, list);
       }
       Schema arraySchema = Schema.createArray(record);
