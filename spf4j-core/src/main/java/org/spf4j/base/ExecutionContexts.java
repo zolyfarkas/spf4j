@@ -90,8 +90,9 @@ public final class ExecutionContexts {
       factory = DEFAULT_TL_ATTACHER;
     } else {
       try {
-        factory = ((Class<ThreadLocalContextAttacher>) Class.forName(factoryClass)).newInstance();
-      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        factory = ((Class<ThreadLocalContextAttacher>) Class.forName(factoryClass)).getConstructor().newInstance();
+      } catch (ClassNotFoundException | InstantiationException | NoSuchMethodException
+              | InvocationTargetException | IllegalAccessException ex) {
         throw new ExceptionInInitializerError(ex);
       }
     }
@@ -105,8 +106,10 @@ public final class ExecutionContexts {
       factory = new BasicExecutionContextFactory();
     } else {
       try {
-        factory = ((Class<ExecutionContextFactory<ExecutionContext>>) Class.forName(factoryClass)).newInstance();
-      } catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        factory = ((Class<ExecutionContextFactory<ExecutionContext>>) Class.forName(factoryClass))
+                .getConstructor().newInstance();
+      } catch (ClassNotFoundException | InstantiationException | NoSuchMethodException
+              | InvocationTargetException | IllegalAccessException ex) {
         throw new ExceptionInInitializerError(ex);
       }
     }
