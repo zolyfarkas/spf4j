@@ -9,12 +9,12 @@ before_script:
   - "export DISPLAY=:99.0"
 
 
-script: mvn -B -Djava8.home=${JAVA_HOME} -Djava11.home=/home/travis/openjdk11 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install sonar:sonar
+script: mvn -B -Djava8.home=/usr/lib/jvm/java-8-oracle -Djava11.home=/home/travis/openjdk11 -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn -Dgpg.skip=true install sonar:sonar
 
 before_install:
   - cp .travis.settings.xml $HOME/.m2/settings.xml
   - wget https://github.com/sormuras/bach/raw/master/install-jdk.sh && . ./install-jdk.sh -F 11 --target /home/travis/openjdk11 --os linux-x64
-  - jdk_switcher use oraclejdk8
+#  - jdk_switcher use oraclejdk8
   - echo "MAVEN_OPTS='-Xmx1024m'" > ~/.mavenrc
   - sudo apt-get install jq
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
@@ -22,7 +22,7 @@ before_install:
 #$(curl https://api.github.com/repos/codacy/codacy-coverage-reporter/releases/latest | jq -r .assets[0].browser_download_url)
   - "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
 
-install: mvn -B -Djava8.home=${JAVA_HOME} -Djava11.home=/home/travis/openjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -Dspotbugs.skip=true -Dcheckstyle.skip=true -Dgpg.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install
+install: mvn -B -Djava8.home=/usr/lib/jvm/java-8-oracle -Djava11.home=/home/travis/openjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -Dspotbugs.skip=true -Dcheckstyle.skip=true -Dgpg.skip=true -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install
 
 env:
   global:
