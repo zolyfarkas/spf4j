@@ -92,6 +92,14 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
 
   private static final int LL_THRESHOLD = Integer.getInteger("spf4j.lifoTp.llQueueSizeThreshold", 64000);
 
+  private final ReentrantLock stateLock;
+
+  private final Condition stateCondition;
+
+  private final String poolName;
+
+  private final RejectedExecutionHandler rejectionHandler;
+
   @GuardedBy("stateLock")
   private final Queue<Runnable> taskQueue;
 
@@ -107,16 +115,8 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @GuardedBy("stateLock")
   private final PoolState state;
 
-  private final ReentrantLock stateLock;
-
-  private final Condition stateCondition;
-
   @GuardedBy("stateLock")
   private int queueSizeLimit;
-
-  private final String poolName;
-
-  private final RejectedExecutionHandler rejectionHandler;
 
   @GuardedBy("stateLock")
   private boolean daemonThreads;
@@ -124,6 +124,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
   @GuardedBy("stateLock")
   private int threadPriority;
 
+  @GuardedBy("stateLock")
   private int threadCreationCount;
 
   public LifoThreadPoolExecutorSQP(final int maxNrThreads, final String name) {
