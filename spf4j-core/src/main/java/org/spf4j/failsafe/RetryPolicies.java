@@ -31,6 +31,7 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -40,10 +41,17 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import org.spf4j.base.Either;
 import org.spf4j.base.ResultMatchers;
 import org.spf4j.failsafe.avro.RetryParams;
 import org.spf4j.failsafe.avro.RetryRule;
+import org.spf4j.failsafe.avro.ScriptedRetryPredicateSupplier;
 
 /**
  * a Factory with retry named retry Rules.
@@ -52,6 +60,8 @@ import org.spf4j.failsafe.avro.RetryRule;
  */
 public final class RetryPolicies {
 
+  private static final ScriptEngineManager SCRIPT_ENGINE_MANAGER = new ScriptEngineManager();
+
   private static final Map<String,
           Either<PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier>> REGISTRY;
 
@@ -59,7 +69,8 @@ public final class RetryPolicies {
     REGISTRY = load();
   }
 
-  private RetryPolicies() { }
+  private RetryPolicies() {
+  }
 
   private static Map<String,
          Either<PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier>> load() {
@@ -77,13 +88,8 @@ public final class RetryPolicies {
   }
 
   public static Either<PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier>
-          getRetryRule(final String name) {
+          getRetryPredicateSupplier(final String name) {
     return REGISTRY.get(name);
-  }
-
-  public static Either<PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier>
-          getRetryRule(final RetryRule rule) {
-    return getRetryRule(rule.getName());
   }
 
   @Nullable
@@ -103,7 +109,7 @@ public final class RetryPolicies {
         public PartialExceptionRetryPredicate<T, C> get(final long startTimeNanos, final long deadlineNanos) {
           RetryDelaySupplier ds = new JitteredDelaySupplier(
                   new FibonacciRetryDelaySupplier(rp.getNrInitialImmediateRetries(),
-                  rp.getStartDelayNanos(), rp.getMaxDelayNanos()), rp.getRetryDelayJitter());
+                          rp.getStartDelayNanos(), rp.getMaxDelayNanos()), rp.getRetryDelayJitter());
           CountLimitedPartialRetryPredicate clp
                   = new CountLimitedPartialRetryPredicate<T, Throwable, C>(rp.getMaxNrRetries(),
                           new PartialExceptionRetryPredicate<T, C>() {
@@ -132,7 +138,7 @@ public final class RetryPolicies {
         public PartialResultRetryPredicate<T, C> get(final long startTimeNanos, final long deadlineNanos) {
           RetryDelaySupplier ds = new JitteredDelaySupplier(
                   new FibonacciRetryDelaySupplier(rp.getNrInitialImmediateRetries(),
-                  rp.getStartDelayNanos(), rp.getMaxDelayNanos()), rp.getRetryDelayJitter());
+                          rp.getStartDelayNanos(), rp.getMaxDelayNanos()), rp.getRetryDelayJitter());
           CountLimitedPartialRetryPredicate clp
                   = new CountLimitedPartialRetryPredicate<T, T, C>(rp.getMaxNrRetries(),
                           new PartialResultRetryPredicate<T, C>() {
@@ -158,30 +164,124 @@ public final class RetryPolicies {
 
   }
 
-
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> create(
-          final org.spf4j.failsafe.avro.RetryPolicy policy) {
-   RetryPolicy.Builder<T, C> builder = RetryPolicy.newBuilder();
-   builder.withMaxExceptionChain(policy.getMaxSupressedExceptions());
-   for (Map.Entry<String, RetryParams> entry : policy.getResponse2RetryParams().entrySet()) {
-     String reasonName = entry.getKey();
-     Either<TimedSupplier<PartialExceptionRetryPredicate<T, C>>,
-         TimedSupplier<PartialResultRetryPredicate<T, C>>> result =
-             getResultRetryPredicateSupplier(reasonName, entry.getValue());
-     if (result == null) {
-       Logger.getLogger(RetryPolicies.class.getName())
-               .log(Level.WARNING, "No reason: {0} defined, ignoring.", reasonName);
-       continue;
-     }
-     if (result.isLeft()) {
-       TimedSupplier<PartialExceptionRetryPredicate<T, C>> ets = result.getLeft();
-       builder.withExceptionPartialPredicateSupplier(ets);
-     } else {
-       TimedSupplier<PartialResultRetryPredicate<T, C>> rts = result.getRight();
-       builder.withResultPartialPredicateSupplier(rts);
-     }
-   }
-   return builder.build();
+          final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
+    RetryPolicy.Builder<T, C> builder = RetryPolicy.newBuilder();
+    builder.withMaxExceptionChain(policy.getMaxSupressedExceptions());
+    for (RetryRule rule : policy.getRetryRules()) {
+      ScriptedRetryPredicateSupplier ps = rule.getPredicateSupplier();
+      if (ps == null) {
+        Either<PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier> ups
+                = getRetryPredicateSupplier(rule.getName());
+        if (ups.isLeft()) {
+          TimedSupplier<PartialExceptionRetryPredicate<T, C>> ets = ups.getLeft();
+          builder.withExceptionPartialPredicateSupplier(ets);
+        } else {
+          TimedSupplier<PartialResultRetryPredicate<T, C>> rts = ups.getRight();
+          builder.withResultPartialPredicateSupplier(rts);
+        }
+      } else {
+        ScriptEngine engine = SCRIPT_ENGINE_MANAGER.getEngineByName(ps.getLanguage());
+        String rps = ps.getReturnPredicateSupplier();
+        if (!rps.isEmpty()) {
+          Invocable invocable;
+          try {
+            invocable = toInvocable(engine, rps);
+          } catch (ScriptException ex) {
+            throw new InvalidRetryPolicyException("Invalid Script: " + rps, ex);
+          }
+          builder.withResultPartialPredicateSupplier(
+                  (start, deadline) -> (object, callable)
+                  -> {
+            try {
+              return (RetryDecision) invocable.invokeFunction("predicateSupplier", object, callable);
+            } catch (ScriptException | NoSuchMethodException ex) {
+              Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
+                      "Failed predicate {0}", new Object[]{rps, ex});
+              return RetryDecision.ABORT;
+            }
+          });
+        }
+        String tps = ps.getThrowablePredicateSupplier();
+        if (!tps.isEmpty()) {
+          Invocable invocable;
+          try {
+            invocable = toInvocable(engine, tps);
+          } catch (ScriptException ex) {
+            throw new InvalidRetryPolicyException("Invalid Script: " + tps, ex);
+          }
+          builder.withResultPartialPredicateSupplier(
+                  (start, deadline) -> (object, callable)
+                  -> {
+            try {
+              return (RetryDecision) invocable.invokeFunction("predicateSupplier", object, callable);
+            } catch (ScriptException | NoSuchMethodException ex) {
+              Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
+                      "Failed predicate {0}", new Object[]{tps, ex});
+              return RetryDecision.ABORT;
+            }
+          });
+        }
+      }
+    }
+    for (Map.Entry<String, RetryParams> entry : policy.getResponse2RetryParams().entrySet()) {
+      String reasonName = entry.getKey();
+      Either<TimedSupplier<PartialExceptionRetryPredicate<T, C>>,
+              TimedSupplier<PartialResultRetryPredicate<T, C>>> result
+              = getResultRetryPredicateSupplier(reasonName, entry.getValue());
+      if (result == null) {
+        throw new InvalidRetryPolicyException("No reason matcher defined for: " + reasonName);
+      }
+      if (result.isLeft()) {
+        TimedSupplier<PartialExceptionRetryPredicate<T, C>> ets = result.getLeft();
+        builder.withExceptionPartialPredicateSupplier(ets);
+      } else {
+        TimedSupplier<PartialResultRetryPredicate<T, C>> rts = result.getRight();
+        builder.withResultPartialPredicateSupplier(rts);
+      }
+    }
+    return builder.build();
+  }
+
+  /**
+   * Scripted predicates are not there for application users to modify.
+   * Scripted predicates should be written by Operation engineers.
+   * The script engine choice needs to be carefully done as to not allow even ops to do bad stuff by mistake.
+   * (calling system.exit, etc...)
+   * The main reason for allowing scripted predicates is deployment speed.
+   * (a config change will propagates to your fleet several order of magnitudes faster than binaries,
+   * and will not require a process restart)
+   * Now this speed means also any stupid stuff can propagate faster, so canarying a config change is also a must.
+   * @param engine
+   * @param script
+   * @return
+   * @throws ScriptException
+   */
+  @SuppressFBWarnings("SCRIPT_ENGINE_INJECTION")
+  public static Invocable toInvocable(final ScriptEngine engine, final String script) throws ScriptException {
+    final Invocable invocable;
+    if (engine instanceof Compilable) {
+      Compilable ceng = (Compilable) engine;
+      final CompiledScript predicateScript = ceng.compile(script);
+      if (predicateScript instanceof Invocable) {
+        invocable = (Invocable) predicateScript;
+      } else {
+        Object result = predicateScript.eval();
+        if (result instanceof Invocable) {
+          invocable = (Invocable) result;
+        } else {
+          throw new ScriptException("Script must evaluate to a Invocable/function, not: " + result);
+        }
+      }
+    } else {
+      Object result = engine.eval(script);
+      if (result instanceof Invocable) {
+        invocable = (Invocable) result;
+      } else {
+        throw new ScriptException("Script must evaluate to a Invocable/function, not: " + result);
+      }
+    }
+    return invocable;
   }
 
 }

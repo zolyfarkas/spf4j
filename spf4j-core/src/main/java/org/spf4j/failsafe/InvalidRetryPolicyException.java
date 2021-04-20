@@ -31,22 +31,19 @@
  */
 package org.spf4j.failsafe;
 
-import java.util.Collections;
-import org.junit.Assert;
-import org.junit.Test;
-
 /**
- *
  * @author Zoltan Farkas
  */
-public class RetryPoliciesTest {
+public final class InvalidRetryPolicyException extends Exception {
 
-  @Test
-  public void testDummyPolicy() throws InvalidRetryPolicyException {
-    RetryPolicy policy = RetryPolicies.create(new org.spf4j.failsafe.avro.RetryPolicy(10,
-            new org.spf4j.failsafe.avro.RetryParams(2, 10000, 60000000000L, 0.3, 10000, 0.9, -1),
-            Collections.EMPTY_LIST, Collections.EMPTY_MAP));
-    Assert.assertNotNull(policy);
+  private static final long serialVersionUID = 1L;
+
+  public InvalidRetryPolicyException(final String string) {
+    super(string);
+  }
+
+  public InvalidRetryPolicyException(final String string, final Throwable thrwbl) {
+    super(string, thrwbl);
   }
 
 }

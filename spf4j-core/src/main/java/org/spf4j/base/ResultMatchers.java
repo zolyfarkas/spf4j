@@ -65,7 +65,7 @@ public final class ResultMatchers {
 
   static {
     try {
-      RESULT_MATCHERS  = new CopyOnWriteMap<>(getRegisteredThrowableMatchers());
+      RESULT_MATCHERS  = new CopyOnWriteMap<>(getRegisteredResultMatchers());
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }
@@ -74,7 +74,7 @@ public final class ResultMatchers {
   private ResultMatchers() { }
 
 
-  private static Map<String, Either<Predicate<Throwable>, Predicate<Object>>> getRegisteredThrowableMatchers()
+  private static Map<String, Either<Predicate<Throwable>, Predicate<Object>>> getRegisteredResultMatchers()
           throws IOException {
     Map<String, Either<Predicate<Throwable>, Predicate<Object>>> reasons = new HashMap<>();
     for (ThrowableMatcher reason : ServiceLoader.load(ThrowableMatcher.class)) {
