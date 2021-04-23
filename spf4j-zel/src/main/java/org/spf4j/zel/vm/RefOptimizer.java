@@ -33,6 +33,7 @@ package org.spf4j.zel.vm;
 
 import java.util.Map;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LODAX;
 import org.spf4j.zel.instr.LODAXF;
@@ -63,10 +64,16 @@ public final class RefOptimizer implements Function<Program, Program> {
             if (LODX.class.equals(instr.getClass())) {
                 String symbol = ((LODX) instr).getSymbol();
                 Address addr = getAddress(lsym, symbol, gsym);
+                if (addr == null) {
+                  continue;
+                }
                 instructions[i] = new LODXF(addr);
             } else if (LODAX.class.equals(instr.getClass())) {
                 String symbol = ((LODAX) instr).getSymbol();
                 Address addr = getAddress(lsym, symbol, gsym);
+                if (addr == null) {
+                  continue;
+                }
                 instructions[i] = new LODAXF(addr);
             }
         }
@@ -78,12 +85,16 @@ public final class RefOptimizer implements Function<Program, Program> {
                     input.hasDeterministicFunctions(), input.getParameterNamesInternal());
     }
 
+    @Nullable
     private static Address getAddress(final Map<String, Integer> lsym,
             final String symbol, final Map<String, Integer> gsym) {
         Address addr;
         Integer idx = lsym.get(symbol);
         if (idx == null) {
             idx = gsym.get(symbol);
+            if (idx == null) {
+              return null;
+            }
             addr = new Address(idx, Address.Scope.GLOBAL);
         } else {
             addr = new Address(idx, Address.Scope.LOCAL);

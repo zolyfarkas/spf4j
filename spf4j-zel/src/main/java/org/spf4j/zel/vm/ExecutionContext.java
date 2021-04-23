@@ -133,7 +133,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
             io, execService);
   }
 
-  ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
+  public ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
           @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
     this(program, globalMem, localMem,

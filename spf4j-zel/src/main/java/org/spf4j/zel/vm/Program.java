@@ -59,7 +59,6 @@ import org.spf4j.base.Pair;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
 import org.spf4j.zel.instr.Instruction;
-import org.spf4j.zel.instr.LValRef;
 import org.spf4j.zel.instr.var.ARRAY;
 import org.spf4j.zel.instr.var.DECODE;
 import org.spf4j.zel.instr.var.INT;
@@ -71,6 +70,7 @@ import org.spf4j.zel.instr.var.OUT;
 import org.spf4j.zel.instr.var.RANDOM;
 import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.ParsingContext.Location;
+import org.spf4j.zel.instr.SymbolRef;
 
 /**
  * <p>
@@ -140,21 +140,9 @@ public final class Program implements Serializable {
           @Nonnegative final int end, final Type progType, final ExecutionType execType,
           final boolean hasDeterministicFunctions, final String... parameterNames) throws CompileException {
     //CHECKSTYLE:ON
-    this.globalMem = globalMem;
-    int length = end - start;
-    this.instructions = new Instruction[length];
-    System.arraycopy(objs, start, instructions, 0, length);
-    this.type = progType;
-    this.id = ProgramBuilder.generateID();
-    this.execType = execType;
-    this.hasDeterministicFunctions = hasDeterministicFunctions;
-    this.localSymbolTable = buildLocalSymTable(objs, parameterNames, length, globalTable, localTable);
-    this.localMemSize = localSymbolTable.size();
-    this.globalSymbolTable = globalTable;
-    this.debug = debug;
-    this.source = source;
-    this.name = name;
-    this.parameterNames = parameterNames;
+    this(name, globalTable, globalMem, buildLocalSymTable(objs, parameterNames, end - start, globalTable, localTable),
+            java.util.Arrays.copyOfRange(objs, start, end),
+            debug, source, progType, execType, hasDeterministicFunctions, parameterNames);
   }
 
   //CHECKSTYLE:OFF
@@ -221,8 +209,8 @@ public final class Program implements Serializable {
     // allocate variables used in Program
     for (int j = 0; j < length; j++) {
       Instruction code = instructions[j];
-      if (code instanceof LValRef) {
-        String ref = ((LValRef) code).getSymbol();
+      if (code instanceof SymbolRef) {
+        String ref = ((SymbolRef) code).getSymbol();
         Integer idxr = symbolTable.get(ref);
         if (idxr == null) {
           idxr = globalTable.get(ref);
@@ -248,7 +236,8 @@ public final class Program implements Serializable {
     return localMemSize;
   }
 
-  Object[] getGlobalMem() {
+  @SuppressFBWarnings("EI_EXPOSE_REP")
+  public Object[] getGlobalMem() {
     return globalMem;
   }
 
@@ -343,7 +332,7 @@ public final class Program implements Serializable {
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root",
+    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("predicate",
             "CharSquence", varName));
     return result.toPredicate(zExpr.toString());
   }
@@ -369,7 +358,7 @@ public final class Program implements Serializable {
     ParsingContext cc = new CompileContext(new MemoryBuilder(
             new ArrayList<>(Arrays.asList(globalMem)), globalTable));
     try {
-      ZCompiler.compile(zExpr.toString(), zExpr, cc);
+      ZCompiler.compile(source, zExpr, cc);
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }

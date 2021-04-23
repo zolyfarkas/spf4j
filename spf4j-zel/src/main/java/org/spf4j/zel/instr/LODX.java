@@ -35,7 +35,7 @@ import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
-public final class LODX extends Instruction implements RValRef {
+public final class LODX extends Instruction implements SymbolRef {
 
   private static final long serialVersionUID = 1L;
 
@@ -51,7 +51,7 @@ public final class LODX extends Instruction implements RValRef {
     if (addr == null) {
       addr = code.getGlobalSymbolTable().get(symbol);
       if (addr == null) {
-        throw new ZExecutionException("unalocated symbol encountered " + symbol);
+        throw new ZExecutionException("unalocated symbol encountered: " + symbol);
       }
       return context.globalPeek(addr);
     } else {

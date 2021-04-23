@@ -38,7 +38,7 @@ import org.spf4j.zel.vm.Program;
 import org.spf4j.zel.vm.ZExecutionException;
 
 @SuppressFBWarnings("CD_CIRCULAR_DEPENDENCY")
-public final class LODAX extends Instruction implements LValRef {
+public final class LODAX extends Instruction implements SymbolRef {
 
   private static final long serialVersionUID = 1L;
 
