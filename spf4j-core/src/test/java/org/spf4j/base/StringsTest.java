@@ -45,13 +45,6 @@ import org.spf4j.test.log.TestLoggers;
  */
 public final class StringsTest {
 
-
-  @Test
-  public void testEscaping() {
-    String res = Strings.unescape("a\\n");
-    Assert.assertEquals("a\n", res);
-  }
-
   @Test
   public void testUnsafeOps() {
     LogAssert dontExpect = TestLoggers.sys()

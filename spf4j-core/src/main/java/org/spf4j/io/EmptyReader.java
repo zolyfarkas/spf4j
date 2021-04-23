@@ -31,18 +31,23 @@
  */
 package org.spf4j.io;
 
-import java.io.InputStream;
+import java.io.Reader;
 
-public final class EmptyInputStream extends InputStream {
+public final class EmptyReader extends Reader {
 
-  public static final InputStream INSTANCE = new EmptyInputStream();
+  public static final Reader INSTANCE = new EmptyReader();
 
-  private EmptyInputStream() {
+  private EmptyReader() {
   }
 
   @Override
-  public int read() {
+  public int read(final char[] cbuf, final int off, final int len) {
     return -1;
+  }
+
+  @Override
+  public void close() {
+    // Nothing to close
   }
 
 }

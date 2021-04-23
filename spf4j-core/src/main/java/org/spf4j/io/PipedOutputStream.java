@@ -305,7 +305,7 @@ public final class PipedOutputStream extends OutputStream {
   public InputStream getInputStream() {
     synchronized (sync) {
       if (writerClosed && availableToRead() == 0) {
-        return EmptyInputStream.EMPTY;
+        return EmptyInputStream.INSTANCE;
       }
       nrReadStreams++;
       return new PipedInputStream();

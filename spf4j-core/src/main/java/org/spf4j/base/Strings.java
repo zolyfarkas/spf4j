@@ -48,7 +48,6 @@ import sun.nio.cs.ArrayDecoder;
 import sun.nio.cs.ArrayEncoder;
 //CHECKSTYLE:ON
 import java.nio.charset.StandardCharsets;
-import javax.annotation.Nullable;
 
 /**
  *
@@ -59,29 +58,6 @@ public final class Strings {
 
 
   public static final String EOL = System.getProperty("line.separator", "\n");
-
-  private static final String[][] JAVA_CTRL_CHARS_UNESCAPE = {
-    {"\\b", "\b"},
-    {"\\n", "\n"},
-    {"\\t", "\t"},
-    {"\\f", "\f"},
-    {"\\r", "\r"}
-  };
-
-  private static final CharSequenceTranslator UNESCAPE_JAVA
-          = new AggregateTranslator(
-                  new OctalUnescaper(),
-                  new UnicodeUnescaper(),
-                  new LookupTranslator(JAVA_CTRL_CHARS_UNESCAPE),
-                  new LookupTranslator(
-                          new String[][]{
-                            {"\\\\", "\\"},
-                            {"\\\"", "\""},
-                            {"\\'", "'"},
-                            {"\\", ""}
-                          })
-          );
-
 
 
   private static final boolean LENIENT_CODING = Boolean.getBoolean("spf4j.encoding.lenient");
@@ -115,10 +91,7 @@ public final class Strings {
     return CharSequences.distance(s1, s2);
   }
 
-  @Nullable
-  public static String unescape(@Nullable final String what) {
-    return UNESCAPE_JAVA.translate(what);
-  }
+
 
   /**
    * @deprecated use containsAnyChars instead.

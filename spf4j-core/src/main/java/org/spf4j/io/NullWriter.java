@@ -31,18 +31,28 @@
  */
 package org.spf4j.io;
 
-import java.io.InputStream;
+import java.io.Writer;
 
-public final class EmptyInputStream extends InputStream {
+public final class NullWriter extends Writer {
 
-  public static final InputStream INSTANCE = new EmptyInputStream();
+  public static final Writer INSTANCE = new NullWriter();
 
-  private EmptyInputStream() {
+  private NullWriter() {
   }
 
   @Override
-  public int read() {
-    return -1;
+  public void close() {
+    // Nothing to close
+  }
+
+  @Override
+  public void write(final char[] cbuf, final int off, final int len) {
+    // Write nothing
+  }
+
+  @Override
+  public void flush() {
+    // flush Nothing
   }
 
 }
