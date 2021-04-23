@@ -32,17 +32,17 @@
 package org.spf4j.zel.vm;
 
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.OutputStream;
 
 /**
  * @author zoly
  */
 public interface ProcessIO {
 
-  PrintStream getErr();
+  OutputStream getErr();
 
   InputStream getIn();
 
-  PrintStream getOut();
+  OutputStream getOut();
 
 }

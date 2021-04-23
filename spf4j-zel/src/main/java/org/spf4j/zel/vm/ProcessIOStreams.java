@@ -32,7 +32,7 @@
 package org.spf4j.zel.vm;
 
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.OutputStream;
 import javax.annotation.concurrent.Immutable;
 
 /**
@@ -51,14 +51,14 @@ public final class ProcessIOStreams implements ProcessIO {
   /**
    * Standard Output
    */
-  private final transient PrintStream out;
+  private final transient OutputStream out;
 
   /**
    * Standard Error Output
    */
-  private final transient PrintStream err;
+  private final transient OutputStream err;
 
-  public ProcessIOStreams(final InputStream in, final PrintStream out, final PrintStream err) {
+  public ProcessIOStreams(final InputStream in, final OutputStream out, final OutputStream err) {
     this.in = in;
     this.out = out;
     this.err = err;
@@ -70,12 +70,12 @@ public final class ProcessIOStreams implements ProcessIO {
   }
 
   @Override
-  public PrintStream getOut() {
+  public OutputStream getOut() {
     return out;
   }
 
   @Override
-  public PrintStream getErr() {
+  public OutputStream getErr() {
     return err;
   }
 

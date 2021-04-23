@@ -110,7 +110,7 @@ public final class Program implements Serializable {
 
   public enum Type {
     DETERMINISTIC, NONDETERMINISTIC
-  };
+  }
 
   public enum ExecutionType {
     SYNC,
@@ -177,6 +177,10 @@ public final class Program implements Serializable {
     this.source = source;
     this.name = name;
     this.parameterNames = parameterNames;
+  }
+
+  public static MemoryBuilder getGlobalMemoryBuilder() {
+    return ZEL_GLOBAL_FUNC.copy();
   }
 
   Location[] getDebug() {
@@ -430,7 +434,7 @@ public final class Program implements Serializable {
     return execute(ectx);
   }
 
-  Object[] allocMem(final Object[] args) {
+  Object[] allocMem(final Object... args) {
     Object[] localMem;
     final int lms = this.getLocalMemSize();
     if (args.length == lms) {

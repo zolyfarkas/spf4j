@@ -37,7 +37,7 @@ import java.util.Map;
 import org.spf4j.base.Pair;
 
 
-public final  class MemoryBuilder {
+public final class MemoryBuilder {
 
     private final ArrayList<Object> memory;
 
