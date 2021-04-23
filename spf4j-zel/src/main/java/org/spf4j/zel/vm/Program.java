@@ -36,7 +36,9 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +73,8 @@ import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.ParsingContext.Location;
 
 /**
- * <p> A ZEL program (function)</p>
+ * <p>
+ * A ZEL program (function)</p>
  *
  * This is a Turing machine a Program will always be pretty much an array of operations (instructions).
  *
@@ -309,36 +312,50 @@ public final class Program implements Serializable {
   @Nonnull
   public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
           throws CompileException {
+    return compile("anon", "String", new StringReader(zExpr), varNames);
+  }
+
+  @Nonnull
+  public static Program compile(@Nonnull final String source,
+          @Nonnull final String name,
+          @Nonnull final Reader zExpr, @Nonnull final String... varNames)
+          throws CompileException {
 
     ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
-    final String srcId = ZelFrame.newSource(zExpr);
     try {
-      ZCompiler.compile(srcId, zExpr, cc);
+      ZCompiler.compile(source, zExpr, cc);
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varNames));
-    ZelFrame.annotate(srcId, result);
-    return result;
+    return RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram(name, source, varNames));
   }
-
 
   @Nonnull
   public static <T> ZelPredicate<T> compilePredicate(@Nonnull final CharSequence zExpr, @Nonnull final String varName)
           throws CompileException {
     ParsingContext cc = new CompileContext(ZEL_GLOBAL_FUNC.copy());
-    final String srcId = ZelFrame.newSource(zExpr);
     try {
-      ZCompiler.compilePredicate(srcId, CharSequences.reader(zExpr), cc);
+      ZCompiler.compilePredicate("CharSquence", CharSequences.reader(zExpr), cc);
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root", srcId, varName));
-    ZelFrame.annotate(srcId, result);
+    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anon@root",
+            "CharSquence", varName));
     return result.toPredicate(zExpr.toString());
   }
 
-  static Program compile(@Nonnull final String zExpr,
+  public static Program compile(@Nonnull final String zExpr,
+          final Map<String, Integer> localTable,
+          final Object[] globalMem,
+          final Map<String, Integer> globalTable,
+          @Nonnull final String... varNames)
+          throws CompileException {
+    return compile("String", "anon", new StringReader(zExpr), localTable, globalMem, globalTable, varNames);
+  }
+
+  public static Program compile(@Nonnull final String source,
+          @Nonnull final String name,
+          @Nonnull final Reader zExpr,
           final Map<String, Integer> localTable,
           final Object[] globalMem,
           final Map<String, Integer> globalTable,
@@ -347,15 +364,12 @@ public final class Program implements Serializable {
 
     ParsingContext cc = new CompileContext(new MemoryBuilder(
             new ArrayList<>(Arrays.asList(globalMem)), globalTable));
-    final String srcId = ZelFrame.newSource(zExpr);
     try {
-      ZCompiler.compile(srcId, zExpr, cc);
+      ZCompiler.compile(zExpr.toString(), zExpr, cc);
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    Program result = cc.getProgramBuilder().toProgram("anon@root", srcId, varNames, localTable);
-    ZelFrame.annotate(srcId, result);
-    return result;
+    return cc.getProgramBuilder().toProgram(name, source, varNames, localTable);
   }
 
   public Object execute() throws ExecutionException, InterruptedException {
@@ -523,11 +537,13 @@ public final class Program implements Serializable {
           mem = execCtx.getMem();
           resCache = execCtx.getResultCache();
         } catch (CompileException ex) {
-          System.err.println("Syntax Error:\n");
-          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+          System.out.println("Syntax Error:");
+          Throwables.writeTo(ex, System.out, Throwables.PackageDetail.SHORT);
+          System.out.println();
         } catch (ExecutionException ex) {
-          System.err.println("Execution Error:\n");
-          Throwables.writeTo(ex, System.err, Throwables.PackageDetail.SHORT);
+          System.out.println("Execution Error:");
+          Throwables.writeTo(ex, System.out, Throwables.PackageDetail.SHORT);
+          System.out.println();
         }
         System.out.println("zel>");
       }
@@ -606,7 +622,7 @@ public final class Program implements Serializable {
     }
 
     @Override
-    @SuppressFBWarnings({ "TBP_TRISTATE_BOOLEAN_PATTERN", "NP_BOOLEAN_RETURN_NULL" })
+    @SuppressFBWarnings({"TBP_TRISTATE_BOOLEAN_PATTERN", "NP_BOOLEAN_RETURN_NULL"})
     @Nullable
     public Boolean apply(@Nonnull final Object input) {
       if (input.getClass() == instr) {

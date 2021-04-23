@@ -31,11 +31,10 @@
  */
 package org.spf4j.zel.vm;
 
-import gnu.trove.set.hash.THashSet;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 public final class ZExecutionException extends ExecutionException {
@@ -89,15 +88,9 @@ public final class ZExecutionException extends ExecutionException {
     result.append('\n');
     result.append("Zel trace:\n");
     List<ZelFrame> zf = getZelframes();
-    Set<String> sourceIds = new THashSet<>(zf.size());
     for (ZelFrame frame : zf) {
       result.append(frame);
       result.append('\n');
-      sourceIds.add(frame.getSource());
-    }
-    for (String sourceId : sourceIds) {
-      result.append(sourceId).append(":\n");
-      result.append(ZelFrame.getDetail(sourceId)).append('\n');
     }
     return result.toString();
   }

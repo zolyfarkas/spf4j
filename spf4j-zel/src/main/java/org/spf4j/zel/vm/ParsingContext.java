@@ -33,83 +33,81 @@ package org.spf4j.zel.vm;
 
 import java.io.Serializable;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.zel.instr.Instruction;
 
-
+@ParametersAreNonnullByDefault
 public interface ParsingContext {
 
+  final class Location implements Serializable {
 
-    final class Location implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private final int row;
-        private final int column;
+    private static final long serialVersionUID = 1L;
+    private final int row;
+    private final int column;
 
-        public Location(final int row, final int column) {
-            this.row = row - 1;
-            this.column = column;
-        }
-
-        @Override
-        public String toString() {
-            return "Location{" + "row=" + row + ", column=" + column + '}';
-        }
-
-        public int getRow() {
-            return row;
-        }
-
-        public int getColumn() {
-            return column;
-        }
-
+    public Location(final int row, final int column) {
+      this.row = row - 1;
+      this.column = column;
     }
 
+    @Override
+    public String toString() {
+      return "Location{" + "row=" + row + ", column=" + column + '}';
+    }
 
-    /**
-     * generate instruction code with argument
-     *
-     * @param instr Instruction
-     * @param arg Object
-     */
-    void generateCode(Location[] loc, Instruction... args);
+    public int getRow() {
+      return row;
+    }
 
+    public int getColumn() {
+      return column;
+    }
 
-    void generateCode(Location loc, Instruction instr);
+  }
 
+  /**
+   * generate instruction code with argument
+   *
+   * @param instr Instruction
+   * @param arg Object
+   */
+  void generateCode(Location[] loc, Instruction... args);
 
-    void staticSymbol(String name, Object object);
+  void generateCode(Location loc, Instruction instr);
 
-    /**
-     * Add code to this context
-     *
-     * @param code Object[]
-     */
-    void generateCodeAll(ParsingContext parsingContext);
+  void staticSymbol(String name, Object object);
 
+  void staticSymbol(String name);
 
-    /**
-     * return the current code address
-     *
-     * @return
-     */
-    int getAddress();
+  /**
+   * Add code to this context
+   *
+   * @param code Object[]
+   */
+  void generateCodeAll(ParsingContext parsingContext);
 
+  /**
+   * return the current code address
+   *
+   * @return
+   */
+  int getAddress();
 
-    Instruction getLast();
+  Instruction getLast();
 
-    /**
-     * get the code generated in this context
-     *
-     * @return Object[]
-     */
-    @Nullable
-    ProgramBuilder getProgramBuilder();
+  /**
+   * get the code generated in this context
+   *
+   * @return Object[]
+   */
+  @Nullable
+  ProgramBuilder getProgramBuilder();
 
-    /**
-     * clone this context
-     *
-     * @return
-     */
-    ParsingContext createSubContext();
+  /**
+   * clone this context
+   *
+   * @return
+   */
+  ParsingContext createSubContext();
 
 }

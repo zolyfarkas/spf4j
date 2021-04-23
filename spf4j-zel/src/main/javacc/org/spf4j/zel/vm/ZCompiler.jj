@@ -698,7 +698,7 @@ void compare(ParsingContext context) :
             (<MULTI_LINE> {option |= java.util.regex.Pattern.MULTILINE;})?
               <LIKE> <STRING>
              {context.generateCode(new Location(token.beginLine, token.beginColumn),
-              new org.spf4j.zel.instr.RLIKE(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1)), option));}
+              new org.spf4j.zel.instr.RLIKE(org.apache.commons.text.StringEscapeUtils.unescapeJava(token.image.substring(1, token.image.length()-1)), option));}
           )
 
     )*
@@ -888,7 +888,7 @@ void constant(ParsingContext context) :
     |  <NULL>
       {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(null));}
     |  <STRING>
-      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));}
+      {context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(org.apache.commons.text.StringEscapeUtils.unescapeJava(token.image.substring(1, token.image.length()-1))));}
     |  <MATCHEXP>
     {  String rExp = token.image.substring(1, token.image.length()-1);
        context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(rExp));}

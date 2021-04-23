@@ -78,6 +78,11 @@ public final class NullParsingContext implements ParsingContext {
   }
 
   @Override
+  public void staticSymbol(final String name) {
+    //this is a null context
+  }
+
+  @Override
   public Instruction getLast() {
     return NOP.INSTANCE;
   }

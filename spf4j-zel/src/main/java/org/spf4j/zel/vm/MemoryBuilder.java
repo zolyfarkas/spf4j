@@ -60,6 +60,8 @@ public final  class MemoryBuilder {
         if (!symbolTable.containsKey(symbol)) {
             memory.add(null);
             symbolTable.put(symbol, idx++);
+        } else {
+          throw new IllegalArgumentException("Duplicate symbol definition: " + symbol);
         }
     }
 

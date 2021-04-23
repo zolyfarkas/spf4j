@@ -84,6 +84,11 @@ public final class CompileContext implements ParsingContext {
     }
 
     @Override
+    public void staticSymbol(final String name) {
+        staticMemBuilder.addSymbol(name);
+    }
+
+    @Override
     public Instruction getLast() {
        return last;
     }
