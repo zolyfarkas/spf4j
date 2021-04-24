@@ -62,6 +62,12 @@ public final class ReflectionsTest {
 
   }
 
+  @Test
+  public void testGetCompatibleMethodStatic() {
+    Method reflect = Reflections.getCompatibleMethod(Class.class, "forName", String.class);
+    Assert.assertNotNull(reflect);
+  }
+
   public static String print(final Object... args) {
     return java.util.Arrays.toString(args);
   }
