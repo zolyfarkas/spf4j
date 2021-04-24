@@ -305,7 +305,7 @@ public final class Program implements Serializable {
   @Nonnull
   public static Program compile(@Nonnull final String zExpr, @Nonnull final String... varNames)
           throws CompileException {
-    return compile("anon", "String", new StringReader(zExpr), varNames);
+    return compile("anonFunc", "String", new StringReader(zExpr), varNames);
   }
 
   @Nonnull
@@ -332,7 +332,7 @@ public final class Program implements Serializable {
     } catch (TokenMgrError | ParseException err) {
       throw new CompileException(err);
     }
-    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("predicate",
+    Program result = RefOptimizer.INSTANCE.apply(cc.getProgramBuilder().toProgram("anonPredicate",
             "CharSquence", varName));
     return result.toPredicate(zExpr.toString());
   }
@@ -343,7 +343,7 @@ public final class Program implements Serializable {
           final Map<String, Integer> globalTable,
           @Nonnull final String... varNames)
           throws CompileException {
-    return compile("String", "anon", new StringReader(zExpr), localTable, globalMem, globalTable, varNames);
+    return compile("String", "anonFunc", new StringReader(zExpr), localTable, globalMem, globalTable, varNames);
   }
 
   public static Program compile(@Nonnull final String source,
@@ -561,7 +561,7 @@ public final class Program implements Serializable {
 
   @Override
   public String toString() {
-    return source;
+    return name;
   }
 
   /**
