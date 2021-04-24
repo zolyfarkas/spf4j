@@ -167,6 +167,12 @@ public final class Program implements Serializable {
     this.parameterNames = parameterNames;
   }
 
+  public Program async() {
+    return new Program(name, globalSymbolTable, globalMem,
+            localSymbolTable, instructions, debug, source, type, ExecutionType.ASYNC,
+            hasDeterministicFunctions, parameterNames);
+  }
+
   public static MemoryBuilder getGlobalMemoryBuilder() {
     return ZEL_GLOBAL_FUNC.copy();
   }
@@ -513,7 +519,7 @@ public final class Program implements Serializable {
         terminated = true;
       } else {
         try {
-          final Program prog = Program.compile(line, localSymTable, gmem, globalSymTable);
+          final Program prog = Program.compile(line, localSymTable, gmem, globalSymTable).async();
           localSymTable = prog.getLocalSymbolTable();
           globalSymTable = prog.getGlobalSymbolTable();
           gmem = prog.getGlobalMem();
