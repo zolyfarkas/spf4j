@@ -31,7 +31,6 @@
  */
 package org.spf4j.zel.vm;
 
-import org.spf4j.ds.SimpleStack;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.MathContext;
@@ -105,16 +104,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
   private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service,
           final Program program, final Object[] localMem) {
-    this.io = parent.io;
-    this.mem = localMem;
-    this.globalMem = parent.globalMem;
-    this.execService = service;
-    this.stack = new SimpleStackNullSupport<>(8);
-    this.code = program;
-    this.resultCache = parent.resultCache;
-    this.ip = 0;
-    isChildContext = true;
-    this.mathContext = MathContext.DECIMAL128;
+    this(program, program.getGlobalMem(), localMem, parent.resultCache, parent.io, service, true);
   }
 
   /**
@@ -145,15 +135,22 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
           @Nullable final ResultCache resultCache,
           @Nullable final ProcessIO io,
           @Nullable final VMExecutor execService) {
+    this(program, globalMem, localMem, resultCache, io, execService, false);
+  }
+
+  ExecutionContext(final Program program, final Object[] globalMem, final Object[] localMem,
+          @Nullable final ResultCache resultCache,
+          @Nullable final ProcessIO io,
+          @Nullable final VMExecutor execService, final boolean isChildContext) {
     this.code = program;
     this.io = io;
     this.execService = execService;
-    this.stack = new SimpleStack<>(8);
+    this.stack = new SimpleStackNullSupport<>(8);
     this.ip = 0;
     this.mem = localMem;
     this.globalMem = globalMem;
     this.resultCache = resultCache;
-    isChildContext = false;
+    this.isChildContext = isChildContext;
     this.mathContext = MathContext.DECIMAL128;
   }
 
