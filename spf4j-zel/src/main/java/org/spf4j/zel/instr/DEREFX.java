@@ -36,7 +36,7 @@ import static org.spf4j.zel.instr.DEREF.pushDeref;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.SuspendedException;
 
-public final class DEREFX extends Instruction {
+ public final class DEREFX extends Instruction {
 
   private static final long serialVersionUID = 1L;
 
@@ -56,6 +56,6 @@ public final class DEREFX extends Instruction {
 
   @Override
   public Object[] getParameters() {
-    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;
+    return new Object[]{this.ref};
   }
 }

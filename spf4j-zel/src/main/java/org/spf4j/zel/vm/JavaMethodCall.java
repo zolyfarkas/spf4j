@@ -35,6 +35,7 @@ import com.google.common.util.concurrent.UncheckedExecutionException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import org.spf4j.base.Reflections;
 
 /**
@@ -51,15 +52,17 @@ public final class JavaMethodCall implements Method {
     private final Class<?> objectClass;
     private final Object object;
 
+     public JavaMethodCall(final Class<?> clasz, final String methodName) {
+        this.name = methodName;
+        this.objectClass = clasz;
+        this.object = null;
+    }
+    
+
     public JavaMethodCall(final Object object, final String methodName) {
         this.name = methodName;
-        if (object instanceof Class) {
-            this.objectClass = (Class<?>) object;
-            this.object = null;
-        } else {
-            this.objectClass = object.getClass();
-            this.object = object;
-        }
+        this.objectClass = object.getClass();
+        this.object = object;
     }
 
     @Override
@@ -72,6 +75,9 @@ public final class JavaMethodCall implements Method {
                     classes[i] = parameters[i].getClass();
                 }
                 java.lang.reflect.Method m = Reflections.getCompatibleMethodCached(objectClass, name, classes);
+                if (m == null) {
+                  throw new NoSuchMethodException(objectClass.getName() + '.' + name +  Arrays.toString(classes));
+                }
                 Class<?>[] actTypes = Reflections.getParameterTypes(m);
                 Class<?> lastParamClass = actTypes[actTypes.length - 1];
                 if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {
@@ -94,7 +100,7 @@ public final class JavaMethodCall implements Method {
                 return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)
                         .invoke(object);
             }
-        } catch (IllegalAccessException | InvocationTargetException ex) {
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
             throw new UncheckedExecutionException(ex);
         }
     }

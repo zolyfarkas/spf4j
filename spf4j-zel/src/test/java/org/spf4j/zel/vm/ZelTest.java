@@ -82,8 +82,8 @@ public final class ZelTest {
   @Test
   public void testJavaExecStatic()
           throws CompileException, ExecutionException, InterruptedException {
-    Program prog = Program.compile("s.format(\"Number %d\", 3)", "s");
-    String result = (String) prog.execute(String.class);
+    Program prog = Program.compile("format(\"Number %d\", 3)", "format");
+    String result = (String) prog.execute(new JavaMethodCall(String.class, "format"));
     Assert.assertEquals(String.format("Number %d", 3), result);
   }
 
@@ -106,6 +106,7 @@ public final class ZelTest {
             + "val2 = fib(200);\n"
             + "val3 = fib(1000);\n"
             + "val = val1 + val2;"
+                + "out(\"fib(50)=\", fib(50));"
             + "out(val3);"
             + "val2";
 

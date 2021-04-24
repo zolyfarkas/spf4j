@@ -71,6 +71,8 @@ import org.spf4j.zel.instr.var.RANDOM;
 import org.spf4j.zel.instr.var.SQRT;
 import org.spf4j.zel.vm.ParsingContext.Location;
 import org.spf4j.zel.instr.SymbolRef;
+import org.spf4j.zel.instr.var.LIST;
+import org.spf4j.zel.instr.var.MAP;
 
 /**
  * <p>
@@ -101,6 +103,8 @@ public final class Program implements Serializable {
     ZEL_GLOBAL_FUNC.addSymbol("min", MIN.INSTANCE);
     ZEL_GLOBAL_FUNC.addSymbol("max", MAX.INSTANCE);
     ZEL_GLOBAL_FUNC.addSymbol("array", ARRAY.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("list", LIST.INSTANCE);
+    ZEL_GLOBAL_FUNC.addSymbol("map", MAP.INSTANCE);
     ZEL_GLOBAL_FUNC.addSymbol("random", RANDOM.INSTANCE);
     ZEL_GLOBAL_FUNC.addSymbol("channel", Channel.Factory.INSTANCE);
     ZEL_GLOBAL_FUNC.addSymbol("EOF", Channel.EOF);
