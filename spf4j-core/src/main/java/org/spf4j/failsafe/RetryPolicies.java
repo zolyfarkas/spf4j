@@ -41,13 +41,16 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
+import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import org.spf4j.base.Either;
+import org.spf4j.base.Reflections;
 import org.spf4j.base.ResultMatchers;
 import org.spf4j.failsafe.avro.RetryParams;
 import org.spf4j.failsafe.avro.RetryRule;
@@ -182,6 +185,9 @@ public final class RetryPolicies {
         }
       } else {
         ScriptEngine engine = SCRIPT_ENGINE_MANAGER.getEngineByName(ps.getLanguage());
+        Bindings bindings = engine.createBindings();
+        bindings.put("decision", Reflections.implementStatic(RetryDecisionFactory.class, RetryDecision.class));
+        engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
         String rps = ps.getReturnPredicateSupplier();
         if (!rps.isEmpty()) {
           Invocable invocable;
@@ -194,7 +200,7 @@ public final class RetryPolicies {
                   (start, deadline) -> (object, callable)
                   -> {
             try {
-              return (RetryDecision) invocable.invokeFunction(null, object, callable);
+              return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);
             } catch (ScriptException | NoSuchMethodException ex) {
               Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
                       "Failed predicate {0}", new Object[]{rps, ex});

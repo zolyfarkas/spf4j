@@ -146,7 +146,4 @@ public final class ZelScriptEngine implements ScriptEngine, Compilable {
     return "ZelScriptEngine{" + "context=" + context + '}';
   }
 
-  public ZelScriptEngine() {
-  }
-
 }

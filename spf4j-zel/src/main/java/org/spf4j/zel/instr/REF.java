@@ -37,7 +37,6 @@ import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Arrays;
 import org.spf4j.zel.vm.AssignableValue;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 
 /**
@@ -77,7 +76,7 @@ public final class REF extends Instruction {
       context.push(new ArrayDeref(relativeTo, ref));
 
     } else {
-      context.push(new JavaMethodDeref(relativeTo, ref));
+      context.push(new JavaMethodDeref(relativeTo, ref, context));
     }
     return 1;
   }
@@ -133,10 +132,12 @@ public final class REF extends Instruction {
 
     private final Object relativeTo;
     private final Object ref;
+    private final ExecutionContext ctx;
 
-    JavaMethodDeref(final Object relativeTo, final Object ref) {
+    JavaMethodDeref(final Object relativeTo, final Object ref, final ExecutionContext ctx) {
       this.relativeTo = relativeTo;
       this.ref = ref;
+      this.ctx = ctx;
     }
 
     @Override
@@ -147,7 +148,7 @@ public final class REF extends Instruction {
 
     @Override
     public Object get() {
-      return new JavaMethodCall(relativeTo, (String) ref);
+      return ctx.newJavaCall(relativeTo, (String) ref);
     }
   }
 }

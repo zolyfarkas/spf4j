@@ -1,3 +1,10 @@
+package org.spf4j.failsafe;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+
 /*
  * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
  *
@@ -29,30 +36,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.zel.vm;
-
-import java.util.concurrent.ExecutionException;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
- * @author zoly
+ *
+ * @author Zoltan Farkas
  */
-public final class JavaMethodTest {
+public interface RetryDecisionFactory<T, C extends Callable<? extends T>> {
+   RetryDecision abort();
 
+   RetryDecision abortThrow(@Nonnull Throwable exception);
 
-  private static final Logger LOG = LoggerFactory.getLogger(JavaMethodTest.class);
+   <T, C extends Callable<? extends T>> RetryDecision<T, C> abortReturn(T result);
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void test() throws CompileException, ExecutionException, InterruptedException {
-    Program prog = Program.compile("\"\".getClass().forName(\"java.lang.String\").newInstance()");
-    LOG.debug("Program = {}", (Object) prog.getCode());
-    String result = (String) prog.execute();
-    Assert.assertEquals("", result);
-  }
+   <T, C extends Callable<? extends T>> RetryDecision<T, C> retry(
+          @Nonnegative long time, TimeUnit unit, @Nonnull C callable);
 
+   <T, C extends Callable<? extends T>> RetryDecision<T, C> retry(
+          @Nonnegative long retryNanos, @Nonnull C callable);
 
-
+   <T, C extends Callable<? extends T>> RetryDecision<T, C> retryDefault(@Nonnull C callable);
 }

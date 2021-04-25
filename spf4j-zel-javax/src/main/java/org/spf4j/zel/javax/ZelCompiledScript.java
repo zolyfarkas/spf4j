@@ -19,6 +19,7 @@ import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.script.CompiledScript;
+import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -31,7 +32,7 @@ import org.spf4j.zel.vm.Program;
  *
  * @author Zoltan Farkas
  */
-public final class ZelCompiledScript extends CompiledScript {
+public final class ZelCompiledScript extends CompiledScript implements Invocable {
 
   private final Program program;
 
@@ -72,6 +73,78 @@ public final class ZelCompiledScript extends CompiledScript {
   @Override
   public String toString() {
     return "ZelCompiledScript{" + "program=" + program + '}';
+  }
+
+  @Override
+  public Object invokeMethod(final Object thiz, final String name, final Object... args)
+          throws ScriptException, NoSuchMethodException {
+    if (name == null || name.isEmpty()) {
+      try {
+        return program.execute(org.spf4j.base.Arrays.preppend(args, thiz));
+      } catch (ExecutionException ex) {
+        throw new ScriptException(ex);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        throw new ScriptException(ex);
+      }
+    } else {
+      Integer addr = program.getGlobalSymbolTable().get(name);
+      if (addr != null) {
+        Object obj = program.getGlobalMem()[addr];
+        if (obj instanceof Program) {
+          try {
+            return ((Program) obj).execute(org.spf4j.base.Arrays.preppend(args, thiz));
+          } catch (ExecutionException ex) {
+            throw new ScriptException(ex);
+          } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new ScriptException(ex);
+          }
+        }
+      }
+    }
+    throw new NoSuchMethodException(name);
+  }
+
+  @Override
+  public Object invokeFunction(final String name, final Object... args)
+          throws ScriptException, NoSuchMethodException {
+   if (name == null || name.isEmpty()) {
+      try {
+        return program.execute(args);
+      } catch (ExecutionException ex) {
+        throw new ScriptException(ex);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        throw new ScriptException(ex);
+      }
+    } else {
+      Integer addr = program.getGlobalSymbolTable().get(name);
+      if (addr != null) {
+        Object obj = program.getGlobalMem()[addr];
+        if (obj instanceof Program) {
+          try {
+            return ((Program) obj).execute(args);
+          } catch (ExecutionException ex) {
+            throw new ScriptException(ex);
+          } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new ScriptException(ex);
+          }
+        }
+      }
+    }
+    throw new NoSuchMethodException(name);
+  }
+
+  @Override
+  public <T> T getInterface(final Class<T> clasz) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public <T> T getInterface(final Object thiz, final Class<T> clasz) {
+    throw new UnsupportedOperationException();
   }
 
 }

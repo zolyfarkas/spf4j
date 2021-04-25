@@ -38,7 +38,6 @@ import org.apache.avro.generic.GenericRecord;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 
 public final class CDEREFX extends Instruction {
@@ -65,7 +64,7 @@ public final class CDEREFX extends Instruction {
                     })
             .safePut(Object.class,
                     (Object relativeTo, Object ref, ExecutionContext context)
-                    -> context.push(new JavaMethodCall(relativeTo, ref.toString())))
+                    -> context.push(context.newJavaCall(relativeTo, ref.toString())))
             .safePut(Object[].class,
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -> {

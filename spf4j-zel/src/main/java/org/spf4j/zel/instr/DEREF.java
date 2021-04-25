@@ -39,7 +39,6 @@ import org.apache.avro.generic.GenericRecord;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 
 public final class DEREF extends Instruction {
@@ -60,7 +59,7 @@ public final class DEREF extends Instruction {
                     -> context.push(((GenericRecord) relativeTo).get(ref.toString())))
             .safePut(Object.class,
                     (Object relativeTo, Object ref, ExecutionContext context)
-                    -> context.push(new JavaMethodCall(relativeTo, (String) ref)))
+                    -> context.push(context.newJavaCall(relativeTo, (String) ref)))
             .safePut(Object[].class,
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -> {
