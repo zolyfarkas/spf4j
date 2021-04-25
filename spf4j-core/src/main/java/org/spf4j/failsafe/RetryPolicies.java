@@ -194,7 +194,7 @@ public final class RetryPolicies {
                   (start, deadline) -> (object, callable)
                   -> {
             try {
-              return (RetryDecision) invocable.invokeFunction("predicateSupplier", object, callable);
+              return (RetryDecision) invocable.invokeFunction(null, object, callable);
             } catch (ScriptException | NoSuchMethodException ex) {
               Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
                       "Failed predicate {0}", new Object[]{rps, ex});
@@ -214,7 +214,7 @@ public final class RetryPolicies {
                   (start, deadline) -> (object, callable)
                   -> {
             try {
-              return (RetryDecision) invocable.invokeFunction("predicateSupplier", object, callable);
+              return (RetryDecision) invocable.invokeFunction(null, object, callable);
             } catch (ScriptException | NoSuchMethodException ex) {
               Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
                       "Failed predicate {0}", new Object[]{tps, ex});
