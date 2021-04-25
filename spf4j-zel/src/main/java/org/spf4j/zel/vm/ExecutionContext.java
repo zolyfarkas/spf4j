@@ -104,7 +104,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
 
   private ExecutionContext(final ExecutionContext parent, @Nullable final VMExecutor service,
           final Program program, final Object[] localMem) {
-    this(program, program.getGlobalMem(), localMem, parent.resultCache, parent.io, service, true);
+    this(program, parent.globalMem, localMem, parent.resultCache, parent.io, service, true);
   }
 
   /**
@@ -459,9 +459,6 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     this.stack.pushNull();
   }
 
-  public void pushAll(final Object[] objects) {
-    this.stack.pushAll(objects);
-  }
 
   public boolean isStackEmpty() {
     return this.stack.isEmpty();
@@ -475,13 +472,6 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     return this.stack.peekFromTop(n);
   }
 
-  public Object peekElemAfter(final Object elem) {
-    return this.stack.peekElemAfter(elem);
-  }
-
-  public Object getFromPtr(final int ptr) {
-    return this.stack.getFromPtr(ptr);
-  }
 
   public ExecutionContext getSubProgramContext(final Program program, final int nrParams)
           throws ExecutionException, SuspendedException {

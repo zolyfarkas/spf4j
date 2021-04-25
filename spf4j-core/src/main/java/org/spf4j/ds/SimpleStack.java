@@ -56,6 +56,7 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
    * @return Object
    */
   @Nullable
+  @Override
   public T peek() {
     if (top > 0) {
       return elems[top - 1];
@@ -133,6 +134,11 @@ public final class SimpleStack<T> extends SimpleStackNullSupport<T> {
       }
     }
     return false;
+  }
+
+
+  public void pushNull() {
+    throw new UnsupportedOperationException();
   }
 
 

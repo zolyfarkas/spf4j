@@ -101,7 +101,11 @@ public class SimpleStackNullSupport<T>
     top = t;
   }
 
-  public final void pushNull() {
+  /**
+   * pushes a null on top of stack.
+   * cane be overridden to prohibit operation.
+   */
+  public void pushNull() {
     int t = top + 1;
     ensureCapacity(t);
     top = t;
