@@ -53,6 +53,13 @@ public final class JavaMethodTest {
     Assert.assertEquals("", result);
   }
 
+  @Test
+  public void test2() throws CompileException, ExecutionException, InterruptedException {
+    Program prog = Program.compile("\"\".getClass().getName()");
+    LOG.debug("Program = {}", (Object) prog.getCode());
+    String result = (String) prog.execute();
+    Assert.assertEquals("java.lang.String", result);
+  }
 
 
 }

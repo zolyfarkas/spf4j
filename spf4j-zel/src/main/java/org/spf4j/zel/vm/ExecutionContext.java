@@ -159,13 +159,11 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   }
 
   public JavaMethodCall newJavaCall(final Object object, final String method) {
-    if (object instanceof Class) {
+    if (object instanceof Class && !"getName".equals(method)) {
       throw new UnsupportedOperationException("Not allowed invoking methods on class: " + object);
     }
     return new JavaMethodCall(object, method);
   }
-
-
 
 
   @SuppressFBWarnings("EI_EXPOSE_REP")
