@@ -184,7 +184,14 @@ public final class RetryPolicies {
           builder.withResultPartialPredicateSupplier(rts);
         }
       } else {
-        ScriptEngine engine = SCRIPT_ENGINE_MANAGER.getEngineByName(ps.getLanguage());
+        if (!"java".equals(ps.getTargetLanguage())) {
+          continue;
+        }
+        String language = ps.getLanguage();
+        ScriptEngine engine = SCRIPT_ENGINE_MANAGER.getEngineByName(language);
+        if (engine == null) {
+          throw new InvalidRetryPolicyException("No engine named: " + language);
+        }
         Bindings bindings = engine.createBindings();
         bindings.put("decision", Reflections.implementStatic(RetryDecisionFactory.class, RetryDecision.class));
         engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);
