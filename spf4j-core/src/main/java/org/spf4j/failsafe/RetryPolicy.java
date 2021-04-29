@@ -314,6 +314,16 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return this;
     }
 
+    public <A extends T> Builder<T, C> withResultPartialPredicate(
+            final Class<A> clasz,
+            final PartialResultRetryPredicate<A, Callable<A>> predicate) {
+      resultPredicates.add(TimedSupplier.constant((o, c)
+              -> (o != null && clasz.isAssignableFrom(o.getClass()))
+                      ? predicate.getDecision((A) o, (Callable) c) : null
+      ));
+      return this;
+    }
+
     public Builder<T, C> withResultPartialPredicate(
             final PartialResultRetryPredicate<T, C> predicate,
             final int maxRetries) {
