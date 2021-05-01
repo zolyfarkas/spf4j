@@ -44,7 +44,6 @@ public class RetryPoliciesTest {
   @Test
   public void testDummyPolicy() throws InvalidRetryPolicyException {
     RetryPolicy policy = RetryPolicies.create(new org.spf4j.failsafe.avro.RetryPolicy(10,
-            new org.spf4j.failsafe.avro.RetryParams(2, 10000, 60000000000L, 0.3, 10000, 0.9, -1),
             Collections.EMPTY_LIST, Collections.EMPTY_MAP));
     Assert.assertNotNull(policy);
   }

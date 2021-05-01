@@ -485,6 +485,14 @@ public final class Schemas {
       return null;
   }
 
+  /**
+   * Obtain a sub-schema of a record schema.
+   * the sub-schema will contain only the fields referenced by the definition order.
+   * @param schema the source schema.
+   * @param projection the order ids of the fields in the sub-schema.
+   * @return the sub schema. Will have the same name as the original schema
+   * with "_p." prepended to the name space
+   */
   public static Schema projectRecord(final Schema schema, final int[] projection) {
     List<Field> fields = schema.getFields();
     List<Field> nFields = new ArrayList<>(projection.length);
