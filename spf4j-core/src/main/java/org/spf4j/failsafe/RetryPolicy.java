@@ -314,6 +314,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
       return this;
     }
 
+    @SuppressWarnings("unchecked")
     public <A extends T> Builder<T, C> withResultPartialPredicate(
             final Class<A> clasz,
             final PartialResultRetryPredicate<A, Callable<A>> predicate) {

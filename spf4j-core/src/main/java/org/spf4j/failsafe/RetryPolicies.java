@@ -170,6 +170,12 @@ public final class RetryPolicies {
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> create(
           final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
     RetryPolicy.Builder<T, C> builder = RetryPolicy.newBuilder();
+    addRetryPolicy(builder, policy);
+    return builder.build();
+  }
+
+  public static <C extends Callable<? extends T>, T> void addRetryPolicy(final RetryPolicy.Builder<T, C> builder,
+          final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
     builder.withMaxExceptionChain(policy.getMaxSupressedExceptions());
     for (RetryRule rule : policy.getRetryRules()) {
       ScriptedRetryPredicateSupplier ps = rule.getPredicateSupplier();
@@ -177,9 +183,11 @@ public final class RetryPolicies {
         Either<PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier> ups
                 = getRetryPredicateSupplier(rule.getName());
         if (ups.isLeft()) {
+          @SuppressWarnings("unchecked")
           TimedSupplier<PartialExceptionRetryPredicate<T, C>> ets = ups.getLeft();
           builder.withExceptionPartialPredicateSupplier(ets);
         } else {
+          @SuppressWarnings("unchecked")
           TimedSupplier<PartialResultRetryPredicate<T, C>> rts = ups.getRight();
           builder.withResultPartialPredicateSupplier(rts);
         }
@@ -205,15 +213,15 @@ public final class RetryPolicies {
           }
           builder.withResultPartialPredicateSupplier(
                   (start, deadline) -> (object, callable)
-                  -> {
-            try {
-              return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);
-            } catch (ScriptException | NoSuchMethodException ex) {
-              Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
-                      "Failed predicate {0}", new Object[]{rps, ex});
-              return RetryDecision.ABORT;
-            }
-          });
+                          -> {
+                    try {
+                      return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);
+                    } catch (ScriptException | NoSuchMethodException ex) {
+                      Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
+                              "Failed predicate {0}", new Object[]{rps, ex});
+                      return RetryDecision.ABORT;
+                    }
+                  });
         }
         String tps = ps.getThrowablePredicateSupplier();
         if (!tps.isEmpty()) {
@@ -225,15 +233,15 @@ public final class RetryPolicies {
           }
           builder.withResultPartialPredicateSupplier(
                   (start, deadline) -> (object, callable)
-                  -> {
-            try {
-              return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);
-            } catch (ScriptException | NoSuchMethodException ex) {
-              Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
-                      "Failed predicate {0}", new Object[]{tps, ex});
-              return RetryDecision.ABORT;
-            }
-          });
+                          -> {
+                    try {
+                      return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);
+                    } catch (ScriptException | NoSuchMethodException ex) {
+                      Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,
+                              "Failed predicate {0}", new Object[]{tps, ex});
+                      return RetryDecision.ABORT;
+                    }
+                  });
         }
       }
     }
@@ -253,7 +261,6 @@ public final class RetryPolicies {
         builder.withResultPartialPredicateSupplier(rts);
       }
     }
-    return builder.build();
   }
 
   /**
