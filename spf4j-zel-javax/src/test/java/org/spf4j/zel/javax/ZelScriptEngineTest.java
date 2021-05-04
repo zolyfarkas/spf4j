@@ -33,7 +33,6 @@ import org.spf4j.failsafe.InvalidRetryPolicyException;
 import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPolicies;
 import org.spf4j.failsafe.RetryPredicate;
-import org.spf4j.failsafe.avro.RetryParams;
 import org.spf4j.failsafe.avro.RetryPolicy;
 import org.spf4j.failsafe.avro.RetryRule;
 import org.spf4j.failsafe.avro.ScriptedRetryPredicateSupplier;
@@ -83,9 +82,9 @@ public class ZelScriptEngineTest {
   @Test
   public void testRetryPolicyWithZEL() throws InvalidRetryPolicyException {
     org.spf4j.failsafe.RetryPolicy<Integer, Callable<Integer>> policy =
-            RetryPolicies.create(new RetryPolicy(10, new RetryParams(2, 10000, 10000000000L, 0.3, 100, 1, -1),
+            RetryPolicies.create(new RetryPolicy(10,
            Collections.singletonList(new RetryRule("custom",
-                   new ScriptedRetryPredicateSupplier("zel",
+                   new ScriptedRetryPredicateSupplier("java", "zel",
                    "startTime;endEndTime; (object > 3) ? decision.abort() : decision.retry(10L, callable)", ""))),
             Collections.EMPTY_MAP));
      long nanoTime = System.nanoTime();
