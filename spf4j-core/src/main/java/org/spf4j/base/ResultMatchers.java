@@ -34,9 +34,12 @@ package org.spf4j.base;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -47,10 +50,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import org.apache.avro.io.Decoder;
-import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.util.CopyOnWriteMap;
-import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.avro.Configs;
 import org.spf4j.base.avro.ObjectPattern;
 import org.spf4j.base.avro.ThrowablePattern;
 import org.spf4j.base.avro.OperationsResultPatterns;
@@ -82,11 +83,10 @@ public final class ResultMatchers {
     }
     for (Enumeration<URL> e = ClassLoader.getSystemResources("result_matchers.json"); e.hasMoreElements();) {
       URL url = e.nextElement();
-      try (InputStream is = url.openStream()) {
-        SpecificDatumReader<OperationsResultPatterns> reader
-                = new SpecificDatumReader<>(OperationsResultPatterns.class);
-        Decoder dec = AvroCompatUtils.getJsonDecoder(OperationsResultPatterns.getClassSchema(), is);
-        OperationsResultPatterns patterns = reader.read(null, dec);
+      try (InputStream is = url.openStream();
+              Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+        Configs.read(reader, OperationsResultPatterns.class);
+        OperationsResultPatterns patterns = Configs.read(reader, OperationsResultPatterns.class);
         for (OperationResultPatterns opPat : patterns.getPatterns().values()) {
           add(reasons, opPat.getThrowablePatterns(), true);
           add2(reasons, opPat.getReturnPatterns(), true);
