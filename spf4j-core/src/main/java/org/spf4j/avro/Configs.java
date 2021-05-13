@@ -36,7 +36,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.apache.avro.Schema;
@@ -116,20 +115,15 @@ public final class Configs {
       wSchema = rSchema;
     }
     DatumReader<T> dr = new SpecificDatumReader<>(wSchema, rSchema);
-    try {
-      Decoder decoder;
-      if ("application".equals(mt.type()) && "json".equals(mt.subtype())) {
-        decoder  = adapter.getJsonDecoder(wSchema, content);
-      } else if ("text".equals(mt.type()) && "yaml".equals(mt.subtype())) {
-        decoder = adapter.getYamlDecoder(wSchema, content);
-      } else {
-        throw new IllegalArgumentException("Unsupported media type " + mt);
-      }
-      return dr.read(null, decoder);
-    } catch (IOException ex) {
-      throw new UncheckedIOException(ex);
+    Decoder decoder;
+    if ("application".equals(mt.type()) && "json".equals(mt.subtype())) {
+      decoder = adapter.getJsonDecoder(wSchema, content);
+    } else if ("text".equals(mt.type()) && "yaml".equals(mt.subtype())) {
+      decoder = adapter.getYamlDecoder(wSchema, content);
+    } else {
+      throw new IllegalArgumentException("Unsupported media type " + mt);
     }
-
+    return dr.read(null, decoder);
   }
 
 }
