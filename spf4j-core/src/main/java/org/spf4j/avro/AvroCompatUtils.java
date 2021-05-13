@@ -18,6 +18,7 @@ package org.spf4j.avro;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.util.List;
 import org.apache.avro.Schema;
@@ -32,19 +33,25 @@ import org.spf4j.base.Reflections;
  */
 public final class AvroCompatUtils {
 
-  private static final UtilInterface INTF;
+  private static final Adapter ADAPTER;
 
   static {
     Constructor<?> c = Reflections.getConstructor(Schema.Field.class, String.class, Schema.class,
             String.class,  Object.class,
             boolean.class, boolean.class, Schema.Field.Order.class);
-    INTF = c == null ? new OfficialAvroAdapter() : new ZForkAvroAdapter();
+    ADAPTER = c == null ? new OfficialAvroAdapter() : new ZForkAvroAdapter();
   }
 
   private AvroCompatUtils() {
   }
 
-  public interface UtilInterface {
+  public interface Adapter {
+
+    Schema parseSchema(Reader reader)
+            throws IOException;
+
+    Schema parseSchema(Reader reader, boolean allowUndefinedLogicalTypes, SchemaResolver resolver)
+            throws IOException;
 
     Schema.Field createField(String name, Schema schema, String doc,
             Object defaultVal,
@@ -62,37 +69,45 @@ public final class AvroCompatUtils {
 
     Decoder getJsonDecoder(Schema writerSchema, InputStream is) throws IOException;
 
+    Decoder getJsonDecoder(Schema writerSchema, Reader reader) throws IOException;
+
+    Decoder getYamlDecoder(Schema writerSchema, Reader reader) throws IOException;
+
+
   }
 
   public static Schema.Field createField(final String name, final Schema schema, final String doc,
           final Object defaultVal,
           final boolean validateDefault, final boolean validateName, final Schema.Field.Order order) {
-    return INTF.createField(name, schema, doc, defaultVal, validateDefault, validateName, order);
+    return ADAPTER.createField(name, schema, doc, defaultVal, validateDefault, validateName, order);
   }
 
   public static Schema createRecordSchema(final String name, final String doc, final String namespace,
                                     final boolean isError, final List<Schema.Field> fields,
                                     final boolean validateName) {
-    return INTF.createRecordSchema(name, doc, namespace, isError, fields, validateName);
+    return ADAPTER.createRecordSchema(name, doc, namespace, isError, fields, validateName);
   }
 
 
   public static Schema createRecordSchema(final String name, final String doc, final String namespace,
                                     final boolean isError, final boolean validateName) {
-    return INTF.createRecordSchema(name, doc, namespace, isError, validateName);
+    return ADAPTER.createRecordSchema(name, doc, namespace, isError, validateName);
   }
 
   public static Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
-    return INTF.getJsonEncoder(writerSchema, os);
+    return ADAPTER.getJsonEncoder(writerSchema, os);
   }
 
   public static Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
-    return INTF.getJsonEncoder(writerSchema, os);
+    return ADAPTER.getJsonEncoder(writerSchema, os);
   }
 
   public static Decoder getJsonDecoder(final Schema writerSchema, final InputStream is) throws IOException {
-     return INTF.getJsonDecoder(writerSchema, is);
+     return ADAPTER.getJsonDecoder(writerSchema, is);
   }
 
+  public static Adapter getAdapter() {
+    return ADAPTER;
+  }
 
 }

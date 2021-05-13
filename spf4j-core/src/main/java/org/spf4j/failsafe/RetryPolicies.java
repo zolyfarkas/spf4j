@@ -112,7 +112,7 @@ public final class RetryPolicies {
         public PartialExceptionRetryPredicate<T, C> get(final long startTimeNanos, final long deadlineNanos) {
           RetryDelaySupplier ds = new JitteredDelaySupplier(
                   new FibonacciRetryDelaySupplier(rp.getNrInitialImmediateRetries(),
-                          rp.getStartDelayNanos(), rp.getMaxDelayNanos()), rp.getRetryDelayJitter());
+                          rp.getStartDelay().toNanos(), rp.getMaxDelay().toNanos()), rp.getRetryDelayJitter());
           CountLimitedPartialRetryPredicate clp
                   = new CountLimitedPartialRetryPredicate<T, Throwable, C>(rp.getMaxNrRetries(),
                           new PartialExceptionRetryPredicate<T, C>() {
@@ -128,7 +128,7 @@ public final class RetryPolicies {
                   });
           TimeLimitedPartialRetryPredicate tlp
                   = new TimeLimitedPartialRetryPredicate<T, Throwable, C>(startTimeNanos, deadlineNanos,
-                          rp.getMaxTimeToRetryNanos(), TimeUnit.NANOSECONDS, rp.getMaxTimeToRetryFactor(), clp);
+                          rp.getMaxTimeToRetry().toNanos(), TimeUnit.NANOSECONDS, rp.getMaxTimeToRetryFactor(), clp);
 
           return (Throwable value, C what) -> tlp.apply(value, what);
 
@@ -141,7 +141,7 @@ public final class RetryPolicies {
         public PartialResultRetryPredicate<T, C> get(final long startTimeNanos, final long deadlineNanos) {
           RetryDelaySupplier ds = new JitteredDelaySupplier(
                   new FibonacciRetryDelaySupplier(rp.getNrInitialImmediateRetries(),
-                          rp.getStartDelayNanos(), rp.getMaxDelayNanos()), rp.getRetryDelayJitter());
+                          rp.getStartDelay().toNanos(), rp.getMaxDelay().toNanos()), rp.getRetryDelayJitter());
           CountLimitedPartialRetryPredicate clp
                   = new CountLimitedPartialRetryPredicate<T, T, C>(rp.getMaxNrRetries(),
                           new PartialResultRetryPredicate<T, C>() {
@@ -157,7 +157,7 @@ public final class RetryPolicies {
                   });
           TimeLimitedPartialRetryPredicate tlp
                   = new TimeLimitedPartialRetryPredicate<T, T, C>(startTimeNanos, deadlineNanos,
-                          rp.getMaxTimeToRetryNanos(), TimeUnit.NANOSECONDS, rp.getMaxTimeToRetryFactor(), clp);
+                          rp.getMaxTimeToRetry().toNanos(), TimeUnit.NANOSECONDS, rp.getMaxTimeToRetryFactor(), clp);
 
           return (T value, C what) -> tlp.apply(value, what);
 

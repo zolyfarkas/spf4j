@@ -15,23 +15,29 @@
  */
 package org.spf4j.avro.official;
 
+import com.google.common.io.CharStreams;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.logging.Logger;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.avro.SchemaResolver;
 import org.spf4j.io.AppendableWriter;
 
 /**
  * Adapter for the official library.
  * @author Zoltan Farkas
  */
-public final class OfficialAvroAdapter implements AvroCompatUtils.UtilInterface {
+public final class OfficialAvroAdapter implements AvroCompatUtils.Adapter {
 
   private final EncoderFactory encFactory = EncoderFactory.get();
 
@@ -73,8 +79,34 @@ public final class OfficialAvroAdapter implements AvroCompatUtils.UtilInterface 
   }
 
   @Override
+  public Schema parseSchema(final Reader reader, final boolean allowUndefinedLogicalTypes,
+          final SchemaResolver resolver)
+          throws IOException {
+    Logger.getLogger(OfficialAvroAdapter.class.getName())
+            .warning("Official avro lib schema references not supported yet");
+    return new Schema.Parser().parse(CharStreams.toString(reader));
+  }
+
+  @Override
+  public Schema parseSchema(final Reader reader) throws IOException {
+    return new Schema.Parser().parse(CharStreams.toString(reader));
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final Reader reader) throws IOException {
+    return decFactory.jsonDecoder(writerSchema,
+            new ByteArrayInputStream(CharStreams.toString(reader).getBytes(StandardCharsets.UTF_8)));
+  }
+
+
+  @Override
   public String toString() {
     return "OfficialAvroAdapter{" + "encFactory=" + encFactory + ", decFactory=" + decFactory + '}';
+  }
+
+  @Override
+  public Decoder getYamlDecoder(final Schema schema, final Reader reader) {
+    throw new UnsupportedOperationException();
   }
 
 }

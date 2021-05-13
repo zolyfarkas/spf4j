@@ -15,23 +15,27 @@
  */
 package org.spf4j.avro.zfork;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.util.List;
+import org.apache.avro.AvroNamesRefResolver;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.ExtendedJsonEncoder;
 import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.avro.SchemaResolver;
 import org.spf4j.io.AppendableWriter;
 
 /**
  * Adapter for the zolyfarkas/avro fork.
  * @author Zoltan Farkas
  */
-public final class ZForkAvroAdapter implements AvroCompatUtils.UtilInterface {
+public final class ZForkAvroAdapter implements AvroCompatUtils.Adapter {
 
   @Override
   public Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
@@ -66,6 +70,54 @@ public final class ZForkAvroAdapter implements AvroCompatUtils.UtilInterface {
   @Override
   public Decoder getJsonDecoder(final Schema writerSchema, final InputStream is) throws IOException {
     return new ExtendedJsonDecoder(writerSchema, is, true);
+  }
+
+  @Override
+  public Schema parseSchema(final Reader reader,
+          final boolean allowUndefinedLogicalTypes, final  SchemaResolver resolver)
+          throws IOException {
+    return new Schema.Parser(new AvroNamesRefResolver(new SchemaResolverAdapter(resolver)))
+            .setValidate(true).parse(Schema.FACTORY.createParser(reader), allowUndefinedLogicalTypes);
+  }
+
+  @Override
+  public Schema parseSchema(final Reader reader) throws IOException {
+     return new Schema.Parser().parse(Schema.FACTORY.createParser(reader), true);
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final Reader reader) throws IOException {
+    return new ExtendedJsonDecoder(writerSchema,
+                Schema.FACTORY.createParser(reader), true);
+  }
+
+  @Override
+  public Decoder getYamlDecoder(final Schema writerSchema, final Reader reader) throws IOException {
+     return new ExtendedJsonDecoder(writerSchema,
+                LazyYaml.FACTORY.createParser(reader), true);
+  }
+
+  private static class LazyYaml {
+    private static final YAMLFactory FACTORY = new YAMLFactory();
+  }
+
+  private static class SchemaResolverAdapter implements org.apache.avro.SchemaResolver {
+
+    private final SchemaResolver resolver;
+
+    SchemaResolverAdapter(final SchemaResolver resolver) {
+      this.resolver = resolver;
+    }
+
+    @Override
+    public Schema resolveSchema(final String id) {
+      return resolver.resolveSchema(id);
+    }
+
+    @Override
+    public String getId(final Schema schema) {
+      return resolver.getId(schema);
+    }
   }
 
 }
