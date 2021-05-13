@@ -74,6 +74,12 @@ public final class Configs {
   @Nullable
   public static <T> T read(final Reader reader, final Class<T> type)
           throws IOException {
+    return read(reader, type, SchemaResolver.NONE);
+  }
+
+  @Nullable
+  public static <T> T read(final Reader reader, final Class<T> type, final SchemaResolver schemaResolver)
+          throws IOException {
     SpecificData sd = SpecificData.get();
     Schema rSchema = sd.getSchema(type);
     Schema wSchema;
@@ -97,7 +103,7 @@ public final class Configs {
         if (schemaStrList.isEmpty()) {
           wSchema = rSchema;
         } else {
-          wSchema = adapter.parseSchema(new StringReader(schemaStrList.get(0)));
+          wSchema = adapter.parseSchema(new StringReader(schemaStrList.get(0)), true, schemaResolver);
         }
       } else {
          mt = MediaType.create(header, header);
