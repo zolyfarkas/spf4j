@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.zfork;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.InputStream;
@@ -94,11 +95,15 @@ public final class ZForkAvroAdapter implements AvroCompatUtils.Adapter {
   @Override
   public Decoder getYamlDecoder(final Schema writerSchema, final Reader reader) throws IOException {
      return new ExtendedJsonDecoder(writerSchema,
-                LazyYaml.FACTORY.createParser(reader), true);
+                LazyYaml.newParser(reader), true);
   }
 
   private static class LazyYaml {
     private static final YAMLFactory FACTORY = new YAMLFactory();
+
+    private static JsonParser newParser(final Reader reader) throws IOException {
+      return FACTORY.createParser(reader);
+    }
   }
 
   private static class SchemaResolverAdapter implements org.apache.avro.SchemaResolver {
