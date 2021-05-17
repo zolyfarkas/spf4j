@@ -140,7 +140,7 @@ public final class AvroMeasurementStoreReader implements MeasurementStoreQuery {
         }
       }
     }
-    return result.values().stream().map((x) -> {
+    return result.values().stream().map(x -> {
       Schema sch = x.getKey();
       sch.addProp(TimeSeriesRecord.IDS_PROP, x.getValue());
       return sch;
