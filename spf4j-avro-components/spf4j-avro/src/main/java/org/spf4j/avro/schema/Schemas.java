@@ -811,20 +811,17 @@ public final class Schemas {
 
 
   @Nullable
-  public static Schema.Field getField(final String name, final Iterable<Field> fields) {
+  public static Schema.Field getField(final String nameOrAlias, final Iterable<Field> fields) {
     for (Schema.Field field : fields) {
-      if (isNamed(name, field)) {
+      if (isNamed(nameOrAlias, field)) {
         return field;
       }
     }
     return null;
   }
 
-  public static boolean isNamed(final String name, final Field field) {
-    if (name.equals(field.name()) || field.aliases().contains(name)) {
-      return true;
-    }
-    return false;
+  public static boolean isNamed(final String nameOrAlias, final Field field) {
+    return nameOrAlias.equals(field.name()) || field.aliases().contains(nameOrAlias);
   }
 
   public static Schema dateString() {
