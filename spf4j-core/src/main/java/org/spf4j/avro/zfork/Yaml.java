@@ -32,6 +32,7 @@
 package org.spf4j.avro.zfork;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.Reader;
@@ -44,7 +45,11 @@ public final class Yaml {
 
   private Yaml() { }
 
-  private static final YAMLFactory FACTORY = new YAMLFactory();
+  public static final YAMLFactory FACTORY = new YAMLFactory();
+
+
+  public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
+
 
   public static JsonParser newParser(final Reader reader) throws IOException {
     return FACTORY.createParser(reader);

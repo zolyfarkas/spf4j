@@ -85,8 +85,8 @@ public final class ResultMatchers {
       URL url = e.nextElement();
       try (InputStream is = url.openStream();
               Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
-        Configs.read(reader, OperationsResultPatterns.class);
-        OperationsResultPatterns patterns = Configs.read(reader, OperationsResultPatterns.class);
+        Configs.read(OperationsResultPatterns.class, reader);
+        OperationsResultPatterns patterns = Configs.read(OperationsResultPatterns.class, reader);
         for (OperationResultPatterns opPat : patterns.getPatterns().values()) {
           add(reasons, opPat.getThrowablePatterns(), true);
           add2(reasons, opPat.getReturnPatterns(), true);

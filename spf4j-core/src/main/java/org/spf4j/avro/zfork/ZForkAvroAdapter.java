@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.zfork;
 
+import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -94,6 +95,11 @@ public final class ZForkAvroAdapter implements AvroCompatUtils.Adapter {
   public Decoder getYamlDecoder(final Schema writerSchema, final Reader reader) throws IOException {
      return new ExtendedJsonDecoder(writerSchema,
                 Yaml.newParser(reader), true);
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final JsonParser parser) throws IOException {
+         return new ExtendedJsonDecoder(writerSchema, parser, true);
   }
 
   private static class SchemaResolverAdapter implements org.apache.avro.SchemaResolver {

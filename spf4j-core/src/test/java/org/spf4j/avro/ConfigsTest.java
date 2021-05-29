@@ -60,7 +60,7 @@ public class ConfigsTest {
   @Test
   public void testConfigRead() throws IOException {
     String cfg = "{\"minHedgeDelay\" : \"PT1S\", \"maxHedgeDelay\" : \"PT2S\"}";
-    TimeoutRelativeHedgePolicy policy = Configs.read(new StringReader(cfg), TimeoutRelativeHedgePolicy.class);
+    TimeoutRelativeHedgePolicy policy = Configs.read(TimeoutRelativeHedgePolicy.class, new StringReader(cfg));
     Assert.assertEquals(Duration.parse("PT1S"), policy.getMinHedgeDelay());
   }
 
@@ -69,7 +69,7 @@ public class ConfigsTest {
     String cfg = "#Content-Type:" + MediaType.JSON_UTF_8.withParameter("avsc", TEST_SCHEMA) + '\n'
          + "{\"minHedgeDelay\" : \"PT1S\", \"maxHedgeDelay\" : \"PT2S\"}";
     LOG.debug("Test Config", cfg);
-    TimeoutRelativeHedgePolicy policy = Configs.read(new StringReader(cfg), TimeoutRelativeHedgePolicy.class);
+    TimeoutRelativeHedgePolicy policy = Configs.read(TimeoutRelativeHedgePolicy.class, new StringReader(cfg));
     Assert.assertEquals(Duration.parse("PT1S"), policy.getMinHedgeDelay());
   }
 
@@ -78,8 +78,25 @@ public class ConfigsTest {
     String cfg = "#Content-Type:" + MediaType.create("text", "yaml").withParameter("avsc", TEST_SCHEMA) + '\n'
             + "minHedgeDelay: PT1S\nmaxHedgeDelay: PT2S";
     LOG.debug("Test Config", cfg);
-    TimeoutRelativeHedgePolicy policy = Configs.read(new StringReader(cfg), TimeoutRelativeHedgePolicy.class);
+    TimeoutRelativeHedgePolicy policy = Configs.read(TimeoutRelativeHedgePolicy.class, new StringReader(cfg));
     Assert.assertEquals(Duration.parse("PT1S"), policy.getMinHedgeDelay());
+  }
+
+
+  @Test
+  public void testEvolutionConfigReadYamlFallback() throws IOException {
+    String cfg1 = "#Content-Type:" + MediaType.create("text", "yaml").withParameter("avsc", TEST_SCHEMA) + '\n'
+            + "minHedgeDelay: PT1S\nmaxHedgeDelay: PT2S";
+    LOG.debug("Test Config 1", cfg1);
+    String cfg2 = "#Content-Type:" + MediaType.create("text", "yaml").withParameter("avsc", TEST_SCHEMA) + '\n'
+            + "maxHedgeDelay: PT10S";
+    LOG.debug("Test Config 1", cfg2);
+
+    TimeoutRelativeHedgePolicy policy = Configs.read(TimeoutRelativeHedgePolicy.class,
+            SchemaResolver.NONE,
+            new StringReader(cfg2), new StringReader(cfg1));
+    Assert.assertEquals(Duration.parse("PT1S"), policy.getMinHedgeDelay());
+    Assert.assertEquals(Duration.parse("PT10S"), policy.getMaxHedgeDelay());
   }
 
 
@@ -88,7 +105,7 @@ public class ConfigsTest {
     String cfg = "#Content-Type:" + MediaType.JSON_UTF_8.withParameter("avsc", "\"int\"") + '\n'
          +   "123";
     LOG.debug("Test Config", cfg);
-    Integer config = Configs.read(new StringReader(cfg), Integer.class);
+    Integer config = Configs.read(Integer.class, new StringReader(cfg));
     Assert.assertEquals((Integer) 123, config);
   }
 
@@ -96,7 +113,7 @@ public class ConfigsTest {
   public void testArbitrary2() throws IOException {
     String cfg = "123";
     LOG.debug("Test Config", cfg);
-    Integer config = Configs.read(new StringReader(cfg), Integer.class);
+    Integer config = Configs.read(Integer.class, new StringReader(cfg));
     Assert.assertEquals((Integer) 123, config);
   }
 

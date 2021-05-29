@@ -15,12 +15,15 @@
  */
 package org.spf4j.avro.official;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.io.CharStreams;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.logging.Logger;
@@ -31,6 +34,7 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.avro.SchemaResolver;
+import org.spf4j.base.Json;
 import org.spf4j.io.AppendableWriter;
 
 /**
@@ -96,6 +100,15 @@ public final class OfficialAvroAdapter implements AvroCompatUtils.Adapter {
   public Decoder getJsonDecoder(final Schema writerSchema, final Reader reader) throws IOException {
     return decFactory.jsonDecoder(writerSchema,
             new ByteArrayInputStream(CharStreams.toString(reader).getBytes(StandardCharsets.UTF_8)));
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final JsonParser parser) throws IOException {
+      StringWriter buff = new StringWriter();
+      TokenBuffer.asCopyOfValue(parser).serialize(Json.FACTORY.createGenerator(buff));
+        return decFactory.jsonDecoder(writerSchema,
+            new ByteArrayInputStream(buff.toString().getBytes(StandardCharsets.UTF_8)));
+
   }
 
 

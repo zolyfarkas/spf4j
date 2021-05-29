@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro;
 
+import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -70,6 +71,8 @@ public final class AvroCompatUtils {
     Decoder getJsonDecoder(Schema writerSchema, InputStream is) throws IOException;
 
     Decoder getJsonDecoder(Schema writerSchema, Reader reader) throws IOException;
+
+    Decoder getJsonDecoder(Schema writerSchema, JsonParser parser) throws IOException;
 
     Decoder getYamlDecoder(Schema writerSchema, Reader reader) throws IOException;
 
