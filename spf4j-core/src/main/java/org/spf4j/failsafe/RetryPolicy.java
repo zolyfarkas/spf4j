@@ -100,9 +100,9 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
 
   @Override
-  public final <R extends T, W extends C, EX extends Exception> R call(
-          final W pwhat, final Class<EX> exceptionClass, final long startNanos, final long deadlineNanos)
-          throws InterruptedException, TimeoutException, EX {
+  public final <R extends T, W extends C, E extends Exception> R call(
+          final W pwhat, final Class<E> exceptionClass, final long startNanos, final long deadlineNanos)
+          throws InterruptedException, TimeoutException, E {
     return (R) SyncRetryExecutor.call(pwhat, getRetryPredicate(startNanos, deadlineNanos),
             exceptionClass, maxExceptionChain);
   }
