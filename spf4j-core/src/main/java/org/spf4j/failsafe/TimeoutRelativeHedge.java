@@ -31,12 +31,14 @@
  */
 package org.spf4j.failsafe;
 
+import org.spf4j.failsafe.avro.TimeoutRelativeHedgePolicy;
+
 /**
  * @author Zoltan Farkas
  */
 public final class TimeoutRelativeHedge implements HedgePolicy {
 
-  private final int timeoutHedgeFraction;
+  private final double timeoutHedgeFactor;
 
   private final long minHedgeDelay;
 
@@ -50,10 +52,17 @@ public final class TimeoutRelativeHedge implements HedgePolicy {
       throw new IllegalArgumentException("Min hedge delay " + minHedgeDelayNanos
               + " greater than maxHedgeDelay " + maxHedgeDelayNanos);
     }
-    this.timeoutHedgeFraction = timeoutHedgeFraction;
+    this.timeoutHedgeFactor = ((double) 1) / timeoutHedgeFraction;
     this.minHedgeDelay = minHedgeDelayNanos;
     this.maxHedgeDelay = maxHedgeDelayNanos;
     this.nrHedges = nrHedges;
+  }
+
+  public TimeoutRelativeHedge(final TimeoutRelativeHedgePolicy hp) {
+    this.timeoutHedgeFactor = hp.getFactor();
+    this.minHedgeDelay = hp.getMinHedgeDelay().toNanos();
+    this.maxHedgeDelay = hp.getMaxHedgeDelay().toNanos();
+    this.nrHedges = hp.getNrHedges();
   }
 
 
@@ -64,7 +73,7 @@ public final class TimeoutRelativeHedge implements HedgePolicy {
     if (minHedgeDelay >= timeoutNanos) {
       return Hedge.NONE;
     }
-    long hedgeDelay = (timeoutNanos) / timeoutHedgeFraction;
+    long hedgeDelay = (long) (timeoutNanos * timeoutHedgeFactor);
 
     if (hedgeDelay <  minHedgeDelay) {
       return new Hedge(minHedgeDelay, nrHedges);
@@ -77,7 +86,7 @@ public final class TimeoutRelativeHedge implements HedgePolicy {
 
   @Override
   public String toString() {
-    return "TimeoutRelativeHedge{" + "timeoutHedgeFraction=" + timeoutHedgeFraction
+    return "TimeoutRelativeHedge{" + "timeoutHedgeFactor=" + timeoutHedgeFactor
             + ", minHedgeDelay=" + minHedgeDelay + ", maxHedgeDelay=" + maxHedgeDelay + ", nrHedges=" + nrHedges + '}';
   }
 
