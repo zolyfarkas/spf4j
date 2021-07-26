@@ -93,10 +93,10 @@ public final class GraphTypeMap<H> implements TypeMap<H> {
 
   @Override
   @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED")
-  public boolean putIfNotPresent(final Type type, final H appender) {
+  public boolean putIfNotPresent(final Type type, final H value) {
     TypeToken<?> nType = TypeToken.of(type);
     if (typeGraph.addNode(nType)) {
-      handlers.put(nType, appender);
+      handlers.put(nType, value);
       for (TypeToken t : typeGraph.nodes()) {
         if (!nType.equals(t)) {
           if (nType.isSubtypeOf(t)) {
