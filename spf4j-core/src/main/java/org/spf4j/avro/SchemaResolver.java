@@ -68,7 +68,7 @@ public interface SchemaResolver {
   /**
    * Lowere level resolver implementation that will read a schema from a "custom way"
    * @param object
-   * @return
+   * @return the resolved schema, or null if nothing to resolve.
    */
   @Nullable
   default Schema customRead(Function<String, JsonNode> object) {
@@ -81,6 +81,16 @@ public interface SchemaResolver {
   }
 
   SchemaResolver NONE = new SchemaResolver() {
+    @Override
+    public boolean customWrite(final Schema schema, final JsonGenerator gen) {
+      return false;
+    }
+
+    @Override
+    public Schema customRead(final Function<String, JsonNode> object) {
+      return null;
+    }
+
     @Override
     public Schema resolveSchema(final String id) {
       throw new UnsupportedOperationException();
