@@ -33,6 +33,7 @@ package org.spf4j.reflect;
 
 import com.google.common.net.HostAndPort;
 import com.google.common.reflect.TypeToken;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Serializable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -62,7 +63,7 @@ public class GraphTypeMapTest {
     Assert.assertEquals("OBJECT", registry.get(Object.class));
   }
 
-  public static class OneStrSupplier implements Supplier<String>{
+  public static final class OneStrSupplier implements Supplier<String> {
 
     @Override
     public String get() {
@@ -72,6 +73,7 @@ public class GraphTypeMapTest {
   }
 
   @Test
+  @SuppressFBWarnings("SE_BAD_FIELD_INNER_CLASS")
   public void testBehavior() {
     TypeMap<String> registry = new GraphTypeMap<>();
     registry.safePut(Object.class, "OBJECT");
@@ -81,7 +83,8 @@ public class GraphTypeMapTest {
     registry.safePut(Deque.class, "DEQUE");
     registry.safePut(Collection.class, "COLLECTION");
 
-    registry.safePut((new TypeToken<Supplier<? extends CharSequence>>() {}).getType(), "CHAR_SUPPLIER");
+    registry.safePut((new TypeToken<Supplier<? extends CharSequence>>() {
+    }).getType(), "CHAR_SUPPLIER");
     Assert.assertEquals("TEST", registry.get(GraphTypeMapTest.class));
     Assert.assertEquals("OBJECT", registry.get(Object.class));
     try {

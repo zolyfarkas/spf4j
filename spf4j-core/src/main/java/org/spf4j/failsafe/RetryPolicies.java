@@ -169,9 +169,14 @@ public final class RetryPolicies {
 
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> create(
           final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
+    return ((RetryPolicy.Builder<T, C>) createBuilder(policy)).build();
+  }
+
+  public static <T, C extends Callable<? extends T>> RetryPolicy.Builder<T, C> createBuilder(
+          final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
     RetryPolicy.Builder<T, C> builder = RetryPolicy.newBuilder();
     addRetryPolicy(builder, policy);
-    return builder.build();
+    return builder;
   }
 
   public static <C extends Callable<? extends T>, T> void addRetryPolicy(final RetryPolicy.Builder<T, C> builder,
