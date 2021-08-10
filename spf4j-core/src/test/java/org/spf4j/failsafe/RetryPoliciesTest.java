@@ -34,6 +34,7 @@ package org.spf4j.failsafe;
 import java.util.Collections;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.ResultMatchers;
 
 /**
  *
@@ -44,7 +45,7 @@ public class RetryPoliciesTest {
   @Test
   public void testDummyPolicy() throws InvalidRetryPolicyException {
     RetryPolicy policy = RetryPolicies.create(new org.spf4j.failsafe.avro.RetryPolicy(10,
-            Collections.EMPTY_LIST, Collections.EMPTY_MAP));
+            Collections.EMPTY_LIST, Collections.EMPTY_MAP), ResultMatchers.toSupplier());
     Assert.assertNotNull(policy);
   }
 

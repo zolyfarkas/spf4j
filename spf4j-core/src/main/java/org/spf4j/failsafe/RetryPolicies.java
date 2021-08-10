@@ -99,8 +99,9 @@ public final class RetryPolicies {
   public static <T, C extends Callable<? extends T>>
           Either<TimedSupplier<PartialExceptionRetryPredicate<T, C>>,
          TimedSupplier<PartialResultRetryPredicate<T, C>>> getResultRetryPredicateSupplier(
-                  final String resultName, final RetryParams rp) {
-    Either<Predicate<Throwable>, Predicate<Object>> resPred = ResultMatchers.getThrowableResultMatcher(resultName);
+                  final String resultName, final RetryParams rp,
+                 final ResultMatchers.Supplier resultMatcherSupplier) {
+    Either<Predicate<Throwable>, Predicate<Object>> resPred = resultMatcherSupplier.apply(resultName);
     if (resPred == null) {
       return null;
     }
@@ -169,18 +170,36 @@ public final class RetryPolicies {
 
   public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> create(
           final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
-    return ((RetryPolicy.Builder<T, C>) createBuilder(policy)).build();
+    return create(policy, ResultMatchers.toSupplier());
+  }
+
+  /**
+   * Create a retry policy with a custom result MatcherSupplier.
+   * this allows use of custom resolution to result matcher names.
+   * @param <T>
+   * @param <C>
+   * @param policy the retry policy serializable representation.
+   * @param resultMatcherSupplier - a resolvers that resolvers the referenced named matchers in the policy
+   * @return
+   * @throws InvalidRetryPolicyException
+   */
+  public static <T, C extends Callable<? extends T>> RetryPolicy<T, C> create(
+          final org.spf4j.failsafe.avro.RetryPolicy policy,
+          final ResultMatchers.Supplier resultMatcherSupplier) throws InvalidRetryPolicyException {
+    return ((RetryPolicy.Builder<T, C>) createBuilder(policy, resultMatcherSupplier)).build();
   }
 
   public static <T, C extends Callable<? extends T>> RetryPolicy.Builder<T, C> createBuilder(
-          final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
+          final org.spf4j.failsafe.avro.RetryPolicy policy,
+          final ResultMatchers.Supplier resultMatcherSupplier) throws InvalidRetryPolicyException {
     RetryPolicy.Builder<T, C> builder = RetryPolicy.newBuilder();
-    addRetryPolicy(builder, policy);
+    addRetryPolicy(builder, policy, resultMatcherSupplier);
     return builder;
   }
 
   public static <C extends Callable<? extends T>, T> void addRetryPolicy(final RetryPolicy.Builder<T, C> builder,
-          final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
+          final org.spf4j.failsafe.avro.RetryPolicy policy,
+          final ResultMatchers.Supplier resultMatcherSupplier) throws InvalidRetryPolicyException {
     builder.withMaxExceptionChain(policy.getMaxSupressedExceptions());
     for (RetryRule rule : policy.getRetryRules()) {
       ScriptedRetryPredicateSupplier ps = rule.getPredicateSupplier();
@@ -254,7 +273,7 @@ public final class RetryPolicies {
       String reasonName = entry.getKey();
       Either<TimedSupplier<PartialExceptionRetryPredicate<T, C>>,
               TimedSupplier<PartialResultRetryPredicate<T, C>>> result
-              = getResultRetryPredicateSupplier(reasonName, entry.getValue());
+              = getResultRetryPredicateSupplier(reasonName, entry.getValue(), resultMatcherSupplier);
       if (result == null) {
         throw new InvalidRetryPolicyException("No reason matcher defined for: " + reasonName);
       }

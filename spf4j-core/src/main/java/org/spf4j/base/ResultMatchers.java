@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -45,6 +47,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -72,6 +75,20 @@ public final class ResultMatchers {
     }
   }
 
+  public interface Supplier extends Function<String, Either<Predicate<Throwable>, Predicate<Object>>> {
+    default Supplier chain(final Supplier fallback) {
+      Supplier current = this;
+      return t -> {
+        Either<Predicate<Throwable>, Predicate<Object>> result = current.apply(t);
+        if (result != null) {
+          return result;
+        } else {
+          return fallback.apply(t);
+        }
+      };
+    }
+  }
+
   private ResultMatchers() { }
 
 
@@ -96,9 +113,29 @@ public final class ResultMatchers {
     return reasons;
   }
 
+  public static Map<String, Either<Predicate<Throwable>, Predicate<Object>>> fromConfigValue(
+          final String value) {
+    Map<String, Either<Predicate<Throwable>, Predicate<Object>>> reasons = new HashMap<>();
+    try (Reader reader = new StringReader(value)) {
+      Configs.read(OperationsResultPatterns.class, reader);
+      OperationsResultPatterns patterns = Configs.read(OperationsResultPatterns.class, reader);
+      for (OperationResultPatterns opPat : patterns.getPatterns().values()) {
+        add(reasons, opPat.getThrowablePatterns(), true);
+        add2(reasons, opPat.getReturnPatterns(), true);
+      }
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    return reasons;
+  }
+
   @Nullable
   public static Either<Predicate<Throwable>, Predicate<Object>> getThrowableResultMatcher(final String reason) {
     return RESULT_MATCHERS.get(reason);
+  }
+
+  public static Supplier toSupplier() {
+    return ResultMatchers::getThrowableResultMatcher;
   }
 
   public static Predicate<Throwable> toPredicate(final ThrowablePattern pattern) throws ClassNotFoundException {
