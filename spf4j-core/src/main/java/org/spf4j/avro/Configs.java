@@ -329,7 +329,6 @@ public final class Configs {
     int firstChar = pbr.read();
     if (firstChar < 0) {
       mt = MediaType.JSON_UTF_8;
-      pbr.unread(firstChar);
       Reader r = pbr;
       wSchema = rSchema;
       return new ConfigHeader(wSchema, r, mt);
