@@ -113,16 +113,28 @@ public final class ResultMatchers {
     return reasons;
   }
 
-  public static Map<String, Either<Predicate<Throwable>, Predicate<Object>>> fromConfigValue(
+  public static Map<String, Either<Predicate<Throwable>, Predicate<Object>>> operationsFromConfigValue(
           final String value) {
     Map<String, Either<Predicate<Throwable>, Predicate<Object>>> reasons = new HashMap<>();
     try (Reader reader = new StringReader(value)) {
-      Configs.read(OperationsResultPatterns.class, reader);
       OperationsResultPatterns patterns = Configs.read(OperationsResultPatterns.class, reader);
       for (OperationResultPatterns opPat : patterns.getPatterns().values()) {
         add(reasons, opPat.getThrowablePatterns(), true);
         add2(reasons, opPat.getReturnPatterns(), true);
       }
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    return reasons;
+  }
+
+  public static Map<String, Either<Predicate<Throwable>, Predicate<Object>>> operationfromConfigValue(
+          final String value) {
+    Map<String, Either<Predicate<Throwable>, Predicate<Object>>> reasons = new HashMap<>();
+    try (Reader reader = new StringReader(value)) {
+      OperationResultPatterns patterns = Configs.read(OperationResultPatterns.class, reader);
+      add(reasons, patterns.getThrowablePatterns(), true);
+      add2(reasons, patterns.getReturnPatterns(), true);
     } catch (IOException ex) {
       throw new UncheckedIOException(ex);
     }
