@@ -31,8 +31,14 @@
  */
 package org.spf4j.base;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -83,5 +89,40 @@ public final class ReflectionsTest {
     String result = prt.print("a", 3);
     Assert.assertEquals("[a, 3]", result);
   }
+
+    @Target({ElementType.METHOD, ElementType.TYPE, ElementType.PACKAGE})
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface TestAnnot {
+        String value() default "";
+
+    }
+
+
+
+  @TestAnnot("A")
+  public interface TestInterface {
+    @TestAnnot("B")
+    String testMethod();
+  }
+
+  @Test
+  public void testAnnotInheritance() throws NoSuchMethodException {
+    TestInterface proxy = (TestInterface) Proxy.newProxyInstance(this.getClass().getClassLoader(),
+            new Class[] {TestInterface.class},
+            new InvocationHandler() {
+      @Override
+      public Object invoke(final Object proxy, final Method method, final Object[] args) {
+        return "test";
+      }
+    });
+
+    TestAnnot ann = Reflections.getInheritedAnnotation(TestAnnot.class, proxy.getClass());
+    Assert.assertNotNull(ann);
+    Assert.assertEquals("A", ann.value());
+    ann = Reflections.getInheritedAnnotation(TestAnnot.class, proxy.getClass().getMethod("testMethod"));
+    Assert.assertEquals("B", ann.value());
+    Assert.assertNotNull(ann);
+  }
+
 
 }

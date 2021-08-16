@@ -659,32 +659,91 @@ public final class Reflections {
     }
   }
 
+
+  /**
+   * Annotation access with extended inheritance semantics.
+   * Class level annotations are inherited to methods.
+   * superclass and implemented interface annotations are inherited.
+   * package level annotations are inherited to class and methods as well.
+   * @param <A>
+   * @param annotationClass
+   * @param element
+   * @return
+   */
   @Nullable
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
   public static <A extends Annotation> A getInheritedAnnotation(
           final Class<A> annotationClass, final AnnotatedElement element) {
     A annotation = element.getAnnotation(annotationClass);
-    if (annotation == null && element instanceof Method) {
-      annotation = getOverriddenAnnotation(annotationClass, (Method) element);
+    if (annotation == null) {
+      if (element instanceof Method) {
+        Method method = (Method) element;
+        annotation = getOverriddenAnnotation(annotationClass,  method);
+        if (annotation != null) {
+          return annotation;
+        }
+        Class<?> declaringClass = method.getDeclaringClass();
+        annotation = getOverriddenAnnotation(annotationClass, declaringClass);
+        if (annotation == null) {
+          Package aPackage = declaringClass.getPackage();
+          if (aPackage != null) {
+            annotation = aPackage.getAnnotation(annotationClass);
+          }
+        }
+      } else if (element instanceof Class) {
+        Class<?> declaringClass = (Class) element;
+        annotation = getOverriddenAnnotation(annotationClass, declaringClass);
+        if (annotation == null) {
+          Package aPackage = declaringClass.getPackage();
+          if (aPackage != null) {
+            annotation = aPackage.getAnnotation(annotationClass);
+          }
+        }
+      }
     }
     return annotation;
   }
 
   @Nullable
   private static <A extends Annotation> A getOverriddenAnnotation(
+          final Class<A> annotationClass, final Class<?> clasz) {
+    A annotation = clasz.getAnnotation(annotationClass);
+    if (annotation != null) {
+      return annotation;
+    }
+    final Class<?> superclass = clasz.getSuperclass();
+    if (superclass != null) {
+      annotation
+              = getOverriddenAnnotation(annotationClass, superclass);
+      if (annotation != null) {
+        return annotation;
+      }
+    }
+    for (final Class<?> intf : clasz.getInterfaces()) {
+      annotation = getOverriddenAnnotation(annotationClass, intf);
+      if (annotation != null) {
+        return annotation;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static <A extends Annotation> A getOverriddenAnnotation(
           final Class<A> annotationClass, final Method method) {
     final Class<?> methodClass = method.getDeclaringClass();
-    final String name = method.getName();
+    final String methodName = method.getName();
     final Class<?>[] params = method.getParameterTypes();
     final Class<?> superclass = methodClass.getSuperclass();
     if (superclass != null) {
       final A annotation
-              = getOverriddenMethodAnnotationFrom(annotationClass, superclass, name, params);
+              = getOverriddenMethodAnnotationFrom(annotationClass, superclass, methodName, params);
       if (annotation != null) {
         return annotation;
       }
     }
     for (final Class<?> intf : methodClass.getInterfaces()) {
-      final A annotation = getOverriddenMethodAnnotationFrom(annotationClass, intf, name, params);
+      final A annotation = getOverriddenMethodAnnotationFrom(annotationClass, intf, methodName, params);
       if (annotation != null) {
         return annotation;
       }
