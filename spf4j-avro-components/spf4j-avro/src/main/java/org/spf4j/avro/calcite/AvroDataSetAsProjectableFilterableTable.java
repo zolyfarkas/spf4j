@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.IndexedRecord;
@@ -101,7 +101,8 @@ public final class AvroDataSetAsProjectableFilterableTable extends AbstractAvroT
 
   @Override
   @SuppressWarnings({"unchecked", "unchecked"})
-  public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
+  public Enumerable<@Nullable Object[]> scan(final DataContext root,
+          final List<RexNode> filters,
           @Nullable final int[] projection) {
     LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", dataSet.getName(),
             filters, projection);

@@ -97,18 +97,19 @@ public final class FilterUtils {
 
   public static Predicate<IndexedRecord> toPredicate(final List<RexNode> filter,
           final JavaTypeFactoryImpl javaTypeFactoryImpl, final RelDataType rowType) {
-    Scalar scalar = InterpreterUtils.toScalar(filter, javaTypeFactoryImpl, rowType);
+    Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl, null));
+    context.values =  new Object[rowType.getFieldCount()];
+    Scalar scalar = InterpreterUtils.toScalar(filter, rowType, context.root);
     return new Predicate<IndexedRecord>() {
-
-      private Spf4jDataContext context = new Spf4jDataContext(new EmbededDataContext(javaTypeFactoryImpl, null));
-      {
-        context.values =  new Object[rowType.getFieldCount()];
-      }
 
       @Override
       public synchronized boolean test(final IndexedRecord x) {
         IndexedRecords.copyRecord(x, context.values);
-        return (Boolean) scalar.execute(context);
+        Boolean result = (Boolean) scalar.execute(context);
+        if (result == null) {
+          throw new IllegalStateException("Filter predicate: " + filter + " cannot eval to null");
+        }
+        return result;
       }
     };
   }

@@ -79,7 +79,16 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable<Object[]> {
             IndexedRecord ir = iterator.next();
             IndexedRecords.copyRecord(ir, rawRow);
             spf4jDataContext.values = rawRow;
-            Boolean match = filterExpression == null || (Boolean) filterExpression.execute(spf4jDataContext);
+            boolean match;
+            if (filterExpression == null) {
+              match = true;
+            } else {
+              Boolean result = (Boolean) filterExpression.execute(spf4jDataContext);
+              if (result == null) {
+                throw new IllegalStateException("Filter expression cannot evaluate to null: " + filterExpression);
+              }
+              match = result;
+            }
             if (match) {
               break;
             }

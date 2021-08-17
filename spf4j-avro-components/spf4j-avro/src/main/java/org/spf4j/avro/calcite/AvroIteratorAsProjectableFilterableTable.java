@@ -17,7 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.List;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.interpreter.Scalar;
@@ -46,12 +46,13 @@ public final class AvroIteratorAsProjectableFilterableTable extends AbstractAvro
   }
 
   @Override
-  public Enumerable<Object[]> scan(final DataContext root, final List<RexNode> filters,
+  public Enumerable<@Nullable Object[]> scan(final DataContext root,
+          final List<RexNode> filters,
           @Nullable final int[] projection)  {
     org.apache.avro.Schema componentType = getComponentType();
     LOG.debug("Filtered+Projected Table scan of {} with filter {} and projection {}", componentType.getName(),
             filters, projection);
-    Scalar filter = InterpreterUtils.toScalar(filters, root.getTypeFactory(), this.getRowType(root.getTypeFactory()));
+    Scalar filter = InterpreterUtils.toScalar(filters, this.getRowType(root.getTypeFactory()), root);
     Enumerable<Object[]> result
             = new FilteringProjectingAvroEnumerable(componentType, root, filter, projection, dataSupplier);
     if (filter != null) {

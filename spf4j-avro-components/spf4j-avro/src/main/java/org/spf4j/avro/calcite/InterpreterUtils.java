@@ -17,7 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.List;
 import javax.annotation.Nullable;
-import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.DataContext;
 import org.apache.calcite.interpreter.JaninoRexCompiler;
 import org.apache.calcite.interpreter.Scalar;
 import org.apache.calcite.rel.type.RelDataType;
@@ -37,15 +37,15 @@ public final class InterpreterUtils {
   private InterpreterUtils() { }
 
   @Nullable
-  public static Scalar toScalar(final List<RexNode> filters, final JavaTypeFactory typeFactory,
-          final RelDataType rowType) {
+  public static Scalar toScalar(final List<RexNode> filters,
+          final RelDataType rowType, final DataContext dataContext) {
     if (filters.isEmpty()) {
       return null;
     } else {
-      RexBuilder rb = new RexBuilder(typeFactory);
+      RexBuilder rb = new RexBuilder(dataContext.getTypeFactory());
       JaninoRexCompiler compiler = new JaninoRexCompiler(rb);
       try {
-        return compiler.compile(filters, rowType);
+        return compiler.compile(filters, rowType).apply(dataContext);
       } catch (UnsupportedOperationException ex) {
         LOG.warn("Unable to compile filter: {}", filters, ex);
         return null;

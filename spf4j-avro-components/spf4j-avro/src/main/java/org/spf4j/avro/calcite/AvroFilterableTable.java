@@ -49,7 +49,7 @@ public final class AvroFilterableTable extends AbstractAvroTable
     org.apache.avro.Schema componentType = getComponentType();
     LOG.debug("Filtered Table scan of {} with filter {} and projection {}", componentType.getName(),
             filters);
-    Scalar filter = InterpreterUtils.toScalar(filters, root.getTypeFactory(), this.getRowType(root.getTypeFactory()));
+    Scalar filter = InterpreterUtils.toScalar(filters, this.getRowType(root.getTypeFactory()), root);
     Enumerable<Object[]> result
             = new FilteringProjectingAvroEnumerable(componentType, root, filter, null, dataSupplier);
     if (filter != null) {
