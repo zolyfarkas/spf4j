@@ -56,6 +56,8 @@ public final class Arrays {
 
   public static final byte[] EMPTY_BYTE_ARRAY = new byte[]{};
 
+  public static final char[] EMPTY_CHAR_ARRAY = new char[]{};
+
   public static final boolean[] EMPTY_BOOLEAN_ARRAY = new boolean[]{};
 
   public static final long[] EMPTY_LONG_ARRAY = new long[]{};
@@ -493,6 +495,25 @@ public final class Arrays {
     } else if (len < 0) {
       throw new IllegalArgumentException("Illegal range from " + startIdx + " to " + endIdx);
     }
+  }
+
+  public static byte[] charsToBytes(final char[] chars) {
+    byte[] bytes = new byte[chars.length * 2];
+    for (int i = 0, k = 0; i < chars.length; i++, k += 2) {
+      char v = chars[i];
+      bytes[k] = (byte) (0xff & (v >> 8));
+      bytes[k + 1] = (byte) (0xff & (v));
+    }
+    return bytes;
+  }
+
+  public static char[] bytesToChars(final byte[] bytes) {
+    char[] chars = new char[bytes.length / 2];
+    for (int i = 0, k = 0; i < chars.length; i++, k += 2) {
+      char v = (char) (((0xff & (bytes[k])) << 8) | (0xff & bytes[k + 1]));
+      chars[i] = v;
+    }
+    return chars;
   }
 
 }
