@@ -35,22 +35,20 @@ import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.Arrays;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
 /**
- * Utility class to avoid replicating byte arrays for no good reason.
+ * Utility class to avoid replicating character arrays for no good reason.
  *
  * @author zoly
  */
 @SuppressFBWarnings("EI_EXPOSE_REP")
 @CleanupObligation
-public final class ByteArrayBuilder extends OutputStream {
+public final class CharArrayBuilder extends Writer {
 
   /**
    * The maximum size of array to allocate. Some VMs reserve some header words in an array. Attempts to allocate larger
@@ -61,24 +59,24 @@ public final class ByteArrayBuilder extends OutputStream {
   /**
    * The buffer where data is stored.
    */
-  private byte[] buf;
+  private char[] buf;
 
   /**
    * The number of valid bytes in the buffer.
    */
   private int count;
 
-  private final SizedRecyclingSupplier<byte[]> arraySupplier;
+  private final SizedRecyclingSupplier<char[]> arraySupplier;
 
-  public ByteArrayBuilder() {
-    this(256, ArraySuppliers.Bytes.TL_SUPPLIER);
+  public CharArrayBuilder() {
+    this(256, ArraySuppliers.Chars.TL_SUPPLIER);
   }
 
-  public ByteArrayBuilder(final int size) {
-    this(size, ArraySuppliers.Bytes.TL_SUPPLIER);
+  public CharArrayBuilder(final int size) {
+    this(size, ArraySuppliers.Chars.TL_SUPPLIER);
   }
 
-  public synchronized byte[] getBuffer() {
+  public synchronized char[] getBuffer() {
     return buf;
   }
 
@@ -88,7 +86,7 @@ public final class ByteArrayBuilder extends OutputStream {
    * @param size the initial size.
    * @exception IllegalArgumentException if size is negative.
    */
-  public ByteArrayBuilder(final int size, final SizedRecyclingSupplier<byte[]> arraySupplier) {
+  public CharArrayBuilder(final int size, final SizedRecyclingSupplier<char[]> arraySupplier) {
     if (size < 0) {
       throw new IllegalArgumentException("Negative initial size: "
               + size);
@@ -96,9 +94,9 @@ public final class ByteArrayBuilder extends OutputStream {
     this.arraySupplier = arraySupplier;
     if (arraySupplier == null) {
       if (size == 0) {
-        buf = org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;
+        buf = org.spf4j.base.Arrays.EMPTY_CHAR_ARRAY;
       } else {
-        buf = new byte[size];
+        buf = new char[size];
       }
     } else {
       buf = arraySupplier.get(size);
@@ -139,7 +137,7 @@ public final class ByteArrayBuilder extends OutputStream {
     if (arraySupplier == null) {
       buf = Arrays.copyOf(buf, newCapacity);
     } else {
-      byte[] old = buf;
+      char[] old = buf;
       buf = arraySupplier.get(newCapacity);
       System.arraycopy(old, 0, buf, 0, old.length);
       arraySupplier.recycle(old);
@@ -154,7 +152,7 @@ public final class ByteArrayBuilder extends OutputStream {
   }
 
   @Override
-  public void write(final byte[] b) {
+  public void write(final char[] b) {
     write(b, 0, b.length);
   }
 
@@ -167,7 +165,7 @@ public final class ByteArrayBuilder extends OutputStream {
   public synchronized void write(final int b) {
     int cp1 = count + 1;
     ensureCapacity(cp1);
-    buf[count] = (byte) b;
+    buf[count] = (char) b;
     count = cp1;
   }
 
@@ -180,7 +178,7 @@ public final class ByteArrayBuilder extends OutputStream {
    * @param len the number of bytes to write.
    */
   @Override
-  public synchronized void write(final byte[] b, final int off, final int len) {
+  public synchronized void write(final char[] b, final int off, final int len) {
     if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) - b.length > 0)) {
       throw new IndexOutOfBoundsException();
     }
@@ -191,17 +189,17 @@ public final class ByteArrayBuilder extends OutputStream {
   }
 
   /**
-   * Writes the complete contents of this byte array output stream to the specified output stream argument, as if by
+   * Writes the complete contents of this char array output stream to the specified output stream argument, as if by
    * calling the output stream's write method using <code>out.write(buf, 0, count)</code>.
    *
    * @param out the output stream to which to write the data.
    * @exception IOException if an I/O error occurs.
    */
-  public synchronized void writeTo(final OutputStream out) throws IOException {
+  public synchronized void writeTo(final Writer out) throws IOException {
     out.write(buf, 0, count);
   }
 
-  public synchronized void readFrom(final InputStream in) throws IOException {
+  public synchronized void readFrom(final Reader in) throws IOException {
     do {
       ensureCapacity(count + 8192);
       int nr = in.read(buf, count, 8192);
@@ -234,7 +232,7 @@ public final class ByteArrayBuilder extends OutputStream {
    * @return the current contents of this output stream, as a byte array.
    * @see java.io.ByteArrayOutputStream#size()
    */
-  public synchronized byte[] toByteArray() {
+  public synchronized char[] toByteArray() {
     return Arrays.copyOf(buf, count);
   }
 
@@ -262,20 +260,16 @@ public final class ByteArrayBuilder extends OutputStream {
    */
   @Override
   public synchronized String toString() {
-    return toString(StandardCharsets.UTF_8);
-  }
-
-  public synchronized String toString(final Charset charset) {
     if (buf == null) {
-      return "Closed ByteArrayBuilder";
+      return "Closed CharArrayBuilder";
     } else {
-      return new String(buf, 0, count, charset);
+      return new String(buf, 0, count);
     }
   }
 
   /**
-   * Closing a <tt>ByteArrayOutputStream</tt> will likely recycle the underlying buffer. use of the builder after close
-   * is not advised
+   * Closing a <tt>ByteArrayOutputStream</tt> will likely recycle the underlying buffer, using the builder after close
+   * is NOT advised
    */
   @DischargesObligation
   @Override
@@ -284,6 +278,11 @@ public final class ByteArrayBuilder extends OutputStream {
       arraySupplier.recycle(buf);
       buf = null;
     }
+  }
+
+  @Override
+  public void flush() {
+    // nothing to flush
   }
 
 }
