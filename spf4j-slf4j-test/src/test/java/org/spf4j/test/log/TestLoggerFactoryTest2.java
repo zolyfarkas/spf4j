@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -32,10 +33,11 @@ public class TestLoggerFactoryTest2 {
 
   private static final Logger LOG = LoggerFactory.getLogger(TestLoggerFactoryTest2.class);
 
-  
+
   @Test
   @CollectLogs(minLevel = Level.OFF)
   public void testNoIgnore() {
+    Assume.assumeFalse(TestUtils.isExecutedFromIDE());
     Assert.assertFalse(LOG.isDebugEnabled());
   }
 

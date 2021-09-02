@@ -166,7 +166,6 @@ public final class TestLoggers implements ILoggerFactory {
    *
    * @param category the log category.
    * @param level the log level.
-   * @return a handler that allows this printing to stop (when calling close).
    */
   public void print(final String category, final Level level) {
     interceptInContext(category, new LogPrinter(level));
@@ -200,17 +199,16 @@ public final class TestLoggers implements ILoggerFactory {
 
   @CheckReturnValue
   public void interceptInContext(final String category, final LogHandler handler) {
-    HandlerRegistration reg = () -> {
-      synchronized (sync) {
-        config = config.remove(category, handler);
-        resetJulConfig();
-      }
-    };
     ExecutionContext current = ExecutionContexts.current();
     if (current == null) {
       throw new IllegalStateException("No execution context available for " + Thread.currentThread());
     }
-    addConfig(category, handler, current, reg);
+    addConfig(category, handler, current, () -> {
+      synchronized (sync) {
+        config = config.remove(category, handler);
+        resetJulConfig();
+      }
+    });
   }
 
 
