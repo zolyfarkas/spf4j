@@ -56,7 +56,11 @@ final class LogConfigImpl implements LogConfig {
     ImmutableList<LogHandler> rh;
     Map<String, List<LogHandler>> ch;
     if (category.isEmpty()) {
-      rh = ImmutableList.<LogHandler>builder().add(handler).addAll(rootHandler).build();
+      List<LogHandler> existing = rootHandler;
+      List<LogHandler> handlers = new ArrayList<>(existing.size() + 1);
+      handlers.addAll(existing);
+      handlers.add(whereTo.applyAsInt(handlers), handler);
+      rh = ImmutableList.<LogHandler>builder().addAll(handlers).build();
       ch = logHandlers;
     } else {
       rh = rootHandler;
