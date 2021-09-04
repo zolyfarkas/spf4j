@@ -40,6 +40,7 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import javax.annotation.Nullable;
 import org.spf4j.recyclable.SizedRecyclingSupplier;
 import org.spf4j.recyclable.impl.ArraySuppliers;
 
@@ -68,6 +69,7 @@ public final class ByteArrayBuilder extends OutputStream {
    */
   private int count;
 
+  @Nullable
   private final SizedRecyclingSupplier<byte[]> arraySupplier;
 
   public ByteArrayBuilder() {
@@ -88,7 +90,7 @@ public final class ByteArrayBuilder extends OutputStream {
    * @param size the initial size.
    * @exception IllegalArgumentException if size is negative.
    */
-  public ByteArrayBuilder(final int size, final SizedRecyclingSupplier<byte[]> arraySupplier) {
+  public ByteArrayBuilder(final int size, @Nullable final SizedRecyclingSupplier<byte[]> arraySupplier) {
     if (size < 0) {
       throw new IllegalArgumentException("Negative initial size: "
               + size);
