@@ -53,7 +53,7 @@ public class LogPrinterTest {
     ByteArrayOutputStream bos = new ByteArrayOutputStream();
     printer.print(new Slf4jLogRecordImpl("test", Level.DEBUG, "my message {} {} ", "1", "2", "3"), bos);
     String logMsg = bos.toString(StandardCharsets.UTF_8.name());
-    Assert.assertThat(logMsg, Matchers.containsString("DEBUG test \"main\" \"my message 1 2 \" [\"3\"]"));
+    Assert.assertThat(logMsg, Matchers.containsString("\"my message 1 2 \" [\"3\"]"));
 
   }
 
