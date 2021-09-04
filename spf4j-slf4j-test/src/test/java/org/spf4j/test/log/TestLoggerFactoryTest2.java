@@ -17,6 +17,7 @@ package org.spf4j.test.log;
 
 import org.junit.Assert;
 import org.junit.Assume;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ import org.spf4j.test.log.junit4.Spf4jTestLogJUnitRunner;
 /**
  * @author Zoltan Farkas
  */
+@Ignore
 @RunWith(Spf4jTestLogJUnitRunner.class)
 public class TestLoggerFactoryTest2 {
 
