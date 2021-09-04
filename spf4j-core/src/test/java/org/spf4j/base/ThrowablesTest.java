@@ -55,6 +55,7 @@ public final class ThrowablesTest {
       e = Throwables.suppress(e, new RuntimeException());
     }
     Throwable[] suppressed = Throwables.getSuppressed(e);
+    LOG.debug("Exception", e);
     Assert.assertEquals(10, suppressed.length);
     final SQLException sqlException = new SQLException(e);
     sqlException.setNextException(new SQLException("bla", new RuntimeException(new RuntimeException())));
