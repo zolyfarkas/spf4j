@@ -64,13 +64,13 @@ public final class AesEncryptorDecryptor implements EncryptorDecryptor {
     (byte) 0x51, (byte) 0x65, (byte) 0x22, (byte) 0x23,
     (byte) 0x64, (byte) 0x05, (byte) 0x6A, (byte) 0xBE});
 
-  private static final ThreadLocal<Cipher> CIPHER = ThreadLocal.withInitial(() -> {
+  private static Cipher getCypher() {
     try {
       return Cipher.getInstance(ALGO);
     } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
       throw new RuntimeException(ex);
     }
-  });
+  }
 
   private final Key key;
 
@@ -95,7 +95,7 @@ public final class AesEncryptorDecryptor implements EncryptorDecryptor {
   }
 
   public byte[] decrypt(final byte[] bytes) throws GeneralSecurityException {
-    Cipher cipher = CIPHER.get();
+    Cipher cipher = getCypher();
     cipher.init(Cipher.DECRYPT_MODE, key, DEFAULT_PARAMS);
     return cipher.doFinal(bytes);
   }
@@ -103,7 +103,7 @@ public final class AesEncryptorDecryptor implements EncryptorDecryptor {
   @SuppressFBWarnings("EXS_EXCEPTION_SOFTENING_NO_CHECKED")
   public byte[] encrypt(final byte[] bytes) {
     try {
-      Cipher cipher = CIPHER.get();
+      Cipher cipher = getCypher();
       cipher.init(Cipher.ENCRYPT_MODE, key, DEFAULT_PARAMS);
       return cipher.doFinal(bytes);
     } catch (InvalidKeyException | InvalidAlgorithmParameterException
