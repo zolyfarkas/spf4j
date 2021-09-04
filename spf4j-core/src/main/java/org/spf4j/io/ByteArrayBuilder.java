@@ -280,7 +280,7 @@ public final class ByteArrayBuilder extends OutputStream {
   @DischargesObligation
   @Override
   public synchronized void close() {
-    if (arraySupplier != null) {
+    if (arraySupplier != null && buf != null) {
       arraySupplier.recycle(buf);
       buf = null;
     }
