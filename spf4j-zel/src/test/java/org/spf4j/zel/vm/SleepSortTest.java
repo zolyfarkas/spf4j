@@ -51,10 +51,10 @@ public final class SleepSortTest {
     String sort = Resources.toString(Resources.getResource(SleepSortTest.class, "sleepSort.zel"),
             StandardCharsets.US_ASCII);
     Program p = Program.compile(sort, "x");
-    Integer[] testArray = new Integer[100];
+    Integer[] testArray = new Integer[10];
     IntMath.XorShift32 random = new IntMath.XorShift32();
     for (int i = 0; i < testArray.length; i++) {
-      testArray[i] = Math.abs(random.nextInt()) % 100;
+      testArray[i] = Math.abs(random.nextInt()) % 10;
     }
 
     Integer[] resutlSt = testArray.clone();

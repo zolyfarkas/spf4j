@@ -196,7 +196,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   }
 
   public void terminate() {
-    ip = code.size();
+    ip =  code.size();
   }
 
   // TODO: Need to employ Either here
@@ -270,8 +270,18 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     } catch (SuspendedException | InterruptedException e) {
       throw e;
     } catch (ZExecutionException e) {
-      e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),
-              code.getDebug()[ip].getRow()));
+      ParsingContext.Location[] debug = code.getDebug();
+      if (debug != null) {
+        if (ip >= debug.length) {
+          // program finished successfully.
+          // Exception thrown in sync stack evals.
+          e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),
+                debug[debug.length - 1].getRow()));
+        } else {
+          e.addZelFrame(new ZelFrame(code.getName(), code.getSource(),
+                debug[ip].getRow()));
+        }
+      }
       throw e;
     }
   }
