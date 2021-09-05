@@ -35,7 +35,7 @@ import java.awt.Color;
 import java.awt.Paint;
 import java.io.Serializable;
 import org.jfree.chart.renderer.PaintScale;
-import org.jfree.util.PublicCloneable;
+import org.jfree.chart.util.PublicCloneable;
 import org.spf4j.base.CloneFailedException;
 
 /**

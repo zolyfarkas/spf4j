@@ -111,7 +111,7 @@ public final class Charts {
     DateAxis dateaxis = (DateAxis) xyplot.getDomainAxis();
     dateaxis.setVerticalTickLabels(true);
     XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) xyplot.getRenderer();
-    xylineandshaperenderer.setBaseShapesVisible(true);
+    xylineandshaperenderer.setDefaultShapesVisible(true);
     xylineandshaperenderer.setUseFillPaint(true);
     xylineandshaperenderer.setLegendItemToolTipGenerator(new StandardXYSeriesLabelGenerator("Tooltip {0}"));
     return jfreechart;
