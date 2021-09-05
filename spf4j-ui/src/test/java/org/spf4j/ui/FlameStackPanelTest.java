@@ -122,7 +122,7 @@ public class FlameStackPanelTest {
       latch.countDown();
     });
     Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
-    if (TestUtils.isExecutedFromIDE()) {
+    if (TestUtils.isExecutedFromIDE() && !TestUtils.isExecutedDuringMvnRelease()) {
       Assert.assertTrue(closeLatch.await(1, TimeUnit.HOURS));
     }
   }
