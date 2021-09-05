@@ -37,6 +37,8 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spf4j.test.log.ObservationAssert;
 import org.spf4j.test.log.TestLoggers;
 import org.spf4j.test.log.TestUtils;
@@ -46,6 +48,8 @@ import org.spf4j.test.log.UncaughtExceptionDetail;
  * @author Zoltan Farkas
  */
 public class ExplorerTest {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ExplorerTest.class);
 
   private static NoExitSecurityManagerInstaller installNoExitSecurityManager;
 
@@ -71,8 +75,11 @@ public class ExplorerTest {
     Settings settings = window.robot().settings();
     settings.delayBetweenEvents(130);
     settings.eventPostingDelay(100);
+    LOG.debug("Show window");
     window.show(); // shows the frame to test
+    LOG.debug("Window is up");
     Assert.assertTrue(window.isEnabled());
+    LOG.debug("Looking for open file menu item");
     JMenuItemFixture openFileMenuItem = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
       @Override
       protected boolean isMatching(final JMenuItem component) {
