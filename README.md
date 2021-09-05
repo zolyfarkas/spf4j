@@ -13,7 +13,7 @@ Codacy: [![Codacy Badge](https://api.codacy.com/project/badge/Grade/48b501769452
 
 SonarCloud: [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=org.spf4j%3Aspf4j&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.spf4j%3Aspf4j)
 
-Continuous integration: [![CI badge](https://travis-ci.org/zolyfarkas/spf4j.svg?branch=master)](https://travis-ci.org/zolyfarkas/spf4j)
+Continuous integration: [![CI badge](https://travis-ci.com/zolyfarkas/spf4j.svg?branch=master)](https://travis-ci.com/zolyfarkas/spf4j)
 
 see more detail at: http://zolyfarkas.github.com/spf4j/
 
