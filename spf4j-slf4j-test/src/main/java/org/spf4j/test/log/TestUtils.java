@@ -17,6 +17,7 @@ package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
 import java.util.List;
+import org.spf4j.base.Env;
 
 /**
  * @author Zoltan Farkas
@@ -24,6 +25,10 @@ import java.util.List;
 public final class TestUtils {
   private TestUtils() { }
 
+  public static boolean isExecutedDuringMvnRelease() {
+    return Env.getValue("MAVEN_CMD_LINE_ARGS", "").contains("release:");
+  }
+  
   public static boolean isExecutedInCI() {
     return isExecutedInTravis();
   }
