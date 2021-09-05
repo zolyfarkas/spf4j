@@ -31,16 +31,16 @@ public class MavenSchemaResolverTest {
   public void testSchemaResolution() {
     File localRepo = new File(System.getProperty("user.home"), ".m2/repository");
     RemoteRepository bintray = new RemoteRepository.Builder("central", "default",
-            "https://dl.bintray.com/zolyfarkas/core")
+            "https://repo1.maven.org/maven2")
             .build();
 
     MavenSchemaResolver resolver = new MavenSchemaResolver(Collections.singletonList(bintray),
             localRepo, null, "jar");
 
-    String mvnId = "org.spf4j.avro:core-schema:0.2:6";
+    String mvnId = "org.spf4j.avro:core-schema:1.0.3:6";
 
     Schema resolveSchema = resolver.resolveSchema(mvnId);
-    Assert.assertEquals("ServiceError", resolveSchema.getName());
+    Assert.assertEquals("FileLocation", resolveSchema.getName());
   }
 
 }
