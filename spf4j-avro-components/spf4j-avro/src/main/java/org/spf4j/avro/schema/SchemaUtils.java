@@ -59,6 +59,7 @@ import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
 import org.apache.avro.compiler.specific.SpecificCompiler;
+import org.spf4j.base.Json;
 import org.spf4j.ds.Graphs;
 import org.spf4j.io.AppendableWriter;
 
@@ -180,9 +181,9 @@ public final class SchemaUtils {
     }
     appendable.append("protocol ").append(protocolName).append(" {\n\n");
     if (isIdlCycleSupport()) {
-      writeIdl(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
+      writeIdl(appendable, new HashSet<>(4), protocolNameSpace, schemas);
     } else {
-      writeIdlLegacy(appendable, new HashSet<String>(4), protocolNameSpace, schemas);
+      writeIdlLegacy(appendable, new HashSet<>(4), protocolNameSpace, schemas);
     }
     appendable.append("}\n");
   }
@@ -207,9 +208,9 @@ public final class SchemaUtils {
   public static JsonGenerator createJsonGenerator(final Appendable appendable) throws IOException {
     JsonGenerator jsonGen;
     if (appendable instanceof Writer) {
-      jsonGen = Schema.FACTORY.createGenerator((Writer) appendable);
+      jsonGen = Json.FACTORY.createGenerator((Writer) appendable);
     } else {
-      jsonGen = Schema.FACTORY.createGenerator(new AppendableWriter(appendable));
+      jsonGen = Json.FACTORY.createGenerator(new AppendableWriter(appendable));
     }
     return jsonGen;
   }
