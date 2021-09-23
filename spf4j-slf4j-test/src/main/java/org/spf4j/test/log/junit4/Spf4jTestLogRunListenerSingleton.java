@@ -97,9 +97,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     System.setProperty("spf4j.timeSource", TestTimeSource.class.getName());
   }
 
-  private static class Lazy {
-    private static final Logger LOG = LoggerFactory.getLogger(Lazy.class);
-  }
+  private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);
 
   private final Level minLogLevel;
 
@@ -174,7 +172,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   @Override
   public void testRunStarted(final Description description) {
-    ValidationUtils.validateLogger(Lazy.LOG);
+    ValidationUtils.validateLogger(LOG);
   }
 
   @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
@@ -206,7 +204,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       for (UncaughtExceptionDetail ex : exceptions) {
         Throwable throwable = ex.getThrowable();
         assertionError.addSuppressed(throwable);
-        Lazy.LOG.info("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
+        LOG.info("Uncaught exceptions, failures = {} in thread {}", result.getFailures(),
                 ex.getThread(), throwable);
       }
       throw assertionError;
@@ -237,7 +235,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
           final ExecutionContext ctx, final long delay, final TimeUnit tu) {
     final long delayMillis = Math.max(tu.toMillis(delay) - 10,  0);
     ScheduledFuture<?> future = SCHEDULER.schedule(() -> {
-      Lazy.LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
+      LOG.info("Unit test  {} did not finish after {} {}, dumping thread stacks", description, delay, tu);
       Threads.dumpToPrintStream(System.err);
     }, delayMillis, TimeUnit.MILLISECONDS);
     ctx.addCloseable(() -> {
@@ -411,7 +409,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
       AssertionError assertionError = new AssertionError("Uncaught exceptions encountered " + exceptions);
       for (UncaughtExceptionDetail ex : exceptions) {
         Throwable throwable = ex.getThrowable();
-        Lazy.LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
+        LOG.info("Uncaught exceptions during {} in thread {}", description, ex.getThread(), ex.getThrowable());
         assertionError.addSuppressed(throwable);
       }
       dumpDebugInfo(logs, description, maxDebugLogsCollected);
