@@ -52,7 +52,6 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.SpecificDatumReader;
-import org.spf4j.avro.zfork.Yaml;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.Json;
 import org.spf4j.base.Pair;
@@ -102,7 +101,7 @@ public final class Configs {
       node = override(newNode, node, wSchema);
     }
     DatumReader<T> dr = new SpecificDatumReader<>(wSchema, rSchema);
-    AvroCompatUtils.Adapter adapter = AvroCompatUtils.getAdapter();
+    Adapter adapter = AvroCompatUtils.getAdapter();
     Decoder decoder = adapter.getJsonDecoder(wSchema, node.traverse());
     return dr.read(null, decoder);
 
@@ -334,7 +333,7 @@ public final class Configs {
       return new ConfigHeader(wSchema, r, mt);
     }
     BufferedReader content;
-    AvroCompatUtils.Adapter adapter = AvroCompatUtils.getAdapter();
+    Adapter adapter = AvroCompatUtils.getAdapter();
     if (firstChar == '#') {
       content = new BufferedReader(pbr);
         String header = content.readLine();
@@ -378,7 +377,7 @@ public final class Configs {
     MediaType mt = header.getMediaType();
     DatumReader<T> dr = new SpecificDatumReader<>(wSchema, rSchema);
     Decoder decoder;
-    AvroCompatUtils.Adapter adapter = AvroCompatUtils.getAdapter();
+    Adapter adapter = AvroCompatUtils.getAdapter();
     if ("application".equals(mt.type()) && "json".equals(mt.subtype())) {
       decoder = adapter.getJsonDecoder(wSchema, content);
     } else if ("text".equals(mt.type()) && "yaml".equals(mt.subtype())) {

@@ -15,19 +15,14 @@
  */
 package org.spf4j.avro;
 
-import com.fasterxml.jackson.core.JsonParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
-import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.ServiceLoader;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
-import org.spf4j.avro.official.OfficialAvroAdapter;
-import org.spf4j.avro.zfork.ZForkAvroAdapter;
-import org.spf4j.base.Reflections;
 /**
  * A set of Utils to abstract away differences between zolyfarkas/avro forrk and apache/avro
  * @author Zoltan Farkas
@@ -37,46 +32,19 @@ public final class AvroCompatUtils {
   private static final Adapter ADAPTER;
 
   static {
-    Constructor<?> c = Reflections.getConstructor(Schema.Field.class, String.class, Schema.class,
-            String.class,  Object.class,
-            boolean.class, boolean.class, Schema.Field.Order.class);
-    ADAPTER = c == null ? new OfficialAvroAdapter() : new ZForkAvroAdapter();
+    Adapter theOne = null;
+    for (Adapter adapter : ServiceLoader.load(Adapter.class)) {
+      if (adapter.isCompatible()) {
+        theOne = adapter;
+      }
+    }
+    if (theOne == null) {
+      throw new ExceptionInInitializerError("No avro implementation adapter found");
+    }
+    ADAPTER = theOne;
   }
 
   private AvroCompatUtils() {
-  }
-
-  public interface Adapter {
-
-    Schema parseSchema(Reader reader)
-            throws IOException;
-
-    Schema parseSchema(Reader reader, boolean allowUndefinedLogicalTypes, SchemaResolver resolver)
-            throws IOException;
-
-    Schema.Field createField(String name, Schema schema, String doc,
-            Object defaultVal,
-            boolean validateDefault, boolean validateName, Schema.Field.Order order);
-
-    Schema createRecordSchema(String name, String doc, String namespace,
-                                    boolean isError, List<Schema.Field> fields, boolean validateName);
-
-    Schema createRecordSchema(String name, String doc, String namespace,
-                                    boolean isError,  boolean validateName);
-
-    Encoder getJsonEncoder(Schema writerSchema, OutputStream os) throws IOException;
-
-    Encoder getJsonEncoder(Schema writerSchema, Appendable os) throws IOException;
-
-    Decoder getJsonDecoder(Schema writerSchema, InputStream is) throws IOException;
-
-    Decoder getJsonDecoder(Schema writerSchema, Reader reader) throws IOException;
-
-    Decoder getJsonDecoder(Schema writerSchema, JsonParser parser) throws IOException;
-
-    Decoder getYamlDecoder(Schema writerSchema, Reader reader) throws IOException;
-
-
   }
 
   public static Schema.Field createField(final String name, final Schema schema, final String doc,

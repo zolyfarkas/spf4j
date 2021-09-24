@@ -29,10 +29,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.avro.zfork;
+package org.spf4j.avro;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.IOException;
 import java.io.Reader;
@@ -47,9 +48,12 @@ public final class Yaml {
 
   public static final YAMLFactory FACTORY = new YAMLFactory();
 
-
   public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);
 
+  static {
+    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+    MAPPER.disable(SerializationFeature.FLUSH_AFTER_WRITE_VALUE);
+  }
 
   public static JsonParser newParser(final Reader reader) throws IOException {
     return FACTORY.createParser(reader);

@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.official;
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.util.TokenBuffer;
 import com.google.common.io.CharStreams;
@@ -31,17 +32,22 @@ import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.io.Encoder;
+import org.apache.avro.io.EncoderAdapter;
 import org.apache.avro.io.EncoderFactory;
-import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.avro.Adapter;
 import org.spf4j.avro.SchemaResolver;
-import org.spf4j.base.Json;
-import org.spf4j.io.AppendableWriter;
 
 /**
  * Adapter for the official library.
  * @author Zoltan Farkas
  */
-public final class OfficialAvroAdapter implements AvroCompatUtils.Adapter {
+public final class OfficialAvroAdapter implements Adapter {
+
+  public static final JsonFactory FACTORY = new JsonFactory();
+
+  static {
+    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);
+  }
 
   private final EncoderFactory encFactory = EncoderFactory.get();
 
@@ -54,7 +60,7 @@ public final class OfficialAvroAdapter implements AvroCompatUtils.Adapter {
 
   @Override
   public Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
-    return encFactory.jsonEncoder(writerSchema, new AppendableWriter(os));
+    return EncoderAdapter.jsonEncoder(writerSchema, FACTORY.createGenerator(CharStreams.asWriter(os)));
   }
 
 
@@ -105,7 +111,7 @@ public final class OfficialAvroAdapter implements AvroCompatUtils.Adapter {
   @Override
   public Decoder getJsonDecoder(final Schema writerSchema, final JsonParser parser) throws IOException {
       StringWriter buff = new StringWriter();
-      TokenBuffer.asCopyOfValue(parser).serialize(Json.FACTORY.createGenerator(buff));
+      TokenBuffer.asCopyOfValue(parser).serialize(FACTORY.createGenerator(buff));
         return decFactory.jsonDecoder(writerSchema,
             new ByteArrayInputStream(buff.toString().getBytes(StandardCharsets.UTF_8)));
 
@@ -120,6 +126,18 @@ public final class OfficialAvroAdapter implements AvroCompatUtils.Adapter {
   @Override
   public Decoder getYamlDecoder(final Schema schema, final Reader reader) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isCompatible() {
+    try {
+      Schema.Field.class.getConstructor(String.class, Schema.class,
+              String.class,  Object.class,
+              boolean.class, boolean.class, Schema.Field.Order.class);
+      return false;
+    } catch (NoSuchMethodException | SecurityException ex) {
+      return true;
+    }
   }
 
 }

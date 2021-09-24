@@ -15,7 +15,9 @@
  */
 package org.spf4j.avro.zfork;
 
+import org.spf4j.avro.Yaml;
 import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.io.CharStreams;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,15 +29,14 @@ import org.apache.avro.io.Decoder;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.ExtendedJsonDecoder;
 import org.apache.avro.io.ExtendedJsonEncoder;
-import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.avro.Adapter;
 import org.spf4j.avro.SchemaResolver;
-import org.spf4j.io.AppendableWriter;
 
 /**
  * Adapter for the zolyfarkas/avro fork.
  * @author Zoltan Farkas
  */
-public final class ZForkAvroAdapter implements AvroCompatUtils.Adapter {
+public final class ZForkAvroAdapter implements Adapter {
 
   @Override
   public Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
@@ -45,7 +46,7 @@ public final class ZForkAvroAdapter implements AvroCompatUtils.Adapter {
   @Override
   public Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
     return new ExtendedJsonEncoder(writerSchema,
-            Schema.FACTORY.createGenerator(new AppendableWriter(os)));
+            Schema.FACTORY.createGenerator(CharStreams.asWriter(os)));
   }
 
   @Override
@@ -100,6 +101,18 @@ public final class ZForkAvroAdapter implements AvroCompatUtils.Adapter {
   @Override
   public Decoder getJsonDecoder(final Schema writerSchema, final JsonParser parser) throws IOException {
          return new ExtendedJsonDecoder(writerSchema, parser, true);
+  }
+
+  @Override
+  public boolean isCompatible() {
+    try {
+      Schema.Field.class.getConstructor(String.class, Schema.class,
+              String.class,  Object.class,
+              boolean.class, boolean.class, Schema.Field.Order.class);
+      return true;
+    } catch (NoSuchMethodException | SecurityException ex) {
+      return false;
+    }
   }
 
   private static class SchemaResolverAdapter implements org.apache.avro.SchemaResolver {
