@@ -18,7 +18,7 @@ Continuous integration: [![CI badge](https://app.travis-ci.com/zolyfarkas/spf4j.
 see more detail at: http://zolyfarkas.github.com/spf4j/
 
 
-Build/DEV of the spf4j libraries.
+# Build/DEV of the spf4j libraries.
 
 IDE Preference: Netbeans.
 For Eclipse you need https://bugs.eclipse.org/bugs/show_bug.cgi?id=538885 implemented for best experience.
@@ -28,6 +28,10 @@ Build with Maven 3.5.2
 Run maven with JDK 1.8
 
 To build project all you need to do is: mvn install
+
+Spf4j builds against [an avro fork](https://github.com/zolyfarkas/avro) which is published to github repos.
+Until Github removes the authentication requirements, you will need to configure
+your authentication credentials in your settings.xml. (see the avro fork readme for more detail)
 
 Please use -Dgpg.skip=true argument is you do not have gpg installed or configured.
 
