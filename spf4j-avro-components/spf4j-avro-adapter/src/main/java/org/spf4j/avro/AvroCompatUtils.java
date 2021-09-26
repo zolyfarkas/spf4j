@@ -35,7 +35,12 @@ public final class AvroCompatUtils {
     Adapter theOne = null;
     for (Adapter adapter : ServiceLoader.load(Adapter.class)) {
       if (adapter.isCompatible()) {
-        theOne = adapter;
+        if (theOne == null) {
+          theOne = adapter;
+        } else {
+           throw new ExceptionInInitializerError("Multiple avro implementation adapters found: "
+                   + theOne + ", " + adapter);
+        }
       }
     }
     if (theOne == null) {
