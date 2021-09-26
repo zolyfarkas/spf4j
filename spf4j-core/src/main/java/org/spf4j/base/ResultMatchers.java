@@ -53,12 +53,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import org.apache.avro.util.CopyOnWriteMap;
 import org.spf4j.avro.Configs;
 import org.spf4j.base.avro.ObjectPattern;
 import org.spf4j.base.avro.ThrowablePattern;
 import org.spf4j.base.avro.OperationsResultPatterns;
 import org.spf4j.base.avro.OperationResultPatterns;
+import org.spf4j.ds.CopyOnWriteMap;
 
 /**
  * @author Zoltan Farkas
