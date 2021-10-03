@@ -34,6 +34,7 @@ package org.spf4j.tsdb2;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
 import edu.umd.cs.findbugs.annotations.CreatesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
@@ -219,6 +220,7 @@ public final class TSDBWriter implements Closeable, Flushable {
     raf.seek(filePointer);
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Header getHeader() {
     return header;
   }

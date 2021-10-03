@@ -15,6 +15,7 @@
  */
 package org.apache.avro;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
@@ -27,6 +28,7 @@ import org.spf4j.base.Pair;
 /**
  * @author Zoltan Farkas
  */
+@SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class MapIterator<T> implements Iterator<Map.Entry<String, T>> {
 
   private final Decoder decoder;

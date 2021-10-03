@@ -33,6 +33,7 @@ package org.spf4j.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.spf4j.base.Base64;
@@ -62,6 +63,7 @@ public final class BufferedOutputStream extends OutputStream {
         this(out, size, ArraySuppliers.Bytes.JAVA_NEW);
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public BufferedOutputStream(final OutputStream out, final int size,
             final SizedRecyclingSupplier<byte[]> bufferProvider) {
         if (size <= 0) {

@@ -35,12 +35,12 @@ import org.spf4j.zel.vm.Program;
  *
  * @author Zoltan Farkas
  */
-public final class ZelScriptEngine implements ScriptEngine, Compilable {
+final class ZelScriptEngine implements ScriptEngine, Compilable {
 
   private ScriptContext context;
 
 
-  public ZelScriptEngine(final Map<String, Object> globalBindings) {
+  ZelScriptEngine(final Map<String, Object> globalBindings) {
     this.context = new ZelScriptContext();
     this.context.setBindings(new ZelBindings(globalBindings), ScriptContext.GLOBAL_SCOPE);
     this.context.setBindings(new ZelBindings(), ScriptContext.ENGINE_SCOPE);

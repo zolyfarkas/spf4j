@@ -173,6 +173,7 @@ public final class LogPrinter {
 
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public ConfigurableAppenderSupplier getAppenderSupplier() {
     return toStringer;
   }

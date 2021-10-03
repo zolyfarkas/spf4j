@@ -66,7 +66,7 @@ import org.spf4j.stackmonitor.SampleNode;
 /**
  * @author zoly
  */
-public abstract class StackPanelBase<T> extends JPanel
+abstract class StackPanelBase<T> extends JPanel
         implements ActionListener, MouseListener {
 
   private static final long serialVersionUID = 1L;
@@ -84,7 +84,7 @@ public abstract class StackPanelBase<T> extends JPanel
 
   public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
-  public StackPanelBase(final Method method,
+  StackPanelBase(final Method method,
           final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
     this.samples = samples;
     this.method = method;
@@ -295,15 +295,15 @@ public abstract class StackPanelBase<T> extends JPanel
     this.img = null;
   }
 
-  public final SampleNode getSamples() {
+  final SampleNode getSamples() {
     return samples;
   }
 
-  public final Method getMethod() {
+  final Method getMethod() {
     return method;
   }
 
-  public final LinkedList<Pair<Method, SampleNode>> getHistory() {
+  final LinkedList<Pair<Method, SampleNode>> getHistory() {
     return history;
   }
 

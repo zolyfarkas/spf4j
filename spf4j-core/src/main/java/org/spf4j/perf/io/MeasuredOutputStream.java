@@ -32,6 +32,7 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
@@ -42,12 +43,12 @@ import org.spf4j.perf.MeasurementRecorderSource;
  */
 @CleanupObligation
 public final class MeasuredOutputStream extends OutputStream {
-    
+
     private final OutputStream os;
     private final String from;
     private final MeasurementRecorderSource recorderSource;
-    
-    
+
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public MeasuredOutputStream(final OutputStream os, final String from,
             final MeasurementRecorderSource recorderSource) {
      this.os = os;

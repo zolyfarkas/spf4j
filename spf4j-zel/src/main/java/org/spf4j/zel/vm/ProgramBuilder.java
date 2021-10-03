@@ -52,7 +52,7 @@ import org.spf4j.zel.vm.ParsingContext.Location;
  * @author zoly
  */
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class ProgramBuilder {
+final class ProgramBuilder {
 
     private static final int DEFAULT_SIZE = 16;
 
@@ -78,7 +78,7 @@ public final class ProgramBuilder {
     /**
      * initializes the program
      */
-    public ProgramBuilder(final MemoryBuilder staticMemBuilder) {
+    ProgramBuilder(final MemoryBuilder staticMemBuilder) {
         this.staticMemBuilder = staticMemBuilder;
         instructions = new Instruction[DEFAULT_SIZE];
         instrNumber = 0;

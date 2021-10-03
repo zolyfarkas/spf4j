@@ -465,6 +465,7 @@ public final class Callables {
       return delayMillis;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Exception getException() {
       return exception;
     }

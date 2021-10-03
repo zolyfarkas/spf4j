@@ -37,6 +37,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndexes;
 
 import com.google.common.primitives.UnsignedBytes;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,6 +120,7 @@ public final class ReaderInputStream extends InputStream {
    * @param bufferSize size of internal input and output buffers
    * @throws IllegalArgumentException if bufferSize is non-positive
    */
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ReaderInputStream(final Reader reader, final CharsetEncoder encoder, final int bufferSize) {
     this.reader = checkNotNull(reader);
     this.encoder = checkNotNull(encoder);

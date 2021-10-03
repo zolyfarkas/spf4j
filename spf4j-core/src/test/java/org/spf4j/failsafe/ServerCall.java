@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public final class ServerCall implements Callable<Response> {
 
   private final Request request;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ServerCall(final Server server, final Request request) {
     this.server = server;
     this.request = request;
@@ -49,6 +51,7 @@ public final class ServerCall implements Callable<Response> {
     }
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Server getServer() {
     return server;
   }

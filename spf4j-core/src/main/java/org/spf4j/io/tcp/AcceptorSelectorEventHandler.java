@@ -60,6 +60,7 @@ public final class AcceptorSelectorEventHandler extends SelectorEventHandler {
     private final BlockingQueue<Runnable> tasksToRunBySelector;
     private final UpdateablePriorityQueue<DeadlineAction> deadlineActions;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AcceptorSelectorEventHandler(final ServerSocketChannel channel,
             final ClientHandler clientHandler, final Selector selector, final ExecutorService exec,
             final BlockingQueue<Runnable> tasksToRunBySelector,

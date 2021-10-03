@@ -37,6 +37,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.graph.ElementOrder;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
@@ -87,7 +88,7 @@ public final class SampleGraph {
     private final Method method;
     private int idxInHierarchy;
 
-    public SampleKey(final Method method, final int idxInHierarchy) {
+    SampleKey(final Method method, final int idxInHierarchy) {
       this.method = method;
       this.idxInHierarchy = idxInHierarchy;
     }
@@ -116,6 +117,7 @@ public final class SampleGraph {
       return Objects.equals(this.method, other.method);
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Method getMethod() {
       return method;
     }
@@ -139,7 +141,7 @@ public final class SampleGraph {
     protected int level;
     private final SampleNode node;
 
-    public Sample(final SampleKey key, final int nrSamples, final int level, final SampleNode node) {
+    Sample(final SampleKey key, final int nrSamples, final int level, final SampleNode node) {
       this.key = key;
       this.nrSamples = nrSamples;
       this.level = level;
@@ -158,6 +160,7 @@ public final class SampleGraph {
       return level;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public final SampleNode getNode() {
       return node;
     }

@@ -1,6 +1,7 @@
 package org.spf4j.concurrent;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -39,6 +40,7 @@ public class ContextPropagatingCompletableFuture<T>
 
   private final long deadlinenanos;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ContextPropagatingCompletableFuture(final ExecutionContext parentContext, final long deadlinenanos) {
     this.parentContext = parentContext;
     this.deadlinenanos = deadlinenanos;

@@ -15,6 +15,7 @@
  */
 package org.spf4j.maven.plugin.avro.avscp.validation;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -54,6 +55,7 @@ public interface Validator<T> {
       return validationErrorMessage;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Exception getValidationException() {
       return validationException;
     }

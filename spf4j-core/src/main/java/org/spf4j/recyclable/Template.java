@@ -49,6 +49,7 @@ public final class Template<T, R, E extends Exception> {
   private final Class<E> exClass;
   private final RetryPolicy<R, Callable<? extends R>> retryPolicy;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public Template(final RecyclingSupplier<T> pool, final RetryPolicy<R, Callable<? extends R>> retryPolicy,
           final Class<E> exClass) {
     this.pool = pool;

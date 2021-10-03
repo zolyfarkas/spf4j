@@ -33,6 +33,7 @@ package org.spf4j.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -79,9 +80,9 @@ import java.nio.charset.CodingErrorAction;
  * character data that must be decoded for further use.
  * <p>
  * Instances of {@link WriterOutputStream} are not thread safe.
- * 
+ *
  * @see org.apache.commons.io.input.ReaderInputStream
- * 
+ *
  * @since 7.2.25
  */
 @CleanupObligation
@@ -95,7 +96,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
      * 1024 characters. The output buffer will only be flushed when it overflows or when
      * {@link #flush()} or {@link #close()} is called.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param decoder the charset decoder
      * @since 2.1
@@ -106,12 +107,13 @@ public final class WriterOutputStream extends AppendableOutputStream {
 
     /**
      * Constructs a new {@link WriterOutputStream}.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param decoder the charset decoder
      * @param bufferSize the size of the output buffer in number of characters
      * @since 2.1
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public WriterOutputStream(final Writer writer, final CharsetDecoder decoder, final int bufferSize) {
         super(writer, decoder, bufferSize);
         this.writer = writer;
@@ -119,7 +121,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
 
     /**
      * Constructs a new {@link WriterOutputStream}.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charset the charset encoding
      * @param bufferSize the size of the output buffer in number of characters
@@ -137,7 +139,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
      * 1024 characters. The output buffer will only be flushed when it overflows or when
      * {@link #flush()} or {@link #close()} is called.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charset the charset encoding
      */
@@ -147,7 +149,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
 
     /**
      * Constructs a new {@link WriterOutputStream}.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charsetName the name of the charset encoding
      * @param bufferSize the size of the output buffer in number of characters
@@ -160,7 +162,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
      * 1024 characters. The output buffer will only be flushed when it overflows or when
      * {@link #flush()} or {@link #close()} is called.
-     * 
+     *
      * @param writer the target {@link Writer}
      * @param charsetName the name of the charset encoding
      */
@@ -198,7 +200,7 @@ public final class WriterOutputStream extends AppendableOutputStream {
 
     /**
      * Flush the output.
-     * 
+     *
      * @throws IOException if an I/O error occurs
      */
     @Override
@@ -213,5 +215,5 @@ public final class WriterOutputStream extends AppendableOutputStream {
     public String toString() {
         return "WriterOutputStream{" + "writer=" + writer + '}';
     }
-    
+
 }

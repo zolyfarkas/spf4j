@@ -31,6 +31,8 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 /**
  * @author Zoltan Farkas
  */
@@ -40,11 +42,13 @@ public final class ContextValue<T> {
 
   private final T value;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ContextValue(final ExecutionContext context, final T value) {
     this.context = context;
     this.value = value;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public ExecutionContext getContext() {
     return context;
   }
@@ -57,5 +61,5 @@ public final class ContextValue<T> {
   public String toString() {
     return "ContextValue{" + "context=" + context + ", value=" + value + '}';
   }
-  
+
 }

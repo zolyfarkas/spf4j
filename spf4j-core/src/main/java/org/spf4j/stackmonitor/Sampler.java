@@ -177,29 +177,34 @@ public final class Sampler {
             (t) -> new FastStackCollector(false, true, new Thread[]{t}), dumpFolder, dumpFilePrefix);
   }
 
+  /**
+   * Gets a sampler.
+   * This method will always creates a new sampler instance and will dispose of any sampler
+   * instances previously created with this method.
+   * There can only be one sampler instance running at a time.
+   * @param sampleTimeMillis
+   * @param dumpTimeMillis
+   * @param collector
+   * @param dumpFolder
+   * @param dumpFilePrefix
+   * @return
+   * @throws InterruptedException
+   */
+  @SuppressFBWarnings("MS_EXPOSE_REP")
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis, final SamplerSupplier collector,
           final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
-    if (instance == null) {
-      try {
-        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
-                dumpFolder.getCanonicalFile(), dumpFilePrefix);
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-      instance.registerJmx();
-      return instance;
-    } else {
+    if (instance != null) {
       instance.dispose();
-      try {
-        instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
-                dumpFolder.getCanonicalFile(), dumpFilePrefix);
-      } catch (IOException ex) {
-        throw new UncheckedIOException(ex);
-      }
-      instance.registerJmx();
-      return instance;
     }
+    try {
+      instance = new Sampler(sampleTimeMillis, dumpTimeMillis, collector,
+              dumpFolder.getCanonicalFile(), dumpFilePrefix);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    instance.registerJmx();
+    return instance;
   }
 
   public void registerJmx() {

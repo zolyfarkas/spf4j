@@ -237,11 +237,13 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     }
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public void suspend(final VMFuture<Object> future) throws SuspendedException {
     suspendedAt = Collections.singletonList(future);
     throw SuspendedException.INSTANCE;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public void suspend(final List<VMFuture<Object>> futures) throws SuspendedException {
     suspendedAt = futures;
     throw SuspendedException.INSTANCE;
@@ -287,6 +289,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   }
 
   @Override
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public List<VMFuture<Object>> getSuspendedAt() {
     return suspendedAt;
   }
@@ -549,6 +552,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
    * @return the execService
    */
   @Nullable
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public VMExecutor getExecService() {
     return execService;
   }
@@ -556,6 +560,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
   /**
    * @return the resultCache
    */
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public ResultCache getResultCache() {
     return resultCache;
   }

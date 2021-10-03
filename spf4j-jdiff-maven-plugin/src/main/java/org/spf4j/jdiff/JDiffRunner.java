@@ -68,7 +68,7 @@ public final class JDiffRunner {
             MavenRepositoryUtils.getRepositorySystem(), System.getProperty("spf4j.jdiff.javadocExec"));
   }
 
-  @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
+  @SuppressFBWarnings({"STT_TOSTRING_STORED_IN_FIELD", "EI_EXPOSE_REP2"})
   public JDiffRunner(final MojoExecution mojoExec, final ToolchainManager toolchainManager,
           final MavenSession session,
           final List<RemoteRepository> remoteRepos,

@@ -35,11 +35,11 @@ import org.apache.calcite.sql.SqlNode;
  * mat-calcite-plugin-master/MatCalcitePlugin/src/com/github/vlsi/mat/calcite/functions/TableFunctions.java
  * @author Zoltan Farkas
  */
-public abstract class AbstractAvroTable  implements Table  {
+abstract class AbstractAvroTable  implements Table  {
 
   private final org.apache.avro.Schema componentType;
 
-  public AbstractAvroTable(final Schema componentType) {
+  AbstractAvroTable(final Schema componentType) {
     if (componentType.getType() != org.apache.avro.Schema.Type.RECORD) {
       throw new IllegalArgumentException("Invalid table compoent " + componentType);
     }
@@ -79,6 +79,7 @@ public abstract class AbstractAvroTable  implements Table  {
     return true;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public final Schema getComponentType() {
     return componentType;
   }

@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.csv;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
@@ -42,6 +43,7 @@ public final class CsvEncoder extends Encoder implements Parser.ActionHandler {
 
   private boolean firstItem = true;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CsvEncoder(final CsvWriter csvWriter, final Schema writerSchema) throws IOException {
     this.csvWriter = csvWriter;
     this.parser = new Parser(new JsonGrammarGenerator().generate(writerSchema), this);

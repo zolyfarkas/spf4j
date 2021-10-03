@@ -166,6 +166,7 @@ public final class MemoryUsageSampler {
     HOTSPOT_DIAGNOSTIC_INSTANCE.dumpHeap(filename, liveObjectOnly);
   }
 
+  @SuppressFBWarnings("MS_EXPOSE_REP")
   public static HotSpotDiagnosticMXBean getHotspotDiagnosticBean() {
     return HOTSPOT_DIAGNOSTIC_INSTANCE;
   }

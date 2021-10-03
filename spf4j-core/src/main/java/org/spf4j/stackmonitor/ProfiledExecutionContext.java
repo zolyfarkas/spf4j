@@ -89,9 +89,9 @@ public final class ProfiledExecutionContext extends BasicExecutionContext {
   public void add(final StackSamples samples) {
     synchronized (sync) {
       if (sampleNode == null) {
-        sampleNode = (SampleNode) samples;
+        sampleNode = SampleNode.create(samples);
       } else {
-        sampleNode.add((SampleNode) samples);
+        sampleNode.add(samples);
       }
     }
   }

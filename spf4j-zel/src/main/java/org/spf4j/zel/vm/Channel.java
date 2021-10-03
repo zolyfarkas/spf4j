@@ -41,7 +41,7 @@ import java.util.Queue;
  * @author zoly
  */
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
-public final class Channel {
+final class Channel {
 
   public static final Object EOF = new Object();
 
@@ -53,7 +53,7 @@ public final class Channel {
 
   private boolean closed;
 
-  public Channel(final VMExecutor exec) {
+  Channel(final VMExecutor exec) {
     this.queue = new LinkedList<>();
     this.readers = new LinkedList<>();
     this.exec = exec;

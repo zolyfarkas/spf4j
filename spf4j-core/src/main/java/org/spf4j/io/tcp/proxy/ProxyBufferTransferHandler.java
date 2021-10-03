@@ -78,6 +78,7 @@ public final class ProxyBufferTransferHandler extends SelectorEventHandler {
 
     private final BlockingQueue<Runnable> tasksToRunBySelector;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public ProxyBufferTransferHandler(final TransferBuffer in, final TransferBuffer out,
             @Nullable final SnifferFactory snifferFactory,
             final SocketChannel channel, final Selector selector, final ExecutorService exec,

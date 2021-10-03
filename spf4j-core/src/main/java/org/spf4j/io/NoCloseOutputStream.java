@@ -31,6 +31,7 @@
  */
 package org.spf4j.io;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -42,6 +43,7 @@ public final class NoCloseOutputStream extends OutputStream {
 
   private final OutputStream target;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public NoCloseOutputStream(final OutputStream target) {
     this.target = target;
   }

@@ -135,12 +135,14 @@ public final class TSDBQuery {
     private long startTime;
     private long endTime;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public TableDefEx(final TableDef tableDef, final long startTime, final long endTime) {
       this.tableDef = tableDef;
       this.startTime = startTime;
       this.endTime = endTime;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public TableDef getTableDef() {
       return tableDef;
     }

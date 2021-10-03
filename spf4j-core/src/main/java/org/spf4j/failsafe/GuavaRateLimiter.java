@@ -32,6 +32,7 @@
 package org.spf4j.failsafe;
 
 import com.google.common.util.concurrent.RateLimiter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.PermitSupplier;
@@ -43,6 +44,7 @@ public final class GuavaRateLimiter implements PermitSupplier {
 
   private final RateLimiter limiter;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public GuavaRateLimiter(final RateLimiter limiter) {
     this.limiter = limiter;
   }
@@ -66,10 +68,6 @@ public final class GuavaRateLimiter implements PermitSupplier {
       throw new InterruptedException();
     }
     return result;
-  }
-
-  public RateLimiter getLimiter() {
-    return limiter;
   }
 
   @Override

@@ -42,7 +42,7 @@ import org.spf4j.os.OperatingSystem;
  * this class requires jna-platforn which is a optional dependency.
  * @author zoly
  */
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
+@SuppressFBWarnings({"FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY", "MS_EXPOSE_REP"})
 // class circularity should go away when deprecated methods from Runtime are removed.
 public enum UnixResources {
 

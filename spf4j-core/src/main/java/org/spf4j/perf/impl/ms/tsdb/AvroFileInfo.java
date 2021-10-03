@@ -37,7 +37,7 @@ import org.apache.avro.file.DataFileWriter;
 /**
  * @author Zoltan Farkas
  */
-public final class AvroFileInfo<T> {
+final class AvroFileInfo<T> {
 
   private final Path filePath;
 
@@ -47,7 +47,7 @@ public final class AvroFileInfo<T> {
 
   private final long initNrRecords;
 
-  public AvroFileInfo(final Path filePath, final DataFileWriter<T> fileWriter, final long fileEpoch,
+  AvroFileInfo(final Path filePath, final DataFileWriter<T> fileWriter, final long fileEpoch,
           final long initNrRecords) {
     this.filePath = filePath;
     this.fileWriter = fileWriter;
@@ -76,8 +76,6 @@ public final class AvroFileInfo<T> {
     return "AvroFileInfo{" + "filePath=" + filePath + ", fileWriter=" + fileWriter
             + ", fileEpoch=" + fileEpoch + ", initNrRecords=" + initNrRecords + '}';
   }
-
-
 
 
 }

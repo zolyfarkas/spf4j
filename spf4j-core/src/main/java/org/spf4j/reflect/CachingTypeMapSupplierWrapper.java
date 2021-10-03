@@ -60,6 +60,7 @@ public final class CachingTypeMapSupplierWrapper<H, E extends Exception> impleme
 
   private final Class<E> exClass;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CachingTypeMapSupplierWrapper(final CacheBuilder<Type, Set<H>> cacheBuilder, final TypeMap wrapped,
           final Class<E> exClass) {
     this.syncObj = new Object();
@@ -68,6 +69,7 @@ public final class CachingTypeMapSupplierWrapper<H, E extends Exception> impleme
     cache = cacheBuilder.build(new TypeMapedObjLoader());
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CachingTypeMapSupplierWrapper(final TypeMap wrapped, final Class<E> exClass) {
     this.syncObj = new Object();
     this.wrapped = wrapped;

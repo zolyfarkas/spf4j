@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.memory;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TObjectLongMap;
 import gnu.trove.map.hash.TObjectLongHashMap;
 import java.lang.management.GarbageCollectorMXBean;
@@ -71,6 +72,7 @@ public final class GCUsageSampler {
   private GCUsageSampler() {
   }
 
+  @SuppressFBWarnings("MS_EXPOSE_REP")
   public static List<GarbageCollectorMXBean> getMBEANS() {
     return MBEANS;
   }

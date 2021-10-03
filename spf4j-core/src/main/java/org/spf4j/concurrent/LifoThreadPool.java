@@ -31,7 +31,6 @@
  */
 package org.spf4j.concurrent;
 
-import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.ReentrantLock;
 import org.spf4j.jmx.JmxExport;
@@ -66,8 +65,6 @@ public interface LifoThreadPool extends ExecutorService {
     int getQueueSizeLimit();
 
     ReentrantLock getStateLock();
-
-    Queue<Runnable> getTaskQueue();
 
     @JmxExport
     int getThreadCount();

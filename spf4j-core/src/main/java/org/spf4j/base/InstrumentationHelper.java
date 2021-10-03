@@ -31,6 +31,7 @@
  */
 package org.spf4j.base;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.instrument.Instrumentation;
 
 /**
@@ -42,6 +43,7 @@ public final class InstrumentationHelper {
 
     private InstrumentationHelper() { }
 
+    @SuppressFBWarnings("EI_EXPOSE_STATIC_REP2")
     public static void premain(final String args, final Instrumentation inst) {
         instrumentation = inst;
     }

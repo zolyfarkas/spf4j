@@ -26,6 +26,7 @@ public final class ResolvingVisitor implements SchemaVisitor<Schema> {
   private final Schema root;
 
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ResolvingVisitor(final Schema root, final IdentityHashMap<Schema, Schema> replace,
           final Function<String, Schema> symbolTable, final boolean  allowUndefinedLogicalTypes) {
     this.replace = replace;

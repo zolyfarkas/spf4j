@@ -49,6 +49,7 @@ public final class LoggingProcessHandler implements ProcessHandler<Void, Void> {
 
   private Logger log;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public LoggingProcessHandler(final Logger log) {
     this.log = log;
   }

@@ -218,6 +218,7 @@ public final class Spf4jOpenTypeMapper implements JMXBeanMappingSupplier {
         }
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public CachingTypeMapSupplierWrapper<JMXBeanMapping, NotSerializableException> getCache() {
     return cache;
   }

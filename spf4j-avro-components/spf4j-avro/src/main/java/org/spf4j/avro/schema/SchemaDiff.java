@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.schema;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.avro.Schema;
 
 /**
@@ -85,11 +86,13 @@ public interface SchemaDiff {
     }
 
     @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Schema getLeft() {
       return left;
     }
 
     @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Schema getRight() {
       return right;
     }
@@ -151,11 +154,13 @@ public interface SchemaDiff {
     }
 
     @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Schema.Field getLeftField() {
       return left;
     }
 
     @Override
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Schema.Field getRightField() {
       return right;
     }

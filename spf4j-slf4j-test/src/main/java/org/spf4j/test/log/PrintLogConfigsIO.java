@@ -18,6 +18,7 @@ package org.spf4j.test.log;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -64,6 +65,7 @@ public final class PrintLogConfigsIO {
     }
   }
 
+  @SuppressFBWarnings("IMPROPER_UNICODE")
   public static Map<String, PrintConfig> loadConfig(final Reader reader) throws IOException {
     Properties props = new Properties();
     props.load(reader);

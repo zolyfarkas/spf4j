@@ -109,6 +109,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   @Nullable
   @Override
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public final Marker getMarker() {
     return marker;
   }

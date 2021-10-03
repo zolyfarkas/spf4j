@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log.junit4;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayDeque;
 import java.util.List;
 import org.spf4j.base.ExecutionContext;
@@ -37,14 +38,17 @@ public final class TestBaggage {
     this.assertions = assertions;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public ExecutionContext getCtx() {
     return ctx;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public LogCollection<ArrayDeque<TestLogRecord>> getLogCollection() {
     return logCollection;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public List<LogAssert> getAssertions() {
     return assertions;
   }

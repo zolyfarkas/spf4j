@@ -31,6 +31,7 @@
  */
 package org.spf4j.avro.schema;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -66,6 +67,7 @@ public final class CloningVisitor implements SchemaVisitor<Schema> {
     this(copyField, copySchema, copyDocs, true, root);
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CloningVisitor(final BiConsumer<Field, Field> copyField,
           final BiConsumer<Schema, Schema> copySchema,
           final boolean copyDocs, final boolean copyDefaults, final Schema root) {

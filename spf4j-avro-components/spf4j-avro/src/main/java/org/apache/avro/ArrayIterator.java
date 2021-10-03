@@ -15,6 +15,7 @@
  */
 package org.apache.avro;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
@@ -31,6 +32,7 @@ public final class ArrayIterator<T> implements Iterator<T> {
   private final DatumReader<T> reader;
   private long l;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ArrayIterator(final Decoder decoder, final DatumReader<T> elementReader) {
     this.decoder = decoder;
     this.reader = elementReader;

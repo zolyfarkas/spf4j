@@ -45,7 +45,7 @@ public final class CompileContext implements ParsingContext {
 
     private Instruction last;
 
-    public CompileContext(final MemoryBuilder staticMemBuilder) {
+    CompileContext(final MemoryBuilder staticMemBuilder) {
         this.prog = new ProgramBuilder(staticMemBuilder);
         this.staticMemBuilder = staticMemBuilder;
     }

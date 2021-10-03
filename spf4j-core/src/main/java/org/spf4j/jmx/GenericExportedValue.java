@@ -31,6 +31,7 @@
  */
 package org.spf4j.jmx;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.function.Consumer;
@@ -59,6 +60,7 @@ public final class GenericExportedValue<T> implements ExportedValue {
   private final JMXBeanMapping converter;
   private final OpenType<?> openType;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public GenericExportedValue(
           @Nonnull final String name, @Nonnull final String description,
           @Nonnull final Supplier<T> getter, @Nullable final Consumer<T> setter,
@@ -138,6 +140,7 @@ public final class GenericExportedValue<T> implements ExportedValue {
   }
 
   @Override
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Class getValueType() {
     return clasz;
   }

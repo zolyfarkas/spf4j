@@ -32,6 +32,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public final class SimpleStackCollector implements ISampler {
 
   private final StackCollector collector;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public SimpleStackCollector(final Thread ignore) {
     this.ignore = ignore;
     this.collector = new StackCollectorImpl();

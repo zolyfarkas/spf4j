@@ -37,6 +37,7 @@ import gnu.trove.set.hash.THashSet;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -193,7 +194,7 @@ public final class FastStackCollector implements ISampler {
     private final Set<String> ignoredThreadNames;
 
     public ThreadNamesPredicate(final Set<String> ignoredThreadNames) {
-      this.ignoredThreadNames = ignoredThreadNames;
+      this.ignoredThreadNames = new HashSet<>(ignoredThreadNames);
     }
 
     @Override

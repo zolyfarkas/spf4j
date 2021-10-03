@@ -57,6 +57,7 @@ public final class MavenSchemaResolver implements SchemaResolver {
 
   private final String extension;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public MavenSchemaResolver(final RepositorySystem repoSystem, final RepositorySystemSession repoSystemSession,
           final List<RemoteRepository> remotes, final String classifier, final String extension) {
     this.repoSystem = repoSystem;
@@ -66,6 +67,7 @@ public final class MavenSchemaResolver implements SchemaResolver {
     this.extension = extension;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public MavenSchemaResolver(final List<RemoteRepository> repos,
           final File localRepo, final String classifier, final String extension) {
     RepositorySystem repositorySystem = getRepositorySystem();
@@ -128,7 +130,7 @@ public final class MavenSchemaResolver implements SchemaResolver {
   public void registerAsDefault() {
     SchemaResolvers.registerDefault(this);
   }
-  
+
   @Override
   public String toString() {
     return "MavenSchemaResolver{" + "repoSystem=" + repoSystem + ", repoSystemSession=" + repoSystemSession

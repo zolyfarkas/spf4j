@@ -31,20 +31,18 @@
  */
 package org.spf4j.concurrent.jdbc;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.Semaphore;
 
-/**
- *
- * @author zoly
- */
 public final class ProcessLimitedJdbcSemaphore implements Semaphore {
 
   private final JdbcSemaphore jdbcSemaphore;
 
   private final java.util.concurrent.Semaphore semaphore;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ProcessLimitedJdbcSemaphore(final JdbcSemaphore jdbcSemaphore, final int maxProcessPermits) {
     this.jdbcSemaphore = jdbcSemaphore;
     this.semaphore = new java.util.concurrent.Semaphore(maxProcessPermits);

@@ -79,10 +79,6 @@ public final class Spf4jJmhProfiler implements InternalProfiler {
 
   private static volatile String benchmarkName;
 
-  public static Sampler getStackSampler() {
-    return SAMPLER;
-  }
-
   public static String benchmarkName() {
     return benchmarkName;
   }

@@ -58,6 +58,7 @@ public class ExtendedParser {
     return ALLOW_UNDEF_LT.get();
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public ExtendedParser(final ExtendedNames names) {
     this.names = names;
   }

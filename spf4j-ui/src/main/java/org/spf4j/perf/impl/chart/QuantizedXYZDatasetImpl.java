@@ -49,7 +49,7 @@ import org.spf4j.base.ComparablePair;
 import org.spf4j.perf.impl.Quanta;
 
 @Immutable
-public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
+final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -63,9 +63,9 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   private final long startTimeMillis;
   private final long stepMillis;
 
-  public QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
+  QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
           final long startTimeMillis, final long step) {
-    this.data = pdata.clone();
+    this.data = pdata;
     this.startTimeMillis = startTimeMillis;
     this.stepMillis = step;
     quantas = new ArrayList<>(dataSources.length);
@@ -194,7 +194,7 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   }
 
   public List<ComparablePair<Quanta, Integer>> getQuantas() {
-    return quantas;
+    return Collections.unmodifiableList(quantas);
   }
 
   public TickUnits createXTickUnits() {

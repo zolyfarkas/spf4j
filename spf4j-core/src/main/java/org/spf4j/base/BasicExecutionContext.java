@@ -96,7 +96,7 @@ public class BasicExecutionContext implements ExecutionContext {
   private Attached attached;
 
   @SuppressWarnings("unchecked")
-  @SuppressFBWarnings("STT_TOSTRING_STORED_IN_FIELD")
+  @SuppressFBWarnings({"EI_EXPOSE_REP2", "STT_TOSTRING_STORED_IN_FIELD"})
   public BasicExecutionContext(final String name, @Nullable final CharSequence id,
           @Nullable final ExecutionContext source, final Relation relation,
           final long startTimeNanos, final long deadlineNanos) {
@@ -208,6 +208,9 @@ public class BasicExecutionContext implements ExecutionContext {
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP",
+          justification = "THis is intentional,"
+                  + " and as such these objects need to be handled with care since they are mutable, but thread safe")
   public final ExecutionContext getSource() {
     return source;
   }

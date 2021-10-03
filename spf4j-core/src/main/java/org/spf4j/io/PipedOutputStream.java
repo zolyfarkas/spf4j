@@ -34,6 +34,7 @@ package org.spf4j.io;
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -286,11 +287,12 @@ public final class PipedOutputStream extends OutputStream {
    * Close this piped output stream, and provide a exception reason.
    * Designed to propagate exception details from the consumer to the producer.
    * A consumer that reads data from a InputStream connected to this PipedOutpuStream,
-   * can close this pipe, and provide a exception. THis exception will be used as cause for any
+   * can close this pipe, and provide a exception. This exception will be used as cause for any
    * exceptions thrown by subsequent attempted write operations.
    * @param ex the exception to use as root cause.
    */
   @DischargesObligation
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public void close(final Exception ex) {
     synchronized (sync) {
       if (closedException != null) {
@@ -357,6 +359,7 @@ public final class PipedOutputStream extends OutputStream {
     private PipedInputStream() {
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public PipedOutputStream getOutputStream() {
       return PipedOutputStream.this;
     }

@@ -185,6 +185,7 @@ public final class TSDBReader implements Closeable {
     return size;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Header getHeader() {
     return header;
   }

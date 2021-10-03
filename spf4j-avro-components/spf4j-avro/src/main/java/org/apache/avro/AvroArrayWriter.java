@@ -15,6 +15,7 @@
  */
 package org.apache.avro;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.util.Arrays;
 import javax.annotation.concurrent.ThreadSafe;
@@ -45,6 +46,7 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
    * @deprecated use the other constructor.
    */
   @Deprecated
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public AvroArrayWriter(final Encoder encoder, final DatumWriter<T> elementWriter,
           final Class<T> type, final int bufferSize) {
     if (bufferSize < 1) {
@@ -58,6 +60,7 @@ public final class AvroArrayWriter<T> implements ArrayWriter<T> {
     this.isClosed = false;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public AvroArrayWriter(final Encoder encoder, final DatumWriter<T> elementWriter, final int bufferSize) {
     if (bufferSize < 1) {
       throw new IllegalArgumentException("Invalid buffer size " + bufferSize);

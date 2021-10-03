@@ -31,6 +31,7 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InputStream;
 import java.io.OutputStream;
 import javax.annotation.concurrent.Immutable;
@@ -39,6 +40,7 @@ import javax.annotation.concurrent.Immutable;
  * @author zoly
  */
 @Immutable
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public final class ProcessIOStreams implements ProcessIO {
 
   public static final ProcessIO DEFAULT =  new ProcessIOStreams(System.in, System.out, System.err);

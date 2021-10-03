@@ -234,10 +234,12 @@ public final class Program implements Serializable {
     return symbolTable;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Map<String, Integer> getGlobalSymbolTable() {
     return globalSymbolTable;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Map<String, Integer> getLocalSymbolTable() {
     return localSymbolTable;
   }
@@ -519,7 +521,7 @@ public final class Program implements Serializable {
         break;
       }
       line = line.trim();
-      if ("QUIT".equalsIgnoreCase(line)) {
+      if ("quit".equals(line)) {
         terminated = true;
       } else {
         try {
@@ -616,11 +618,11 @@ public final class Program implements Serializable {
     return instructions;
   }
 
-  public static final class HasClass implements Function<Object, Boolean> {
+  static final class HasClass implements Function<Object, Boolean> {
 
     private final Class<? extends Instruction> instr;
 
-    public HasClass(final Class<? extends Instruction> instr) {
+    HasClass(final Class<? extends Instruction> instr) {
       this.instr = instr;
     }
 

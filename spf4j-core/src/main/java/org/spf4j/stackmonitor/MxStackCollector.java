@@ -32,6 +32,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
 import java.lang.management.ThreadMXBean;
@@ -50,6 +51,7 @@ public final class MxStackCollector implements ISampler {
 
     private final StackCollector collector;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public MxStackCollector(final Thread ignore) {
       this.ignore = ignore;
       this.collector = new StackCollectorImpl();

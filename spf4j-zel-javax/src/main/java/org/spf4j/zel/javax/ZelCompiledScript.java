@@ -32,13 +32,13 @@ import org.spf4j.zel.vm.Program;
  *
  * @author Zoltan Farkas
  */
-public final class ZelCompiledScript extends CompiledScript implements Invocable {
+final class ZelCompiledScript extends CompiledScript implements Invocable {
 
   private final Program program;
 
   private final ScriptEngine scriptEngine;
 
-  public ZelCompiledScript(final Program program, final ScriptEngine scriptEngine) {
+  ZelCompiledScript(final Program program, final ScriptEngine scriptEngine) {
     this.program = program;
     this.scriptEngine = scriptEngine;
   }

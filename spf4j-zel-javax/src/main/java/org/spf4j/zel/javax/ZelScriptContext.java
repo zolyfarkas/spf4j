@@ -32,7 +32,7 @@ import org.spf4j.io.NullWriter;
 /**
  * @author Zoltan Farkas
  */
-public final class ZelScriptContext implements ScriptContext {
+final class ZelScriptContext implements ScriptContext {
 
   private final SortedMap<Integer, Bindings> scope2Bindings;
 
@@ -42,7 +42,7 @@ public final class ZelScriptContext implements ScriptContext {
 
   private  Writer err;
 
-  public ZelScriptContext() {
+  ZelScriptContext() {
     scope2Bindings = new TreeMap<>();
     in = EmptyReader.INSTANCE;
     out = NullWriter.INSTANCE;

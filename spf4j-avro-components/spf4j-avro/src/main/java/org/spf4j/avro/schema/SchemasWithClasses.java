@@ -73,6 +73,7 @@ public final class SchemasWithClasses implements SchemaVisitor<Map<String, Schem
   }
 
   @Override
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Map<String, Schema> get() {
     return schemas;
   }

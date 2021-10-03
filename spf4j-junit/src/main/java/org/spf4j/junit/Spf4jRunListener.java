@@ -129,10 +129,6 @@ public final class Spf4jRunListener extends RunListener {
    vitals.start();
   }
 
-  public Sampler getSampler() {
-    return sampler;
-  }
-
   public File getDestinationFolder() {
     return destinationFolder;
   }

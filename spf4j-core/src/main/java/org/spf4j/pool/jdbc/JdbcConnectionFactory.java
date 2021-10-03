@@ -74,7 +74,7 @@ public final class JdbcConnectionFactory implements RecyclingSupplier.Factory<Co
       throw new IllegalArgumentException("Invalid driver " + driverName, ex);
     }
     this.url = url;
-    this.props = props;
+    this.props = new Properties(props);
     this.loginTimeoutSeconds = loginTimeoutSeconds;
   }
 

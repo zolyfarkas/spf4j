@@ -717,11 +717,6 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
             + ", poolName=" + poolName + '}';
   }
 
-  @Override
-  public Queue<Runnable> getTaskQueue() {
-    return taskQueue;
-  }
-
   @JmxExport
   @Override
   public int getMaxIdleTimeMillis() {

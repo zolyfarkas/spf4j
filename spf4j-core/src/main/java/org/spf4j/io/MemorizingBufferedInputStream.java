@@ -34,6 +34,7 @@ package org.spf4j.io;
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,6 +102,7 @@ public final class MemorizingBufferedInputStream extends FilterInputStream {
         this(in, size, size / 2, ArraySuppliers.Bytes.GL_SUPPLIER, charset);
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public MemorizingBufferedInputStream(final InputStream in,
             final int size, final int readSize,
             final SizedRecyclingSupplier<byte[]> bufferProvider,

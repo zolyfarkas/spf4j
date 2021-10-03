@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.net.MediaType;
 import edu.umd.cs.findbugs.annotations.CreatesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -282,7 +283,7 @@ public final class Configs {
   }
 
 
-  public static final class ConfigHeader {
+  private static final class ConfigHeader {
 
     private final Schema wSchema;
 
@@ -290,12 +291,13 @@ public final class Configs {
 
     private final MediaType mediaType;
 
-    public ConfigHeader(final Schema wSchema, final Reader reader, final MediaType mediaType) {
+    ConfigHeader(final Schema wSchema, final Reader reader, final MediaType mediaType) {
       this.wSchema = wSchema;
       this.reader = reader;
       this.mediaType = mediaType;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Schema getwSchema() {
       return wSchema;
     }
@@ -320,7 +322,7 @@ public final class Configs {
 
   }
 
-  public static ConfigHeader parseHeader(@WillNotClose final Reader reader, final Schema rSchema,
+  private static ConfigHeader parseHeader(@WillNotClose final Reader reader, final Schema rSchema,
           final SchemaResolver schemaResolver) throws IOException {
     Schema wSchema;
     MediaType mt;

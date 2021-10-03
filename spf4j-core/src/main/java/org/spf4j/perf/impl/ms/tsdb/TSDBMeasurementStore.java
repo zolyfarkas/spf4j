@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.impl.ms.tsdb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.perf.MeasurementsInfo;
 import org.spf4j.perf.MeasurementStore;
 import java.io.File;
@@ -103,6 +104,7 @@ public final class TSDBMeasurementStore
     return "TSDBMeasurementStore{" + "database=" + database + '}';
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public TSDBWriter getDBWriter() {
     return database;
   }

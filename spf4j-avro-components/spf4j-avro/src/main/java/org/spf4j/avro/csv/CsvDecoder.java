@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.csv;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.spf4j.avro.DecodedSchema;
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,6 +50,7 @@ public final class CsvDecoder extends ParsingDecoder {
 
   private final CsvReader csvReader;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CsvDecoder(final CsvReader csvReader, final Schema readerSchema) throws IOException {
     super(new JsonGrammarGenerator().generate(readerSchema));
     this.csvReader = csvReader;

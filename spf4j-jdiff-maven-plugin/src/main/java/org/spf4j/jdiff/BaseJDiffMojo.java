@@ -170,6 +170,7 @@ public abstract class BaseJDiffMojo
     return tc;
   }
 
+  @SuppressFBWarnings("IMPROPER_UNICODE")
   final List<String> getCompileSourceRoots() {
     if ("pom".equalsIgnoreCase(mavenProject.getPackaging())) {
       return Collections.emptyList();

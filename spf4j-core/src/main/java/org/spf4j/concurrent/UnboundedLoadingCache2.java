@@ -111,6 +111,7 @@ public final class UnboundedLoadingCache2<K, V> implements LoadingCache<K, V> {
   }
 
   @Override
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public ConcurrentMap<K, V> asMap() {
     return map;
   }

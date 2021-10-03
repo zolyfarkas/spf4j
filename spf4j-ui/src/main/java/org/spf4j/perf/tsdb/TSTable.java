@@ -31,6 +31,7 @@
  */
 package org.spf4j.perf.tsdb;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -46,6 +47,7 @@ import org.spf4j.io.ByteArrayBuilder;
  * @author zoly
  */
 @Deprecated
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"})
 public final class TSTable {
 
     private final long location;

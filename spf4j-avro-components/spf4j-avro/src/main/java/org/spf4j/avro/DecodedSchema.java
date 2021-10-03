@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.avro.Schema;
 import org.apache.avro.io.Decoder;
@@ -29,11 +30,13 @@ public final class DecodedSchema {
 
   private final Decoder decoder;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public DecodedSchema(final Schema schema, final Decoder decoder) {
     this.schema = schema;
     this.decoder = decoder;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Schema getSchema() {
     return schema;
   }

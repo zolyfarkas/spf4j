@@ -589,10 +589,12 @@ public final class TestLoggers implements ILoggerFactory {
     return result;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public java.util.logging.Logger getJulGlobal() {
     return julGlobal;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public java.util.logging.Logger getJulRoot() {
     return julRoot;
   }

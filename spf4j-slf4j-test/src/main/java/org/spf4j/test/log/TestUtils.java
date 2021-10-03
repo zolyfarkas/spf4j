@@ -16,6 +16,7 @@
 package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.List;
 import org.spf4j.base.Env;
 
@@ -28,11 +29,12 @@ public final class TestUtils {
   public static boolean isExecutedDuringMvnRelease() {
     return Env.getValue("MAVEN_CMD_LINE_ARGS", "").contains("release:");
   }
-  
+
   public static boolean isExecutedInCI() {
     return isExecutedInTravis();
   }
 
+  @SuppressFBWarnings("IMPROPER_UNICODE")
   public static boolean isExecutedInTravis() {
     return "true".equalsIgnoreCase(System.getenv("TRAVIS"));
   }

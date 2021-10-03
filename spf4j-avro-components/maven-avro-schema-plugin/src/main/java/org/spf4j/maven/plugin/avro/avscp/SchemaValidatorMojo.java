@@ -53,7 +53,7 @@ import org.spf4j.maven.plugin.avro.avscp.validation.Validators;
  * @see org.spf4j.maven.plugin.avro.avscp.validation.impl Built in validator implementations.
  */
 @Mojo(name = "avro-validate", defaultPhase = LifecyclePhase.TEST, requiresProject = true)
-@SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR"})
+@SuppressFBWarnings({"PATH_TRAVERSAL_IN", "SCII_SPOILED_CHILD_INTERFACE_IMPLEMENTOR", "EI_EXPOSE_REP"})
 public final class SchemaValidatorMojo extends SchemaMojoBase implements ValidatorMojo {
 
   /**

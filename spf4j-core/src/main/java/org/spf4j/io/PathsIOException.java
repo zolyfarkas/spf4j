@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 
@@ -61,7 +62,7 @@ public final class PathsIOException extends IOException {
 
   @Nonnull
   public List<URI> getPaths() {
-    return paths;
+    return Collections.unmodifiableList(paths);
   }
 
   @Override

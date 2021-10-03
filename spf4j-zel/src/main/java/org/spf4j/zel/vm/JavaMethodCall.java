@@ -52,12 +52,13 @@ public final class JavaMethodCall implements Method {
     private final Class<?> objectClass;
     private final Object object;
 
-     public JavaMethodCall(final Class<?> clasz, final String methodName) {
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
+    public JavaMethodCall(final Class<?> clasz, final String methodName) {
         this.name = methodName;
         this.objectClass = clasz;
         this.object = null;
     }
-    
+
 
     public JavaMethodCall(final Object object, final String methodName) {
         this.name = methodName;

@@ -40,13 +40,13 @@ import org.spf4j.perf.impl.Quanta;
  *
  * @author zoly
  */
-public final class QuantizedNumberTickUnit extends NumberTickUnit {
+final class QuantizedNumberTickUnit extends NumberTickUnit {
 
     private static final long serialVersionUID = 1L;
-    
+
     private final List<ComparablePair<Quanta, Integer>> quantas;
 
-    public QuantizedNumberTickUnit(final double size, final List<ComparablePair<Quanta, Integer>> quantas) {
+    QuantizedNumberTickUnit(final double size, final List<ComparablePair<Quanta, Integer>> quantas) {
         super(size);
         this.quantas = quantas;
     }

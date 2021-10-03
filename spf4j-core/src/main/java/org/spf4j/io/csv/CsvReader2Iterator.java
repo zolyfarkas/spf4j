@@ -38,7 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public final class CsvReader2Iterator implements Iterator<Iterable<String>> {
+final class CsvReader2Iterator implements Iterator<Iterable<String>> {
 
   private final CsvReader reader;
 
@@ -46,7 +46,7 @@ public final class CsvReader2Iterator implements Iterator<Iterable<String>> {
 
   private boolean haveParsedRow;
 
-  public CsvReader2Iterator(final CsvReader preader) {
+  CsvReader2Iterator(final CsvReader preader) {
     this.reader = preader;
     haveParsedRow = false;
     row = new ArrayList<>();
@@ -108,6 +108,5 @@ public final class CsvReader2Iterator implements Iterator<Iterable<String>> {
   public String toString() {
     return "CsvReader2Iterator{" + "reader=" + reader + ", row=" + row + ", haveParsedRow=" + haveParsedRow + '}';
   }
-
 
 }

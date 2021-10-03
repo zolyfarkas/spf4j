@@ -31,6 +31,7 @@
  */
 package org.spf4j.base.asm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -49,6 +50,7 @@ public final class Invocation {
     private final Object[] parameters;
     private final Method invokedMethod;
 
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public Invocation(final String cName, final String mName, final String mDesc,
             final Object[] parameters, final String src, final int ln, final Method invokedMethod) {
         caleeClassName = cName;
@@ -80,6 +82,7 @@ public final class Invocation {
         return caleeLine;
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public Method getInvokedMethod() {
         return invokedMethod;
     }

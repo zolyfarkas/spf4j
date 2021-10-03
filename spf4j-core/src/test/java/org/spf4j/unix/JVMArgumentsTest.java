@@ -39,6 +39,7 @@ import org.junit.Assume;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.os.OperatingSystem;
 
 
 /**
@@ -51,7 +52,7 @@ public class JVMArgumentsTest {
   @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   @Test
   public void testCurrentArgs() throws IOException {
-    Assume.assumeFalse(org.spf4j.base.Runtime.isWindows());
+    Assume.assumeFalse(OperatingSystem.isWindows());
     JVMArguments current = JVMArguments.current();
     LOG.debug("Current jvm args: {}", current);
     Assert.assertThat(current.getExecutable(), Matchers.endsWith("java"));

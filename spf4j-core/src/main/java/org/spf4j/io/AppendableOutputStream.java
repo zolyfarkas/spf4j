@@ -33,6 +33,7 @@ package org.spf4j.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -132,6 +133,7 @@ public class AppendableOutputStream extends OutputStream {
      * @param bufferSize the size of the output buffer in number of characters
      * @since 2.1
      */
+    @SuppressFBWarnings("EI_EXPOSE_REP2")
     public AppendableOutputStream(final Appendable writer, final CharsetDecoder decoder, final int bufferSize) {
         checkIbmJdkWithBrokenUTF16(decoder.charset());
         this.writer = writer;

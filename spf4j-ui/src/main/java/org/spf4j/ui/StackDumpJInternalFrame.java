@@ -57,14 +57,14 @@ import org.spf4j.stackmonitor.SampleNode;
  * @author zoly
  */
 @SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "SE_BAD_FIELD"})
-public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
+class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
   private SampleNode samples;
 
   /**
    * Creates new form StackDumpJInternalFrame
    */
-  public StackDumpJInternalFrame(final SampleNode samples,
+  StackDumpJInternalFrame(final SampleNode samples,
           final String title, final boolean isgraph) {
     super(title);
     setName(title);

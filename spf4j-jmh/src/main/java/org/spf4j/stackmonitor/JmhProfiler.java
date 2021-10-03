@@ -69,10 +69,6 @@ public final class JmhProfiler implements InternalProfiler {
 
   private static volatile String benchmarkName;
 
-  public static Sampler getStackSampler() {
-    return SAMPLER;
-  }
-
   public static String benchmarkName() {
     return benchmarkName;
   }
@@ -111,14 +107,14 @@ public final class JmhProfiler implements InternalProfiler {
     return "spf4j stack sampler";
   }
 
-  public static final class StackResult extends Result<StackResult> {
+  static final class StackResult extends Result<StackResult> {
 
     private static final long serialVersionUID = 1L;
 
     private final SampleNode samples;
     private final String benchmark;
 
-    public StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
+    StackResult(final SampleNode samples, final String benchmark, final boolean isIteration)
             throws IOException {
       super(ResultRole.SECONDARY, "@stack", of(Double.NaN), "---", AggregationPolicy.AVG);
       this.samples = samples;
@@ -129,6 +125,7 @@ public final class JmhProfiler implements InternalProfiler {
       }
     }
 
+    @SuppressFBWarnings("EI_EXPOSE_REP")
     public SampleNode getSamples() {
       return samples;
     }

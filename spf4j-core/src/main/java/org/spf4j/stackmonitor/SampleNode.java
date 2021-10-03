@@ -86,6 +86,35 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     this.sampleCount = 0;
   }
 
+  public static SampleNode create(final StackSamples samples) {
+    TMap<Method, ? extends StackSamples> subNodes =  samples.getSubNodes();
+    if (subNodes.isEmpty()) {
+      return new SampleNode(samples.getSampleCount());
+    }
+    SampleNode result = new SampleNode(samples.getSampleCount(), subNodes.size());
+    ArrayDeque<Traverse<StackSamples>> traverse = new ArrayDeque<>();
+    subNodes.forEachEntry((final Method a, final StackSamples b) -> {
+      traverse.add(new Traverse(result, a, b));
+      return true;
+    });
+    Traverse<StackSamples> t;
+    while ((t = traverse.poll()) != null) {
+      subNodes = t.child.getSubNodes();
+      if (subNodes.isEmpty()) {
+        ((TMap<Method, StackSamples>) t.parent.getSubNodes()).put(t.method, new SampleNode(t.child.getSampleCount()));
+      } else {
+        SampleNode nc = new SampleNode(t.child.getSampleCount(), subNodes.size());
+        ((TMap<Method, StackSamples>) t.parent.getSubNodes()).put(t.method, nc);
+        subNodes.forEachEntry((final Method a, final StackSamples b) -> {
+          traverse.add(new Traverse(nc, a, b));
+          return true;
+        });
+      }
+    }
+    return result;
+  }
+
+
   @VisibleForTesting
   void addToCount(final int nr) {
     sampleCount += nr;
@@ -125,12 +154,12 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     return this;
   }
 
-  private static class Traverse {
-    private final SampleNode parent;
+  private static class Traverse<T extends StackSamples> {
+    private final T parent;
     private final Method method;
-    private final SampleNode child;
+    private final T child;
 
-    Traverse(final SampleNode parent, final Method method, final SampleNode child) {
+    Traverse(final T parent, final Method method, final T child) {
       this.parent = parent;
       this.method = method;
       this.child = child;
@@ -142,12 +171,12 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
       return new SampleNode(node.sampleCount);
     }
     SampleNode result = new SampleNode(node.sampleCount, node.size());
-    ArrayDeque<Traverse> traverse = new ArrayDeque<>();
+    ArrayDeque<Traverse<SampleNode>> traverse = new ArrayDeque<>();
     node.forEachEntry((final Method a, final SampleNode b) -> {
       traverse.add(new Traverse(result, a, b));
       return true;
     });
-    Traverse t;
+    Traverse<SampleNode> t;
     while ((t = traverse.poll()) != null) {
       if (t.child.isEmpty()) {
         t.parent.put(t.method, new SampleNode(t.child.sampleCount));
@@ -230,15 +259,28 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
    */
   public void add(final SampleNode other) {
     this.sampleCount += other.sampleCount;
-      other.forEachEntry((final Method m, final SampleNode b) -> {
-        SampleNode xChild = get(m);
-        if (xChild == null) {
-          put(m, b);
-        } else {
-          xChild.add(b);
-        }
-        return true;
-      });
+    other.forEachEntry((final Method m, final SampleNode b) -> {
+      SampleNode xChild = get(m);
+      if (xChild == null) {
+        put(m, b);
+      } else {
+        xChild.add(b);
+      }
+      return true;
+    });
+  }
+
+  public void add(final StackSamples other) {
+    this.sampleCount += other.getSampleCount();
+    other.getSubNodes().forEachEntry((final Method m, final StackSamples b) -> {
+      SampleNode xChild = get(m);
+      if (xChild == null) {
+        put(m, SampleNode.create(b));
+      } else {
+        xChild.add(b);
+      }
+      return true;
+    });
   }
 
   @Override

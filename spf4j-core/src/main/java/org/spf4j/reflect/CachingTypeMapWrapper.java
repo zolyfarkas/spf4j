@@ -34,6 +34,7 @@ package org.spf4j.reflect;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Type;
 import java.util.Set;
 import java.util.function.Function;
@@ -54,12 +55,14 @@ public final class CachingTypeMapWrapper<H> implements TypeMap<H> {
 
   private final Object syncObj;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CachingTypeMapWrapper(final CacheBuilder<Type, Set<H>> cacheBuilder, final TypeMap wrapped) {
     this.syncObj = new Object();
     this.wrapped = wrapped;
     cache = cacheBuilder.build(new TypeMapedObjLoader());
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public CachingTypeMapWrapper(final TypeMap wrapped) {
     this.syncObj = new Object();
     this.wrapped = wrapped;

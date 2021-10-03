@@ -31,6 +31,7 @@
  */
 package org.spf4j.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
@@ -53,6 +54,7 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
     this(record, false);
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public AvroLogRecordImpl(final LogRecord record, final boolean isLogged) {
     this.record = record;
     this.isLogged = isLogged;
@@ -60,7 +62,7 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
 
   @Override
   public LogRecord toLogRecord(final String origin, final String traceId) {
-    return record;
+    return LogRecord.newBuilder(record).setOrigin(origin).setTrId(traceId).build();
   }
 
   @Override

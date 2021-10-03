@@ -49,7 +49,7 @@ import static org.spf4j.maven.plugin.avro.avscp.SchemaCompileMojo.SCHEMA_INDEX_F
  */
 @SuppressWarnings("checkstyle:VisibilityModifier")
 @SuppressFBWarnings("AI_ANNOTATION_ISSUES_NEEDS_NULLABLE")
-public abstract class SchemaMojoBase extends AbstractMojo {
+abstract class SchemaMojoBase extends AbstractMojo {
 
 
   @Parameter(defaultValue = "${project}", required = true, readonly = true)

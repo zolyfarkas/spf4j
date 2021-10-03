@@ -15,6 +15,7 @@
  */
 package org.spf4j.test.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
@@ -26,15 +27,18 @@ public final class UncaughtExceptionDetail {
   private final Thread thread;
   private final Throwable throwable;
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public UncaughtExceptionDetail(final Thread thread, final Throwable throwable) {
     this.thread = thread;
     this.throwable = throwable;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Thread getThread() {
     return thread;
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Throwable getThrowable() {
     return throwable;
   }

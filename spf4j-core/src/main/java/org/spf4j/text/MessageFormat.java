@@ -491,6 +491,7 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if the pattern is invalid
    * @since 1.4
    */
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
   public MessageFormat(String pattern, Locale locale) {
     this.locale = locale;
     applyPattern(pattern);
@@ -508,7 +509,8 @@ public final class MessageFormat extends Format {
    *
    * @param locale the locale to be used when creating or comparing subformats
    */
-  public void setLocale(Locale locale) {
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
+  public void setLocale(final Locale locale) {
     this.locale = locale;
   }
 
@@ -517,6 +519,7 @@ public final class MessageFormat extends Format {
    *
    * @return the locale used when creating or comparing subformats
    */
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public Locale getLocale() {
     return locale;
   }
@@ -531,7 +534,7 @@ public final class MessageFormat extends Format {
    */
   @SuppressWarnings("fallthrough") // fallthrough in switch is expected, suppress it
   @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
-  public void applyPattern(String pattern) {
+  public void applyPattern(final String pattern) {
     StringBuilder[] segments = new StringBuilder[4];
     // Allocate only segments[SEG_RAW] here. The rest are
     // allocated on demand.
@@ -703,7 +706,7 @@ public final class MessageFormat extends Format {
    * @exception NullPointerException if <code>newFormats</code> is null
    * @since 1.4
    */
-  public void setFormatsByArgumentIndex(Format[] newFormats) {
+  public void setFormatsByArgumentIndex(final Format[] newFormats) {
     for (int i = 0; i <= maxOffset; i++) {
       final FormatInfo finfo = formats[i];
       int j = finfo.getArgumentNumber();
@@ -728,7 +731,7 @@ public final class MessageFormat extends Format {
    * @param newFormats the new formats to use
    * @exception NullPointerException if <code>newFormats</code> is null
    */
-  public void setFormats(Format[] newFormats) {
+  public void setFormats(final Format[] newFormats) {
     int runsToCopy = newFormats.length;
     if (runsToCopy > maxOffset + 1) {
       runsToCopy = maxOffset + 1;
@@ -777,7 +780,7 @@ public final class MessageFormat extends Format {
    * @exception ArrayIndexOutOfBoundsException if {@code formatElementIndex} is equal to or larger than the number of
    * format elements in the pattern string
    */
-  public void setFormat(int formatElementIndex, Format newFormat) {
+  public void setFormat(final int formatElementIndex, final Format newFormat) {
     FormatInfo finfo = formats[formatElementIndex];
     formats[formatElementIndex] = new FormatInfo(newFormat, finfo.getOffset(), finfo.getArgumentNumber());
   }
@@ -908,7 +911,7 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if the pattern is invalid, or if an argument in the <code>arguments</code>
    * array is not of the type expected by the format element(s) that use it.
    */
-  public static String format(String pattern, Object... arguments) {
+  public static String format(final String pattern, final Object... arguments) {
     MessageFormat temp = new MessageFormat(pattern);
     return temp.format(arguments);
   }
@@ -928,8 +931,8 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final <T extends CharSequence & Appendable> boolean[] format(Object arguments, T result,
-          FieldPosition pos) throws IOException {
+  public final <T extends CharSequence & Appendable> boolean[] format(final Object arguments, final T result,
+          final FieldPosition pos) throws IOException {
     if (arguments instanceof Object[]) {
       return subformat((Object[]) arguments, result, pos, null);
     } else {
@@ -1436,9 +1439,11 @@ public final class MessageFormat extends Format {
     formats[offsetNumber] = new FormatInfo(newFormat, segments[SEG_RAW].length(), argumentNumber);
   }
 
-  @SuppressFBWarnings(value = {"ES_COMPARING_STRINGS_WITH_EQ"}, justification = "optimization")
+  @SuppressFBWarnings(value = {"ES_COMPARING_STRINGS_WITH_EQ", "IMPROPER_UNICODE"},
+          justification = "optimization")
   private static final int findKeyword(String s, String[] list) {
-    for (int i = 0; i < list.length; ++i) {
+    int l = list.length;
+    for (int i = 0; i < l; ++i) {
       if (s.equals(list[i])) {
         return i;
       }
@@ -1447,7 +1452,7 @@ public final class MessageFormat extends Format {
     // Try trimmed lowercase.
     String ls = s.trim();
     if (ls != s) {
-      for (int i = 0; i < list.length; ++i) {
+      for (int i = 0; i < l; ++i) {
         if (ls.equalsIgnoreCase(list[i])) {
           return i;
         }

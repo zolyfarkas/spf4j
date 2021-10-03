@@ -175,7 +175,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     ValidationUtils.validateLogger(LOG);
   }
 
-  @SuppressFBWarnings("WEM_WEAK_EXCEPTION_MESSAGING")
+  @SuppressFBWarnings({"WEM_WEAK_EXCEPTION_MESSAGING", "MS_EXPOSE_REP"})
   public static Spf4jTestLogRunListenerSingleton getListenerInstance() {
     Spf4jTestLogRunListenerSingleton res = instance;
     if (res == null) {
@@ -417,6 +417,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
     }
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP")
   public ExceptionHandoverRegistry getUncaughtExceptionHandler() {
     return uncaughtExceptionHandler;
   }
