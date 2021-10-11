@@ -44,7 +44,7 @@ public final class CsvEncoder extends Encoder implements Parser.ActionHandler {
   private boolean firstItem = true;
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
-  public CsvEncoder(final CsvWriter csvWriter, final Schema writerSchema) throws IOException {
+  public CsvEncoder(final CsvWriter csvWriter, final Schema writerSchema) {
     this.csvWriter = csvWriter;
     this.parser = new Parser(new JsonGrammarGenerator().generate(writerSchema), this);
     if (writerSchema.getType() != Schema.Type.ARRAY) {
