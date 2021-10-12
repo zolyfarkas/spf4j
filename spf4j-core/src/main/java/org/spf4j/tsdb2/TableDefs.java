@@ -91,20 +91,26 @@ public final class TableDefs {
             Schema.Field.Order.IGNORE));
     for (ColumnDef cd : columns) {
       Type type = cd.getType();
+      String rawFieldName = cd.getName();
+      String fieldName = sanitizeName(rawFieldName);
       switch (type) {
         case DOUBLE:
           Schema schema = Schema.create(Schema.Type.DOUBLE);
           schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());
           schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());
-          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
-                  Schema.Field.Order.IGNORE));
+          Schema.Field field = AvroCompatUtils.createField(fieldName, schema, cd.getDescription(), null, true, false,
+                Schema.Field.Order.IGNORE);
+          field.addProp(TimeSeriesRecord.RAW_NAME, rawFieldName);
+          fields.add(field);
           break;
         case LONG:
           schema = Schema.create(Schema.Type.LONG);
           schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());
           schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());
-          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,
-                  Schema.Field.Order.IGNORE));
+          field = AvroCompatUtils.createField(fieldName, schema, cd.getDescription(), null, true, false,
+                Schema.Field.Order.IGNORE);
+          field.addProp(TimeSeriesRecord.RAW_NAME, rawFieldName);
+          fields.add(field);
           break;
         default:
           throw new IllegalStateException("Invalid data type " + type);

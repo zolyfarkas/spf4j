@@ -31,6 +31,8 @@
  */
 package org.spf4j.log;
 
+import java.util.EnumMap;
+import java.util.Map;
 import org.spf4j.base.avro.LogLevel;
 
 
@@ -39,20 +41,30 @@ import org.spf4j.base.avro.LogLevel;
  * @author Zoltan Farkas
  */
 public enum Level {
-  TRACE(java.util.logging.Level.FINEST, LogLevel.TRACE),
-  DEBUG(java.util.logging.Level.FINE, LogLevel.DEBUG),
-  INFO(java.util.logging.Level.INFO, LogLevel.INFO),
-  WARN(java.util.logging.Level.WARNING, LogLevel.WARN),
-  ERROR(java.util.logging.Level.SEVERE, LogLevel.ERROR),
-  OFF(java.util.logging.Level.OFF, LogLevel.UNKNOWN);
+  TRACE(java.util.logging.Level.FINEST),
+  DEBUG(java.util.logging.Level.FINE),
+  INFO(java.util.logging.Level.INFO),
+  WARN(java.util.logging.Level.WARNING),
+  ERROR(java.util.logging.Level.SEVERE),
+  OFF(java.util.logging.Level.OFF);
+
+
+  static final class Lazy {
+    private static final Map<Level, LogLevel> CONVERT_MAP = new EnumMap<>(Level.class);
+    static {
+      CONVERT_MAP.put(TRACE, LogLevel.TRACE);
+      CONVERT_MAP.put(DEBUG, LogLevel.DEBUG);
+      CONVERT_MAP.put(INFO, LogLevel.INFO);
+      CONVERT_MAP.put(WARN, LogLevel.WARN);
+      CONVERT_MAP.put(ERROR, LogLevel.ERROR);
+      CONVERT_MAP.put(OFF, LogLevel.UNKNOWN);
+    }
+  }
 
   private final java.util.logging.Level julLevel;
 
-  private final LogLevel avroLevel;
-
-  Level(final java.util.logging.Level julLevel, final LogLevel avroLevel) {
+  Level(final java.util.logging.Level julLevel) {
     this.julLevel = julLevel;
-    this.avroLevel = avroLevel;
   }
 
   public int getIntValue() {
@@ -64,7 +76,7 @@ public enum Level {
   }
 
   public LogLevel getAvroLevel() {
-    return avroLevel;
+    return Lazy.CONVERT_MAP.get(this);
   }
 
   public static Level fromAvroLevel(final LogLevel level) {

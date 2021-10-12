@@ -16,7 +16,7 @@
 package org.spf4j.test.log;
 
 import com.google.common.annotations.Beta;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.base.Ascii;
 import java.util.List;
 import org.spf4j.base.Env;
 
@@ -34,9 +34,8 @@ public final class TestUtils {
     return isExecutedInTravis();
   }
 
-  @SuppressFBWarnings("IMPROPER_UNICODE")
   public static boolean isExecutedInTravis() {
-    return "true".equalsIgnoreCase(System.getenv("TRAVIS"));
+    return Ascii.equalsIgnoreCase("true", "TRAVIS");
   }
 
 
