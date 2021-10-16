@@ -32,6 +32,7 @@
 package org.spf4j.perf.impl;
 
 import java.io.IOException;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanException;
@@ -49,7 +50,10 @@ import org.spf4j.perf.MeasurementRecorder;
  *
  * @author zoly
  */
+@NotThreadSafe
 public class RecorderFactoryTest {
+
+  private static final int JMX_PORT = Integer.getInteger("com.sun.management.jmxremote.port", 9999);
 
   @Test
   public void testRecorderFactory() throws InterruptedException, IOException,
@@ -62,7 +66,7 @@ public class RecorderFactoryTest {
       rec.record(i);
       sum += i;
     }
-    String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+    String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi",
             "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurementsAsCsv");
     Assert.assertThat(ret3, Matchers.containsString(sum + "," + 11));
     rec.close();
@@ -73,7 +77,7 @@ public class RecorderFactoryTest {
           InstanceNotFoundException, MBeanException, AttributeNotFoundException, ReflectionException {
     CloseableMeasurementRecorder rec = RecorderFactory.createScalableQuantizedRecorder2(RecorderFactoryTest.class,
             "ms", 100000000, 10, 0, 6, 10);
-    CompositeData ret3 = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+    CompositeData ret3 = (CompositeData) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi",
             "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName(), "measurements");
     Assert.assertNull(ret3);
     rec.close();
@@ -95,7 +99,7 @@ public class RecorderFactoryTest {
       recorder.record(i);
       sum += i;
     }
-    String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:9999/jmxrmi",
+    String ret3 = (String) Client.getAttribute("service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi",
             "org.spf4j.perf.recorders", "class_" + RecorderFactoryTest.class.getName() + "_RsTest",
             "measurementsAsString");
     Assert.assertThat(ret3, Matchers.containsString("test," + sum + "," + 11));
