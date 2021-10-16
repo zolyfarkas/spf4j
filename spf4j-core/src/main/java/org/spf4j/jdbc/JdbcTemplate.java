@@ -75,6 +75,7 @@ public final class JdbcTemplate {
             .build());
   }
 
+  @SuppressFBWarnings("EI_EXPOSE_REP2") // DataSource is mutable...
   public JdbcTemplate(final DataSource dataSource, final RetryPolicy<Object, Callable<? extends Object>> retryPolicy) {
     this.dataSource = dataSource;
     this.retryPolicy = retryPolicy;
