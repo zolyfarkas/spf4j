@@ -75,7 +75,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
               new DefaultArtifactHandler(schemaArtifactExtension));
       schemas.setFile(avsc.toFile());
       logger.debug("Attaching " + schemas  + " from " + avsc);
-      mavenProject.getAttachedArtifacts().add(schemas);
+      mavenProject.addAttachedArtifact(schemas);
     }
     if (packageAvscSources) {
       logger.info("Packaging schema sources");
@@ -91,7 +91,7 @@ public final class SchemaPackageMojo extends SchemaMojoBase {
               new DefaultArtifactHandler("jar"));
       avroSources.setFile(sources.toFile());
       logger.debug("Attaching " + avroSources  + " from " + sources);
-      mavenProject.getAttachedArtifacts().add(avroSources);
+      mavenProject.addAttachedArtifact(avroSources);
     }
   }
 
