@@ -31,7 +31,7 @@ To build project all you need to do is: mvn install
 
 Spf4j builds against [an avro fork](https://github.com/zolyfarkas/avro) which is published to github repos.
 Until Github removes the authentication requirements, you will need to configure
-your authentication credentials in your settings.xml. (see the avro fork readme for more detail)
+your authentication credentials in your settings.xml. ([see](https://github.com/zolyfarkas/avro) the avro fork readme for more detail)
 
 Please use -Dgpg.skip=true argument is you do not have gpg installed or configured.
 
