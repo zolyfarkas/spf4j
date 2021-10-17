@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <activeProfiles>
+    <activeProfile>github</activeProfile>
+  </activeProfiles>
+
+  <profiles>
+    <profile>
+      <id>github</id>
+      <repositories>
+        <repository>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <id>sonatype-snapshot</id>
+          <name>Sonatype Snapshot Repository</name>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+        <repository>
+          <id>github</id>
+          <url>https://maven.pkg.github.com/zolyfarkas/*</url>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+      <pluginRepositories>
+        <pluginRepository>
+           <id>github-plugins</id>
+            <url>https://maven.pkg.github.com/zolyfarkas/*</url>
+            <snapshots>
+              <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <servers>
+    <server>
+      <id>github</id>
+      <username>zolyfarkas</username>
+      <password>${env.GITHUB_PKG_TOKEN}</password>
+    </server>
+    <server>
+      <id>github-plugins</id>
+      <username>zolyfarkas</username>
+      <password>${env.GITHUB_PKG_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
