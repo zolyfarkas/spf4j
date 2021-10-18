@@ -15,7 +15,13 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    - name: Set up JDK 11
+      uses: AdoptOpenJDK/install-jdk@v1
+      with:
+        version: '11'
+        architecture: x64
+        targets: 'JDK_11'
     - name: run/xfb
       run: "/sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16"
     - name: Build with Maven
-      run: mvn -T 1C -s .github/workflows/settings.xml  -B package --file pom.xml
+      run: mvn -T 1C -s .github/workflows/settings.xml  -B package -Djava8.home=${JAVA_HOME} -Djava11.home=${JDK_11}  --file pom.xml
