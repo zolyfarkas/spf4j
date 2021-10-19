@@ -13,7 +13,9 @@ Codacy: [![Codacy Badge](https://api.codacy.com/project/badge/Grade/48b501769452
 
 SonarCloud: [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=org.spf4j%3Aspf4j&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.spf4j%3Aspf4j)
 
-Continuous integration: [![CI badge](https://app.travis-ci.com/zolyfarkas/spf4j.svg?branch=master)](https://app.travis-ci.com/github/zolyfarkas/spf4j)
+Travis Continuous integration: [![CI badge](https://app.travis-ci.com/zolyfarkas/spf4j.svg?branch=master)](https://app.travis-ci.com/github/zolyfarkas/spf4j)
+
+Github Continuous Integration: [![Java CI](https://github.com/zolyfarkas/spf4j/actions/workflows/maven.yml/badge.svg)](https://github.com/zolyfarkas/spf4j/actions/workflows/maven.yml)
 
 see more detail at: http://zolyfarkas.github.com/spf4j/
 
