@@ -27,10 +27,10 @@
  [SPF4J Github hosted repo](https://github.com/zolyfarkas/spf4j/)
 
  [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.spf4j/spf4j-core/)
- [![Coverity Badge](https://scan.coverity.com/projects/3158/badge.svg)](https://scan.coverity.com/projects/3158)
  [![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=org.spf4j%3Aspf4j&metric=alert_status)](https://sonarcloud.io/dashboard?id=org.spf4j%3Aspf4j)
  [![Codacy Badge](https://api.codacy.com/project/badge/Grade/48b50176945242729f4386b05be8c8dc)](https://www.codacy.com/app/zolyfarkas/spf4j?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=zolyfarkas/spf4j&amp;utm_campaign=Badge_Grade)
  [![CI badge](https://app.travis-ci.com/zolyfarkas/spf4j.svg?branch=master)](https://app.travis-ci.com/github/zolyfarkas/spf4j)
+ [![Java CI](https://github.com/zolyfarkas/spf4j/actions/workflows/maven.yml/badge.svg)](https://github.com/zolyfarkas/spf4j/actions/workflows/maven.yml)
 
 ## Architecture
 
