@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
+import java.util.logging.Logger;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -69,7 +70,13 @@ public final class AvroProfilePersister implements ProfilePersister {
       this.targetFolder = targetFolder;
       this.baseFileName = baseFileName;
       if (compress) {
-        dataWriter.setCodec(CodecFactory.zstandardCodec(-2, true));
+        try {
+          Class.forName("com.github.luben.zstd.Zstd");
+          dataWriter.setCodec(CodecFactory.zstandardCodec(-2, true));
+        } catch (ClassNotFoundException | UnsatisfiedLinkError ex) {
+          Logger.getLogger(AvroProfilePersister.class.getName()).fine("Fallback avro compress to deflate");
+          dataWriter.setCodec(CodecFactory.deflateCodec(1));
+        }
       }
       dataWriter.setMeta("appVersion", org.spf4j.base.Runtime.getAppVersionString());
       String fileName = baseFileName + ProfileFileFormat.SSP.getSuffix();
@@ -77,9 +84,8 @@ public final class AvroProfilePersister implements ProfilePersister {
       if (Files.isWritable(targetFile)) {
         Files.move(targetFile, targetFile.resolveSibling(targetFile.getFileName().toString()
                 + ".backup." + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now())));
-      } else {
-        dataWriter.create(ApplicationStackSamples.getClassSchema(), targetFile.toFile());
       }
+      dataWriter.create(ApplicationStackSamples.getClassSchema(), targetFile.toFile());
       this.writer = dataWriter;
   }
 
@@ -127,6 +133,10 @@ public final class AvroProfilePersister implements ProfilePersister {
   @Override
   public void close() throws IOException {
     this.writer.close();
+  }
+
+  public Path getTargetFile() {
+    return targetFile;
   }
 
   @Override
