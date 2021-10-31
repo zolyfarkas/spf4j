@@ -54,7 +54,7 @@ public class SamplerTest {
   private static final Logger LOG = LoggerFactory.getLogger(SamplerTest.class);
 
   @Test
-  public void testSampler() throws InterruptedException {
+  public void testSampler() throws InterruptedException, IOException {
     Sampler sampler = Sampler.getSampler(5, 2000, new File(org.spf4j.base.Runtime.TMP_FOLDER), "test");
     LogAssert expect = TestLoggers.sys()
             .expect(Sampler.class.getName(), Level.INFO,

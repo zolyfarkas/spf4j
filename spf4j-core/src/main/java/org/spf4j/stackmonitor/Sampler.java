@@ -36,8 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.management.ManagementFactory;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
@@ -56,14 +54,12 @@ import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
-import org.spf4j.base.DateTimeFormats;
 import org.spf4j.base.SuppressForbiden;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
 import org.spf4j.concurrent.DefaultExecutor;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.ssdump2.Converter;
 
 /**
  * Utility to sample stack traces. Stack traces can be persisted for later analysis.
@@ -88,7 +84,6 @@ public final class Sampler {
   @GuardedBy("sync")
   private boolean stopped;
 
-  private volatile boolean compressDumps;
   private volatile long sampleTimeNanos;
   private volatile long dumpTimeNanos;
   private final SamplerSupplier stackCollectorSupp;
@@ -102,15 +97,13 @@ public final class Sampler {
   @GuardedBy("sync")
   private Future<?> samplerFuture;
 
-  private final String filePrefix;
-
-  private final File dumpFolder;
+  private volatile ProfilePersister persister;
 
   @Override
   public String toString() {
     return "Sampler{" + "stopped=" + stopped + ", sampleTimeNanos="
             + sampleTimeNanos + ", dumpTimeNanos=" + dumpTimeNanos + ", lastDumpTimeNanos="
-            + lastDumpTimeNanos + ", dumpFolder=" + dumpFolder + ", filePrefix=" + filePrefix + '}';
+            + lastDumpTimeNanos + ", dumpFolder=" + getDumpFolder() + ", filePrefix=" + getFilePrefix() + '}';
   }
 
   public Sampler() {
@@ -154,7 +147,12 @@ public final class Sampler {
 
   public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
           final File dumpFolder, final String dumpFilePrefix, final boolean compressDumps) {
-    CharSequences.validatedFileName(dumpFilePrefix);
+    this(sampleTimeMillis, dumpTimeMillis, collector,
+            new LegacyProfilePersister(dumpFolder.toPath(), dumpFilePrefix, compressDumps));
+  }
+
+  public Sampler(final int sampleTimeMillis, final int dumpTimeMillis, final SamplerSupplier collector,
+          final ProfilePersister persister) {
     stopped = true;
     if (sampleTimeMillis < 1) {
       throw new IllegalArgumentException("Invalid sample time " + sampleTimeMillis);
@@ -165,14 +163,13 @@ public final class Sampler {
     }
     this.dumpTimeNanos = TimeUnit.MILLISECONDS.toNanos(dumpTimeMillis);
     this.stackCollectorSupp = collector;
-    this.filePrefix = dumpFilePrefix;
-    this.dumpFolder = dumpFolder;
-    this.compressDumps = compressDumps;
+    this.persister = persister;
   }
+
 
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis,
-          final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
+          final File dumpFolder, final String dumpFilePrefix) throws InterruptedException, IOException {
     return getSampler(sampleTimeMillis, dumpTimeMillis,
             (t) -> new FastStackCollector(false, true, new Thread[]{t}), dumpFolder, dumpFilePrefix);
   }
@@ -193,7 +190,7 @@ public final class Sampler {
   @SuppressFBWarnings("MS_EXPOSE_REP")
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis, final SamplerSupplier collector,
-          final File dumpFolder, final String dumpFilePrefix) throws InterruptedException {
+          final File dumpFolder, final String dumpFilePrefix) throws InterruptedException, IOException {
     if (instance != null) {
       instance.dispose();
     }
@@ -278,19 +275,72 @@ public final class Sampler {
 
   @JmxExport
   public boolean isCompressDumps() {
-    return compressDumps;
+    return persister.isCompressing();
   }
 
   @JmxExport
-  public void setCompressDumps(final boolean compressDumps) {
-    this.compressDumps = compressDumps;
+  public void setCompressDumps(final boolean compressDumps) throws IOException {
+    ProfilePersister p = this.persister;
+    p.close();
+    this.persister = p.witCompression(compressDumps);
   }
 
+
+  private static class ProfileData {
+    private final Instant from;
+    private final Instant to;
+    private final Map<String, SampleNode> samples;
+
+    ProfileData(final Instant from, final Instant to, final Map<String, SampleNode> samples) {
+      this.from = from;
+      this.to = to;
+      this.samples = samples;
+    }
+
+    public Instant getFrom() {
+      return from;
+    }
+
+    public Instant getTo() {
+      return to;
+    }
+
+    public Map<String, SampleNode> getSamples() {
+      return samples;
+    }
+  }
+
+  @Nullable
+  private ProfileData getAndResetProfileSamples() {
+    long fromNanos;
+    Map<String, SampleNode> collections;
+    long nowNanos;
+    synchronized (sync) {
+      if (stackCollector == null) {
+        return null;
+      }
+      collections = stackCollector.getCollectionsAndReset();
+      if (collections.isEmpty()) {
+        return null;
+      }
+      fromNanos = lastDumpTimeNanos;
+      nowNanos = TimeSource.nanoTime();
+      lastDumpTimeNanos = nowNanos;
+    }
+    Timing currentTiming = Timing.getCurrentTiming();
+    return new ProfileData(currentTiming.fromNanoTimeToInstant(fromNanos),
+            currentTiming.fromNanoTimeToInstant(nowNanos), collections);
+
+  }
 
   @JmxExport(description = "save stack samples to file")
   @Nullable
   public File dumpToFile() throws IOException {
-    return dumpToFile((String) null);
+    ProfileData data = getAndResetProfileSamples();
+    if (data == null) {
+      return null;
+    }
+    return persister.persist(data.getSamples(), null, data.getFrom(), data.getTo()).toFile();
   }
 
   /**
@@ -307,11 +357,11 @@ public final class Sampler {
   public File dumpToFile(
           @JmxExport(value = "fileID", description = "the ID that will be part of the file name")
           @Nullable final String id) throws IOException {
-    String fileName = filePrefix + ((id == null) ? "" : '_' + id) + '_'
-            + DateTimeFormats.COMPACT_TS_FORMAT.format(
-                    Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos))
-            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now());
-    return dumpToFile(dumpFolder, fileName);
+    ProfileData data = getAndResetProfileSamples();
+    if (data == null) {
+      return null;
+    }
+    return persister.persist(data.getSamples(), id, data.getFrom(), data.getTo()).toFile();
   }
 
   /**
@@ -329,50 +379,12 @@ public final class Sampler {
   @Nullable
   @SuppressFBWarnings("PATH_TRAVERSAL_IN") // not possible the provided ID is validated for path separators.
   public File dumpToFile(@Nonnull final File destinationFolder, final String pbaseFileName) throws IOException {
-    CharSequences.validatedFileName(pbaseFileName);
-    String baseFileName = URLEncoder.encode(pbaseFileName, StandardCharsets.UTF_8.name());
-    Map<String, SampleNode> collections;
-    synchronized (sync) {
-      if (stackCollector == null) {
-        return null;
-      }
-      collections = stackCollector.getCollectionsAndReset();
-      lastDumpTimeNanos = TimeSource.nanoTime();
-    }
-    if (collections.isEmpty()) {
+    ProfileData data = getAndResetProfileSamples();
+    if (data == null) {
       return null;
     }
-    String newFileName;
-    if (collections.size() == 1) {
-      Map.Entry<String, SampleNode> es = collections.entrySet().iterator().next();
-      SampleNode samples = es.getValue();
-      if (samples == null) {
-        return null;
-      }
-      if (baseFileName.endsWith(".ssdump2")) {
-        newFileName = baseFileName;
-      } else {
-        newFileName = Converter.createLabeledSsdump2FileName(baseFileName, es.getKey());
-      }
-      if (this.compressDumps) {
-        newFileName = newFileName + ".gz";
-      }
-      File file = new File(destinationFolder, newFileName);
-      Converter.save(file, samples);
-      return file;
-    } else {
-      if (baseFileName.endsWith(".ssdump3")) {
-        newFileName = baseFileName;
-      } else {
-        newFileName = baseFileName + ".ssdump3";
-      }
-      if (this.compressDumps) {
-        newFileName = newFileName + ".gz";
-      }
-      File file = new File(destinationFolder, newFileName);
-      Converter.saveLabeledDumps(file, collections);
-      return file;
-    }
+    return persister.withBaseFileName(destinationFolder.toPath(), pbaseFileName)
+           .persist(data.getSamples(), null, data.getFrom(), data.getTo()).toFile();
   }
 
   @JmxExport(description = "stop stack sampling")
@@ -437,9 +449,13 @@ public final class Sampler {
   }
 
   @PreDestroy
-  public void dispose() throws InterruptedException {
-    stop();
-    Registry.unregister(this);
+  public void dispose() throws InterruptedException, IOException {
+    try {
+      stop();
+    } finally {
+      Registry.unregister(this);
+      this.persister.close();
+    }
   }
 
   @JmxExport(description = "interval in milliseconds to save stack stamples periodically")
@@ -454,12 +470,12 @@ public final class Sampler {
 
   @JmxExport
   public String getFilePrefix() {
-    return filePrefix;
+    return persister.getBaseFileNAme();
   }
 
   @JmxExport
   public String getDumpFolder() {
-    return dumpFolder.toString();
+    return persister.getTargetPath().toString();
   }
 
   @JmxExport

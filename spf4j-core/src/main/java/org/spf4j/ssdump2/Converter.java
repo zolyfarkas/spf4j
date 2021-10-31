@@ -70,6 +70,7 @@ import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
+import org.spf4j.stackmonitor.ProfileFileFormat;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -86,14 +87,14 @@ public final class Converter {
     try {
       String encoded = URLEncoder.encode(label, StandardCharsets.UTF_8.name());
       encoded = encoded.replace("_", "%5F");
-      return baseFileName + '_' + encoded + ".ssdump2";
+      return baseFileName + '_' + encoded + ProfileFileFormat.SSDUMP_2.getSuffix();
     } catch (UnsupportedEncodingException ex) {
       throw new IllegalArgumentException("Unable to encode: " + label, ex);
     }
   }
 
   public static String getLabelFromSsdump2FileName(final String fileName) {
-    int spext = fileName.lastIndexOf(".ssdump2");
+    int spext = fileName.lastIndexOf(ProfileFileFormat.SSDUMP_2.getSuffix());
     if (spext < 0) {
       throw new IllegalArgumentException("Invalid ssdump2 file name: " + fileName);
     }
