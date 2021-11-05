@@ -61,11 +61,15 @@ public final class AvroProfilePersister implements ProfilePersister {
 
   private final Path targetFile;
 
+  private final long bucketTimeMillis;
+
   @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
-  public AvroProfilePersister(final Path targetFolder, final String baseFileName, final boolean compress)
+  public AvroProfilePersister(final Path targetFolder,
+          final String baseFileName, final boolean compress, final long bucketTimeMillis)
           throws IOException {
       DataFileWriter<ApplicationStackSamples> dataWriter =
               new DataFileWriter<>(new SpecificDatumWriter<>(ApplicationStackSamples.class));
+      this.bucketTimeMillis = bucketTimeMillis;
       this.compress = compress;
       this.targetFolder = targetFolder;
       this.baseFileName = baseFileName;
@@ -79,6 +83,7 @@ public final class AvroProfilePersister implements ProfilePersister {
         }
       }
       dataWriter.setMeta("appVersion", org.spf4j.base.Runtime.getAppVersionString());
+      dataWriter.setMeta("bucketTimeMillis", bucketTimeMillis);
       String fileName = baseFileName + ProfileFileFormat.SSP.getSuffix();
       targetFile = targetFolder.resolve(fileName);
       if (Files.isWritable(targetFile)) {
@@ -97,12 +102,12 @@ public final class AvroProfilePersister implements ProfilePersister {
 
   @Override
   public ProfilePersister withBaseFileName(final Path ptargetPath, final String pbaseFileName) throws IOException {
-    return new AvroProfilePersister(ptargetPath, pbaseFileName, compress);
+    return new AvroProfilePersister(ptargetPath, pbaseFileName, compress, bucketTimeMillis);
   }
 
   @Override
   public ProfilePersister witCompression(final boolean pcompress) throws IOException {
-     return new AvroProfilePersister(this.targetFolder, this.baseFileName, pcompress);
+     return new AvroProfilePersister(this.targetFolder, this.baseFileName, pcompress, bucketTimeMillis);
   }
 
   @Override

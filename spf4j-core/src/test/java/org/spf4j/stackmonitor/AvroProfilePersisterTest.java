@@ -33,11 +33,17 @@ package org.spf4j.stackmonitor;
 
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import org.apache.avro.file.DataFileStream;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.avro.ApplicationStackSamples;
+import org.spf4j.ssdump2.Converter;
 
 /**
  *
@@ -49,16 +55,24 @@ public class AvroProfilePersisterTest {
 
   @Test
   public void testPersister() throws IOException {
+    Path file;
+    SampleNode sn;
     try (AvroProfilePersister persister = new AvroProfilePersister(org.spf4j.base.Runtime.TMP_FOLDER_PATH,
-            "testProfile", true)) {
+            "testProfile", true, 60000L)) {
       SampleNodeTest snt = new  SampleNodeTest();
-      SampleNode sn = SampleNode.createSampleNode(snt.newSt1());
+      sn = SampleNode.createSampleNode(snt.newSt1());
       SampleNode.addToSampleNode(sn, snt.newSt2());
       SampleNode.addToSampleNode(sn, snt.newSt3());
       SampleNode.addToSampleNode(sn, snt.newSt4());
       persister.persist(ImmutableMap.of("test", sn), "tag", Instant.now(), Instant.now());
-      Path file = persister.getTargetPath();
+      file = persister.getTargetFile();
       LOG.debug("persisted profile to {}", file);
+    }
+    SpecificDatumReader<ApplicationStackSamples> reader = new SpecificDatumReader<>(ApplicationStackSamples.class);
+    try (DataFileStream<ApplicationStackSamples> stream = new DataFileStream<>(Files.newInputStream(file), reader)) {
+      ApplicationStackSamples samples = stream.next();
+      Assert.assertEquals("test", samples.getContext());
+      Assert.assertEquals(sn, Converter.convert(samples.getStackSamples().iterator()));
     }
 
   }
