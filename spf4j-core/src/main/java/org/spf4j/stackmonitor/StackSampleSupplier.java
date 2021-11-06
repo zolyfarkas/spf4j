@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.ui;
+package org.spf4j.stackmonitor;
 
 import java.io.IOException;
 import java.time.Instant;
-import org.spf4j.stackmonitor.SampleNode;
+import javax.annotation.Nullable;
 
 /**
  *
@@ -31,6 +31,7 @@ public interface StackSampleSupplier {
 
   ProfileMetaData getMetaData(Instant from, Instant to) throws IOException;
 
-  SampleNode getSamples(String context, String tag, Instant from, Instant to) throws IOException;
+  SampleNode getSamples(@Nullable String context, @Nullable String tag,
+          Instant from, Instant to) throws IOException;
 
 }

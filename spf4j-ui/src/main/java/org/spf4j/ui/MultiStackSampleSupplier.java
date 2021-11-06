@@ -15,9 +15,11 @@
  */
 package org.spf4j.ui;
 
+import org.spf4j.stackmonitor.StackSampleSupplier;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
+import org.spf4j.stackmonitor.ProfileMetaData;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**

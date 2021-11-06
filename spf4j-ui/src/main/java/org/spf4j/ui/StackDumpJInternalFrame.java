@@ -32,6 +32,7 @@
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
 
+import org.spf4j.stackmonitor.StackSampleSupplier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ItemEvent;
 import java.io.BufferedWriter;
@@ -57,6 +58,7 @@ import javax.swing.filechooser.FileFilter;
 import org.spf4j.base.Methods;
 import org.spf4j.base.SuppressForbiden;
 import org.spf4j.ssdump2.Converter;
+import org.spf4j.stackmonitor.ProfileMetaData;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**

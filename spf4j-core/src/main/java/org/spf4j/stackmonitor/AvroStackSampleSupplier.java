@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.ui;
+package org.spf4j.stackmonitor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,7 +25,6 @@ import org.apache.avro.file.DataFileStream;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.spf4j.base.avro.ApplicationStackSamples;
 import org.spf4j.ssdump2.Converter;
-import org.spf4j.stackmonitor.SampleNode;
 
 /**
  *
@@ -104,7 +103,8 @@ public final class AvroStackSampleSupplier implements StackSampleSupplier {
         if (((sampleFrom.compareTo(sampleTo) == 0
                 && sampleFrom.compareTo(pfrom) >= 0 && sampleFrom.compareTo(pfrom) <= 0)
                 || (sampleFrom.isBefore(pto) && sampleTo.isAfter(pfrom)))
-                && samples.getTag().equals(tag) && samples.getContext().equals(context)) {
+                && (tag == null || samples.getTag().equals(tag))
+                && (context == null || samples.getContext().equals(context))) {
           if (result == null) {
             result = Converter.convert(samples.getStackSamples().iterator());
           } else {

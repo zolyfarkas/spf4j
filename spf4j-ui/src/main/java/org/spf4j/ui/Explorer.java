@@ -31,6 +31,8 @@
  */
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
+import org.spf4j.stackmonitor.AvroStackSampleSupplier;
+import org.spf4j.stackmonitor.StackSampleSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

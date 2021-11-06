@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.ui;
+package org.spf4j.stackmonitor;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collection;
@@ -32,7 +32,7 @@ public final class ProfileMetaData {
 
   private final Set<String> tags;
 
-  ProfileMetaData(final Collection<String> contexts, final Collection<String> tags) {
+  public ProfileMetaData(final Collection<String> contexts, final Collection<String> tags) {
     this.contexts = Collections.unmodifiableSet(new HashSet<>(contexts));
     this.tags = Collections.unmodifiableSet(new HashSet<>(tags));
   }
@@ -49,8 +49,5 @@ public final class ProfileMetaData {
   public String toString() {
     return "ProfileMetaData{" + "contexts=" + contexts + ", tags=" + tags + '}';
   }
-
-
-
 
 }
