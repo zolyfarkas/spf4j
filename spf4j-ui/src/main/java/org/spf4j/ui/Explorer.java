@@ -43,6 +43,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.Map;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -241,6 +242,7 @@ public class Explorer extends javax.swing.JFrame {
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);
       chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);
+      chooser.addChoosableFileFilter(Spf4jFileFilter.PROFILE_AVRO);
       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);
       chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);
       chooser.addChoosableFileFilter(Spf4jFileFilter.AVRO_TABLEDEF);
@@ -297,7 +299,13 @@ public class Explorer extends javax.swing.JFrame {
     frame.setName("fromTextDialog");
     frame.setJMenuBar(createContextMenuBar());
     TextEntryPanel panel = new TextEntryPanel((title, samples) -> {
-        JInternalFrame f = new StackDumpJInternalFrame(samples, title, true);
+        Instant now = Instant.now();
+        JInternalFrame f;
+        try {
+          f = new StackDumpJInternalFrame(new OneStackSampleSupplier(now, now, samples), title, true);
+        } catch (IOException ex) {
+         throw new UncheckedIOException(ex);
+        }
         frame.setVisible(false);
         f.setVisible(true);
         desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);
@@ -318,6 +326,8 @@ public class Explorer extends javax.swing.JFrame {
     } catch (InterruptedException ex) {
       Thread.currentThread().interrupt();
       throw new RuntimeException(ex);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
   }//GEN-LAST:event_jMenuItem1ActionPerformed
 
@@ -330,12 +340,10 @@ public class Explorer extends javax.swing.JFrame {
         throw new RuntimeException(ex);
       }
       Map<String, SampleNode> samples = sampler.getStackCollectionsAndReset();
-      for (Map.Entry<String, SampleNode> entry : samples.entrySet()) {
-        try {
-          setFrames(entry.getValue(), "self:" + entry.getKey());
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
+      try {
+        setFrames(samples, "self");
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
       }
     }
   }//GEN-LAST:event_jMenuItem2ActionPerformed
@@ -363,9 +371,7 @@ public class Explorer extends javax.swing.JFrame {
       setFrames(samples, fileName);
     } else if (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {
       Map<String, SampleNode> loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);
-      for (Map.Entry<String, SampleNode> entry : loadLabeledDumps.entrySet()) {
-        setFrames(entry.getValue(), fileName + ':' + entry.getKey());
-      }
+      setFrames(loadLabeledDumps, fileName);
     } else if (Spf4jFileFilter.D3_JSON.accept(file)) {
       try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
         Pair<Method, SampleNode> parse = SampleNode.parseD3Json(br);
@@ -376,7 +382,9 @@ public class Explorer extends javax.swing.JFrame {
         Pair<Method, SampleNode> parse = SampleNode.parse(br);
         setFrames(parse.getSecond(), fileName);
       }
-    } else {
+    } else if (Spf4jFileFilter.PROFILE_AVRO.accept(file)) {
+      setFrames(new AvroStackSampleSupplier(file.toPath()), fileName);
+    }else {
       throw new IOException("Unsupported file format " + fileName);
     }
   }
@@ -395,10 +403,21 @@ public class Explorer extends javax.swing.JFrame {
     }
   }
 
-  private void setFrames(SampleNode samples, String fileName) throws IOException {
+  private void setFrames(StackSampleSupplier samples , String fileName) throws IOException {
     JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, false);
     frame.setVisible(true);
     desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+  }
+
+
+  private void setFrames(Map<String, SampleNode> samples , String fileName) throws IOException {
+    Instant now = Instant.now();
+    setFrames(new MultiStackSampleSupplier(now, now, samples), fileName);
+  }
+
+  private void setFrames(SampleNode samples, String fileName) throws IOException {
+    Instant now = Instant.now();
+    setFrames(new OneStackSampleSupplier(now, now, samples), fileName);
   }
 
 
@@ -463,6 +482,7 @@ public class Explorer extends javax.swing.JFrame {
   private javax.swing.JMenuItem openMenuItem;
   private javax.swing.JMenuItem pasteMenuItem;
   // End of variables declaration//GEN-END:variables
+
 
 
 }

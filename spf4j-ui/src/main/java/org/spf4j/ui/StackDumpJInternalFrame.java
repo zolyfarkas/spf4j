@@ -40,10 +40,22 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.SpinnerDateModel;
 import javax.swing.filechooser.FileFilter;
 import org.spf4j.base.Methods;
+import org.spf4j.base.SuppressForbiden;
 import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleNode;
 
@@ -56,29 +68,102 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
-@SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "SE_BAD_FIELD"})
+@SuppressFBWarnings({"FCBL_FIELD_COULD_BE_LOCAL", "SE_BAD_FIELD", "UP_UNUSED_PARAMETER"})
 class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
 
+  private static final ThreadLocal<Boolean> IS_UPDATE = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+  private final StackSampleSupplier samplesSupplier;
+
   private SampleNode samples;
+
+  private final SpinnerDateModel startModel;
+
+  private final SpinnerDateModel endModel;
 
   /**
    * Creates new form StackDumpJInternalFrame
    */
-  StackDumpJInternalFrame(final SampleNode samples,
-          final String title, final boolean isgraph) {
+  @SuppressForbiden
+  StackDumpJInternalFrame(final StackSampleSupplier samplesSupplier,
+          final String title, final boolean isgraph) throws IOException {
     super(title);
+    this.samplesSupplier = samplesSupplier;
     setName(title);
+    Instant min = samplesSupplier.getMin();
+    Instant max = samplesSupplier.getMax();
+    Date minDate = new Date(min.toEpochMilli());
+    Date maxDate = new Date(max.toEpochMilli());
+    startModel = new SpinnerDateModel(minDate, minDate, maxDate, Calendar.SECOND);
+    endModel = new SpinnerDateModel(maxDate, minDate, maxDate, Calendar.SECOND);
     initComponents();
+    ProfileMetaData metaData = samplesSupplier.getMetaData(min, max);
+    DefaultComboBoxModel<String> tagsModel = new DefaultComboBoxModel<>(metaData.getTags().toArray(new String[] {}));
+    this.tagsSelector.setModel(tagsModel);
+    DefaultComboBoxModel<String> contextModel = new DefaultComboBoxModel<>(
+            metaData.getContexts().toArray(new String[] {}));
+    this.contextSelector.setModel(contextModel);
+    this.samples = samplesSupplier.getSamples((String) contextSelector.getSelectedItem(),
+              (String) tagsSelector.getSelectedItem(), min, max);
     if (samples == null) {
       this.samples = SampleNode.createSampleNode(
               new StackTraceElement[]{new StackTraceElement("NO SAMPLES", "", "", -1)});
-    } else {
-      this.samples = samples;
     }
     setViewType(isgraph);
     ssScrollPanel.setVisible(true);
     pack();
   }
+
+
+  private static void sync(final Collection<String> newValues, final JComboBox<String> combo) {
+    Set<String> newvals = new HashSet<>(newValues);
+    int l = combo.getItemCount();
+    List<Integer> toRemove = new ArrayList<>(4);
+    for (int i = 0; i < l; i++) {
+      String item = combo.getItemAt(i);
+      if (!newvals.remove(item)) {
+        toRemove.add(i);
+      }
+    }
+    for (Integer remove : toRemove) {
+      combo.removeItemAt(remove);
+    }
+    for (String newval : newvals) {
+      combo.addItem(newval);
+    }
+  }
+
+  private void update() throws IOException {
+    if (IS_UPDATE.get()) {
+      return;
+    }
+    IS_UPDATE.set(Boolean.TRUE);
+    try {
+      Instant start = Instant.ofEpochMilli(((Date) this.startDate.getValue()).getTime());
+      Instant end = Instant.ofEpochMilli(((Date) this.endDate.getValue()).getTime());
+      ProfileMetaData metaData = samplesSupplier.getMetaData(start, end);
+      sync(metaData.getTags(), tagsSelector);
+      sync(metaData.getContexts(), contextSelector);
+      this.samples = samplesSupplier.getSamples((String) contextSelector.getSelectedItem(),
+                (String) tagsSelector.getSelectedItem(), start, end);
+      if (this.samples == null) {
+        this.samples = SampleNode.createSampleNode(
+                new StackTraceElement[]{new StackTraceElement("NO SAMPLES", "", "", -1)});
+      }
+      resetViewType(graphToggle.isSelected());
+    } finally {
+      IS_UPDATE.set(Boolean.FALSE);
+    }
+  }
+
+  private void resetViewType(final boolean isgraph) {
+    if (isgraph) {
+      ssScrollPanel.setViewportView(new HotFlameStackPanel(Methods.ROOT, this.samples, new LinkedList<>()));
+    } else {
+      ssScrollPanel.setViewportView(new FlameStackPanel(Methods.ROOT, this.samples, new LinkedList<>()));
+    }
+  }
+
 
   private void setViewType(final boolean isgraph) {
     StackPanelBase view = (StackPanelBase) ssScrollPanel.getViewport().getView();
@@ -113,6 +198,10 @@ class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     samplesVisualizerToolbar = new javax.swing.JToolBar();
     graphToggle = new javax.swing.JToggleButton();
     exportButton = new javax.swing.JButton();
+    tagsSelector = new javax.swing.JComboBox<>();
+    contextSelector = new javax.swing.JComboBox<>();
+    startDate = new javax.swing.JSpinner();
+    endDate = new javax.swing.JSpinner();
 
     setClosable(true);
     setIconifiable(true);
@@ -145,11 +234,57 @@ class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     });
     samplesVisualizerToolbar.add(exportButton);
 
+    tagsSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+    tagsSelector.addItemListener(new java.awt.event.ItemListener() {
+      public void itemStateChanged(java.awt.event.ItemEvent evt) {
+        tagsSelectorItemStateChanged(evt);
+      }
+    });
+    tagsSelector.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        tagsSelectorActionPerformed(evt);
+      }
+    });
+    samplesVisualizerToolbar.add(tagsSelector);
+
+    contextSelector.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+    contextSelector.addItemListener(new java.awt.event.ItemListener() {
+      public void itemStateChanged(java.awt.event.ItemEvent evt) {
+        contextSelectorItemStateChanged(evt);
+      }
+    });
+    contextSelector.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        contextSelectorActionPerformed(evt);
+      }
+    });
+    samplesVisualizerToolbar.add(contextSelector);
+
+    startDate.setModel(this.startModel);
+    startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, "yyyy-MM-dd HH:mm:ss"));
+    startDate.setMinimumSize(new java.awt.Dimension(200, 28));
+    startDate.setName(""); // NOI18N
+    startDate.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        startDateStateChanged(evt);
+      }
+    });
+    samplesVisualizerToolbar.add(startDate);
+
+    endDate.setModel(this.endModel);
+    endDate.setEditor(new javax.swing.JSpinner.DateEditor(endDate, "yyyy-MM-dd HH:mm:ss"));
+    endDate.addChangeListener(new javax.swing.event.ChangeListener() {
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+        endDateStateChanged(evt);
+      }
+    });
+    samplesVisualizerToolbar.add(endDate);
+
     org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());
     getContentPane().setLayout(layout);
     layout.setHorizontalGroup(
       layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)
-      .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)
+      .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 602, Short.MAX_VALUE)
       .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
     );
     layout.setVerticalGroup(
@@ -215,10 +350,56 @@ class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     }
   }//GEN-LAST:event_exportButtonActionPerformed
 
+  private void tagsSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tagsSelectorActionPerformed
+
+    try {
+      update();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }//GEN-LAST:event_tagsSelectorActionPerformed
+
+  private void contextSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contextSelectorActionPerformed
+
+    try {
+      update();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }//GEN-LAST:event_contextSelectorActionPerformed
+
+  private void tagsSelectorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_tagsSelectorItemStateChanged
+
+  }//GEN-LAST:event_tagsSelectorItemStateChanged
+
+  private void contextSelectorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_contextSelectorItemStateChanged
+
+  }//GEN-LAST:event_contextSelectorItemStateChanged
+
+  private void startDateStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_startDateStateChanged
+   try {
+      update();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }//GEN-LAST:event_startDateStateChanged
+
+  private void endDateStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_endDateStateChanged
+   try {
+      update();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+  }//GEN-LAST:event_endDateStateChanged
+
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JComboBox<String> contextSelector;
+  private javax.swing.JSpinner endDate;
   private javax.swing.JButton exportButton;
   private javax.swing.JToggleButton graphToggle;
   private javax.swing.JToolBar samplesVisualizerToolbar;
   private javax.swing.JScrollPane ssScrollPanel;
+  private javax.swing.JSpinner startDate;
+  private javax.swing.JComboBox<String> tagsSelector;
   // End of variables declaration//GEN-END:variables
 }
