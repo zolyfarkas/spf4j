@@ -484,4 +484,10 @@ public final class Sampler {
     return new Date(Timing.getCurrentTiming().fromNanoTimeToEpochMillis(lastDumpTimeNanos));
   }
 
+  @JmxExport
+  @SuppressForbiden // need to use an openType
+  public Instant getLastDumpInstant() {
+    return Timing.getCurrentTiming().fromNanoTimeToInstant(lastDumpTimeNanos);
+  }
+
 }
