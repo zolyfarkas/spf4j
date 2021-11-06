@@ -71,7 +71,7 @@ public class AvroProfilePersisterTest {
       LOG.debug("persisted profile to {}", file);
     }
     SpecificDatumReader<ApplicationStackSamples> reader = new SpecificDatumReader<>(ApplicationStackSamples.class);
-    try ( DataFileStream<ApplicationStackSamples> stream = new DataFileStream<>(Files.newInputStream(file), reader)) {
+    try (DataFileStream<ApplicationStackSamples> stream = new DataFileStream<>(Files.newInputStream(file), reader)) {
       for (int i = 0; i < 10; i++) {
         ApplicationStackSamples samples = stream.next();
         Assert.assertEquals("test", samples.getContext());
