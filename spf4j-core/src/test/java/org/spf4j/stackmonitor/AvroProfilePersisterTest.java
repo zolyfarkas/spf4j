@@ -64,15 +64,19 @@ public class AvroProfilePersisterTest {
       SampleNode.addToSampleNode(sn, snt.newSt2());
       SampleNode.addToSampleNode(sn, snt.newSt3());
       SampleNode.addToSampleNode(sn, snt.newSt4());
-      persister.persist(ImmutableMap.of("test", sn), "tag", Instant.now(), Instant.now());
+      for (int i = 0; i < 10; i++) {
+        persister.persist(ImmutableMap.of("test", sn), "tag", Instant.now(), Instant.now());
+      }
       file = persister.getTargetFile();
       LOG.debug("persisted profile to {}", file);
     }
     SpecificDatumReader<ApplicationStackSamples> reader = new SpecificDatumReader<>(ApplicationStackSamples.class);
-    try (DataFileStream<ApplicationStackSamples> stream = new DataFileStream<>(Files.newInputStream(file), reader)) {
-      ApplicationStackSamples samples = stream.next();
-      Assert.assertEquals("test", samples.getContext());
-      Assert.assertEquals(sn, Converter.convert(samples.getStackSamples().iterator()));
+    try ( DataFileStream<ApplicationStackSamples> stream = new DataFileStream<>(Files.newInputStream(file), reader)) {
+      for (int i = 0; i < 10; i++) {
+        ApplicationStackSamples samples = stream.next();
+        Assert.assertEquals("test", samples.getContext());
+        Assert.assertEquals(sn, Converter.convert(samples.getStackSamples().iterator()));
+      }
     }
 
   }
