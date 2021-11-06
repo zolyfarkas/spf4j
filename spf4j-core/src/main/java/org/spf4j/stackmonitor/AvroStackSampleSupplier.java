@@ -105,10 +105,11 @@ public final class AvroStackSampleSupplier implements StackSampleSupplier {
                 || (sampleFrom.isBefore(pto) && sampleTo.isAfter(pfrom)))
                 && (tag == null || samples.getTag().equals(tag))
                 && (context == null || samples.getContext().equals(context))) {
+          SampleNode currentSamples = Converter.convert(samples.getStackSamples().iterator());
           if (result == null) {
-            result = Converter.convert(samples.getStackSamples().iterator());
-          } else {
-            result.add(Converter.convert(samples.getStackSamples().iterator()));
+            result = currentSamples;
+          } else if (currentSamples != null) {
+            result.add(currentSamples);
           }
         }
       }

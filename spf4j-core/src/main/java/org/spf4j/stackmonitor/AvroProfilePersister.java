@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Map;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -111,16 +112,20 @@ public final class AvroProfilePersister implements ProfilePersister {
   }
 
   @Override
-  public Path persist(final Map<String, SampleNode> profile, final String tag,
+  public Path persist(final Map<String, SampleNode> profile, @Nullable final String tag,
           final Instant profileFrom, final Instant profileTo)
           throws IOException {
     if (profile.isEmpty()) {
       return this.targetFile;
     }
     for (Map.Entry<String, SampleNode> entry : profile.entrySet()) {
-      this.writer.append(new ApplicationStackSamples(profileFrom, profileTo, tag,
-            entry.getKey(), Converters.convert(entry.getValue())));
-      this.writer.fSync();
+      SampleNode sampleNode = entry.getValue();
+      if (sampleNode != null) {
+        this.writer.append(new ApplicationStackSamples(profileFrom, profileTo,
+              tag == null ? "" : tag,
+              entry.getKey(), Converters.convert(sampleNode)));
+        this.writer.fSync();
+      }
     }
     return this.targetFile;
   }

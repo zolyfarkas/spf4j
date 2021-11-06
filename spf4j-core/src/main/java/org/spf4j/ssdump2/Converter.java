@@ -110,6 +110,7 @@ public final class Converter {
     }
   }
 
+  @Nullable
   public static SampleNode convert(final Iterator<StackSampleElement> samples) {
     TIntObjectMap<SampleNode> index = new TIntObjectHashMap<>();
     while (samples.hasNext()) {
@@ -143,12 +144,14 @@ public final class Converter {
   }
 
   @SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
+  @Nullable
   public static SampleNode load(final File file) throws IOException {
     try (InputStream fis = newInputStream(file)) {
       return load(fis);
     }
   }
 
+  @Nullable
   public static SampleNode load(@WillNotClose final InputStream fis) throws IOException {
     try (MemorizingBufferedInputStream bis
             = new MemorizingBufferedInputStream(fis)) {
