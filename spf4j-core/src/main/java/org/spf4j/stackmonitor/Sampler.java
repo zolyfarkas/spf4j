@@ -475,7 +475,7 @@ public final class Sampler {
 
   @JmxExport
   public String getFilePrefix() {
-    return persister.getBaseFileNAme();
+    return persister.getBaseFileName();
   }
 
   @JmxExport

@@ -47,10 +47,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 @ParametersAreNonnullByDefault
 public interface ProfilePersister extends Closeable, Flushable {
 
-  interface Factory {
-    ProfilePersister create(Path targetPath, String baseFileName, boolean compress);
-  }
-
   boolean isCompressing();
 
   ProfilePersister withBaseFileName(Path targetPath, String baseFileName) throws IOException;
@@ -63,6 +59,6 @@ public interface ProfilePersister extends Closeable, Flushable {
 
   Path getTargetPath();
 
-  String getBaseFileNAme();
+  String getBaseFileName();
 
 }

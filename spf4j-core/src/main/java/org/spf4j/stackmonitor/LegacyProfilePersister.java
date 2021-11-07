@@ -106,7 +106,7 @@ public final class LegacyProfilePersister implements ProfilePersister {
   }
 
   @Override
-  public String getBaseFileNAme() {
+  public String getBaseFileName() {
     return this.baseFileName;
   }
 
