@@ -430,6 +430,11 @@ public final class Sampler {
     }
   }
 
+  @JmxExport
+  public void flushPersister() throws IOException {
+    this.persister.flush();
+  }
+
   public Map<String, SampleNode> getStackCollectionsAndReset() {
     synchronized (sync) {
       if (stackCollector == null) {

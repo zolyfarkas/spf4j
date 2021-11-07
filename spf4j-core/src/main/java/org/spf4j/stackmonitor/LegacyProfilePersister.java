@@ -115,6 +115,11 @@ public final class LegacyProfilePersister implements ProfilePersister {
     // Nothing to close.
   }
 
+  @Override
+  public void flush() {
+    // Nothing to flush
+  }
+
 
   private static class DumpType {
 

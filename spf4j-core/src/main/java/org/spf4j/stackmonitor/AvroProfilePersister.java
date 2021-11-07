@@ -124,7 +124,6 @@ public final class AvroProfilePersister implements ProfilePersister {
         this.writer.append(new ApplicationStackSamples(profileFrom, profileTo,
               tag == null ? "" : tag,
               entry.getKey(), Converters.convert(sampleNode)));
-        this.writer.fSync();
       }
     }
     return this.targetFile;
@@ -138,6 +137,11 @@ public final class AvroProfilePersister implements ProfilePersister {
   @Override
   public String getBaseFileNAme() {
     return this.baseFileName;
+  }
+
+  @Override
+  public void flush() throws IOException {
+    this.writer.fSync();
   }
 
   @Override

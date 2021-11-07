@@ -32,6 +32,7 @@
 package org.spf4j.stackmonitor;
 
 import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -44,7 +45,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Zoltan Farkas
  */
 @ParametersAreNonnullByDefault
-public interface ProfilePersister extends Closeable {
+public interface ProfilePersister extends Closeable, Flushable {
 
   interface Factory {
     ProfilePersister create(Path targetPath, String baseFileName, boolean compress);
