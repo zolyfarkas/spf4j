@@ -32,42 +32,49 @@ import org.spf4j.ssdump2.Converter;
  */
 public final class AvroStackSampleSupplier implements StackSampleSupplier {
 
-  private final Instant from;
+  private Instant from;
 
-  private final Instant to;
+  private Instant to;
 
   private final Path file;
 
   private final SpecificDatumReader<ApplicationStackSamples> reader;
 
-  public AvroStackSampleSupplier(final Path file) throws IOException {
+  public AvroStackSampleSupplier(final Path file) {
     this.file = file;
     this.reader = new SpecificDatumReader<>(ApplicationStackSamples.class);
-    Instant lfrom = Instant.MIN;
-    Instant lto = Instant.MAX;
-    try (DataFileStream<ApplicationStackSamples> stream = new DataFileStream<>(Files.newInputStream(file), reader)) {
+  }
 
-      if (stream.hasNext()) {
-        ApplicationStackSamples samples = stream.next();
-        lfrom = samples.getCollectedFrom();
-        lto = samples.getCollectedTo();
+  private synchronized void scanLimits() throws IOException {
+    if (this.from == null) {
+      Instant lfrom = Instant.MIN;
+      Instant lto = Instant.MAX;
+      try (DataFileStream<ApplicationStackSamples> stream
+              = new DataFileStream<>(Files.newInputStream(file), reader)) {
+        if (stream.hasNext()) {
+          ApplicationStackSamples samples = stream.next();
+          lfrom = samples.getCollectedFrom();
+          lto = samples.getCollectedTo();
+        }
+        while (stream.hasNext()) {
+          ApplicationStackSamples samples = stream.next();
+          lto = samples.getCollectedTo();
+        }
+        this.from = lfrom;
+        this.to = lto;
       }
-      while (stream.hasNext()) {
-        ApplicationStackSamples samples = stream.next();
-        lto = samples.getCollectedTo();
-      }
-      this.from = lfrom;
-      this.to = lto;
     }
   }
 
   @Override
-  public Instant getMin() {
+  public synchronized Instant getMin() throws IOException {
+    scanLimits();
     return from;
   }
 
   @Override
-  public Instant getMax() {
+  public synchronized Instant getMax() throws IOException {
+    scanLimits();
     return to;
   }
 
@@ -119,7 +126,7 @@ public final class AvroStackSampleSupplier implements StackSampleSupplier {
 
   @Override
   public String toString() {
-    return "AvroStackSampleSupplier{" + "from=" + from + ", to=" + to + ", file=" + file + '}';
+    return "AvroStackSampleSupplier{file=" + file + '}';
   }
 
 }

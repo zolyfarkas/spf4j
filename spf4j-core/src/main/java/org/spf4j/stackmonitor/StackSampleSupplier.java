@@ -25,9 +25,9 @@ import javax.annotation.Nullable;
  */
 public interface StackSampleSupplier {
 
-  Instant getMin();
+  Instant getMin() throws IOException;
 
-  Instant getMax();
+  Instant getMax() throws IOException;
 
   ProfileMetaData getMetaData(Instant from, Instant to) throws IOException;
 
