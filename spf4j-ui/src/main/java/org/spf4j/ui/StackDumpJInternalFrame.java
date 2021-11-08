@@ -94,8 +94,10 @@ class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     setName(title);
     Instant min = samplesSupplier.getMin();
     Instant max = samplesSupplier.getMax();
-    Date minDate = new Date(min.toEpochMilli());
-    Date maxDate = new Date(max.toEpochMilli());
+    long startMillis = min.toEpochMilli();
+    Date minDate = new Date(startMillis - startMillis % 1000);
+    long endMillis = max.toEpochMilli();
+    Date maxDate = new Date(endMillis - endMillis % 1000 + 1000 );
     startModel = new SpinnerDateModel(minDate, minDate, maxDate, Calendar.SECOND);
     endModel = new SpinnerDateModel(maxDate, minDate, maxDate, Calendar.SECOND);
     initComponents();
@@ -265,7 +267,6 @@ class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     startDate.setModel(this.startModel);
     startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, "yyyy-MM-dd HH:mm:ss"));
     startDate.setMinimumSize(new java.awt.Dimension(200, 28));
-    startDate.setName(""); // NOI18N
     startDate.addChangeListener(new javax.swing.event.ChangeListener() {
       public void stateChanged(javax.swing.event.ChangeEvent evt) {
         startDateStateChanged(evt);
