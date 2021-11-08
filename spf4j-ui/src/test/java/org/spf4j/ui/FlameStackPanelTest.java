@@ -23,6 +23,7 @@ import java.io.StringReader;
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -52,6 +53,7 @@ public class FlameStackPanelTest {
   private static final SampleNode NODES2
           = loadSsdump("61160@ZMacBookPro.local_20130826T204120-0400_20130826T204128-0400.ssdump");
 
+  @Nullable
   public static SampleNode loadSsdump2(final String resourceName) {
     try (InputStream is = Resources.getResource(resourceName).openStream()) {
       return Converter.load(is);
