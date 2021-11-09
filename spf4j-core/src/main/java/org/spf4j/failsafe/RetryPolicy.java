@@ -146,7 +146,7 @@ public class RetryPolicy<T, C extends Callable<? extends T>> implements SyncRetr
 
   public static final class Builder<T, C extends Callable<? extends T>> {
 
-    private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.defaultMaxExceptionChain", 20);
+    private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.defaultMaxExceptionChain", 5);
 
     private static final long DEFAULT_MAX_DELAY_NANOS
             = TimeUnit.MILLISECONDS.toNanos(Long.getLong("spf4j.failsafe.defaultMaxRetryDelayMillis", 5000));
