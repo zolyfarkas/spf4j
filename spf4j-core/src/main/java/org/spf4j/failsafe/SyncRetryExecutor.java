@@ -32,13 +32,14 @@
 package org.spf4j.failsafe;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.annotation.CheckReturnValue;
 import org.spf4j.base.Either;
 import org.spf4j.base.ExecutionContexts;
-import org.spf4j.base.Throwables;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.UncheckedExecutionException;
 
@@ -129,7 +130,13 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
       lastEx = e;
       result = null;
     }
-    Throwable lastExChain = lastEx; // last exception chained with all previous exceptions
+    Deque<Throwable> lastExChain; // all Exceptions chained
+    if (lastEx != null) {
+      lastExChain = new ArrayDeque<>(maxExceptionChain);
+      lastExChain.addLast(lastEx);
+    } else {
+      lastExChain = null;
+    }
     RetryDecision<T, C> decision;
     //CHECKSTYLE IGNORE InnerAssignment FOR NEXT 5 LINES
     while ((lastEx != null)
@@ -139,7 +146,9 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
       if (Thread.interrupted()) {
         InterruptedException ex = new InterruptedException();
         if (lastExChain != null) {
-          ex.addSuppressed(lastExChain);
+          for (Throwable t : lastExChain) {
+            ex.addSuppressed(t);
+          }
         }
         throw ex;
       }
@@ -155,16 +164,21 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
         lastEx = null;
       } catch (InterruptedException ex1) {
         if (lastExChain != null) {
-          ex1.addSuppressed(lastExChain);
+          for (Throwable t : lastExChain) {
+            ex1.addSuppressed(t);
+          }
         }
         throw ex1;
       } catch (Exception e) { // only EX and RuntimeException
         lastEx = e;
         result = null;
-        if (lastExChain != null) {
-          Throwables.suppressLimited(lastEx, lastExChain, maxExceptionChain);
+        if (lastExChain == null) {
+          lastExChain = new ArrayDeque<>(maxExceptionChain);
         }
-        lastExChain = lastEx;
+        if (lastExChain.size() >= maxExceptionChain) {
+          lastExChain.removeFirst();
+        }
+        lastExChain.addLast(lastEx);
       }
     }
     if (decision.getDecisionType() == RetryDecision.Type.Abort) {
@@ -172,14 +186,14 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
         if (r != null) {
           if (r.isLeft()) {
             lastEx = r.getLeft();
-            Throwable[] suppressed = lastEx.getSuppressed();
-            if (lastExChain != null && lastEx != lastExChain
-                    && (suppressed.length == 0 || suppressed[suppressed.length - 1] != lastExChain)
-                    && lastEx.getCause() != lastExChain) {
+            if (lastExChain != null) {
               // we attach the chain in case the new exception does not.
-              Throwables.suppressLimited(lastEx, lastExChain, maxExceptionChain);
+              for (Throwable t : lastExChain) {
+                if (t != lastEx) {
+                  lastEx.addSuppressed(t);
+                }
+              }
             }
-            lastExChain = lastEx;
           } else {
             result = r.getRight();
             lastEx = null;
@@ -189,17 +203,14 @@ public interface SyncRetryExecutor<T, C extends Callable<? extends T>> {
       throw new IllegalStateException("Should not happen, decision =  " + decision);
     }
     if (lastEx != null) {
-      if (lastExChain == null) {
-        lastExChain = lastEx;
-      }
-      if (lastExChain instanceof RuntimeException) {
-        throw (RuntimeException) lastExChain;
-      } else if (lastExChain instanceof TimeoutException) {
-        throw (TimeoutException) lastExChain;
-      } else if (exceptionClass.isAssignableFrom(lastExChain.getClass())) {
-        throw (E) lastExChain;
+      if (lastEx instanceof RuntimeException) {
+        throw (RuntimeException) lastEx;
+      } else if (lastEx instanceof TimeoutException) {
+        throw (TimeoutException) lastEx;
+      } else if (exceptionClass.isAssignableFrom(lastEx.getClass())) {
+        throw (E) lastEx;
       } else {
-        throw new UncheckedExecutionException(lastExChain);
+        throw new UncheckedExecutionException(lastEx);
       }
     }
     return result;
