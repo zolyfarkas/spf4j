@@ -32,12 +32,14 @@
 package org.spf4j.failsafe.concurrent;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.DelayQueue;
 import java.util.concurrent.ExecutionException;
 import org.spf4j.base.Either;
-import org.spf4j.base.Throwables;
+import org.spf4j.failsafe.RetriedResultException;
 import org.spf4j.failsafe.RetryDecision;
 import org.spf4j.failsafe.RetryPredicate;
 
@@ -48,16 +50,17 @@ import org.spf4j.failsafe.RetryPredicate;
 @SuppressWarnings("checkstyle:VisibilityModifier")
 class RetryFutureTask<T> extends FutureTask<T> {
 
+  private static final int MAX_EX_CHAIN_DEFAULT = Integer.getInteger("spf4j.failsafe.defaultMaxExceptionChain", 5);
+
   private final RetryPredicate<T, Callable<? extends T>> retryPredicate;
 
   private final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks;
 
-  private Either<Throwable, T> previousResult;
+  private Deque<Either<T, Throwable>> previousResults;
 
   private final Runnable onRetry;
 
   private volatile DelayedTask<RetryFutureTask<?>> exec;
-
 
   RetryFutureTask(final Callable<T> callable, final RetryPredicate<T, Callable<? extends T>> retryPredicate,
           final DelayQueue<DelayedTask<RetryFutureTask<?>>> delayedTasks, final Runnable onRetry) {
@@ -65,7 +68,7 @@ class RetryFutureTask<T> extends FutureTask<T> {
     this.onRetry = onRetry;
     this.retryPredicate = retryPredicate;
     this.delayedTasks = delayedTasks;
-    this.previousResult = null;
+    this.previousResults = null;
   }
 
   public final void setExec(final DelayedTask<RetryFutureTask<?>> exec) {
@@ -90,11 +93,23 @@ class RetryFutureTask<T> extends FutureTask<T> {
       return super.report(s);
     } catch (CancellationException ex) {
       synchronized (this) {
-        CancellationException at = ex;
-        if (previousResult != null && previousResult.isLeft()) {
-          Throwables.suppressLimited(at, previousResult.getLeft());
+        attachPrevious(ex);
+        throw ex;
+      }
+    }
+  }
+
+  private void attachPrevious(final Throwable ex) {
+    if (previousResults != null) {
+      for (Either<T, Throwable> previousResult : previousResults) {
+        if (previousResult.isRight()) {
+          Throwable e = previousResult.getRight();
+          if (e != ex) {
+            ex.addSuppressed(e);
+          }
+        } else {
+          ex.addSuppressed(new RetriedResultException(previousResult.getLeft()));
         }
-        throw at;
       }
     }
   }
@@ -113,10 +128,12 @@ class RetryFutureTask<T> extends FutureTask<T> {
         final long delayNanos = decision.getDelayNanos();
         this.setCallable((Callable<T>) decision.getNewCallable());
         Throwable at = t;
-        if (previousResult != null && previousResult.isLeft()) {
-          Throwables.suppressLimited(at, previousResult.getLeft());
+        if (previousResults == null) {
+         previousResults = new ArrayDeque<>();
+        } else if (previousResults.size() >= MAX_EX_CHAIN_DEFAULT) {
+          previousResults.removeFirst();
         }
-        previousResult = Either.left(at);
+        previousResults.addLast(Either.right(at));
         DelayedTask<RetryFutureTask<?>> delayedTask = new DelayedTask<>(this, delayNanos);
         this.exec = delayedTask;
         delayedTasks.add(delayedTask);
@@ -125,15 +142,11 @@ class RetryFutureTask<T> extends FutureTask<T> {
         this.exec = null;
         Either<Throwable, T> newRes = decision.getResult();
         if (newRes == null) {
-          if (previousResult != null && previousResult.isLeft()) {
-            Throwables.suppressLimited(t, previousResult.getLeft());
-          }
+          attachPrevious(t);
           super.setException(t);
         } else if (newRes.isLeft()) {
           Throwable tx = newRes.getLeft();
-          if (previousResult != null && previousResult.isLeft()) {
-            Throwables.suppressLimited(tx, previousResult.getLeft());
-          }
+          attachPrevious(tx);
           super.setException(tx);
         } else {
           super.set(newRes.getRight());
@@ -159,7 +172,12 @@ class RetryFutureTask<T> extends FutureTask<T> {
         DelayedTask<RetryFutureTask<?>> delayedTask = new DelayedTask<>(this, delayNanos);
         this.exec = delayedTask;
         delayedTasks.add(delayedTask);
-        this.previousResult = Either.right(v);
+        if (previousResults == null) {
+         previousResults = new ArrayDeque<>();
+        } else if (previousResults.size() >= MAX_EX_CHAIN_DEFAULT) {
+          previousResults.removeFirst();
+        }
+        previousResults.addLast(Either.left(v));
         return false;
       case Abort:
         this.exec = null;

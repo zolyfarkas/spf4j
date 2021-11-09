@@ -119,7 +119,7 @@ public final class FailSafeExecutorImpl implements FailSafeExecutor {
   }
 
   private class RetryManager extends AbstractRunnable {
-
+    
     RetryManager() {
       super("RetryManager");
     }
