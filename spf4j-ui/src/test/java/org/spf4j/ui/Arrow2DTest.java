@@ -53,7 +53,7 @@ public class Arrow2DTest {
       latch.countDown();
     });
     Assert.assertTrue(latch.await(10, TimeUnit.SECONDS));
-    if (TestUtils.isExecutedFromIDE()) {
+    if (TestUtils.isExecutedFromIDEInvididually()) {
       Assert.assertTrue(closeLatch.await(1, TimeUnit.HOURS));
     }
   }
