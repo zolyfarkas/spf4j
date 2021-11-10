@@ -85,6 +85,10 @@ public final class TestUtils {
             || isExecutedFromEclipse() || isExecutedFromIntelij();
   }
 
+  public static boolean isExecutedFromIDEInvididually() {
+    return isExecutedFromIDE() && System.getProperty("test") != null;
+  }
+
   public static boolean isExecutedWithDebuggerAgent() {
     List<String> inputArguments = java.lang.management.ManagementFactory.getRuntimeMXBean().getInputArguments();
     return inputArguments.stream()
