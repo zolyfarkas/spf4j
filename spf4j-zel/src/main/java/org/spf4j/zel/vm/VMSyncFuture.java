@@ -46,36 +46,34 @@ import org.spf4j.base.Either;
 @ThreadSafe
 @SuppressFBWarnings("NOS_NON_OWNED_SYNCHRONIZATION")
 public class VMSyncFuture<T> implements VMFuture<T> {
-    private volatile Either<T, ? extends ExecutionException> resultStore;
+    private volatile Either<T, ? extends ExecutionException> result;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public final boolean isCancelled() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public final boolean isDone() {
-        return resultStore != null;
+        return result != null;
     }
 
     @Override
-    public final Either<T, ? extends ExecutionException> getResultStore() {
-        return resultStore;
+    @SuppressFBWarnings
+    public final Either<T, ? extends ExecutionException> getResult() {
+        return result;
     }
 
-    @Override
-    // Findbugs complain here is rubbish, InterruptedException is thrown by wait
-    @SuppressFBWarnings({"BED_BOGUS_EXCEPTION_DECLARATION", "MDM_WAIT_WITHOUT_TIMEOUT" })
     public final synchronized T get() throws InterruptedException, ExecutionException {
-        while (resultStore == null) {
-            this.wait();
+        while (result == null) {
+            this.wait(1000);
         }
-        return Either.processResult(resultStore);
+        return Either.processResult(result);
     }
 
     @Override
@@ -85,41 +83,41 @@ public class VMSyncFuture<T> implements VMFuture<T> {
         long toWait = timeoutMillis;
         long startTime = System.currentTimeMillis();
         synchronized (this) {
-            while (toWait > 0 && resultStore == null) {
+            while (toWait > 0 && result == null) {
                 this.wait(toWait);
                 toWait = timeoutMillis - (System.currentTimeMillis() - startTime);
             }
-            if (resultStore == null) {
-                throw new TimeoutException();
+            if (result == null) {
+                throw new TimeoutException("Timed out after " + timeout + " " + unit);
             }
-            return Either.processResult(resultStore);
+            return Either.processResult(result);
         }
     }
 
     @Override
-    public final synchronized void setResult(final T result) {
-        if (resultStore != null) {
+    public final synchronized void setResult(final T presult) {
+        if (this.result != null) {
             throw new IllegalStateException("cannot set " + result + " result multiple times");
         }
-        resultStore = Either.left(result);
+        this.result = Either.left(presult);
         this.notifyAll();
     }
 
     @Override
-    public final synchronized void setExceptionResult(final ExecutionException result) {
-        if (Throwables.getRootCause(result) == ExecAbortException.INSTANCE) {
+    public final synchronized void setExceptionResult(final ExecutionException eresult) {
+        if (Throwables.getRootCause(eresult) == ExecAbortException.INSTANCE) {
             return;
         }
-        if (resultStore != null) {
+        if (this.result != null) {
             throw new IllegalStateException("cannot set result " + result + " multiple times");
         }
-        resultStore = Either.right(result);
+        this.result = Either.right(eresult);
         this.notifyAll();
     }
 
     @Override
     public final String toString() {
-        return "VMSyncFuture{" + "resultStore=" + resultStore + '}';
+        return "VMSyncFuture{" + "result=" + result + '}';
     }
 
 }

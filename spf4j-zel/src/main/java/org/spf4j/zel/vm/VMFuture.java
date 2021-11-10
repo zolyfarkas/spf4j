@@ -33,6 +33,7 @@ package org.spf4j.zel.vm;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
 
@@ -43,7 +44,8 @@ import org.spf4j.base.Either;
 @ThreadSafe
 public interface VMFuture<T> extends Future<T> {
 
-    Either<T, ? extends ExecutionException> getResultStore();
+    @Nullable
+    Either<T, ? extends ExecutionException> getResult();
 
     void setResult(T result);
 

@@ -304,7 +304,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     Object result = this.stack.peek();
     if (result instanceof VMFuture<?>) {
       final VMFuture<Object> resFut = (VMFuture<Object>) result;
-      Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+      Either<Object, ? extends ExecutionException> resultStore = resFut.getResult();
       if (resultStore != null) {
         this.stack.remove();
         return Either.processResult(resultStore);
@@ -322,7 +322,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     Object result = this.stack.peek();
     if (result instanceof VMFuture<?>) {
       final VMFuture<Object> resFut = (VMFuture<Object>) result;
-      Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+      Either<Object, ? extends ExecutionException> resultStore = resFut.getResult();
       if (resultStore != null) {
         return Either.processResult(resultStore);
       } else {
@@ -338,7 +338,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
     Object result = this.stack.peek();
     if (result instanceof VMFuture<?>) {
       final VMFuture<Object> resFut = (VMFuture<Object>) result;
-      Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+      Either<Object, ? extends ExecutionException> resultStore = resFut.getResult();
       if (resultStore == null) {
         suspend(resFut);
         throw new IllegalThreadStateException();
@@ -353,7 +353,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
       Object result = this.stack.peekFromTop(i);
       if (result instanceof VMFuture<?>) {
         final VMFuture<Object> resFut = (VMFuture<Object>) result;
-        Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+        Either<Object, ? extends ExecutionException> resultStore = resFut.getResult();
         if (resultStore == null) {
           suspend(resFut);
           throw new IllegalThreadStateException();
@@ -405,7 +405,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
       Object obj = stack.peekFromTop(i);
       if (obj instanceof VMFuture<?>) {
         final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-        Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+        Either<Object, ? extends ExecutionException> resultStore = resFut.getResult();
         if (resultStore != null) {
           final Object processResult = Either.processResult(resultStore);
           stack.replaceFromTop(i, processResult);
@@ -429,7 +429,7 @@ public final class ExecutionContext implements VMExecutor.Suspendable<Object> {
       Object obj = stack.peekFromTop(i);
       if (obj instanceof VMFuture<?>) {
         final VMFuture<Object> resFut = (VMFuture<Object>) obj;
-        Either<Object, ? extends ExecutionException> resultStore = resFut.getResultStore();
+        Either<Object, ? extends ExecutionException> resultStore = resFut.getResult();
         if (resultStore != null) {
           if (resultStore.isLeft()) {
             stack.removeFromTop(nr);

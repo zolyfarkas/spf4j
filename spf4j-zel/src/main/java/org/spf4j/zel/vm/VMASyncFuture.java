@@ -31,8 +31,10 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.spf4j.base.Either;
 
@@ -42,7 +44,7 @@ import org.spf4j.base.Either;
  */
 @ThreadSafe
 public class VMASyncFuture<T> implements VMFuture<T> {
-    private volatile Either<T, ? extends ExecutionException> resultStore;
+    private volatile Either<T, ? extends ExecutionException> result;
 
     @Override
     public final boolean cancel(final boolean mayInterruptIfRunning) {
@@ -56,18 +58,18 @@ public class VMASyncFuture<T> implements VMFuture<T> {
 
     @Override
     public final boolean isDone() {
-        return resultStore != null;
-    }
-    
-    @Override
-    public final Either<T, ? extends ExecutionException> getResultStore() {
-        return resultStore;
+        return result != null;
     }
 
     @Override
-    // Findbugs complain here is rubbish, InterruptedException is thrown by wait
-    @edu.umd.cs.findbugs.annotations.SuppressWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
-    public final T get() throws InterruptedException, ExecutionException {
+    @Nullable
+    public final Either<T, ? extends ExecutionException> getResult() {
+        return result;
+    }
+
+    @Override
+    @SuppressFBWarnings("BED_BOGUS_EXCEPTION_DECLARATION")
+    public final T get() {
         throw new UnsupportedOperationException();
     }
 
@@ -78,21 +80,21 @@ public class VMASyncFuture<T> implements VMFuture<T> {
 
 
     @Override
-    public final void setResult(final T result) {
-        resultStore = Either.left(result);
+    public final void setResult(final T presult) {
+        this.result = Either.left(presult);
     }
-    
+
     @Override
-    public final void setExceptionResult(final ExecutionException result) {
-        if (result.getCause() == ExecAbortException.INSTANCE) {
+    public final void setExceptionResult(final ExecutionException eresult) {
+        if (eresult.getCause() == ExecAbortException.INSTANCE) {
             return;
         }
-        resultStore = Either.right(result);
+        this.result = Either.right(eresult);
     }
 
     @Override
     public final String toString() {
-        return "VMASyncFuture{" + "resultStore=" + resultStore + '}';
+        return "VMASyncFuture{" + "result=" + result + '}';
     }
-    
+
 }
