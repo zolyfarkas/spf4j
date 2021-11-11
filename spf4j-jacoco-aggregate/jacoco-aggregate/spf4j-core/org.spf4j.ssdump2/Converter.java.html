@@ -70,6 +70,7 @@ import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.MemorizingBufferedInputStream;
+import org.spf4j.stackmonitor.ProfileFileFormat;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -84,87 +85,90 @@ public final class Converter {
 
   public static String createLabeledSsdump2FileName(final String baseFileName, final String label) {
     try {
-<span class="fc" id="L87">      String encoded = URLEncoder.encode(label, StandardCharsets.UTF_8.name());</span>
-<span class="fc" id="L88">      encoded = encoded.replace(&quot;_&quot;, &quot;%5F&quot;);</span>
-<span class="fc" id="L89">      return baseFileName + '_' + encoded + &quot;.ssdump2&quot;;</span>
-<span class="nc" id="L90">    } catch (UnsupportedEncodingException ex) {</span>
-<span class="nc" id="L91">      throw new IllegalArgumentException(&quot;Unable to encode: &quot; + label, ex);</span>
+<span class="fc" id="L88">      String encoded = URLEncoder.encode(label, StandardCharsets.UTF_8.name());</span>
+<span class="fc" id="L89">      encoded = encoded.replace(&quot;_&quot;, &quot;%5F&quot;);</span>
+<span class="fc" id="L90">      return baseFileName + '_' + encoded + ProfileFileFormat.SSDUMP_2.getSuffix();</span>
+<span class="nc" id="L91">    } catch (UnsupportedEncodingException ex) {</span>
+<span class="nc" id="L92">      throw new IllegalArgumentException(&quot;Unable to encode: &quot; + label, ex);</span>
     }
   }
 
   public static String getLabelFromSsdump2FileName(final String fileName) {
-<span class="fc" id="L96">    int spext = fileName.lastIndexOf(&quot;.ssdump2&quot;);</span>
-<span class="pc bpc" id="L97" title="1 of 2 branches missed.">    if (spext &lt; 0) {</span>
-<span class="nc" id="L98">      throw new IllegalArgumentException(&quot;Invalid ssdump2 file name: &quot; + fileName);</span>
+<span class="fc" id="L97">    int spext = fileName.lastIndexOf(ProfileFileFormat.SSDUMP_2.getSuffix());</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">    if (spext &lt; 0) {</span>
+<span class="nc" id="L99">      throw new IllegalArgumentException(&quot;Invalid ssdump2 file name: &quot; + fileName);</span>
     }
-<span class="fc" id="L100">    int grsIdx = fileName.lastIndexOf('_', spext);</span>
+<span class="fc" id="L101">    int grsIdx = fileName.lastIndexOf('_', spext);</span>
     try {
-<span class="pc bpc" id="L102" title="1 of 2 branches missed.">      if (grsIdx &lt; 0) {</span>
-<span class="nc" id="L103">        return URLDecoder.decode(fileName.substring(0, spext), StandardCharsets.UTF_8.name());</span>
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">      if (grsIdx &lt; 0) {</span>
+<span class="nc" id="L104">        return URLDecoder.decode(fileName.substring(0, spext), StandardCharsets.UTF_8.name());</span>
       } else {
-<span class="fc" id="L105">        return URLDecoder.decode(fileName.substring(grsIdx + 1, spext), StandardCharsets.UTF_8.name());</span>
+<span class="fc" id="L106">        return URLDecoder.decode(fileName.substring(grsIdx + 1, spext), StandardCharsets.UTF_8.name());</span>
       }
-<span class="nc" id="L107">    } catch (UnsupportedEncodingException ex) {</span>
-<span class="nc" id="L108">      throw new IllegalArgumentException(&quot;Invalid ssdump2 file name: &quot; + fileName, ex);</span>
+<span class="nc" id="L108">    } catch (UnsupportedEncodingException ex) {</span>
+<span class="nc" id="L109">      throw new IllegalArgumentException(&quot;Invalid ssdump2 file name: &quot; + fileName, ex);</span>
     }
   }
 
+  @Nullable
   public static SampleNode convert(final Iterator&lt;StackSampleElement&gt; samples) {
-<span class="fc" id="L113">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
-<span class="fc bfc" id="L114" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
-<span class="fc" id="L115">      StackSampleElement asmp = samples.next();</span>
-<span class="fc" id="L116">      SampleNode sn = new SampleNode(asmp.getCount());</span>
-<span class="fc" id="L117">      SampleNode parent = index.get(asmp.getParentId());</span>
-<span class="fc bfc" id="L118" title="All 2 branches covered.">      if (parent != null) {</span>
-<span class="fc" id="L119">        Method m = asmp.getMethod();</span>
-<span class="fc" id="L120">        parent.put(m, sn);</span>
+<span class="fc" id="L115">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc bfc" id="L116" title="All 2 branches covered.">    while (samples.hasNext()) {</span>
+<span class="fc" id="L117">      StackSampleElement asmp = samples.next();</span>
+<span class="fc" id="L118">      SampleNode sn = new SampleNode(asmp.getCount());</span>
+<span class="fc" id="L119">      SampleNode parent = index.get(asmp.getParentId());</span>
+<span class="fc bfc" id="L120" title="All 2 branches covered.">      if (parent != null) {</span>
+<span class="fc" id="L121">        Method m = asmp.getMethod();</span>
+<span class="fc" id="L122">        parent.put(m, sn);</span>
       }
-<span class="fc" id="L122">      index.put(asmp.getId(), sn);</span>
-<span class="fc" id="L123">    }</span>
-<span class="fc" id="L124">    return index.get(0);</span>
+<span class="fc" id="L124">      index.put(asmp.getId(), sn);</span>
+<span class="fc" id="L125">    }</span>
+<span class="fc" id="L126">    return index.get(0);</span>
   }
 
   public static void save(final File file, final SampleNode collected) throws IOException {
-<span class="fc" id="L128">    try (OutputStream bos = newOutputStream(file)) {</span>
-<span class="fc" id="L129">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer</span>
-<span class="fc" id="L130">              = new SpecificDatumWriter&lt;&gt;(StackSampleElement.getClassSchema());</span>
-<span class="fc" id="L131">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
-<span class="fc" id="L132">      Converters.convert(Methods.ROOT, collected,</span>
+<span class="fc" id="L130">    try (OutputStream bos = newOutputStream(file)) {</span>
+<span class="fc" id="L131">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer</span>
+<span class="fc" id="L132">              = new SpecificDatumWriter&lt;&gt;(StackSampleElement.getClassSchema());</span>
+<span class="fc" id="L133">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+<span class="fc" id="L134">      Converters.convert(Methods.ROOT, collected,</span>
               -1, 0, (StackSampleElement object) -&gt; {
                 try {
-<span class="fc" id="L135">                  writer.write(object, encoder);</span>
-<span class="nc" id="L136">                } catch (IOException ex) {</span>
-<span class="nc" id="L137">                  throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L138">                }</span>
-<span class="fc" id="L139">              });</span>
-<span class="fc" id="L140">      encoder.flush();</span>
+<span class="fc" id="L137">                  writer.write(object, encoder);</span>
+<span class="nc" id="L138">                } catch (IOException ex) {</span>
+<span class="nc" id="L139">                  throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L140">                }</span>
+<span class="fc" id="L141">              });</span>
+<span class="fc" id="L142">      encoder.flush();</span>
     }
-<span class="fc" id="L142">  }</span>
+<span class="fc" id="L144">  }</span>
 
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
+  @Nullable
   public static SampleNode load(final File file) throws IOException {
-<span class="fc" id="L146">    try (InputStream fis = newInputStream(file)) {</span>
-<span class="fc" id="L147">      return load(fis);</span>
+<span class="fc" id="L149">    try (InputStream fis = newInputStream(file)) {</span>
+<span class="fc" id="L150">      return load(fis);</span>
     }
   }
 
+  @Nullable
   public static SampleNode load(@WillNotClose final InputStream fis) throws IOException {
-<span class="fc" id="L152">    try (MemorizingBufferedInputStream bis</span>
+<span class="fc" id="L156">    try (MemorizingBufferedInputStream bis</span>
             = new MemorizingBufferedInputStream(fis)) {
-<span class="fc" id="L154">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
-<span class="fc" id="L155">      final SpecificDatumReader&lt;StackSampleElement&gt; reader =</span>
-<span class="fc" id="L156">              new SpecificDatumReader&lt;&gt;(StackSampleElement.getClassSchema());</span>
-<span class="fc" id="L157">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
-<span class="fc" id="L158">      return convert(new Iterator&lt;StackSampleElement&gt;() {</span>
+<span class="fc" id="L158">      final PushbackInputStream pis = new PushbackInputStream(bis);</span>
+<span class="fc" id="L159">      final SpecificDatumReader&lt;StackSampleElement&gt; reader =</span>
+<span class="fc" id="L160">              new SpecificDatumReader&lt;&gt;(StackSampleElement.getClassSchema());</span>
+<span class="fc" id="L161">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(pis, null);</span>
+<span class="fc" id="L162">      return convert(new Iterator&lt;StackSampleElement&gt;() {</span>
 
         @Override
         public boolean hasNext() {
           try {
-<span class="fc" id="L163">            int read = pis.read();</span>
-<span class="fc" id="L164">            pis.unread(read);</span>
-<span class="fc bfc" id="L165" title="All 2 branches covered.">            return read &gt;= 0;</span>
-<span class="nc" id="L166">          } catch (IOException ex) {</span>
-<span class="nc" id="L167">            throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L167">            int read = pis.read();</span>
+<span class="fc" id="L168">            pis.unread(read);</span>
+<span class="fc bfc" id="L169" title="All 2 branches covered.">            return read &gt;= 0;</span>
+<span class="nc" id="L170">          } catch (IOException ex) {</span>
+<span class="nc" id="L171">            throw new UncheckedIOException(ex);</span>
           }
         }
 
@@ -172,65 +176,65 @@ public final class Converter {
         @SuppressFBWarnings
         public StackSampleElement next() {
           try {
-<span class="fc" id="L175">            return reader.read(null, decoder);</span>
-<span class="nc" id="L176">          } catch (IOException ex) {</span>
-<span class="nc" id="L177">            NoSuchElementException e = new NoSuchElementException();</span>
-<span class="nc" id="L178">            e.addSuppressed(ex);</span>
-<span class="nc" id="L179">            throw e;</span>
+<span class="fc" id="L179">            return reader.read(null, decoder);</span>
+<span class="nc" id="L180">          } catch (IOException ex) {</span>
+<span class="nc" id="L181">            NoSuchElementException e = new NoSuchElementException();</span>
+<span class="nc" id="L182">            e.addSuppressed(ex);</span>
+<span class="nc" id="L183">            throw e;</span>
           }
         }
 
         @Override
         public void remove() {
-<span class="nc" id="L185">          throw new UnsupportedOperationException();</span>
+<span class="nc" id="L189">          throw new UnsupportedOperationException();</span>
         }
       });
     }
   }
 
   public static void saveLabeledDumps(final File file, final Map&lt;String, SampleNode&gt; pcollected) throws IOException {
-<span class="fc" id="L192">    try (OutputStream bos = newOutputStream(file)) {</span>
-<span class="fc" id="L193">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer = new SpecificDatumWriter&lt;&gt;(StackSampleElement.SCHEMA$);</span>
-<span class="fc" id="L194">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
+<span class="fc" id="L196">    try (OutputStream bos = newOutputStream(file)) {</span>
+<span class="fc" id="L197">      final SpecificDatumWriter&lt;StackSampleElement&gt; writer = new SpecificDatumWriter&lt;&gt;(StackSampleElement.SCHEMA$);</span>
+<span class="fc" id="L198">      final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);</span>
 
-<span class="fc" id="L196">      encoder.writeMapStart();</span>
-<span class="fc" id="L197">      final Map&lt;String, SampleNode&gt; collected = pcollected.entrySet().stream()</span>
-<span class="fc bfc" id="L198" title="All 2 branches covered.">              .filter((e) -&gt; e.getValue() != null)</span>
-<span class="fc" id="L199">              .collect(Collectors.toMap((e) -&gt; e.getKey(), (e) -&gt; e.getValue()));</span>
-<span class="fc" id="L200">      encoder.setItemCount(collected.size());</span>
-<span class="fc bfc" id="L201" title="All 2 branches covered.">      for (Map.Entry&lt;String, SampleNode&gt; entry : collected.entrySet()) {</span>
-<span class="fc" id="L202">        encoder.startItem();</span>
-<span class="fc" id="L203">        encoder.writeString(entry.getKey());</span>
-<span class="fc" id="L204">        encoder.writeArrayStart();</span>
-<span class="fc" id="L205">        Converters.convert(Methods.ROOT, entry.getValue(),</span>
+<span class="fc" id="L200">      encoder.writeMapStart();</span>
+<span class="fc" id="L201">      final Map&lt;String, SampleNode&gt; collected = pcollected.entrySet().stream()</span>
+<span class="fc bfc" id="L202" title="All 2 branches covered.">              .filter((e) -&gt; e.getValue() != null)</span>
+<span class="fc" id="L203">              .collect(Collectors.toMap((e) -&gt; e.getKey(), (e) -&gt; e.getValue()));</span>
+<span class="fc" id="L204">      encoder.setItemCount(collected.size());</span>
+<span class="fc bfc" id="L205" title="All 2 branches covered.">      for (Map.Entry&lt;String, SampleNode&gt; entry : collected.entrySet()) {</span>
+<span class="fc" id="L206">        encoder.startItem();</span>
+<span class="fc" id="L207">        encoder.writeString(entry.getKey());</span>
+<span class="fc" id="L208">        encoder.writeArrayStart();</span>
+<span class="fc" id="L209">        Converters.convert(Methods.ROOT, entry.getValue(),</span>
                 -1, 0, (final StackSampleElement object) -&gt; {
                   try {
-<span class="fc" id="L208">                  encoder.setItemCount(1L);</span>
-<span class="fc" id="L209">                  encoder.startItem();</span>
-<span class="fc" id="L210">                  writer.write(object, encoder);</span>
-<span class="nc" id="L211">                  } catch (IOException ex) {</span>
-<span class="nc" id="L212">                    throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L213">                  }</span>
-<span class="fc" id="L214">                });</span>
-<span class="fc" id="L215">        encoder.writeArrayEnd();</span>
-<span class="fc" id="L216">      }</span>
-<span class="fc" id="L217">      encoder.writeMapEnd();</span>
-<span class="fc" id="L218">      encoder.flush();</span>
+<span class="fc" id="L212">                  encoder.setItemCount(1L);</span>
+<span class="fc" id="L213">                  encoder.startItem();</span>
+<span class="fc" id="L214">                  writer.write(object, encoder);</span>
+<span class="nc" id="L215">                  } catch (IOException ex) {</span>
+<span class="nc" id="L216">                    throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L217">                  }</span>
+<span class="fc" id="L218">                });</span>
+<span class="fc" id="L219">        encoder.writeArrayEnd();</span>
+<span class="fc" id="L220">      }</span>
+<span class="fc" id="L221">      encoder.writeMapEnd();</span>
+<span class="fc" id="L222">      encoder.flush();</span>
     }
-<span class="fc" id="L220">  }</span>
+<span class="fc" id="L224">  }</span>
 
   private static OutputStream newOutputStream(final File file) throws IOException {
-<span class="fc" id="L223">    OutputStream result = new BufferedOutputStream(</span>
-<span class="fc" id="L224">            Files.newOutputStream(file.toPath()));</span>
-<span class="fc bfc" id="L225" title="All 2 branches covered.">    if (file.getName().endsWith(&quot;.gz&quot;)) {</span>
+<span class="fc" id="L227">    OutputStream result = new BufferedOutputStream(</span>
+<span class="fc" id="L228">            Files.newOutputStream(file.toPath()));</span>
+<span class="fc bfc" id="L229" title="All 2 branches covered.">    if (file.getName().endsWith(&quot;.gz&quot;)) {</span>
       try {
-<span class="fc" id="L227">        result = new GZIPOutputStream(result);</span>
-<span class="nc" id="L228">      } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L229">        result.close();</span>
-<span class="nc" id="L230">        throw ex;</span>
-<span class="fc" id="L231">      }</span>
+<span class="fc" id="L231">        result = new GZIPOutputStream(result);</span>
+<span class="nc" id="L232">      } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L233">        result.close();</span>
+<span class="nc" id="L234">        throw ex;</span>
+<span class="fc" id="L235">      }</span>
     }
-<span class="fc" id="L233">    return result;</span>
+<span class="fc" id="L237">    return result;</span>
   }
 
   /**
@@ -241,21 +245,21 @@ public final class Converter {
    */
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   public static Map&lt;String, SampleNode&gt; loadLabeledDumps(final File file) throws IOException {
-<span class="fc" id="L244">    try (InputStream bis = newInputStream(file)) {</span>
-<span class="fc" id="L245">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
-<span class="fc" id="L246">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
-<span class="fc" id="L247">      long nrItems = decoder.readMapStart();</span>
-<span class="fc" id="L248">      StackSampleElement asmp = new StackSampleElement();</span>
-<span class="fc" id="L249">      Map&lt;String, SampleNode&gt; result = new HashMap&lt;&gt;((int) nrItems);</span>
-<span class="fc bfc" id="L250" title="All 2 branches covered.">      while (nrItems &gt; 0) {</span>
-<span class="fc bfc" id="L251" title="All 2 branches covered.">        for (int i = 0; i &lt; nrItems; i++) {</span>
-<span class="fc" id="L252">          String key = decoder.readString();</span>
-<span class="fc" id="L253">          TIntObjectMap&lt;SampleNode&gt; index = loadSamples(decoder, asmp, reader);</span>
-<span class="fc" id="L254">          result.put(key, index.get(0));</span>
+<span class="fc" id="L248">    try (InputStream bis = newInputStream(file)) {</span>
+<span class="fc" id="L249">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
+<span class="fc" id="L250">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
+<span class="fc" id="L251">      long nrItems = decoder.readMapStart();</span>
+<span class="fc" id="L252">      StackSampleElement asmp = new StackSampleElement();</span>
+<span class="fc" id="L253">      Map&lt;String, SampleNode&gt; result = new HashMap&lt;&gt;((int) nrItems);</span>
+<span class="fc bfc" id="L254" title="All 2 branches covered.">      while (nrItems &gt; 0) {</span>
+<span class="fc bfc" id="L255" title="All 2 branches covered.">        for (int i = 0; i &lt; nrItems; i++) {</span>
+<span class="fc" id="L256">          String key = decoder.readString();</span>
+<span class="fc" id="L257">          TIntObjectMap&lt;SampleNode&gt; index = loadSamples(decoder, asmp, reader);</span>
+<span class="fc" id="L258">          result.put(key, index.get(0));</span>
         }
-<span class="fc" id="L256">        nrItems = decoder.mapNext();</span>
+<span class="fc" id="L260">        nrItems = decoder.mapNext();</span>
       }
-<span class="fc" id="L258">      return result;</span>
+<span class="fc" id="L262">      return result;</span>
     }
   }
 
@@ -263,23 +267,23 @@ public final class Converter {
   private static TIntObjectMap&lt;SampleNode&gt; loadSamples(final Decoder decoder,
           final StackSampleElement pasmp,
           final SpecificDatumReader&lt;StackSampleElement&gt; reader) throws IOException {
-<span class="fc" id="L266">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
-<span class="fc" id="L267">    long nrArrayItems = decoder.readArrayStart();</span>
-<span class="fc bfc" id="L268" title="All 2 branches covered.">    while (nrArrayItems &gt; 0) {</span>
-<span class="fc bfc" id="L269" title="All 2 branches covered.">      for (int j = 0; j &lt; nrArrayItems; j++) {</span>
-<span class="fc" id="L270">        StackSampleElement asmp = reader.read(pasmp, decoder);</span>
-<span class="fc" id="L271">        SampleNode sn = new SampleNode(asmp.getCount());</span>
-<span class="fc" id="L272">        SampleNode parent = index.get(asmp.getParentId());</span>
-<span class="fc bfc" id="L273" title="All 2 branches covered.">        if (parent != null) {</span>
-<span class="fc" id="L274">          Method readMethod = asmp.getMethod();</span>
-<span class="fc" id="L275">          Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());</span>
-<span class="fc" id="L276">          parent.put(m, sn);</span>
+<span class="fc" id="L270">    TIntObjectMap&lt;SampleNode&gt; index = new TIntObjectHashMap&lt;&gt;();</span>
+<span class="fc" id="L271">    long nrArrayItems = decoder.readArrayStart();</span>
+<span class="fc bfc" id="L272" title="All 2 branches covered.">    while (nrArrayItems &gt; 0) {</span>
+<span class="fc bfc" id="L273" title="All 2 branches covered.">      for (int j = 0; j &lt; nrArrayItems; j++) {</span>
+<span class="fc" id="L274">        StackSampleElement asmp = reader.read(pasmp, decoder);</span>
+<span class="fc" id="L275">        SampleNode sn = new SampleNode(asmp.getCount());</span>
+<span class="fc" id="L276">        SampleNode parent = index.get(asmp.getParentId());</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">        if (parent != null) {</span>
+<span class="fc" id="L278">          Method readMethod = asmp.getMethod();</span>
+<span class="fc" id="L279">          Method m = new Method(readMethod.getDeclaringClass(), readMethod.getName());</span>
+<span class="fc" id="L280">          parent.put(m, sn);</span>
         }
-<span class="fc" id="L278">        index.put(asmp.getId(), sn);</span>
+<span class="fc" id="L282">        index.put(asmp.getId(), sn);</span>
       }
-<span class="fc" id="L280">      nrArrayItems = decoder.arrayNext();</span>
+<span class="fc" id="L284">      nrArrayItems = decoder.arrayNext();</span>
     }
-<span class="fc" id="L282">    return index;</span>
+<span class="fc" id="L286">    return index;</span>
   }
 
   /**
@@ -288,34 +292,34 @@ public final class Converter {
    * @throws IOException
    */
   public static void loadLabels(final File file, final Consumer&lt;String&gt; labalsConsumer) throws IOException {
-<span class="nc" id="L291">    try (InputStream bis = newInputStream(file)) {</span>
-<span class="nc" id="L292">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
-<span class="nc" id="L293">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
-<span class="nc" id="L294">      long nrItems = decoder.readMapStart();</span>
-<span class="nc" id="L295">      StackSampleElement asmp = new StackSampleElement();</span>
-<span class="nc bnc" id="L296" title="All 2 branches missed.">      while (nrItems &gt; 0) {</span>
-<span class="nc bnc" id="L297" title="All 2 branches missed.">        for (int i = 0; i &lt; nrItems; i++) {</span>
-<span class="nc" id="L298">          String key = decoder.readString();</span>
-<span class="nc" id="L299">          labalsConsumer.accept(key);</span>
-<span class="nc" id="L300">          skipDump(decoder, reader, asmp);</span>
+<span class="nc" id="L295">    try (InputStream bis = newInputStream(file)) {</span>
+<span class="nc" id="L296">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
+<span class="nc" id="L297">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
+<span class="nc" id="L298">      long nrItems = decoder.readMapStart();</span>
+<span class="nc" id="L299">      StackSampleElement asmp = new StackSampleElement();</span>
+<span class="nc bnc" id="L300" title="All 2 branches missed.">      while (nrItems &gt; 0) {</span>
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        for (int i = 0; i &lt; nrItems; i++) {</span>
+<span class="nc" id="L302">          String key = decoder.readString();</span>
+<span class="nc" id="L303">          labalsConsumer.accept(key);</span>
+<span class="nc" id="L304">          skipDump(decoder, reader, asmp);</span>
         }
-<span class="nc" id="L302">        nrItems = decoder.mapNext();</span>
+<span class="nc" id="L306">        nrItems = decoder.mapNext();</span>
       }
     }
-<span class="nc" id="L305">  }</span>
+<span class="nc" id="L309">  }</span>
 
   @SuppressFBWarnings(&quot;OCP_OVERLY_CONCRETE_PARAMETER&quot;)// it's a private method, don't care about being generic
   private static void skipDump(final Decoder decoder,
           final SpecificDatumReader&lt;StackSampleElement&gt; reader,
           final StackSampleElement asmp) throws IOException {
-<span class="nc" id="L311">    long nrArrayItems = decoder.readArrayStart();</span>
-<span class="nc bnc" id="L312" title="All 2 branches missed.">    while (nrArrayItems &gt; 0) {</span>
-<span class="nc bnc" id="L313" title="All 2 branches missed.">      for (int j = 0; j &lt; nrArrayItems; j++) {</span>
-<span class="nc" id="L314">        reader.read(asmp, decoder);</span>
+<span class="nc" id="L315">    long nrArrayItems = decoder.readArrayStart();</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">    while (nrArrayItems &gt; 0) {</span>
+<span class="nc bnc" id="L317" title="All 2 branches missed.">      for (int j = 0; j &lt; nrArrayItems; j++) {</span>
+<span class="nc" id="L318">        reader.read(asmp, decoder);</span>
       }
-<span class="nc" id="L316">      nrArrayItems = decoder.arrayNext();</span>
+<span class="nc" id="L320">      nrArrayItems = decoder.arrayNext();</span>
     }
-<span class="nc" id="L318">  }</span>
+<span class="nc" id="L322">  }</span>
 
  /**
    * Load samples forrm file containing multiple labeled stack samples.
@@ -326,40 +330,40 @@ public final class Converter {
   @SuppressFBWarnings(&quot;NP_LOAD_OF_KNOWN_NULL_VALUE&quot;)
   @Nullable
   public static SampleNode loadLabeledDump(final File file, final String label) throws IOException {
-<span class="nc" id="L329">    try (InputStream bis = newInputStream(file)) {</span>
-<span class="nc" id="L330">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
-<span class="nc" id="L331">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
-<span class="nc" id="L332">      long nrItems = decoder.readMapStart();</span>
-<span class="nc" id="L333">      StackSampleElement asmp = new StackSampleElement();</span>
-<span class="nc bnc" id="L334" title="All 2 branches missed.">      while (nrItems &gt; 0) {</span>
-<span class="nc bnc" id="L335" title="All 2 branches missed.">        for (int i = 0; i &lt; nrItems; i++) {</span>
-<span class="nc" id="L336">          String key = decoder.readString();</span>
-<span class="nc bnc" id="L337" title="All 2 branches missed.">          if (label.equals(key)) {</span>
-<span class="nc" id="L338">            return loadSamples(decoder, asmp, reader).get(0);</span>
+<span class="nc" id="L333">    try (InputStream bis = newInputStream(file)) {</span>
+<span class="nc" id="L334">      final SpecificDatumReader&lt;StackSampleElement&gt; reader = new SpecificDatumReader&lt;&gt;(StackSampleElement.SCHEMA$);</span>
+<span class="nc" id="L335">      final BinaryDecoder decoder = DecoderFactory.get().directBinaryDecoder(bis, null);</span>
+<span class="nc" id="L336">      long nrItems = decoder.readMapStart();</span>
+<span class="nc" id="L337">      StackSampleElement asmp = new StackSampleElement();</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">      while (nrItems &gt; 0) {</span>
+<span class="nc bnc" id="L339" title="All 2 branches missed.">        for (int i = 0; i &lt; nrItems; i++) {</span>
+<span class="nc" id="L340">          String key = decoder.readString();</span>
+<span class="nc bnc" id="L341" title="All 2 branches missed.">          if (label.equals(key)) {</span>
+<span class="nc" id="L342">            return loadSamples(decoder, asmp, reader).get(0);</span>
           } else {
-<span class="nc" id="L340">            skipDump(decoder, reader, asmp);</span>
+<span class="nc" id="L344">            skipDump(decoder, reader, asmp);</span>
           }
         }
-<span class="nc" id="L343">        nrItems = decoder.mapNext();</span>
+<span class="nc" id="L347">        nrItems = decoder.mapNext();</span>
       }
-<span class="nc" id="L345">      return null;</span>
+<span class="nc" id="L349">      return null;</span>
     }
   }
 
   private static InputStream newInputStream(final File file) throws IOException {
-<span class="fc" id="L350">    InputStream result =  new BufferedInputStream(Files.newInputStream(file.toPath()));</span>
-<span class="fc bfc" id="L351" title="All 2 branches covered.">    if (file.getName().endsWith(&quot;.gz&quot;)) {</span>
+<span class="fc" id="L354">    InputStream result =  new BufferedInputStream(Files.newInputStream(file.toPath()));</span>
+<span class="fc bfc" id="L355" title="All 2 branches covered.">    if (file.getName().endsWith(&quot;.gz&quot;)) {</span>
       try {
-<span class="fc" id="L353">        return new GZIPInputStream(result);</span>
-<span class="nc" id="L354">      } catch (IOException | RuntimeException ex) {</span>
-<span class="nc" id="L355">        result.close();</span>
-<span class="nc" id="L356">        throw ex;</span>
+<span class="fc" id="L357">        return new GZIPInputStream(result);</span>
+<span class="nc" id="L358">      } catch (IOException | RuntimeException ex) {</span>
+<span class="nc" id="L359">        result.close();</span>
+<span class="nc" id="L360">        throw ex;</span>
       }
     } else {
-<span class="fc" id="L359">      return result;</span>
+<span class="fc" id="L363">      return result;</span>
     }
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

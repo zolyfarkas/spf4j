@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AesEncryptorDecryptor.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.security</a> &gt; <span class="el_source">AesEncryptorDecryptor.java</span></div><h1>AesEncryptorDecryptor.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.security;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.security.GeneralSecurityException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import javax.crypto.BadPaddingException;
+
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.GCMParameterSpec;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class AesEncryptorDecryptor implements EncryptorDecryptor {
+
+  private static class Random {
+
+<span class="fc" id="L55">    private static final AesEncryptorDecryptor INSTANCE = new AesEncryptorDecryptor();</span>
+  }
+
+  private static final String ALGO_CLASS = &quot;AES&quot;;
+  private static final String ALGO = &quot;AES/GCM/NoPadding&quot;;
+
+<span class="fc" id="L61">  private static final GCMParameterSpec DEFAULT_PARAMS = new GCMParameterSpec(96, new byte[]{</span>
+    (byte) 0x51, (byte) 0x65, (byte) 0x22, (byte) 0x23,
+    (byte) 0x64, (byte) 0x05, (byte) 0x6A, (byte) 0xBE,
+    (byte) 0x51, (byte) 0x65, (byte) 0x22, (byte) 0x23,
+    (byte) 0x64, (byte) 0x05, (byte) 0x6A, (byte) 0xBE});
+
+  private static Cipher getCypher() {
+    try {
+<span class="fc" id="L69">      return Cipher.getInstance(ALGO);</span>
+<span class="nc" id="L70">    } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {</span>
+<span class="nc" id="L71">      throw new RuntimeException(ex);</span>
+    }
+  }
+
+  private final Key key;
+
+  private AesEncryptorDecryptor() {
+<span class="fc" id="L78">    this(randomKey());</span>
+<span class="fc" id="L79">  }</span>
+
+<span class="fc" id="L81">  public AesEncryptorDecryptor(final Key key) {</span>
+<span class="fc" id="L82">    this.key = key;</span>
+<span class="fc" id="L83">  }</span>
+
+  public static AesEncryptorDecryptor randomKeyInstance() {
+<span class="fc" id="L86">    return Random.INSTANCE;</span>
+  }
+
+  private static Key randomKey() {
+    try {
+<span class="fc" id="L91">      return KeyGenerator.getInstance(ALGO_CLASS).generateKey();</span>
+<span class="nc" id="L92">    } catch (NoSuchAlgorithmException ex) {</span>
+<span class="nc" id="L93">      throw new RuntimeException(ex);</span>
+    }
+  }
+
+  public byte[] decrypt(final byte[] bytes) throws GeneralSecurityException {
+<span class="fc" id="L98">    Cipher cipher = getCypher();</span>
+<span class="fc" id="L99">    cipher.init(Cipher.DECRYPT_MODE, key, DEFAULT_PARAMS);</span>
+<span class="fc" id="L100">    return cipher.doFinal(bytes);</span>
+  }
+
+  @SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+  public byte[] encrypt(final byte[] bytes) {
+    try {
+<span class="fc" id="L106">      Cipher cipher = getCypher();</span>
+<span class="fc" id="L107">      cipher.init(Cipher.ENCRYPT_MODE, key, DEFAULT_PARAMS);</span>
+<span class="fc" id="L108">      return cipher.doFinal(bytes);</span>
+<span class="nc" id="L109">    } catch (InvalidKeyException | InvalidAlgorithmParameterException</span>
+            | IllegalBlockSizeException | BadPaddingException ex) {
+<span class="nc" id="L111">      throw new RuntimeException(ex);</span>
+    }
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L117">    return &quot;AesEncryptorDecryptor&quot;;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

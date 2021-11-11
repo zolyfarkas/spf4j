@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>RetryPolicies.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.failsafe</a> &gt; <span class="el_source">RetryPolicies.java</span></div><h1>RetryPolicies.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.failsafe;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.Invocable;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import org.spf4j.base.Either;
+import org.spf4j.base.Reflections;
+import org.spf4j.base.ResultMatchers;
+import org.spf4j.failsafe.avro.RetryParams;
+import org.spf4j.failsafe.avro.RetryRule;
+import org.spf4j.failsafe.avro.ScriptedRetryPredicateSupplier;
+
+/**
+ * a Factory with retry named retry Rules.
+ *
+ * @author Zoltan Farkas
+ */
+public final class RetryPolicies {
+
+<span class="fc" id="L66">  private static final ScriptEngineManager SCRIPT_ENGINE_MANAGER = new ScriptEngineManager();</span>
+
+  private static final Map&lt;String,
+          Either&lt;PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier&gt;&gt; REGISTRY;
+
+  static {
+<span class="fc" id="L72">    REGISTRY = load();</span>
+<span class="fc" id="L73">  }</span>
+
+  private RetryPolicies() {
+  }
+
+  private static Map&lt;String,
+         Either&lt;PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier&gt;&gt; load() {
+<span class="fc" id="L80">    Map&lt;String, Either&lt;PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier&gt;&gt; result</span>
+            = new HashMap&lt;&gt;();
+    for (PartialExceptionRetryPredicateSupplier s
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            : ServiceLoader.load(PartialExceptionRetryPredicateSupplier.class)) {</span>
+<span class="nc" id="L84">      result.put(s.getName(), Either.left(s));</span>
+<span class="nc" id="L85">    }</span>
+    for (PartialResultRetryPredicateSupplier s
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">            : ServiceLoader.load(PartialResultRetryPredicateSupplier.class)) {</span>
+<span class="nc" id="L88">      result.put(s.getName(), Either.right(s));</span>
+<span class="nc" id="L89">    }</span>
+<span class="fc" id="L90">    return result;</span>
+  }
+
+  public static Either&lt;PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier&gt;
+          getRetryPredicateSupplier(final String name) {
+<span class="nc" id="L95">    return REGISTRY.get(name);</span>
+  }
+
+  @Nullable
+  public static &lt;T, C extends Callable&lt;? extends T&gt;&gt;
+          Either&lt;TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, C&gt;&gt;,
+         TimedSupplier&lt;PartialResultRetryPredicate&lt;T, C&gt;&gt;&gt; getResultRetryPredicateSupplier(
+                  final String resultName, final RetryParams rp,
+                 final ResultMatchers.Supplier resultMatcherSupplier) {
+<span class="nc" id="L104">    Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt; resPred = resultMatcherSupplier.apply(resultName);</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">    if (resPred == null) {</span>
+<span class="nc" id="L106">      return null;</span>
+    }
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">    if (resPred.isLeft()) {</span>
+<span class="nc" id="L110">      Predicate&lt;Throwable&gt; predicate = resPred.getLeft();</span>
+<span class="nc" id="L111">      return Either.left(new TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, C&gt;&gt;() {</span>
+        @Override
+        public PartialExceptionRetryPredicate&lt;T, C&gt; get(final long startTimeNanos, final long deadlineNanos) {
+<span class="nc" id="L114">          RetryDelaySupplier ds = new JitteredDelaySupplier(</span>
+<span class="nc" id="L115">                  new FibonacciRetryDelaySupplier(rp.getNrInitialImmediateRetries(),</span>
+<span class="nc" id="L116">                          rp.getStartDelay().toNanos(), rp.getMaxDelay().toNanos()), rp.getRetryDelayJitter());</span>
+<span class="nc" id="L117">          CountLimitedPartialRetryPredicate clp</span>
+<span class="nc" id="L118">                  = new CountLimitedPartialRetryPredicate&lt;T, Throwable, C&gt;(rp.getMaxNrRetries(),</span>
+<span class="nc" id="L119">                          new PartialExceptionRetryPredicate&lt;T, C&gt;() {</span>
+                    @Override
+                    public RetryDecision getExceptionDecision(final Throwable value, final Callable what) {
+
+<span class="nc bnc" id="L123" title="All 2 branches missed.">                      if (predicate.test(value)) {</span>
+<span class="nc" id="L124">                        return RetryDecision.retry(ds.nextDelay(), what);</span>
+                      }
+<span class="nc" id="L126">                      return null;</span>
+                    }
+
+                  });
+<span class="nc" id="L130">          TimeLimitedPartialRetryPredicate tlp</span>
+                  = new TimeLimitedPartialRetryPredicate&lt;T, Throwable, C&gt;(startTimeNanos, deadlineNanos,
+<span class="nc" id="L132">                          rp.getMaxTimeToRetry().toNanos(), TimeUnit.NANOSECONDS, rp.getMaxTimeToRetryFactor(), clp);</span>
+
+<span class="nc" id="L134">          return (Throwable value, C what) -&gt; tlp.apply(value, what);</span>
+
+        }
+      });
+    } else {
+<span class="nc" id="L139">      Predicate&lt;Object&gt; predicate = resPred.getRight();</span>
+<span class="nc" id="L140">      return Either.right(new TimedSupplier&lt;PartialResultRetryPredicate&lt;T, C&gt;&gt;() {</span>
+        @Override
+        public PartialResultRetryPredicate&lt;T, C&gt; get(final long startTimeNanos, final long deadlineNanos) {
+<span class="nc" id="L143">          RetryDelaySupplier ds = new JitteredDelaySupplier(</span>
+<span class="nc" id="L144">                  new FibonacciRetryDelaySupplier(rp.getNrInitialImmediateRetries(),</span>
+<span class="nc" id="L145">                          rp.getStartDelay().toNanos(), rp.getMaxDelay().toNanos()), rp.getRetryDelayJitter());</span>
+<span class="nc" id="L146">          CountLimitedPartialRetryPredicate clp</span>
+<span class="nc" id="L147">                  = new CountLimitedPartialRetryPredicate&lt;T, T, C&gt;(rp.getMaxNrRetries(),</span>
+<span class="nc" id="L148">                          new PartialResultRetryPredicate&lt;T, C&gt;() {</span>
+                    @Override
+                    public RetryDecision getDecision(final Object value, final Callable what) {
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                      if (predicate.test(value)) {</span>
+<span class="nc" id="L153">                        return RetryDecision.retry(ds.nextDelay(), what);</span>
+                      }
+<span class="nc" id="L155">                      return null;</span>
+                    }
+
+                  });
+<span class="nc" id="L159">          TimeLimitedPartialRetryPredicate tlp</span>
+                  = new TimeLimitedPartialRetryPredicate&lt;T, T, C&gt;(startTimeNanos, deadlineNanos,
+<span class="nc" id="L161">                          rp.getMaxTimeToRetry().toNanos(), TimeUnit.NANOSECONDS, rp.getMaxTimeToRetryFactor(), clp);</span>
+
+<span class="nc" id="L163">          return (T value, C what) -&gt; tlp.apply(value, what);</span>
+
+        }
+      });
+    }
+
+  }
+
+  public static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryPolicy&lt;T, C&gt; create(
+          final org.spf4j.failsafe.avro.RetryPolicy policy) throws InvalidRetryPolicyException {
+<span class="nc" id="L173">    return create(policy, ResultMatchers.toSupplier());</span>
+  }
+
+  /**
+   * Create a retry policy with a custom result MatcherSupplier.
+   * this allows use of custom resolution to result matcher names.
+   * @param &lt;T&gt;
+   * @param &lt;C&gt;
+   * @param policy the retry policy serializable representation.
+   * @param resultMatcherSupplier - a resolvers that resolvers the referenced named matchers in the policy
+   * @return
+   * @throws InvalidRetryPolicyException
+   */
+  public static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryPolicy&lt;T, C&gt; create(
+          final org.spf4j.failsafe.avro.RetryPolicy policy,
+          final ResultMatchers.Supplier resultMatcherSupplier) throws InvalidRetryPolicyException {
+<span class="fc" id="L189">    return ((RetryPolicy.Builder&lt;T, C&gt;) createBuilder(policy, resultMatcherSupplier)).build();</span>
+  }
+
+  public static &lt;T, C extends Callable&lt;? extends T&gt;&gt; RetryPolicy.Builder&lt;T, C&gt; createBuilder(
+          final org.spf4j.failsafe.avro.RetryPolicy policy,
+          final ResultMatchers.Supplier resultMatcherSupplier) throws InvalidRetryPolicyException {
+<span class="fc" id="L195">    RetryPolicy.Builder&lt;T, C&gt; builder = RetryPolicy.newBuilder();</span>
+<span class="fc" id="L196">    addRetryPolicy(builder, policy, resultMatcherSupplier);</span>
+<span class="fc" id="L197">    return builder;</span>
+  }
+
+  public static &lt;C extends Callable&lt;? extends T&gt;, T&gt; void addRetryPolicy(final RetryPolicy.Builder&lt;T, C&gt; builder,
+          final org.spf4j.failsafe.avro.RetryPolicy policy,
+          final ResultMatchers.Supplier resultMatcherSupplier) throws InvalidRetryPolicyException {
+<span class="fc" id="L203">    builder.withMaxExceptionChain(policy.getMaxSupressedExceptions());</span>
+<span class="pc bpc" id="L204" title="1 of 2 branches missed.">    for (RetryRule rule : policy.getRetryRules()) {</span>
+<span class="nc" id="L205">      ScriptedRetryPredicateSupplier ps = rule.getPredicateSupplier();</span>
+<span class="nc bnc" id="L206" title="All 2 branches missed.">      if (ps == null) {</span>
+<span class="nc" id="L207">        Either&lt;PartialExceptionRetryPredicateSupplier, PartialResultRetryPredicateSupplier&gt; ups</span>
+<span class="nc" id="L208">                = getRetryPredicateSupplier(rule.getName());</span>
+<span class="nc bnc" id="L209" title="All 2 branches missed.">        if (ups.isLeft()) {</span>
+          @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L211">          TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, C&gt;&gt; ets = ups.getLeft();</span>
+<span class="nc" id="L212">          builder.withExceptionPartialPredicateSupplier(ets);</span>
+<span class="nc" id="L213">        } else {</span>
+          @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L215">          TimedSupplier&lt;PartialResultRetryPredicate&lt;T, C&gt;&gt; rts = ups.getRight();</span>
+<span class="nc" id="L216">          builder.withResultPartialPredicateSupplier(rts);</span>
+        }
+<span class="nc" id="L218">      } else {</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">        if (!&quot;java&quot;.equals(ps.getTargetLanguage())) {</span>
+<span class="nc" id="L220">          continue;</span>
+        }
+<span class="nc" id="L222">        String language = ps.getLanguage();</span>
+<span class="nc" id="L223">        ScriptEngine engine = SCRIPT_ENGINE_MANAGER.getEngineByName(language);</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">        if (engine == null) {</span>
+<span class="nc" id="L225">          throw new InvalidRetryPolicyException(&quot;No engine named: &quot; + language);</span>
+        }
+<span class="nc" id="L227">        Bindings bindings = engine.createBindings();</span>
+<span class="nc" id="L228">        bindings.put(&quot;decision&quot;, Reflections.implementStatic(RetryDecisionFactory.class, RetryDecision.class));</span>
+<span class="nc" id="L229">        engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE);</span>
+<span class="nc" id="L230">        String rps = ps.getReturnPredicateSupplier();</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">        if (!rps.isEmpty()) {</span>
+          Invocable invocable;
+          try {
+<span class="nc" id="L234">            invocable = toInvocable(engine, rps);</span>
+<span class="nc" id="L235">          } catch (ScriptException ex) {</span>
+<span class="nc" id="L236">            throw new InvalidRetryPolicyException(&quot;Invalid Script: &quot; + rps, ex);</span>
+<span class="nc" id="L237">          }</span>
+<span class="nc" id="L238">          builder.withResultPartialPredicateSupplier(</span>
+<span class="nc" id="L239">                  (start, deadline) -&gt; (object, callable)</span>
+                          -&gt; {
+                    try {
+<span class="nc" id="L242">                      return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);</span>
+<span class="nc" id="L243">                    } catch (ScriptException | NoSuchMethodException ex) {</span>
+<span class="nc" id="L244">                      Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,</span>
+                              &quot;Failed predicate {0}&quot;, new Object[]{rps, ex});
+<span class="nc" id="L246">                      return RetryDecision.ABORT;</span>
+                    }
+                  });
+        }
+<span class="nc" id="L250">        String tps = ps.getThrowablePredicateSupplier();</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">        if (!tps.isEmpty()) {</span>
+          Invocable invocable;
+          try {
+<span class="nc" id="L254">            invocable = toInvocable(engine, tps);</span>
+<span class="nc" id="L255">          } catch (ScriptException ex) {</span>
+<span class="nc" id="L256">            throw new InvalidRetryPolicyException(&quot;Invalid Script: &quot; + tps, ex);</span>
+<span class="nc" id="L257">          }</span>
+<span class="nc" id="L258">          builder.withResultPartialPredicateSupplier(</span>
+<span class="nc" id="L259">                  (start, deadline) -&gt; (object, callable)</span>
+                          -&gt; {
+                    try {
+<span class="nc" id="L262">                      return (RetryDecision) invocable.invokeFunction(null, start, deadline, object, callable);</span>
+<span class="nc" id="L263">                    } catch (ScriptException | NoSuchMethodException ex) {</span>
+<span class="nc" id="L264">                      Logger.getLogger(RetryPolicies.class.getName()).log(Level.SEVERE,</span>
+                              &quot;Failed predicate {0}&quot;, new Object[]{tps, ex});
+<span class="nc" id="L266">                      return RetryDecision.ABORT;</span>
+                    }
+                  });
+        }
+      }
+<span class="nc" id="L271">    }</span>
+<span class="pc bpc" id="L272" title="1 of 2 branches missed.">    for (Map.Entry&lt;String, RetryParams&gt; entry : policy.getResponse2RetryParams().entrySet()) {</span>
+<span class="nc" id="L273">      String reasonName = entry.getKey();</span>
+      Either&lt;TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, C&gt;&gt;,
+<span class="nc" id="L275">              TimedSupplier&lt;PartialResultRetryPredicate&lt;T, C&gt;&gt;&gt; result</span>
+<span class="nc" id="L276">              = getResultRetryPredicateSupplier(reasonName, entry.getValue(), resultMatcherSupplier);</span>
+<span class="nc bnc" id="L277" title="All 2 branches missed.">      if (result == null) {</span>
+<span class="nc" id="L278">        throw new InvalidRetryPolicyException(&quot;No reason matcher defined for: &quot; + reasonName);</span>
+      }
+<span class="nc bnc" id="L280" title="All 2 branches missed.">      if (result.isLeft()) {</span>
+<span class="nc" id="L281">        TimedSupplier&lt;PartialExceptionRetryPredicate&lt;T, C&gt;&gt; ets = result.getLeft();</span>
+<span class="nc" id="L282">        builder.withExceptionPartialPredicateSupplier(ets);</span>
+<span class="nc" id="L283">      } else {</span>
+<span class="nc" id="L284">        TimedSupplier&lt;PartialResultRetryPredicate&lt;T, C&gt;&gt; rts = result.getRight();</span>
+<span class="nc" id="L285">        builder.withResultPartialPredicateSupplier(rts);</span>
+      }
+<span class="nc" id="L287">    }</span>
+<span class="fc" id="L288">  }</span>
+
+  /**
+   * Scripted predicates are not there for application users to modify.
+   * Scripted predicates should be written by Operation engineers.
+   * The script engine choice needs to be carefully done as to not allow even ops to do bad stuff by mistake.
+   * (calling system.exit, etc...)
+   * The main reason for allowing scripted predicates is deployment speed.
+   * (a config change will propagates to your fleet several order of magnitudes faster than binaries,
+   * and will not require a process restart)
+   * Now this speed means also any stupid stuff can propagate faster, so canarying a config change is also a must.
+   * @param engine
+   * @param script
+   * @return
+   * @throws ScriptException
+   */
+  @SuppressFBWarnings(&quot;SCRIPT_ENGINE_INJECTION&quot;)
+  public static Invocable toInvocable(final ScriptEngine engine, final String script) throws ScriptException {
+    final Invocable invocable;
+<span class="nc bnc" id="L307" title="All 2 branches missed.">    if (engine instanceof Compilable) {</span>
+<span class="nc" id="L308">      Compilable ceng = (Compilable) engine;</span>
+<span class="nc" id="L309">      final CompiledScript predicateScript = ceng.compile(script);</span>
+<span class="nc bnc" id="L310" title="All 2 branches missed.">      if (predicateScript instanceof Invocable) {</span>
+<span class="nc" id="L311">        invocable = (Invocable) predicateScript;</span>
+      } else {
+<span class="nc" id="L313">        Object result = predicateScript.eval();</span>
+<span class="nc bnc" id="L314" title="All 2 branches missed.">        if (result instanceof Invocable) {</span>
+<span class="nc" id="L315">          invocable = (Invocable) result;</span>
+        } else {
+<span class="nc" id="L317">          throw new ScriptException(&quot;Script must evaluate to a Invocable/function, not: &quot; + result);</span>
+        }
+      }
+<span class="nc" id="L320">    } else {</span>
+<span class="nc" id="L321">      Object result = engine.eval(script);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">      if (result instanceof Invocable) {</span>
+<span class="nc" id="L323">        invocable = (Invocable) result;</span>
+      } else {
+<span class="nc" id="L325">        throw new ScriptException(&quot;Script must evaluate to a Invocable/function, not: &quot; + result);</span>
+      }
+    }
+<span class="nc" id="L328">    return invocable;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

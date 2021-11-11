@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ZelScriptEngine.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel-javax</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.javax</a> &gt; <span class="el_source">ZelScriptEngine.java</span></div><h1>ZelScriptEngine.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2021 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.zel.javax;
+
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.Collections;
+import java.util.Map;
+import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptException;
+import org.spf4j.base.Pair;
+import org.spf4j.zel.vm.CompileException;
+import org.spf4j.zel.vm.MemoryBuilder;
+import org.spf4j.zel.vm.Program;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+final class ZelScriptEngine implements ScriptEngine, Compilable {
+
+  private ScriptContext context;
+
+
+<span class="fc" id="L43">  ZelScriptEngine(final Map&lt;String, Object&gt; globalBindings) {</span>
+<span class="fc" id="L44">    this.context = new ZelScriptContext();</span>
+<span class="fc" id="L45">    this.context.setBindings(new ZelBindings(globalBindings), ScriptContext.GLOBAL_SCOPE);</span>
+<span class="fc" id="L46">    this.context.setBindings(new ZelBindings(), ScriptContext.ENGINE_SCOPE);</span>
+<span class="fc" id="L47">  }</span>
+
+
+
+  @Override
+  public Object eval(final String script, final ScriptContext evalContext) throws ScriptException {
+<span class="nc" id="L53">    return compile(script).eval(evalContext);</span>
+  }
+
+  @Override
+  public Object eval(final Reader reader, final ScriptContext evalContext) throws ScriptException {
+<span class="nc" id="L58">    return compile(reader).eval(evalContext);</span>
+  }
+
+  @Override
+  public Object eval(final String script) throws ScriptException {
+<span class="nc" id="L63">    return compile(script).eval();</span>
+  }
+
+  @Override
+  public Object eval(final Reader reader) throws ScriptException {
+<span class="nc" id="L68">    return compile(reader).eval();</span>
+  }
+
+  @Override
+  public Object eval(final String script, final Bindings n) throws ScriptException {
+<span class="fc" id="L73">    return compile(script).eval(n);</span>
+  }
+
+  @Override
+  public Object eval(final Reader reader, final Bindings n) throws ScriptException {
+<span class="nc" id="L78">     return compile(reader).eval(n);</span>
+  }
+
+  @Override
+  public void put(final String key, final Object value) {
+<span class="nc" id="L83">    context.getBindings(ScriptContext.ENGINE_SCOPE).put(key, value);</span>
+<span class="nc" id="L84">  }</span>
+
+  @Override
+  public Object get(final String key) {
+<span class="nc" id="L88">    return context.getBindings(ScriptContext.ENGINE_SCOPE).get(key);</span>
+  }
+
+  @Override
+  public Bindings getBindings(final int scope) {
+<span class="nc" id="L93">    return context.getBindings(scope);</span>
+  }
+
+  @Override
+  public void setBindings(final Bindings bindings, final int scope) {
+<span class="fc" id="L98">   context.setBindings(bindings, scope);</span>
+<span class="fc" id="L99">  }</span>
+
+  @Override
+  public Bindings createBindings() {
+<span class="fc" id="L103">    return new ZelBindings();</span>
+  }
+
+  @Override
+  public ScriptContext getContext() {
+<span class="fc" id="L108">    return this.context;</span>
+  }
+
+  @Override
+  public void setContext(final ScriptContext context) {
+<span class="nc" id="L113">    this.context = context;</span>
+<span class="nc" id="L114">  }</span>
+
+  @Override
+  public ScriptEngineFactory getFactory() {
+<span class="nc" id="L118">    return new ZelScriptEngineFactory();</span>
+  }
+
+  @Override
+  public CompiledScript compile(final String script) throws ScriptException {
+<span class="fc" id="L123">    return compile(new StringReader(script));</span>
+  }
+
+  @Override
+  public CompiledScript compile(final Reader script) throws ScriptException {
+<span class="fc" id="L128">    MemoryBuilder builder =  Program.getGlobalMemoryBuilder();</span>
+<span class="fc bfc" id="L129" title="All 2 branches covered.">    for (Integer scope : this.context.getScopes()) {</span>
+<span class="fc" id="L130">      Bindings bindings = this.context.getBindings(scope);</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">      for (Map.Entry&lt;String, Object&gt; entry : bindings.entrySet()) {</span>
+<span class="fc" id="L132">        builder.addSymbol(entry.getKey(), entry.getValue());</span>
+<span class="fc" id="L133">      }</span>
+<span class="fc" id="L134">    }</span>
+<span class="fc" id="L135">    Pair&lt;Object[], Map&lt;String, Integer&gt;&gt; memSymb = builder.build();</span>
+    try {
+<span class="fc" id="L137">      return new ZelCompiledScript(Program.compile(</span>
+<span class="fc" id="L138">              &quot;reader&quot;, &quot;anon&quot;, script, Collections.EMPTY_MAP, memSymb.getFirst(), memSymb.getSecond()), this);</span>
+<span class="nc" id="L139">    } catch (CompileException ex) {</span>
+<span class="nc" id="L140">      throw new ScriptException(ex);</span>
+    }
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L146">    return &quot;ZelScriptEngine{&quot; + &quot;context=&quot; + context + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

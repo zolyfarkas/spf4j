@@ -109,120 +109,125 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   @Nullable
   @Override
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public final Marker getMarker() {
-<span class="fc" id="L113">    return marker;</span>
+<span class="fc" id="L114">    return marker;</span>
   }
 
   @Override
   public final String getMessageFormat() {
-<span class="fc" id="L118">    return messageFormat;</span>
+<span class="fc" id="L119">    return messageFormat;</span>
   }
 
   @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;) // risk I take...
   @Nonnull
   @Override
   public final Object[] getArguments() {
-<span class="fc" id="L125">    return arguments;</span>
+<span class="fc" id="L126">    return arguments;</span>
   }
 
   @Override
   public final int getNrMessageArguments() {
-<span class="nc" id="L130">    materializeMessage();</span>
-<span class="nc" id="L131">    return this.startExtra;</span>
+<span class="fc" id="L131">    int sx = this.startExtra;</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">    if (sx &lt; 0) {</span>
+<span class="fc" id="L133">        sx = Slf4jMessageFormatter.getFormatParameterNumber(messageFormat);</span>
+<span class="fc" id="L134">      this.startExtra = sx;</span>
+    }
+<span class="fc" id="L136">    return sx;</span>
   }
 
   @Override
   public final String getThreadName() {
-<span class="fc" id="L136">    return threadName;</span>
+<span class="fc" id="L141">    return threadName;</span>
   }
 
   @Nonnull
   @Override
   public final String getMessage() {
-<span class="fc" id="L142">    materializeMessage();</span>
-<span class="fc" id="L143">    return message;</span>
+<span class="fc" id="L147">    materializeMessage();</span>
+<span class="fc" id="L148">    return message;</span>
   }
 
   private void materializeMessage() {
-<span class="fc bfc" id="L147" title="All 2 branches covered.">    if (message == null) {</span>
-<span class="fc" id="L148">      synchronized (messageFormat) {</span>
-<span class="pc bpc" id="L149" title="1 of 2 branches missed.">        if (message == null) {</span>
-<span class="fc" id="L150">          StringBuilder sb = new StringBuilder(messageFormat.length() + arguments.length * 8);</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    if (message == null) {</span>
+<span class="fc" id="L153">      synchronized (messageFormat) {</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if (message == null) {</span>
+<span class="fc" id="L155">          StringBuilder sb = new StringBuilder(messageFormat.length() + arguments.length * 8);</span>
           try {
-<span class="fc" id="L152">            this.startExtra = Slf4jMessageFormatter.format(0, sb, messageFormat,</span>
+<span class="fc" id="L157">            this.startExtra = Slf4jMessageFormatter.format(0, sb, messageFormat,</span>
                     ObjectAppenderSupplier.TO_STRINGER, arguments);
-<span class="nc" id="L154">          } catch (IOException ex) {</span>
-<span class="nc" id="L155">            throw new UncheckedIOException(ex);</span>
-<span class="fc" id="L156">          }</span>
-<span class="fc" id="L157">          message = sb.toString();</span>
+<span class="nc" id="L159">          } catch (IOException ex) {</span>
+<span class="nc" id="L160">            throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L161">          }</span>
+<span class="fc" id="L162">          message = sb.toString();</span>
         }
-<span class="fc" id="L159">      }</span>
+<span class="fc" id="L164">      }</span>
     }
-<span class="fc" id="L161">  }</span>
+<span class="fc" id="L166">  }</span>
 
   @Nonnull
   @Override
   public final Object[] getExtraArgumentsRaw() {
-<span class="nc" id="L166">    materializeMessage();</span>
-<span class="nc bnc" id="L167" title="All 2 branches missed.">    if (startExtra &lt; arguments.length) {</span>
-<span class="nc" id="L168">        return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
+<span class="nc" id="L171">    int sx = getNrMessageArguments();</span>
+<span class="nc bnc" id="L172" title="All 2 branches missed.">    if (sx &lt; arguments.length) {</span>
+<span class="nc" id="L173">        return java.util.Arrays.copyOfRange(arguments, sx, arguments.length);</span>
     } else {
-<span class="nc" id="L170">      return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc" id="L175">      return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
   }
 
   @Nonnull
   @Override
   public final Object[] getExtraArguments() {
-<span class="fc" id="L177">    materializeMessage();</span>
-<span class="fc bfc" id="L178" title="All 2 branches covered.">    if (startExtra &lt; arguments.length) {</span>
-<span class="fc" id="L179">      int nrExtraThrowables = getNrExtraThrowables();</span>
-<span class="fc bfc" id="L180" title="All 2 branches covered.">      if (nrExtraThrowables &lt;= 0) {</span>
-<span class="fc" id="L181">        return java.util.Arrays.copyOfRange(arguments, startExtra, arguments.length);</span>
+<span class="fc" id="L182">    int sx = getNrMessageArguments();</span>
+<span class="fc bfc" id="L183" title="All 2 branches covered.">    if (sx &lt; arguments.length) {</span>
+<span class="fc" id="L184">      int nrExtraThrowables = getNrExtraThrowables();</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">      if (nrExtraThrowables &lt;= 0) {</span>
+<span class="fc" id="L186">        return java.util.Arrays.copyOfRange(arguments, sx, arguments.length);</span>
       } else {
-<span class="fc" id="L183">        Object[] result = new Object[arguments.length - startExtra - nrExtraThrowables];</span>
-<span class="fc" id="L184">        int i = 0;</span>
-<span class="fc bfc" id="L185" title="All 2 branches covered.">        for (int j = startExtra; j &lt; arguments.length; j++) {</span>
-<span class="fc" id="L186">          Object argument = arguments[j];</span>
-<span class="fc bfc" id="L187" title="All 2 branches covered.">          if (!(argument instanceof Throwable)) {</span>
-<span class="fc" id="L188">            result[i++]  =  argument;</span>
+<span class="fc" id="L188">        Object[] result = new Object[arguments.length - sx - nrExtraThrowables];</span>
+<span class="fc" id="L189">        int i = 0;</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">        for (int j = sx; j &lt; arguments.length; j++) {</span>
+<span class="fc" id="L191">          Object argument = arguments[j];</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">          if (!(argument instanceof Throwable)) {</span>
+<span class="fc" id="L193">            result[i++]  =  argument;</span>
           }
         }
-<span class="fc" id="L191">        return result;</span>
+<span class="fc" id="L196">        return result;</span>
       }
     } else {
-<span class="fc" id="L194">      return Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L199">      return Arrays.EMPTY_OBJ_ARRAY;</span>
     }
   }
 
   private  int getNrExtraThrowables() {
-<span class="fc" id="L199">    materializeMessage();</span>
-<span class="fc" id="L200">    int count = 0;</span>
-<span class="fc bfc" id="L201" title="All 2 branches covered.">    for (int i = startExtra; i &lt; arguments.length; i++) {</span>
-<span class="fc" id="L202">      Object argument = arguments[i];</span>
-<span class="fc bfc" id="L203" title="All 2 branches covered.">      if (argument instanceof Throwable) {</span>
-<span class="fc" id="L204">        count++;</span>
+<span class="fc" id="L204">    int sx = getNrMessageArguments();</span>
+<span class="fc" id="L205">    int count = 0;</span>
+<span class="fc bfc" id="L206" title="All 2 branches covered.">    for (int i = sx; i &lt; arguments.length; i++) {</span>
+<span class="fc" id="L207">      Object argument = arguments[i];</span>
+<span class="fc bfc" id="L208" title="All 2 branches covered.">      if (argument instanceof Throwable) {</span>
+<span class="fc" id="L209">        count++;</span>
       }
     }
-<span class="fc" id="L207">    return count;</span>
+<span class="fc" id="L212">    return count;</span>
   }
 
   @Nullable
   @Override
   public final Throwable getExtraThrowable() {
-<span class="fc" id="L213">    materializeMessage();</span>
-<span class="fc" id="L214">    Throwable result = null;</span>
-<span class="fc bfc" id="L215" title="All 2 branches covered.">    for (int i = startExtra; i &lt; arguments.length; i++) {</span>
-<span class="fc" id="L216">      Object argument = arguments[i];</span>
-<span class="fc bfc" id="L217" title="All 2 branches covered.">      if (argument instanceof Throwable) {</span>
-<span class="pc bpc" id="L218" title="1 of 2 branches missed.">        if (result == null) {</span>
-<span class="fc" id="L219">          result = (Throwable) argument;</span>
+<span class="fc" id="L218">    int sx = getNrMessageArguments();</span>
+<span class="fc" id="L219">    Throwable result = null;</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">    for (int i = sx; i &lt; arguments.length; i++) {</span>
+<span class="fc" id="L221">      Object argument = arguments[i];</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">      if (argument instanceof Throwable) {</span>
+<span class="pc bpc" id="L223" title="1 of 2 branches missed.">        if (result == null) {</span>
+<span class="fc" id="L224">          result = (Throwable) argument;</span>
         } else {
-<span class="nc" id="L221">          Throwables.suppressLimited(result, (Throwable) argument);</span>
+<span class="nc" id="L226">          Throwables.suppressLimited(result, (Throwable) argument);</span>
         }
       }
     }
-<span class="fc" id="L225">    return result;</span>
+<span class="fc" id="L230">    return result;</span>
   }
 
   /**
@@ -231,9 +236,9 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
    */
   @Override
   public String toString() {
-<span class="nc" id="L234">    StringBuilder sb = new StringBuilder(64);</span>
-<span class="nc" id="L235">    writeTo(sb);</span>
-<span class="nc" id="L236">    return sb.toString();</span>
+<span class="nc" id="L239">    StringBuilder sb = new StringBuilder(64);</span>
+<span class="nc" id="L240">    writeTo(sb);</span>
+<span class="nc" id="L241">    return sb.toString();</span>
   }
 
   /**
@@ -242,70 +247,70 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
    */
   @Override
   public void writeJsonTo(final Appendable appendable) throws IOException {
-<span class="fc" id="L245">    JsonGenerator gen = Lazy.JSON.createJsonGenerator(new AppendableWriter(appendable));</span>
-<span class="fc" id="L246">    gen.setCodec(Lazy.MAPPER);</span>
-<span class="fc" id="L247">    gen.writeStartObject();</span>
-<span class="fc" id="L248">    gen.writeFieldName(&quot;ts&quot;);</span>
-<span class="fc" id="L249">    gen.writeString(Instant.ofEpochMilli(timeStamp).toString());</span>
-<span class="fc" id="L250">    gen.writeFieldName(&quot;logger&quot;);</span>
-<span class="fc" id="L251">    gen.writeString(loggerName);</span>
-<span class="fc" id="L252">    gen.writeFieldName(&quot;thread&quot;);</span>
-<span class="fc" id="L253">    gen.writeString(threadName);</span>
-<span class="fc" id="L254">    gen.writeFieldName(&quot;msg&quot;);</span>
-<span class="fc" id="L255">    gen.writeString(getMessage());</span>
-<span class="fc" id="L256">    Object[] extraArguments = getExtraArguments();</span>
-<span class="pc bpc" id="L257" title="1 of 2 branches missed.">    if (extraArguments.length &gt; 0) {</span>
-<span class="nc" id="L258">      gen.writeFieldName(&quot;xObj&quot;);</span>
-<span class="nc" id="L259">      gen.writeStartArray();</span>
-<span class="nc bnc" id="L260" title="All 2 branches missed.">      for (Object  obj : extraArguments) {</span>
-<span class="nc" id="L261">        gen.writeObject(obj);</span>
+<span class="fc" id="L250">    JsonGenerator gen = Lazy.JSON.createGenerator(new AppendableWriter(appendable));</span>
+<span class="fc" id="L251">    gen.setCodec(Lazy.MAPPER);</span>
+<span class="fc" id="L252">    gen.writeStartObject();</span>
+<span class="fc" id="L253">    gen.writeFieldName(&quot;ts&quot;);</span>
+<span class="fc" id="L254">    gen.writeString(Instant.ofEpochMilli(timeStamp).toString());</span>
+<span class="fc" id="L255">    gen.writeFieldName(&quot;logger&quot;);</span>
+<span class="fc" id="L256">    gen.writeString(loggerName);</span>
+<span class="fc" id="L257">    gen.writeFieldName(&quot;thread&quot;);</span>
+<span class="fc" id="L258">    gen.writeString(threadName);</span>
+<span class="fc" id="L259">    gen.writeFieldName(&quot;msg&quot;);</span>
+<span class="fc" id="L260">    gen.writeString(getMessage());</span>
+<span class="fc" id="L261">    Object[] extraArguments = getExtraArguments();</span>
+<span class="pc bpc" id="L262" title="1 of 2 branches missed.">    if (extraArguments.length &gt; 0) {</span>
+<span class="nc" id="L263">      gen.writeFieldName(&quot;xObj&quot;);</span>
+<span class="nc" id="L264">      gen.writeStartArray();</span>
+<span class="nc bnc" id="L265" title="All 2 branches missed.">      for (Object  obj : extraArguments) {</span>
+<span class="nc" id="L266">        gen.writeObject(obj);</span>
       }
-<span class="nc" id="L263">      gen.writeEndArray();</span>
+<span class="nc" id="L268">      gen.writeEndArray();</span>
     }
-<span class="fc" id="L265">    Throwable t = getExtraThrowable();</span>
-<span class="pc bpc" id="L266" title="1 of 2 branches missed.">    if (t != null) {</span>
-<span class="nc" id="L267">      gen.writeFieldName(&quot;throwable&quot;);</span>
-<span class="nc" id="L268">      gen.writeString(Throwables.toString(t));</span>
+<span class="fc" id="L270">    Throwable t = getExtraThrowable();</span>
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">    if (t != null) {</span>
+<span class="nc" id="L272">      gen.writeFieldName(&quot;throwable&quot;);</span>
+<span class="nc" id="L273">      gen.writeString(Throwables.toString(t));</span>
     }
-<span class="fc" id="L270">    gen.writeEndObject();</span>
-<span class="fc" id="L271">    gen.flush();</span>
-<span class="fc" id="L272">  }</span>
+<span class="fc" id="L275">    gen.writeEndObject();</span>
+<span class="fc" id="L276">    gen.flush();</span>
+<span class="fc" id="L277">  }</span>
 
   @Override
   public final boolean isLogged() {
-<span class="nc" id="L276">    return isLogged;</span>
+<span class="nc" id="L281">    return isLogged;</span>
   }
 
   @Override
   public final void setIsLogged() {
-<span class="nc" id="L281">    isLogged =  true;</span>
-<span class="nc" id="L282">  }</span>
+<span class="nc" id="L286">    isLogged =  true;</span>
+<span class="nc" id="L287">  }</span>
 
   @Override
   public final synchronized void attach(final Object obj) {
-<span class="fc bfc" id="L286" title="All 2 branches covered.">    if (attachments.isEmpty()) {</span>
-<span class="fc" id="L287">      attachments = new HashSet&lt;&gt;(2);</span>
+<span class="fc bfc" id="L291" title="All 2 branches covered.">    if (attachments.isEmpty()) {</span>
+<span class="fc" id="L292">      attachments = new HashSet&lt;&gt;(2);</span>
     }
-<span class="fc" id="L289">    attachments.add(obj);</span>
-<span class="fc" id="L290">  }</span>
+<span class="fc" id="L294">    attachments.add(obj);</span>
+<span class="fc" id="L295">  }</span>
 
   @Override
   public final synchronized boolean hasAttachment(final Object obj) {
-<span class="fc" id="L294">    return attachments.contains(obj);</span>
+<span class="fc" id="L299">    return attachments.contains(obj);</span>
   }
 
   @Override
   public final synchronized Set&lt;Object&gt; getAttachments() {
-<span class="fc bfc" id="L299" title="All 2 branches covered.">    return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);</span>
+<span class="fc bfc" id="L304" title="All 2 branches covered.">    return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);</span>
   }
 
   private static final class Lazy {
 
-<span class="fc" id="L304">    private static final JsonFactory JSON = new JsonFactory();</span>
+<span class="fc" id="L309">    private static final JsonFactory JSON = new JsonFactory();</span>
 
-<span class="fc" id="L306">    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);</span>
+<span class="fc" id="L311">    private static final ObjectMapper MAPPER = new ObjectMapper(JSON);</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

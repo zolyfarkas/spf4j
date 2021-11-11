@@ -31,12 +31,14 @@
  */
 package org.spf4j.failsafe;
 
+import org.spf4j.failsafe.avro.TimeoutRelativeHedgePolicy;
+
 /**
  * @author Zoltan Farkas
  */
 public final class TimeoutRelativeHedge implements HedgePolicy {
 
-  private final int timeoutHedgeFraction;
+  private final double timeoutHedgeFactor;
 
   private final long minHedgeDelay;
 
@@ -45,43 +47,50 @@ public final class TimeoutRelativeHedge implements HedgePolicy {
   private final int nrHedges;
 
   public TimeoutRelativeHedge(final int timeoutHedgeFraction, final long minHedgeDelayNanos,
-<span class="fc" id="L48">          final long maxHedgeDelayNanos, final int nrHedges) {</span>
-<span class="pc bpc" id="L49" title="1 of 2 branches missed.">    if (minHedgeDelayNanos &gt; maxHedgeDelayNanos) {</span>
-<span class="nc" id="L50">      throw new IllegalArgumentException(&quot;Min hedge delay &quot; + minHedgeDelayNanos</span>
+<span class="fc" id="L50">          final long maxHedgeDelayNanos, final int nrHedges) {</span>
+<span class="pc bpc" id="L51" title="1 of 2 branches missed.">    if (minHedgeDelayNanos &gt; maxHedgeDelayNanos) {</span>
+<span class="nc" id="L52">      throw new IllegalArgumentException(&quot;Min hedge delay &quot; + minHedgeDelayNanos</span>
               + &quot; greater than maxHedgeDelay &quot; + maxHedgeDelayNanos);
     }
-<span class="fc" id="L53">    this.timeoutHedgeFraction = timeoutHedgeFraction;</span>
-<span class="fc" id="L54">    this.minHedgeDelay = minHedgeDelayNanos;</span>
-<span class="fc" id="L55">    this.maxHedgeDelay = maxHedgeDelayNanos;</span>
-<span class="fc" id="L56">    this.nrHedges = nrHedges;</span>
-<span class="fc" id="L57">  }</span>
+<span class="fc" id="L55">    this.timeoutHedgeFactor = ((double) 1) / timeoutHedgeFraction;</span>
+<span class="fc" id="L56">    this.minHedgeDelay = minHedgeDelayNanos;</span>
+<span class="fc" id="L57">    this.maxHedgeDelay = maxHedgeDelayNanos;</span>
+<span class="fc" id="L58">    this.nrHedges = nrHedges;</span>
+<span class="fc" id="L59">  }</span>
+
+<span class="nc" id="L61">  public TimeoutRelativeHedge(final TimeoutRelativeHedgePolicy hp) {</span>
+<span class="nc" id="L62">    this.timeoutHedgeFactor = hp.getFactor();</span>
+<span class="nc" id="L63">    this.minHedgeDelay = hp.getMinHedgeDelay().toNanos();</span>
+<span class="nc" id="L64">    this.maxHedgeDelay = hp.getMaxHedgeDelay().toNanos();</span>
+<span class="nc" id="L65">    this.nrHedges = hp.getNrHedges();</span>
+<span class="nc" id="L66">  }</span>
 
 
 
   @Override
   public Hedge getHedge(final long startTimeNanos, final long deadlineNanos) {
-<span class="fc" id="L63">    long timeoutNanos = deadlineNanos - startTimeNanos;</span>
-<span class="fc bfc" id="L64" title="All 2 branches covered.">    if (minHedgeDelay &gt;= timeoutNanos) {</span>
-<span class="fc" id="L65">      return Hedge.NONE;</span>
+<span class="fc" id="L72">    long timeoutNanos = deadlineNanos - startTimeNanos;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">    if (minHedgeDelay &gt;= timeoutNanos) {</span>
+<span class="fc" id="L74">      return Hedge.NONE;</span>
     }
-<span class="fc" id="L67">    long hedgeDelay = (timeoutNanos) / timeoutHedgeFraction;</span>
+<span class="fc" id="L76">    long hedgeDelay = (long) (timeoutNanos * timeoutHedgeFactor);</span>
 
-<span class="fc bfc" id="L69" title="All 2 branches covered.">    if (hedgeDelay &lt;  minHedgeDelay) {</span>
-<span class="fc" id="L70">      return new Hedge(minHedgeDelay, nrHedges);</span>
-<span class="pc bpc" id="L71" title="1 of 2 branches missed.">    } else if (hedgeDelay &gt; maxHedgeDelay) {</span>
-<span class="nc" id="L72">      return new Hedge(maxHedgeDelay, nrHedges);</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">    if (hedgeDelay &lt;  minHedgeDelay) {</span>
+<span class="fc" id="L79">      return new Hedge(minHedgeDelay, nrHedges);</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    } else if (hedgeDelay &gt; maxHedgeDelay) {</span>
+<span class="nc" id="L81">      return new Hedge(maxHedgeDelay, nrHedges);</span>
     } else {
-<span class="fc" id="L74">      return new Hedge(hedgeDelay, nrHedges);</span>
+<span class="fc" id="L83">      return new Hedge(hedgeDelay, nrHedges);</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L80">    return &quot;TimeoutRelativeHedge{&quot; + &quot;timeoutHedgeFraction=&quot; + timeoutHedgeFraction</span>
+<span class="nc" id="L89">    return &quot;TimeoutRelativeHedge{&quot; + &quot;timeoutHedgeFactor=&quot; + timeoutHedgeFactor</span>
             + &quot;, minHedgeDelay=&quot; + minHedgeDelay + &quot;, maxHedgeDelay=&quot; + maxHedgeDelay + &quot;, nrHedges=&quot; + nrHedges + '}';
   }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

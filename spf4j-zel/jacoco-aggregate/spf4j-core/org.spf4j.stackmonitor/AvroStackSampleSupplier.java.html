@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>AvroStackSampleSupplier.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">AvroStackSampleSupplier.java</span></div><h1>AvroStackSampleSupplier.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2021 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.avro.file.DataFileStream;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.base.avro.ApplicationStackSamples;
+import org.spf4j.ssdump2.Converter;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class AvroStackSampleSupplier implements StackSampleSupplier {
+
+  private Instant from;
+
+  private Instant to;
+
+  private final Path file;
+
+  private final SpecificDatumReader&lt;ApplicationStackSamples&gt; reader;
+
+<span class="nc" id="L43">  public AvroStackSampleSupplier(final Path file) {</span>
+<span class="nc" id="L44">    this.file = file;</span>
+<span class="nc" id="L45">    this.reader = new SpecificDatumReader&lt;&gt;(ApplicationStackSamples.class);</span>
+<span class="nc" id="L46">  }</span>
+
+  private synchronized void scanLimits() throws IOException {
+<span class="nc bnc" id="L49" title="All 2 branches missed.">    if (this.from == null) {</span>
+<span class="nc" id="L50">      Instant lfrom = Instant.MIN;</span>
+<span class="nc" id="L51">      Instant lto = Instant.MAX;</span>
+<span class="nc" id="L52">      try (DataFileStream&lt;ApplicationStackSamples&gt; stream</span>
+<span class="nc" id="L53">              = new DataFileStream&lt;&gt;(Files.newInputStream(file), reader)) {</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (stream.hasNext()) {</span>
+<span class="nc" id="L55">          ApplicationStackSamples samples = stream.next();</span>
+<span class="nc" id="L56">          lfrom = samples.getCollectedFrom();</span>
+<span class="nc" id="L57">          lto = samples.getCollectedTo();</span>
+        }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        while (stream.hasNext()) {</span>
+<span class="nc" id="L60">          ApplicationStackSamples samples = stream.next();</span>
+<span class="nc" id="L61">          lto = samples.getCollectedTo();</span>
+<span class="nc" id="L62">        }</span>
+<span class="nc" id="L63">        this.from = lfrom;</span>
+<span class="nc" id="L64">        this.to = lto;</span>
+      }
+    }
+<span class="nc" id="L67">  }</span>
+
+  @Override
+  public synchronized Instant getMin() throws IOException {
+<span class="nc" id="L71">    scanLimits();</span>
+<span class="nc" id="L72">    return from;</span>
+  }
+
+  @Override
+  public synchronized Instant getMax() throws IOException {
+<span class="nc" id="L77">    scanLimits();</span>
+<span class="nc" id="L78">    return to;</span>
+  }
+
+  @Override
+  public ProfileMetaData getMetaData(final Instant pfrom, final Instant pto) throws IOException {
+<span class="nc" id="L83">    Set&lt;String&gt; contexts = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L84">    Set&lt;String&gt; tags = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L85">    try (DataFileStream&lt;ApplicationStackSamples&gt; stream = new DataFileStream&lt;&gt;(Files.newInputStream(file), reader)) {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">      while (stream.hasNext()) {</span>
+<span class="nc" id="L87">        ApplicationStackSamples samples = stream.next();</span>
+<span class="nc" id="L88">        Instant sampleFrom = samples.getCollectedFrom();</span>
+<span class="nc" id="L89">        Instant sampleTo = samples.getCollectedTo();</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if ((sampleFrom.compareTo(sampleTo) == 0</span>
+<span class="nc bnc" id="L91" title="All 4 branches missed.">                &amp;&amp; sampleFrom.compareTo(pfrom) &gt;= 0 &amp;&amp; sampleFrom.compareTo(pfrom) &lt;= 0)</span>
+<span class="nc bnc" id="L92" title="All 4 branches missed.">                || (sampleFrom.isBefore(pto) &amp;&amp; sampleTo.isAfter(pfrom))) {</span>
+<span class="nc" id="L93">          contexts.add(samples.getContext());</span>
+<span class="nc" id="L94">          tags.add(samples.getTag());</span>
+        }
+<span class="nc" id="L96">      }</span>
+    }
+<span class="nc" id="L98">    return new ProfileMetaData(contexts, tags);</span>
+  }
+
+  @Override
+  public SampleNode getSamples(final String context, final String tag,
+          final Instant pfrom, final Instant pto) throws IOException {
+<span class="nc" id="L104">    SampleNode result = null;</span>
+<span class="nc" id="L105">    try (DataFileStream&lt;ApplicationStackSamples&gt; stream = new DataFileStream&lt;&gt;(Files.newInputStream(file), reader)) {</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">      while (stream.hasNext()) {</span>
+<span class="nc" id="L107">        ApplicationStackSamples samples = stream.next();</span>
+<span class="nc" id="L108">        Instant sampleFrom = samples.getCollectedFrom();</span>
+<span class="nc" id="L109">        Instant sampleTo = samples.getCollectedTo();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        if (((sampleFrom.compareTo(sampleTo) == 0</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">                &amp;&amp; sampleFrom.compareTo(pfrom) &gt;= 0 &amp;&amp; sampleFrom.compareTo(pfrom) &lt;= 0)</span>
+<span class="nc bnc" id="L112" title="All 6 branches missed.">                || (sampleFrom.isBefore(pto) &amp;&amp; sampleTo.isAfter(pfrom)))</span>
+<span class="nc bnc" id="L113" title="All 4 branches missed.">                &amp;&amp; (tag == null || samples.getTag().equals(tag))</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">                &amp;&amp; (context == null || samples.getContext().equals(context))) {</span>
+<span class="nc" id="L115">          SampleNode currentSamples = Converter.convert(samples.getStackSamples().iterator());</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">          if (result == null) {</span>
+<span class="nc" id="L117">            result = currentSamples;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">          } else if (currentSamples != null) {</span>
+<span class="nc" id="L119">            result.add(currentSamples);</span>
+          }
+        }
+<span class="nc" id="L122">      }</span>
+    }
+<span class="nc" id="L124">    return result;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L129">    return &quot;AvroStackSampleSupplier{file=&quot; + file + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

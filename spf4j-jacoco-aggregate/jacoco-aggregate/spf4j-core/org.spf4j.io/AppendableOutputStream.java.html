@@ -33,6 +33,7 @@ package org.spf4j.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -121,8 +122,8 @@ public class AppendableOutputStream extends OutputStream {
      * @since 2.1
      */
     public AppendableOutputStream(final Appendable writer, final CharsetDecoder decoder) {
-<span class="nc" id="L124">        this(writer, decoder, DEFAULT_BUFFER_SIZE);</span>
-<span class="nc" id="L125">    }</span>
+<span class="nc" id="L125">        this(writer, decoder, DEFAULT_BUFFER_SIZE);</span>
+<span class="nc" id="L126">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream}.
@@ -132,13 +133,14 @@ public class AppendableOutputStream extends OutputStream {
      * @param bufferSize the size of the output buffer in number of characters
      * @since 2.1
      */
-<span class="fc" id="L135">    public AppendableOutputStream(final Appendable writer, final CharsetDecoder decoder, final int bufferSize) {</span>
-<span class="fc" id="L136">        checkIbmJdkWithBrokenUTF16(decoder.charset());</span>
-<span class="fc" id="L137">        this.writer = writer;</span>
-<span class="fc" id="L138">        this.decoder = decoder;</span>
-<span class="fc" id="L139">        decoderIn = ByteBuffer.wrap(ArraySuppliers.Bytes.TL_SUPPLIER.get(256));</span>
-<span class="fc" id="L140">        decoderOut = CharBuffer.wrap(ArraySuppliers.Chars.TL_SUPPLIER.get(bufferSize));</span>
-<span class="fc" id="L141">    }</span>
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L137">    public AppendableOutputStream(final Appendable writer, final CharsetDecoder decoder, final int bufferSize) {</span>
+<span class="fc" id="L138">        checkIbmJdkWithBrokenUTF16(decoder.charset());</span>
+<span class="fc" id="L139">        this.writer = writer;</span>
+<span class="fc" id="L140">        this.decoder = decoder;</span>
+<span class="fc" id="L141">        decoderIn = ByteBuffer.wrap(ArraySuppliers.Bytes.TL_SUPPLIER.get(256));</span>
+<span class="fc" id="L142">        decoderOut = CharBuffer.wrap(ArraySuppliers.Chars.TL_SUPPLIER.get(bufferSize));</span>
+<span class="fc" id="L143">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream}.
@@ -148,13 +150,13 @@ public class AppendableOutputStream extends OutputStream {
      * @param bufferSize the size of the output buffer in number of characters
      */
     public AppendableOutputStream(final Appendable writer, final Charset charset, final int bufferSize) {
-<span class="fc" id="L151">        this(writer,</span>
-<span class="fc" id="L152">             charset.newDecoder()</span>
-<span class="fc" id="L153">                    .onMalformedInput(CodingErrorAction.REPLACE)</span>
-<span class="fc" id="L154">                    .onUnmappableCharacter(CodingErrorAction.REPLACE)</span>
-<span class="fc" id="L155">                    .replaceWith(&quot;?&quot;),</span>
+<span class="fc" id="L153">        this(writer,</span>
+<span class="fc" id="L154">             charset.newDecoder()</span>
+<span class="fc" id="L155">                    .onMalformedInput(CodingErrorAction.REPLACE)</span>
+<span class="fc" id="L156">                    .onUnmappableCharacter(CodingErrorAction.REPLACE)</span>
+<span class="fc" id="L157">                    .replaceWith(&quot;?&quot;),</span>
              bufferSize);
-<span class="fc" id="L157">    }</span>
+<span class="fc" id="L159">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
@@ -165,8 +167,8 @@ public class AppendableOutputStream extends OutputStream {
      * @param charset the charset encoding
      */
     public AppendableOutputStream(final Appendable writer, final Charset charset) {
-<span class="nc" id="L168">        this(writer, charset, DEFAULT_BUFFER_SIZE);</span>
-<span class="nc" id="L169">    }</span>
+<span class="nc" id="L170">        this(writer, charset, DEFAULT_BUFFER_SIZE);</span>
+<span class="nc" id="L171">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream}.
@@ -176,8 +178,8 @@ public class AppendableOutputStream extends OutputStream {
      * @param bufferSize the size of the output buffer in number of characters
      */
     public AppendableOutputStream(final Appendable writer, final String charsetName, final int bufferSize) {
-<span class="fc" id="L179">        this(writer, Charset.forName(charsetName), bufferSize);</span>
-<span class="fc" id="L180">    }</span>
+<span class="fc" id="L181">        this(writer, Charset.forName(charsetName), bufferSize);</span>
+<span class="fc" id="L182">    }</span>
 
     /**
      * Constructs a new {@link WriterOutputStream} with a default output buffer size of
@@ -188,8 +190,8 @@ public class AppendableOutputStream extends OutputStream {
      * @param charsetName the name of the charset encoding
      */
     public AppendableOutputStream(final Appendable writer, final String charsetName) {
-<span class="nc" id="L191">        this(writer, charsetName, DEFAULT_BUFFER_SIZE);</span>
-<span class="nc" id="L192">    }</span>
+<span class="nc" id="L193">        this(writer, charsetName, DEFAULT_BUFFER_SIZE);</span>
+<span class="nc" id="L194">    }</span>
 
 
     /**
@@ -202,16 +204,16 @@ public class AppendableOutputStream extends OutputStream {
      */
     @Override
     public void write(final byte[] b, final int poff, final int plen) throws IOException {
-<span class="fc" id="L205">        int len = plen;</span>
-<span class="fc" id="L206">        int off = poff;</span>
-<span class="fc bfc" id="L207" title="All 2 branches covered.">        while (len &gt; 0) {</span>
-<span class="fc" id="L208">            final int c = Math.min(len, decoderIn.remaining());</span>
-<span class="fc" id="L209">            decoderIn.put(b, off, c);</span>
-<span class="fc" id="L210">            processInput(false);</span>
-<span class="fc" id="L211">            len -= c;</span>
-<span class="fc" id="L212">            off += c;</span>
-<span class="fc" id="L213">        }</span>
-<span class="fc" id="L214">    }</span>
+<span class="fc" id="L207">        int len = plen;</span>
+<span class="fc" id="L208">        int off = poff;</span>
+<span class="fc bfc" id="L209" title="All 2 branches covered.">        while (len &gt; 0) {</span>
+<span class="fc" id="L210">            final int c = Math.min(len, decoderIn.remaining());</span>
+<span class="fc" id="L211">            decoderIn.put(b, off, c);</span>
+<span class="fc" id="L212">            processInput(false);</span>
+<span class="fc" id="L213">            len -= c;</span>
+<span class="fc" id="L214">            off += c;</span>
+<span class="fc" id="L215">        }</span>
+<span class="fc" id="L216">    }</span>
 
     /**
      * Write bytes from the specified byte array to the stream.
@@ -221,8 +223,8 @@ public class AppendableOutputStream extends OutputStream {
      */
     @Override
     public final void write(final byte[] b) throws IOException {
-<span class="fc" id="L224">        write(b, 0, b.length);</span>
-<span class="fc" id="L225">    }</span>
+<span class="fc" id="L226">        write(b, 0, b.length);</span>
+<span class="fc" id="L227">    }</span>
 
     /**
      * Write a single byte to the stream.
@@ -233,16 +235,16 @@ public class AppendableOutputStream extends OutputStream {
     @Override
     public final void write(final int b) throws IOException {
 
-<span class="fc" id="L236">        final int c = Math.min(1, decoderIn.remaining());</span>
-<span class="pc bpc" id="L237" title="1 of 2 branches missed.">        if (c &gt; 0) {</span>
-<span class="fc" id="L238">            decoderIn.put((byte) b);</span>
-<span class="fc" id="L239">            processInput(false);</span>
+<span class="fc" id="L238">        final int c = Math.min(1, decoderIn.remaining());</span>
+<span class="pc bpc" id="L239" title="1 of 2 branches missed.">        if (c &gt; 0) {</span>
+<span class="fc" id="L240">            decoderIn.put((byte) b);</span>
+<span class="fc" id="L241">            processInput(false);</span>
         } else {
-<span class="nc" id="L241">            processInput(false);</span>
-<span class="nc" id="L242">            decoderIn.put((byte) b);</span>
 <span class="nc" id="L243">            processInput(false);</span>
+<span class="nc" id="L244">            decoderIn.put((byte) b);</span>
+<span class="nc" id="L245">            processInput(false);</span>
         }
-<span class="fc" id="L245">    }</span>
+<span class="fc" id="L247">    }</span>
 
     /**
      * Flush the stream. Any remaining content accumulated in the output buffer
@@ -252,8 +254,8 @@ public class AppendableOutputStream extends OutputStream {
      */
     @Override
     public void flush() throws IOException {
-<span class="fc" id="L255">        flushOutput();</span>
-<span class="fc" id="L256">    }</span>
+<span class="fc" id="L257">        flushOutput();</span>
+<span class="fc" id="L258">    }</span>
 
     /**
      * Close the stream. Any remaining content accumulated in the output buffer
@@ -264,15 +266,15 @@ public class AppendableOutputStream extends OutputStream {
     @Override
     @DischargesObligation
     public void close() throws IOException {
-<span class="pc bpc" id="L267" title="1 of 2 branches missed.">        if (decoderIn != null) {</span>
-<span class="fc" id="L268">            processInput(true);</span>
-<span class="fc" id="L269">            flushOutput();</span>
-<span class="fc" id="L270">            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(decoderIn.array());</span>
-<span class="fc" id="L271">            ArraySuppliers.Chars.TL_SUPPLIER.recycle(decoderOut.array());</span>
-<span class="fc" id="L272">            decoderIn = null;</span>
-<span class="fc" id="L273">            decoderOut = null;</span>
+<span class="pc bpc" id="L269" title="1 of 2 branches missed.">        if (decoderIn != null) {</span>
+<span class="fc" id="L270">            processInput(true);</span>
+<span class="fc" id="L271">            flushOutput();</span>
+<span class="fc" id="L272">            ArraySuppliers.Bytes.TL_SUPPLIER.recycle(decoderIn.array());</span>
+<span class="fc" id="L273">            ArraySuppliers.Chars.TL_SUPPLIER.recycle(decoderOut.array());</span>
+<span class="fc" id="L274">            decoderIn = null;</span>
+<span class="fc" id="L275">            decoderOut = null;</span>
         }
-<span class="fc" id="L275">    }</span>
+<span class="fc" id="L277">    }</span>
 
     /**
      * Decode the contents of the input ByteBuffer into a CharBuffer.
@@ -282,23 +284,23 @@ public class AppendableOutputStream extends OutputStream {
      */
     protected void processInput(final boolean endOfInput) throws IOException {
         // Prepare decoderIn for reading
-<span class="fc" id="L285">        decoderIn.flip();</span>
+<span class="fc" id="L287">        decoderIn.flip();</span>
         CoderResult coderResult;
         while (true) {
-<span class="fc" id="L288">            coderResult = decoder.decode(decoderIn, decoderOut, endOfInput);</span>
-<span class="pc bpc" id="L289" title="1 of 2 branches missed.">            if (coderResult.isOverflow()) {</span>
-<span class="nc" id="L290">                flushOutput();</span>
-<span class="pc bpc" id="L291" title="1 of 2 branches missed.">            } else if (coderResult.isUnderflow()) {</span>
-<span class="fc" id="L292">                break;</span>
+<span class="fc" id="L290">            coderResult = decoder.decode(decoderIn, decoderOut, endOfInput);</span>
+<span class="pc bpc" id="L291" title="1 of 2 branches missed.">            if (coderResult.isOverflow()) {</span>
+<span class="nc" id="L292">                flushOutput();</span>
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">            } else if (coderResult.isUnderflow()) {</span>
+<span class="fc" id="L294">                break;</span>
             } else {
                 // The decoder is configured to replace malformed input and unmappable characters,
                 // so we should not get here.
-<span class="nc" id="L296">                throw new IOException(&quot;Unexpected coder result &quot; + coderResult);</span>
+<span class="nc" id="L298">                throw new IOException(&quot;Unexpected coder result &quot; + coderResult);</span>
             }
         }
         // Discard the bytes that have been read
-<span class="fc" id="L300">        decoderIn.compact();</span>
-<span class="fc" id="L301">    }</span>
+<span class="fc" id="L302">        decoderIn.compact();</span>
+<span class="fc" id="L303">    }</span>
 
     /**
      * Flush the output.
@@ -306,57 +308,57 @@ public class AppendableOutputStream extends OutputStream {
      * @throws IOException if an I/O error occurs
      */
     protected void flushOutput() throws IOException {
-<span class="fc" id="L309">        final int position = decoderOut.position();</span>
-<span class="fc bfc" id="L310" title="All 2 branches covered.">        if (position &gt; 0) {</span>
-<span class="fc" id="L311">            decoderOut.position(0);</span>
-<span class="fc" id="L312">            int limit = decoderOut.limit();</span>
-<span class="fc" id="L313">            decoderOut.limit(position);</span>
-<span class="fc" id="L314">            writer.append(decoderOut);</span>
-<span class="fc" id="L315">            decoderOut.rewind();</span>
-<span class="fc" id="L316">            decoderOut.limit(limit);</span>
+<span class="fc" id="L311">        final int position = decoderOut.position();</span>
+<span class="fc bfc" id="L312" title="All 2 branches covered.">        if (position &gt; 0) {</span>
+<span class="fc" id="L313">            decoderOut.position(0);</span>
+<span class="fc" id="L314">            int limit = decoderOut.limit();</span>
+<span class="fc" id="L315">            decoderOut.limit(position);</span>
+<span class="fc" id="L316">            writer.append(decoderOut);</span>
+<span class="fc" id="L317">            decoderOut.rewind();</span>
+<span class="fc" id="L318">            decoderOut.limit(limit);</span>
         }
-<span class="fc" id="L318">    }</span>
+<span class="fc" id="L320">    }</span>
 
 
     private static void checkIbmJdkWithBrokenUTF16(final Charset charset) {
-<span class="fc bfc" id="L322" title="All 2 branches covered.">        if (!&quot;UTF-16&quot;.equals(charset.name())) {</span>
-<span class="fc" id="L323">            return;</span>
+<span class="fc bfc" id="L324" title="All 2 branches covered.">        if (!&quot;UTF-16&quot;.equals(charset.name())) {</span>
+<span class="fc" id="L325">            return;</span>
         }
-<span class="fc" id="L325">        final String testString2 = &quot;v\u00e9s&quot;;</span>
-<span class="fc" id="L326">        byte[] bytes = testString2.getBytes(charset);</span>
+<span class="fc" id="L327">        final String testString2 = &quot;v\u00e9s&quot;;</span>
+<span class="fc" id="L328">        byte[] bytes = testString2.getBytes(charset);</span>
 
-<span class="fc" id="L328">        final CharsetDecoder charsetDecoder2 = charset.newDecoder();</span>
-<span class="fc" id="L329">        ByteBuffer bb2 = ByteBuffer.allocate(16);</span>
-<span class="fc" id="L330">        CharBuffer cb2 = CharBuffer.allocate(testString2.length());</span>
-<span class="fc" id="L331">        final int len = bytes.length;</span>
-<span class="fc bfc" id="L332" title="All 2 branches covered.">        for (int i = 0; i &lt; len; i++) {</span>
-<span class="fc" id="L333">            bb2.put(bytes[i]);</span>
-<span class="fc" id="L334">            bb2.flip();</span>
+<span class="fc" id="L330">        final CharsetDecoder charsetDecoder2 = charset.newDecoder();</span>
+<span class="fc" id="L331">        ByteBuffer bb2 = ByteBuffer.allocate(16);</span>
+<span class="fc" id="L332">        CharBuffer cb2 = CharBuffer.allocate(testString2.length());</span>
+<span class="fc" id="L333">        final int len = bytes.length;</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">        for (int i = 0; i &lt; len; i++) {</span>
+<span class="fc" id="L335">            bb2.put(bytes[i]);</span>
+<span class="fc" id="L336">            bb2.flip();</span>
             try {
-<span class="fc bfc" id="L336" title="All 2 branches covered.">                charsetDecoder2.decode(bb2, cb2, i == (len - 1));</span>
-<span class="nc" id="L337">            } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L338">                throw new UnsupportedOperationException(</span>
+<span class="fc bfc" id="L338" title="All 2 branches covered.">                charsetDecoder2.decode(bb2, cb2, i == (len - 1));</span>
+<span class="nc" id="L339">            } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L340">                throw new UnsupportedOperationException(</span>
                         &quot;UTF-16 requested when runninng on an IBM JDK with broken UTF-16 support. &quot;
                         + &quot;Please find a JDK that supports UTF-16 if you intend to use UF-16 with WriterOutputStream&quot;,
                         e);
-<span class="fc" id="L342">            }</span>
-<span class="fc" id="L343">            bb2.compact();</span>
+<span class="fc" id="L344">            }</span>
+<span class="fc" id="L345">            bb2.compact();</span>
         }
-<span class="fc" id="L345">        cb2.rewind();</span>
-<span class="pc bpc" id="L346" title="1 of 2 branches missed.">        if (!testString2.equals(cb2.toString())) {</span>
-<span class="nc" id="L347">            throw new UnsupportedOperationException(</span>
+<span class="fc" id="L347">        cb2.rewind();</span>
+<span class="pc bpc" id="L348" title="1 of 2 branches missed.">        if (!testString2.equals(cb2.toString())) {</span>
+<span class="nc" id="L349">            throw new UnsupportedOperationException(</span>
                     &quot;UTF-16 requested when runninng on an IBM JDK with broken UTF-16 support. &quot;
                     + &quot;Please find a JDK that supports UTF-16 if you intend to use UF-16 with WriterOutputStream&quot;);
         }
 
-<span class="fc" id="L352">    }</span>
+<span class="fc" id="L354">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L356">        return &quot;AppendableOutputStream{&quot; + &quot;writer=&quot; + writer + '}';</span>
+<span class="nc" id="L358">        return &quot;AppendableOutputStream{&quot; + &quot;writer=&quot; + writer + '}';</span>
     }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

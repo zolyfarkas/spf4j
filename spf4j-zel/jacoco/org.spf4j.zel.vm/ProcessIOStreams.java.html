@@ -31,17 +31,19 @@
  */
 package org.spf4j.zel.vm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.OutputStream;
 import javax.annotation.concurrent.Immutable;
 
 /**
  * @author zoly
  */
 @Immutable
+@SuppressFBWarnings({&quot;EI_EXPOSE_REP&quot;, &quot;EI_EXPOSE_REP2&quot;})
 public final class ProcessIOStreams implements ProcessIO {
 
-<span class="fc" id="L44">  public static final ProcessIO DEFAULT =  new ProcessIOStreams(System.in, System.out, System.err);</span>
+<span class="fc" id="L46">  public static final ProcessIO DEFAULT =  new ProcessIOStreams(System.in, System.out, System.err);</span>
 
   /**
    * Standard Input
@@ -51,38 +53,38 @@ public final class ProcessIOStreams implements ProcessIO {
   /**
    * Standard Output
    */
-  private final transient PrintStream out;
+  private final transient OutputStream out;
 
   /**
    * Standard Error Output
    */
-  private final transient PrintStream err;
+  private final transient OutputStream err;
 
-<span class="fc" id="L61">  public ProcessIOStreams(final InputStream in, final PrintStream out, final PrintStream err) {</span>
-<span class="fc" id="L62">    this.in = in;</span>
-<span class="fc" id="L63">    this.out = out;</span>
-<span class="fc" id="L64">    this.err = err;</span>
-<span class="fc" id="L65">  }</span>
+<span class="fc" id="L63">  public ProcessIOStreams(final InputStream in, final OutputStream out, final OutputStream err) {</span>
+<span class="fc" id="L64">    this.in = in;</span>
+<span class="fc" id="L65">    this.out = out;</span>
+<span class="fc" id="L66">    this.err = err;</span>
+<span class="fc" id="L67">  }</span>
 
   @Override
   public InputStream getIn() {
-<span class="nc" id="L69">    return in;</span>
+<span class="nc" id="L71">    return in;</span>
   }
 
   @Override
-  public PrintStream getOut() {
-<span class="fc" id="L74">    return out;</span>
+  public OutputStream getOut() {
+<span class="fc" id="L76">    return out;</span>
   }
 
   @Override
-  public PrintStream getErr() {
-<span class="nc" id="L79">    return err;</span>
+  public OutputStream getErr() {
+<span class="nc" id="L81">    return err;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L84">    return &quot;ProcessIOStreams{&quot; + &quot;in=&quot; + in + &quot;, out=&quot; + out + &quot;, err=&quot; + err + '}';</span>
+<span class="nc" id="L86">    return &quot;ProcessIOStreams{&quot; + &quot;in=&quot; + in + &quot;, out=&quot; + out + &quot;, err=&quot; + err + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

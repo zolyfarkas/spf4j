@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UnsafeString.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">UnsafeString.java</span></div><h1>UnsafeString.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Lower lever unsafe hacks for performance improvement.
+ * These optimizations will work only up to including JDK 8.
+ * @author Zoltan Farkas
+ */
+public final class UnsafeString {
+
+    /**
+   * This field is byte[] in JDK11.
+   */
+  private static final MethodHandle CHARS_FIELD_GET;
+
+  //String(char[] value, boolean share) {
+  private static final MethodHandle PROTECTED_STR_CONSTR_HANDLE;
+  private static final Class&lt;?&gt;[] PROTECTED_STR_CONSTR_PARAM_TYPES;
+
+  static {
+    Field charsField;
+<span class="fc" id="L61">    charsField = AccessController.doPrivileged(new PrivilegedAction&lt;Field&gt;() {</span>
+      @Override
+      public Field run() {
+        Field charsField;
+        try {
+<span class="fc" id="L66">          charsField = String.class.getDeclaredField(&quot;value&quot;);</span>
+<span class="fc" id="L67">          Class&lt;?&gt; type = charsField.getType();</span>
+<span class="pc bpc" id="L68" title="2 of 4 branches missed.">          if (type.isArray() &amp;&amp; type.getComponentType() == char.class) {</span>
+<span class="fc" id="L69">            charsField.setAccessible(true);</span>
+          } else {
+<span class="nc" id="L71">            Logger logger = Logger.getLogger(Strings.class.getName());</span>
+<span class="nc" id="L72">            logger.warning(&quot;char array stealing from String not supported&quot;);</span>
+<span class="nc" id="L73">            charsField = null;</span>
+          }
+<span class="nc" id="L75">        } catch (NoSuchFieldException ex) {</span>
+<span class="nc" id="L76">          Logger logger = Logger.getLogger(Strings.class.getName());</span>
+<span class="nc" id="L77">          logger.warning(&quot;char array stealing from String not supported&quot;);</span>
+<span class="nc" id="L78">          logger.log(Level.FINEST, &quot;Exception detail&quot;, ex);</span>
+<span class="nc" id="L79">          charsField = null;</span>
+<span class="fc" id="L80">        }</span>
+<span class="fc" id="L81">        return charsField;</span>
+      }
+    });
+<span class="fc" id="L84">    MethodHandles.Lookup lookup = MethodHandles.lookup();</span>
+<span class="pc bpc" id="L85" title="2 of 4 branches missed.">    if (charsField != null &amp;&amp; char[].class == charsField.getType()) {</span>
+      try {
+<span class="fc" id="L87">        CHARS_FIELD_GET = lookup.unreflectGetter(charsField);</span>
+<span class="nc" id="L88">      } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L89">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L90">      }</span>
+    } else {
+<span class="nc" id="L92">      CHARS_FIELD_GET = null;</span>
+    }
+
+    // up until u45 String(int offset, int count, char value[]) {
+    // u45 reverted to: String(char[] value, boolean share) {
+<span class="fc" id="L97">    Constructor&lt;String&gt; prConstr = AccessController.doPrivileged(</span>
+<span class="fc" id="L98">            new PrivilegedAction&lt;Constructor&lt;String&gt;&gt;() {</span>
+      @Override
+      public Constructor&lt;String&gt; run() {
+        Constructor&lt;String&gt; constr;
+        try {
+<span class="fc" id="L103">          constr = String.class.getDeclaredConstructor(char[].class, boolean.class);</span>
+<span class="fc" id="L104">          constr.setAccessible(true);</span>
+<span class="nc" id="L105">        } catch (NoSuchMethodException ex) {</span>
+          try {
+<span class="nc" id="L107">            constr = String.class.getDeclaredConstructor(int.class, int.class, char[].class);</span>
+<span class="nc" id="L108">            constr.setAccessible(true);</span>
+<span class="nc" id="L109">          } catch (NoSuchMethodException ex2) {</span>
+<span class="nc" id="L110">            ex2.addSuppressed(ex);</span>
+<span class="nc" id="L111">            Logger logger = Logger.getLogger(Strings.class.getName());</span>
+<span class="nc" id="L112">            logger.log(Level.FINE, &quot;Building String from char[] without copy not supported&quot;);</span>
+<span class="nc" id="L113">            logger.log(Level.FINEST, &quot;Exception detail&quot;, ex2);</span>
+<span class="nc" id="L114">            constr = null;</span>
+<span class="nc" id="L115">          }</span>
+<span class="fc" id="L116">        }</span>
+<span class="fc" id="L117">        return constr;</span>
+      }
+    });
+
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (prConstr == null) {</span>
+<span class="nc" id="L122">      PROTECTED_STR_CONSTR_PARAM_TYPES = null;</span>
+<span class="nc" id="L123">      PROTECTED_STR_CONSTR_HANDLE = null;</span>
+    } else {
+<span class="fc" id="L125">      PROTECTED_STR_CONSTR_PARAM_TYPES = prConstr.getParameterTypes();</span>
+      try {
+<span class="fc" id="L127">        PROTECTED_STR_CONSTR_HANDLE = lookup.unreflectConstructor(prConstr);</span>
+<span class="nc" id="L128">      } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L129">        throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L130">      }</span>
+    }
+<span class="fc" id="L132">  }</span>
+
+
+
+  private UnsafeString() { }
+
+  /**
+   * Steal the underlying character array of a String.
+   *
+   * @param str
+   * @return
+   */
+  public static char[] steal(final String str) {
+<span class="pc bpc" id="L145" title="1 of 2 branches missed.">    if (CHARS_FIELD_GET == null) {</span>
+<span class="nc" id="L146">      return str.toCharArray();</span>
+    } else {
+      try {
+<span class="fc" id="L149">        return (char[]) CHARS_FIELD_GET.invokeExact(str);</span>
+<span class="nc" id="L150">      } catch (Throwable ex) {</span>
+<span class="nc" id="L151">        UnknownError err = new UnknownError(&quot;Error while stealing String char array&quot;);</span>
+<span class="nc" id="L152">        err.addSuppressed(ex);</span>
+<span class="nc" id="L153">        throw err;</span>
+      }
+    }
+  }
+
+   /**
+   * Create a String based on the provided character array. No copy of the array is made.
+   *
+   * @param chars
+   * @return
+   */
+  public static String wrap(final char[] chars) {
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">    if (PROTECTED_STR_CONSTR_PARAM_TYPES != null) {</span>
+      try {
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">        if (PROTECTED_STR_CONSTR_PARAM_TYPES.length == 3) {</span>
+<span class="nc" id="L168">          return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(0, chars.length, chars);</span>
+        } else {
+<span class="fc" id="L170">          return (String) PROTECTED_STR_CONSTR_HANDLE.invokeExact(chars, true);</span>
+        }
+<span class="nc" id="L172">      } catch (Throwable ex) {</span>
+<span class="nc" id="L173">        UnknownError err = new UnknownError(&quot;Error while wrapping String char array&quot;);</span>
+<span class="nc" id="L174">        err.addSuppressed(ex);</span>
+<span class="nc" id="L175">        throw err;</span>
+      }
+    } else {
+<span class="nc" id="L178">      return new String(chars);</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

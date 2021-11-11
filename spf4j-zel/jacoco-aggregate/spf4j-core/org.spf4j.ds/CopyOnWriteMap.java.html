@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>CopyOnWriteMap.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.ds</a> &gt; <span class="el_source">CopyOnWriteMap.java</span></div><h1>CopyOnWriteMap.java</h1><pre class="source lang-java linenums">package org.spf4j.ds;
+
+
+/*
+ *  Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  &quot;License&quot;); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  &quot;AS IS&quot; BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ *
+ */
+import com.google.common.collect.Maps;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * A thread-safe version of {@link Map} in which all operations that change the Map are implemented by making a new copy
+ * of the underlying Map.
+ *
+ * While the creation of a new Map can be expensive, this class is designed for cases in which the primary function is
+ * to read data from the Map, not to modify the Map. Therefore the operations that do not cause a change to this class
+ * happen quickly and concurrently.
+ *
+ * @author The Apache MINA Project (dev@mina.apache.org)
+ * @version $Rev$, $Date$
+ */
+@SuppressFBWarnings(value = {&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;},
+        justification = &quot;Special case, not necessary on read path due to use of volatile&quot;)
+public class CopyOnWriteMap&lt;K, V&gt; implements Map&lt;K, V&gt;, Cloneable {
+
+  private volatile Map&lt;K, V&gt; internalMap;
+
+  /**
+   * Creates a new instance of CopyOnWriteMap.
+   *
+   */
+<span class="nc" id="L51">  public CopyOnWriteMap() {</span>
+<span class="nc" id="L52">    internalMap = new HashMap&lt;K, V&gt;();</span>
+<span class="nc" id="L53">  }</span>
+
+  /**
+   * Creates a new instance of CopyOnWriteMap with the specified initial size
+   *
+   * @param initialCapacity The initial size of the Map.
+   */
+<span class="nc" id="L60">  public CopyOnWriteMap(final int initialCapacity) {</span>
+<span class="nc" id="L61">    internalMap = new HashMap&lt;K, V&gt;(initialCapacity);</span>
+<span class="nc" id="L62">  }</span>
+
+  /**
+   * Creates a new instance of CopyOnWriteMap in which the initial data being held by this map is contained in the
+   * supplied map.
+   *
+   * @param data A Map containing the initial contents to be placed into this class.
+   */
+<span class="fc" id="L70">  public CopyOnWriteMap(final Map&lt;K, V&gt; data) {</span>
+<span class="fc" id="L71">    internalMap = new HashMap&lt;K, V&gt;(data);</span>
+<span class="fc" id="L72">  }</span>
+
+  /**
+   * @return a copy of this map, this is a fast operation.
+   */
+  public final CopyOnWriteMap&lt;K, V&gt; copy() {
+<span class="nc" id="L78">    return new CopyOnWriteMap&lt;&gt;(internalMap);</span>
+  }
+
+  /**
+   * Adds the provided key and value to this map.
+   *
+   * @see java.util.Map#put(java.lang.Object, java.lang.Object)
+   */
+  public V put(final K key, final V value) {
+<span class="nc" id="L87">    synchronized (this) {</span>
+<span class="nc" id="L88">      Map&lt;K, V&gt; newMap = Maps.newHashMapWithExpectedSize(internalMap.size() + 1);</span>
+<span class="nc" id="L89">      newMap.putAll(internalMap);</span>
+<span class="nc" id="L90">      V val = newMap.put(key, value);</span>
+<span class="nc" id="L91">      internalMap = newMap;</span>
+<span class="nc" id="L92">      return val;</span>
+    }
+  }
+
+  /**
+   * Removed the value and key from this map based on the provided key.
+   *
+   * @see java.util.Map#remove(java.lang.Object)
+   */
+  public V remove(final Object key) {
+<span class="nc" id="L102">    synchronized (this) {</span>
+<span class="nc" id="L103">      Map&lt;K, V&gt; newMap = new HashMap&lt;K, V&gt;(internalMap);</span>
+<span class="nc" id="L104">      V val = newMap.remove(key);</span>
+<span class="nc" id="L105">      internalMap = newMap;</span>
+<span class="nc" id="L106">      return val;</span>
+    }
+  }
+
+  /**
+   * Inserts all the keys and values contained in the provided map to this map.
+   *
+   * @see java.util.Map#putAll(java.util.Map)
+   */
+  public void putAll(final Map&lt;? extends K, ? extends V&gt; newData) {
+<span class="nc" id="L116">    synchronized (this) {</span>
+<span class="nc" id="L117">      Map&lt;K, V&gt; newMap = Maps.newHashMapWithExpectedSize(internalMap.size() + newData.size());</span>
+<span class="nc" id="L118">      newMap.putAll(internalMap);</span>
+<span class="nc" id="L119">      newMap.putAll(newData);</span>
+<span class="nc" id="L120">      internalMap = newMap;</span>
+<span class="nc" id="L121">    }</span>
+<span class="nc" id="L122">  }</span>
+
+  /**
+   * Removes all entries in this map.
+   *
+   * @see java.util.Map#clear()
+   */
+  public void clear() {
+<span class="nc" id="L130">    synchronized (this) {</span>
+<span class="nc" id="L131">      internalMap = new HashMap&lt;K, V&gt;(0);</span>
+<span class="nc" id="L132">    }</span>
+<span class="nc" id="L133">  }</span>
+
+  //
+  //  Below are methods that do not modify
+  //          the internal Maps
+  /**
+   * Returns the number of key/value pairs in this map.
+   *
+   * @see java.util.Map#size()
+   */
+  public int size() {
+<span class="nc" id="L144">    return internalMap.size();</span>
+  }
+
+  /**
+   * Returns true if this map is empty, otherwise false.
+   *
+   * @see java.util.Map#isEmpty()
+   */
+  public boolean isEmpty() {
+<span class="nc" id="L153">    return internalMap.isEmpty();</span>
+  }
+
+  /**
+   * Returns true if this map contains the provided key, otherwise this method return false.
+   *
+   * @see java.util.Map#containsKey(java.lang.Object)
+   */
+  public boolean containsKey(final Object key) {
+<span class="nc" id="L162">    return internalMap.containsKey(key);</span>
+  }
+
+  /**
+   * Returns true if this map contains the provided value, otherwise this method returns false.
+   *
+   * @see java.util.Map#containsValue(java.lang.Object)
+   */
+  public boolean containsValue(final Object value) {
+<span class="nc" id="L171">    return internalMap.containsValue(value);</span>
+  }
+
+  /**
+   * Returns the value associated with the provided key from this map.
+   *
+   * @see java.util.Map#get(java.lang.Object)
+   */
+  public V get(final Object key) {
+<span class="nc" id="L180">    return internalMap.get(key);</span>
+  }
+
+  /**
+   * This method will return a read-only {@link Set}.
+   */
+  public Set&lt;K&gt; keySet() {
+<span class="nc" id="L187">    return internalMap.keySet();</span>
+  }
+
+  /**
+   * This method will return a read-only {@link Collection}.
+   */
+  public Collection&lt;V&gt; values() {
+<span class="nc" id="L194">    return internalMap.values();</span>
+  }
+
+  /**
+   * This method will return a read-only {@link Set}.
+   */
+  public Set&lt;Entry&lt;K, V&gt;&gt; entrySet() {
+<span class="nc" id="L201">    return internalMap.entrySet();</span>
+  }
+
+  /**
+   * @return a clone of this map. equivalent to copy()
+   */
+  @Override
+  public CopyOnWriteMap&lt;K, V&gt; clone() {
+    try {
+<span class="nc" id="L210">      return (CopyOnWriteMap) super.clone();</span>
+<span class="nc" id="L211">    } catch (CloneNotSupportedException e) {</span>
+<span class="nc" id="L212">      throw new InternalError(e);</span>
+    }
+  }
+
+  /**
+   * @return string representation of this map the includes the contents.
+   */
+  @Override
+  public String toString() {
+<span class="nc" id="L221">    return &quot;CopyOnWriteMap{internalMap=&quot; + internalMap + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

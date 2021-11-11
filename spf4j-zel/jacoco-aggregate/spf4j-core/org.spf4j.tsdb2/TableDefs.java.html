@@ -91,101 +91,107 @@ public final class TableDefs {
             Schema.Field.Order.IGNORE));
 <span class="fc bfc" id="L92" title="All 2 branches covered.">    for (ColumnDef cd : columns) {</span>
 <span class="fc" id="L93">      Type type = cd.getType();</span>
-<span class="pc bpc" id="L94" title="2 of 3 branches missed.">      switch (type) {</span>
+<span class="fc" id="L94">      String rawFieldName = cd.getName();</span>
+<span class="fc" id="L95">      String fieldName = sanitizeName(rawFieldName);</span>
+<span class="pc bpc" id="L96" title="2 of 3 branches missed.">      switch (type) {</span>
         case DOUBLE:
-<span class="nc" id="L96">          Schema schema = Schema.create(Schema.Type.DOUBLE);</span>
-<span class="nc" id="L97">          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());</span>
-<span class="nc" id="L98">          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());</span>
-<span class="nc" id="L99">          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,</span>
-                  Schema.Field.Order.IGNORE));
-<span class="nc" id="L101">          break;</span>
+<span class="nc" id="L98">          Schema schema = Schema.create(Schema.Type.DOUBLE);</span>
+<span class="nc" id="L99">          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());</span>
+<span class="nc" id="L100">          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());</span>
+<span class="nc" id="L101">          Schema.Field field = AvroCompatUtils.createField(fieldName, schema, cd.getDescription(), null, true, false,</span>
+                Schema.Field.Order.IGNORE);
+<span class="nc" id="L103">          field.addProp(TimeSeriesRecord.RAW_NAME, rawFieldName);</span>
+<span class="nc" id="L104">          fields.add(field);</span>
+<span class="nc" id="L105">          break;</span>
         case LONG:
-<span class="fc" id="L103">          schema = Schema.create(Schema.Type.LONG);</span>
-<span class="fc" id="L104">          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());</span>
-<span class="fc" id="L105">          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());</span>
-<span class="fc" id="L106">          fields.add(AvroCompatUtils.createField(cd.getName(), schema, cd.getDescription(), null, true, false,</span>
-                  Schema.Field.Order.IGNORE));
-<span class="fc" id="L108">          break;</span>
+<span class="fc" id="L107">          schema = Schema.create(Schema.Type.LONG);</span>
+<span class="fc" id="L108">          schema.addProp(TimeSeriesRecord.UNIT_TYPE_PROP, cd.getUnitOfMeasurement());</span>
+<span class="fc" id="L109">          schema.addProp(TimeSeriesRecord.AGGREGATION_TYPE_PROP, cd.getAggregation().toString());</span>
+<span class="fc" id="L110">          field = AvroCompatUtils.createField(fieldName, schema, cd.getDescription(), null, true, false,</span>
+                Schema.Field.Order.IGNORE);
+<span class="fc" id="L112">          field.addProp(TimeSeriesRecord.RAW_NAME, rawFieldName);</span>
+<span class="fc" id="L113">          fields.add(field);</span>
+<span class="fc" id="L114">          break;</span>
         default:
-<span class="nc" id="L110">          throw new IllegalStateException(&quot;Invalid data type &quot; + type);</span>
+<span class="nc" id="L116">          throw new IllegalStateException(&quot;Invalid data type &quot; + type);</span>
       }
-<span class="fc" id="L112">    }</span>
-<span class="fc" id="L113">    recSchema.setFields(fields);</span>
-<span class="fc" id="L114">    int sampleTime = td.getSampleTime();</span>
-<span class="fc bfc" id="L115" title="All 2 branches covered.">    if (sampleTime &gt; 0) {</span>
-<span class="fc" id="L116">      recSchema.addProp(TimeSeriesRecord.FREQ_MILLIS_REC_PROP, sampleTime);</span>
+<span class="fc" id="L118">    }</span>
+<span class="fc" id="L119">    recSchema.setFields(fields);</span>
+<span class="fc" id="L120">    int sampleTime = td.getSampleTime();</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">    if (sampleTime &gt; 0) {</span>
+<span class="fc" id="L122">      recSchema.addProp(TimeSeriesRecord.FREQ_MILLIS_REC_PROP, sampleTime);</span>
     }
-<span class="fc" id="L118">    recSchema.addProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP, getMeasurementType(td));</span>
-<span class="fc" id="L119">    recSchema.addProp(TimeSeriesRecord.RAW_NAME, rawName);</span>
-<span class="fc" id="L120">    return recSchema;</span>
+<span class="fc" id="L124">    recSchema.addProp(TimeSeriesRecord.MEASUREMENT_TYPE_PROP, getMeasurementType(td));</span>
+<span class="fc" id="L125">    recSchema.addProp(TimeSeriesRecord.RAW_NAME, rawName);</span>
+<span class="fc" id="L126">    return recSchema;</span>
   }
 
   public static TimeSeriesRecord toRecord(final Schema rSchema, final long baseTs, final DataRow row) {
-<span class="nc" id="L124">    GenericRecord rec = new GenericData.Record(rSchema);</span>
-<span class="nc" id="L125">    long ts = baseTs + row.getRelTimeStamp();</span>
-<span class="nc" id="L126">    rec.put(0, Instant.ofEpochMilli(ts));</span>
-<span class="nc" id="L127">    List&lt;Long&gt; nrs = row.getData();</span>
-<span class="nc" id="L128">    List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
-<span class="nc bnc" id="L129" title="All 2 branches missed.">    for (int i = 1, l = fields.size(), j = 0; i &lt; l; i++, j++) {</span>
-<span class="nc" id="L130">      Schema.Type type = fields.get(i).schema().getType();</span>
-<span class="nc bnc" id="L131" title="All 3 branches missed.">      switch (type) {</span>
+<span class="nc" id="L130">    GenericRecord rec = new GenericData.Record(rSchema);</span>
+<span class="nc" id="L131">    long ts = baseTs + row.getRelTimeStamp();</span>
+<span class="nc" id="L132">    rec.put(0, Instant.ofEpochMilli(ts));</span>
+<span class="nc" id="L133">    List&lt;Long&gt; nrs = row.getData();</span>
+<span class="nc" id="L134">    List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    for (int i = 1, l = fields.size(), j = 0; i &lt; l; i++, j++) {</span>
+<span class="nc" id="L136">      Schema.Type type = fields.get(i).schema().getType();</span>
+<span class="nc bnc" id="L137" title="All 3 branches missed.">      switch (type) {</span>
         case DOUBLE:
-<span class="nc" id="L133">          rec.put(i, Double.longBitsToDouble(nrs.get(j)));</span>
-<span class="nc" id="L134">          break;</span>
+<span class="nc" id="L139">          rec.put(i, Double.longBitsToDouble(nrs.get(j)));</span>
+<span class="nc" id="L140">          break;</span>
         case LONG:
-<span class="nc" id="L136">          rec.put(i, nrs.get(j));</span>
-<span class="nc" id="L137">          break;</span>
+<span class="nc" id="L142">          rec.put(i, nrs.get(j));</span>
+<span class="nc" id="L143">          break;</span>
         default:
-<span class="nc" id="L139">          throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
+<span class="nc" id="L145">          throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
       }
     }
-<span class="nc" id="L142">    return TimeSeriesRecord.from(rec);</span>
+<span class="nc" id="L148">    return TimeSeriesRecord.from(rec);</span>
   }
 
 
  public static TimeSeriesRecord toRecord(final Schema rSchema, final Observation row) {
-<span class="fc" id="L147">    GenericRecord rec = new GenericData.Record(rSchema);</span>
-<span class="fc" id="L148">    rec.put(0, Instant.ofEpochMilli(row.getRelTimeStamp()));</span>
-<span class="fc" id="L149">    List&lt;Long&gt; nrs = row.getData();</span>
-<span class="fc" id="L150">    List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
-<span class="fc bfc" id="L151" title="All 2 branches covered.">    for (int i = 1, l = fields.size(), j = 0; i &lt; l; i++, j++) {</span>
-<span class="fc" id="L152">      Schema.Type type = fields.get(i).schema().getType();</span>
-<span class="pc bpc" id="L153" title="2 of 3 branches missed.">      switch (type) {</span>
+<span class="fc" id="L153">    GenericRecord rec = new GenericData.Record(rSchema);</span>
+<span class="fc" id="L154">    rec.put(0, Instant.ofEpochMilli(row.getRelTimeStamp()));</span>
+<span class="fc" id="L155">    List&lt;Long&gt; nrs = row.getData();</span>
+<span class="fc" id="L156">    List&lt;Schema.Field&gt; fields = rSchema.getFields();</span>
+<span class="fc bfc" id="L157" title="All 2 branches covered.">    for (int i = 1, l = fields.size(), j = 0; i &lt; l; i++, j++) {</span>
+<span class="fc" id="L158">      Schema.Type type = fields.get(i).schema().getType();</span>
+<span class="pc bpc" id="L159" title="2 of 3 branches missed.">      switch (type) {</span>
         case DOUBLE:
-<span class="nc" id="L155">          rec.put(i, Double.longBitsToDouble(nrs.get(j)));</span>
-<span class="nc" id="L156">          break;</span>
+<span class="nc" id="L161">          rec.put(i, Double.longBitsToDouble(nrs.get(j)));</span>
+<span class="nc" id="L162">          break;</span>
         case LONG:
-<span class="fc" id="L158">          rec.put(i, nrs.get(j));</span>
-<span class="fc" id="L159">          break;</span>
+<span class="fc" id="L164">          rec.put(i, nrs.get(j));</span>
+<span class="fc" id="L165">          break;</span>
         default:
-<span class="nc" id="L161">          throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
+<span class="nc" id="L167">          throw new IllegalStateException(&quot;Unsupported data type: &quot; + type);</span>
       }
     }
-<span class="fc" id="L164">    return TimeSeriesRecord.from(rec);</span>
+<span class="fc" id="L170">    return TimeSeriesRecord.from(rec);</span>
   }
 
   @SuppressFBWarnings(&quot;STT_STRING_PARSING_A_FIELD&quot;)
   public static MeasurementType getMeasurementType(final TableDef info) {
-<span class="fc" id="L169">    MeasurementType measurementType = info.getMeasurementType();</span>
-<span class="fc bfc" id="L170" title="All 2 branches covered.">    if (measurementType != MeasurementType.UNTYPED) {</span>
-<span class="fc" id="L171">      return measurementType;</span>
+<span class="fc" id="L175">    MeasurementType measurementType = info.getMeasurementType();</span>
+<span class="fc bfc" id="L176" title="All 2 branches covered.">    if (measurementType != MeasurementType.UNTYPED) {</span>
+<span class="fc" id="L177">      return measurementType;</span>
     }
-<span class="fc" id="L173">    boolean hasCount = false;</span>
-<span class="fc bfc" id="L174" title="All 2 branches covered.">    for (ColumnDef colDef : info.getColumns()) {</span>
-<span class="fc" id="L175">      String colName = colDef.getName();</span>
-<span class="pc bpc" id="L176" title="3 of 4 branches missed.">      if (colName.startsWith(&quot;Q&quot;) &amp;&amp; colName.contains(&quot;_&quot;)) {</span>
-<span class="nc" id="L177">        return MeasurementType.HISTOGRAM;</span>
-<span class="pc bpc" id="L178" title="1 of 2 branches missed.">      } else if (&quot;sum&quot;.equals(colName)) {</span>
-<span class="nc" id="L179">        return MeasurementType.SUMMARY;</span>
-<span class="pc bpc" id="L180" title="1 of 2 branches missed.">      } else if (&quot;count&quot;.equals(colName)) {</span>
-<span class="nc" id="L181">        hasCount = true;</span>
+<span class="fc" id="L179">    boolean hasCount = false;</span>
+<span class="fc bfc" id="L180" title="All 2 branches covered.">    for (ColumnDef colDef : info.getColumns()) {</span>
+<span class="fc" id="L181">      String colName = colDef.getName();</span>
+<span class="pc bpc" id="L182" title="3 of 4 branches missed.">      if (colName.startsWith(&quot;Q&quot;) &amp;&amp; colName.contains(&quot;_&quot;)) {</span>
+<span class="nc" id="L183">        return MeasurementType.HISTOGRAM;</span>
+<span class="pc bpc" id="L184" title="1 of 2 branches missed.">      } else if (&quot;sum&quot;.equals(colName)) {</span>
+<span class="nc" id="L185">        return MeasurementType.SUMMARY;</span>
+<span class="pc bpc" id="L186" title="1 of 2 branches missed.">      } else if (&quot;count&quot;.equals(colName)) {</span>
+<span class="nc" id="L187">        hasCount = true;</span>
       }
-<span class="fc" id="L183">    }</span>
-<span class="pc bpc" id="L184" title="1 of 2 branches missed.">    if (hasCount) {</span>
-<span class="nc" id="L185">      return MeasurementType.COUNTER;</span>
+<span class="fc" id="L189">    }</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">    if (hasCount) {</span>
+<span class="nc" id="L191">      return MeasurementType.COUNTER;</span>
     }
-<span class="fc" id="L187">    return MeasurementType.UNTYPED;</span>
+<span class="fc" id="L193">    return MeasurementType.UNTYPED;</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

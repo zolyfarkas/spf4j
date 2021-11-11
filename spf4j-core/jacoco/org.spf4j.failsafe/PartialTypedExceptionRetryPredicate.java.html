@@ -21,20 +21,29 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- *
+ * A partial retry predicate for a Callable&amp;lt;T&amp;gt&amp;
  * @author Zoltan Farkas
+ * @param &lt;T&gt; the return type for the Callable that is retried.
+ * @param &lt;C&gt; the Callable that is retried.
+ * @param &lt;E&gt; The Exception type that this predicate applies to.
  */
 @FunctionalInterface
 public interface PartialTypedExceptionRetryPredicate&lt;T, C extends Callable&lt;? extends T&gt;, E extends Throwable&gt;
         extends BiFunction&lt;E, C, RetryDecision&lt;T, C&gt;&gt; {
 
+  /**
+   * @param value the exception instance to evaluate.
+   * @param what the callable that failed with the exception.
+   * @return the retry decision, null implies that this predicate made no decision,
+   * and will defer to the next predicate
+   */
   @Nullable
   RetryDecision&lt;T, C&gt; getExceptionDecision(@Nonnull E value, @Nonnull C what);
 
   @Override
   default RetryDecision&lt;T, C&gt; apply(final E t, final C u) {
-<span class="fc" id="L36">    return getExceptionDecision(t, u);</span>
+<span class="fc" id="L45">    return getExceptionDecision(t, u);</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

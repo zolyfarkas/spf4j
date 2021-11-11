@@ -659,54 +659,113 @@ public final class Reflections {
     }
   }
 
+
+  /**
+   * Annotation access with extended inheritance semantics.
+   * Class level annotations are inherited to methods.
+   * superclass and implemented interface annotations are inherited.
+   * package level annotations are inherited to class and methods as well.
+   * @param &lt;A&gt;
+   * @param annotationClass
+   * @param element
+   * @return
+   */
   @Nullable
+  @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
   public static &lt;A extends Annotation&gt; A getInheritedAnnotation(
           final Class&lt;A&gt; annotationClass, final AnnotatedElement element) {
-<span class="nc" id="L665">    A annotation = element.getAnnotation(annotationClass);</span>
-<span class="nc bnc" id="L666" title="All 4 branches missed.">    if (annotation == null &amp;&amp; element instanceof Method) {</span>
-<span class="nc" id="L667">      annotation = getOverriddenAnnotation(annotationClass, (Method) element);</span>
+<span class="fc" id="L677">    A annotation = element.getAnnotation(annotationClass);</span>
+<span class="pc bpc" id="L678" title="1 of 2 branches missed.">    if (annotation == null) {</span>
+<span class="fc bfc" id="L679" title="All 2 branches covered.">      if (element instanceof Method) {</span>
+<span class="fc" id="L680">        Method method = (Method) element;</span>
+<span class="fc" id="L681">        annotation = getOverriddenAnnotation(annotationClass,  method);</span>
+<span class="pc bpc" id="L682" title="1 of 2 branches missed.">        if (annotation != null) {</span>
+<span class="fc" id="L683">          return annotation;</span>
+        }
+<span class="nc" id="L685">        Class&lt;?&gt; declaringClass = method.getDeclaringClass();</span>
+<span class="nc" id="L686">        annotation = getOverriddenAnnotation(annotationClass, declaringClass);</span>
+<span class="nc bnc" id="L687" title="All 2 branches missed.">        if (annotation == null) {</span>
+<span class="nc" id="L688">          Package aPackage = declaringClass.getPackage();</span>
+<span class="nc bnc" id="L689" title="All 2 branches missed.">          if (aPackage != null) {</span>
+<span class="nc" id="L690">            annotation = aPackage.getAnnotation(annotationClass);</span>
+          }
+        }
+<span class="pc bpc" id="L693" title="1 of 2 branches missed.">      } else if (element instanceof Class) {</span>
+<span class="fc" id="L694">        Class&lt;?&gt; declaringClass = (Class) element;</span>
+<span class="fc" id="L695">        annotation = getOverriddenAnnotation(annotationClass, declaringClass);</span>
+<span class="pc bpc" id="L696" title="1 of 2 branches missed.">        if (annotation == null) {</span>
+<span class="nc" id="L697">          Package aPackage = declaringClass.getPackage();</span>
+<span class="nc bnc" id="L698" title="All 2 branches missed.">          if (aPackage != null) {</span>
+<span class="nc" id="L699">            annotation = aPackage.getAnnotation(annotationClass);</span>
+          }
+        }
+      }
     }
-<span class="nc" id="L669">    return annotation;</span>
+<span class="fc" id="L704">    return annotation;</span>
+  }
+
+  @Nullable
+  private static &lt;A extends Annotation&gt; A getOverriddenAnnotation(
+          final Class&lt;A&gt; annotationClass, final Class&lt;?&gt; clasz) {
+<span class="fc" id="L710">    A annotation = clasz.getAnnotation(annotationClass);</span>
+<span class="fc bfc" id="L711" title="All 2 branches covered.">    if (annotation != null) {</span>
+<span class="fc" id="L712">      return annotation;</span>
+    }
+<span class="fc" id="L714">    final Class&lt;?&gt; superclass = clasz.getSuperclass();</span>
+<span class="fc bfc" id="L715" title="All 2 branches covered.">    if (superclass != null) {</span>
+<span class="fc" id="L716">      annotation</span>
+<span class="fc" id="L717">              = getOverriddenAnnotation(annotationClass, superclass);</span>
+<span class="pc bpc" id="L718" title="1 of 2 branches missed.">      if (annotation != null) {</span>
+<span class="nc" id="L719">        return annotation;</span>
+      }
+    }
+<span class="fc bfc" id="L722" title="All 2 branches covered.">    for (final Class&lt;?&gt; intf : clasz.getInterfaces()) {</span>
+<span class="fc" id="L723">      annotation = getOverriddenAnnotation(annotationClass, intf);</span>
+<span class="fc bfc" id="L724" title="All 2 branches covered.">      if (annotation != null) {</span>
+<span class="fc" id="L725">        return annotation;</span>
+      }
+    }
+<span class="fc" id="L728">    return null;</span>
   }
 
   @Nullable
   private static &lt;A extends Annotation&gt; A getOverriddenAnnotation(
           final Class&lt;A&gt; annotationClass, final Method method) {
-<span class="nc" id="L675">    final Class&lt;?&gt; methodClass = method.getDeclaringClass();</span>
-<span class="nc" id="L676">    final String name = method.getName();</span>
-<span class="nc" id="L677">    final Class&lt;?&gt;[] params = method.getParameterTypes();</span>
-<span class="nc" id="L678">    final Class&lt;?&gt; superclass = methodClass.getSuperclass();</span>
-<span class="nc bnc" id="L679" title="All 2 branches missed.">    if (superclass != null) {</span>
-<span class="nc" id="L680">      final A annotation</span>
-<span class="nc" id="L681">              = getOverriddenMethodAnnotationFrom(annotationClass, superclass, name, params);</span>
-<span class="nc bnc" id="L682" title="All 2 branches missed.">      if (annotation != null) {</span>
-<span class="nc" id="L683">        return annotation;</span>
+<span class="fc" id="L734">    final Class&lt;?&gt; methodClass = method.getDeclaringClass();</span>
+<span class="fc" id="L735">    final String methodName = method.getName();</span>
+<span class="fc" id="L736">    final Class&lt;?&gt;[] params = method.getParameterTypes();</span>
+<span class="fc" id="L737">    final Class&lt;?&gt; superclass = methodClass.getSuperclass();</span>
+<span class="pc bpc" id="L738" title="1 of 2 branches missed.">    if (superclass != null) {</span>
+<span class="fc" id="L739">      final A annotation</span>
+<span class="fc" id="L740">              = getOverriddenMethodAnnotationFrom(annotationClass, superclass, methodName, params);</span>
+<span class="pc bpc" id="L741" title="1 of 2 branches missed.">      if (annotation != null) {</span>
+<span class="nc" id="L742">        return annotation;</span>
       }
     }
-<span class="nc bnc" id="L686" title="All 2 branches missed.">    for (final Class&lt;?&gt; intf : methodClass.getInterfaces()) {</span>
-<span class="nc" id="L687">      final A annotation = getOverriddenMethodAnnotationFrom(annotationClass, intf, name, params);</span>
-<span class="nc bnc" id="L688" title="All 2 branches missed.">      if (annotation != null) {</span>
-<span class="nc" id="L689">        return annotation;</span>
+<span class="pc bpc" id="L745" title="1 of 2 branches missed.">    for (final Class&lt;?&gt; intf : methodClass.getInterfaces()) {</span>
+<span class="fc" id="L746">      final A annotation = getOverriddenMethodAnnotationFrom(annotationClass, intf, methodName, params);</span>
+<span class="pc bpc" id="L747" title="1 of 2 branches missed.">      if (annotation != null) {</span>
+<span class="fc" id="L748">        return annotation;</span>
       }
     }
 
-<span class="nc" id="L693">    return null;</span>
+<span class="nc" id="L752">    return null;</span>
   }
 
   @Nullable
   private static &lt;A extends Annotation&gt; A getOverriddenMethodAnnotationFrom(
           final Class&lt;A&gt; annotationClass, final Class&lt;?&gt; searchClass,
           final String methodName, final Class&lt;?&gt;[] params) {
-<span class="nc" id="L700">      final Method method = getMethod(searchClass, methodName, params);</span>
-<span class="nc bnc" id="L701" title="All 2 branches missed.">      if (method == null) {</span>
-<span class="nc" id="L702">        return null;</span>
+<span class="fc" id="L759">      final Method method = getMethod(searchClass, methodName, params);</span>
+<span class="fc bfc" id="L760" title="All 2 branches covered.">      if (method == null) {</span>
+<span class="fc" id="L761">        return null;</span>
       }
-<span class="nc" id="L704">      final A annotation = method.getAnnotation(annotationClass);</span>
-<span class="nc bnc" id="L705" title="All 2 branches missed.">      if (annotation != null) {</span>
-<span class="nc" id="L706">        return annotation;</span>
+<span class="fc" id="L763">      final A annotation = method.getAnnotation(annotationClass);</span>
+<span class="pc bpc" id="L764" title="1 of 2 branches missed.">      if (annotation != null) {</span>
+<span class="fc" id="L765">        return annotation;</span>
       }
-<span class="nc" id="L708">      return getOverriddenAnnotation(annotationClass, method);</span>
+<span class="nc" id="L767">      return getOverriddenAnnotation(annotationClass, method);</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -39,92 +39,91 @@ import org.apache.avro.generic.GenericRecord;
 import org.spf4j.reflect.CachingTypeMapWrapper;
 import org.spf4j.reflect.GraphTypeMap;
 import org.spf4j.zel.vm.ExecutionContext;
-import org.spf4j.zel.vm.JavaMethodCall;
 import org.spf4j.zel.vm.SuspendedException;
 
 public final class DEREF extends Instruction {
 
   private static final long serialVersionUID = 1L;
 
-<span class="fc" id="L49">  public static final Instruction INSTANCE = new DEREF();</span>
+<span class="fc" id="L48">  public static final Instruction INSTANCE = new DEREF();</span>
 
-<span class="fc" id="L51">  private static final CachingTypeMapWrapper&lt;ReferenceHandler&gt; TYPE_HANDLER</span>
+<span class="fc" id="L50">  private static final CachingTypeMapWrapper&lt;ReferenceHandler&gt; TYPE_HANDLER</span>
           = new CachingTypeMapWrapper&lt;&gt;(new GraphTypeMap());
 
   static {
-<span class="fc" id="L55">    TYPE_HANDLER.safePut(Map.class,</span>
+<span class="fc" id="L54">    TYPE_HANDLER.safePut(Map.class,</span>
             (Object relativeTo, Object ref, ExecutionContext context)
-<span class="fc" id="L57">            -&gt; context.push(((Map) relativeTo).get(ref)))</span>
-<span class="fc" id="L58">            .safePut(GenericRecord.class,</span>
+<span class="fc" id="L56">            -&gt; context.push(((Map) relativeTo).get(ref)))</span>
+<span class="fc" id="L57">            .safePut(GenericRecord.class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
-<span class="fc" id="L60">                    -&gt; context.push(((GenericRecord) relativeTo).get(ref.toString())))</span>
-<span class="fc" id="L61">            .safePut(Object.class,</span>
+<span class="fc" id="L59">                    -&gt; context.push(((GenericRecord) relativeTo).get(ref.toString())))</span>
+<span class="fc" id="L60">            .safePut(Object.class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
-<span class="fc" id="L63">                    -&gt; context.push(new JavaMethodCall(relativeTo, (String) ref)))</span>
-<span class="fc" id="L64">            .safePut(Object[].class,</span>
-                    (Object relativeTo, Object ref, ExecutionContext context)
-                    -&gt; {
-<span class="fc bfc" id="L67" title="All 2 branches covered.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="fc" id="L68">                context.push(((Object[]) relativeTo).length);</span>
-              } else {
-<span class="fc" id="L70">                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);</span>
-              }
-<span class="fc" id="L72">            })</span>
-<span class="fc" id="L73">            .safePut(int[].class,</span>
+<span class="fc" id="L62">                    -&gt; context.push(context.newJavaCall(relativeTo, (String) ref)))</span>
+<span class="fc" id="L63">            .safePut(Object[].class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -&gt; {
-<span class="nc bnc" id="L76" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="nc" id="L77">                context.push(((int[]) relativeTo).length);</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="fc" id="L67">                context.push(((Object[]) relativeTo).length);</span>
               } else {
-<span class="nc" id="L79">                context.push(((int[]) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="fc" id="L69">                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);</span>
               }
-<span class="nc" id="L81">            })</span>
-<span class="fc" id="L82">            .safePut(byte[].class,</span>
+<span class="fc" id="L71">            })</span>
+<span class="fc" id="L72">            .safePut(int[].class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -&gt; {
-<span class="nc bnc" id="L85" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="nc" id="L86">                context.push(((byte[]) relativeTo).length);</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L76">                context.push(((int[]) relativeTo).length);</span>
               } else {
-<span class="nc" id="L88">                context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="nc" id="L78">                context.push(((int[]) relativeTo)[((Number) ref).intValue()]);</span>
               }
-<span class="nc" id="L90">            })</span>
-<span class="fc" id="L91">            .safePut(char[].class,</span>
+<span class="nc" id="L80">            })</span>
+<span class="fc" id="L81">            .safePut(byte[].class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -&gt; {
-<span class="nc bnc" id="L94" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="nc" id="L95">                context.push(((char[]) relativeTo).length);</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L85">                context.push(((byte[]) relativeTo).length);</span>
               } else {
-<span class="nc" id="L97">                context.push(((char[]) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="nc" id="L87">                context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);</span>
               }
-<span class="nc" id="L99">            })</span>
-<span class="fc" id="L100">            .safePut(long[].class,</span>
+<span class="nc" id="L89">            })</span>
+<span class="fc" id="L90">            .safePut(char[].class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -&gt; {
-<span class="nc bnc" id="L103" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="nc" id="L104">                context.push(((long[]) relativeTo).length);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L94">                context.push(((char[]) relativeTo).length);</span>
               } else {
-<span class="nc" id="L106">                context.push(((long[]) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="nc" id="L96">                context.push(((char[]) relativeTo)[((Number) ref).intValue()]);</span>
               }
-<span class="nc" id="L108">            })</span>
-<span class="fc" id="L109">            .safePut(short[].class,</span>
+<span class="nc" id="L98">            })</span>
+<span class="fc" id="L99">            .safePut(long[].class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -&gt; {
-<span class="nc bnc" id="L112" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="nc" id="L113">                context.push(((short[]) relativeTo).length);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L103">                context.push(((long[]) relativeTo).length);</span>
               } else {
-<span class="nc" id="L115">                context.push(((short[]) relativeTo)[((Number) ref).intValue()]);</span>
+<span class="nc" id="L105">                context.push(((long[]) relativeTo)[((Number) ref).intValue()]);</span>
               }
-<span class="nc" id="L117">            })</span>
-<span class="fc" id="L118">            .safePut(List.class,</span>
+<span class="nc" id="L107">            })</span>
+<span class="fc" id="L108">            .safePut(short[].class,</span>
                     (Object relativeTo, Object ref, ExecutionContext context)
                     -&gt; {
-<span class="nc bnc" id="L121" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
-<span class="nc" id="L122">                context.push(((List) relativeTo).size());</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L112">                context.push(((short[]) relativeTo).length);</span>
               } else {
-<span class="nc" id="L124">                context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
+<span class="nc" id="L114">                context.push(((short[]) relativeTo)[((Number) ref).intValue()]);</span>
               }
-<span class="nc" id="L126">            });</span>
-<span class="fc" id="L127">  }</span>
+<span class="nc" id="L116">            })</span>
+<span class="fc" id="L117">            .safePut(List.class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L121">                context.push(((List) relativeTo).size());</span>
+              } else {
+<span class="nc" id="L123">                context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
+              }
+<span class="nc" id="L125">            });</span>
+<span class="fc" id="L126">  }</span>
 
   interface ReferenceHandler {
 
@@ -135,30 +134,30 @@ public final class DEREF extends Instruction {
   }
 
   public static void registerTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
-<span class="nc" id="L138">    TYPE_HANDLER.safePut(type, refHandler);</span>
-<span class="nc" id="L139">  }</span>
+<span class="nc" id="L137">    TYPE_HANDLER.safePut(type, refHandler);</span>
+<span class="nc" id="L138">  }</span>
 
   public static synchronized void replaceTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
-<span class="nc" id="L142">    TYPE_HANDLER.replace(type, (x) -&gt; refHandler);</span>
-<span class="nc" id="L143">  }</span>
+<span class="nc" id="L141">    TYPE_HANDLER.replace(type, (x) -&gt; refHandler);</span>
+<span class="nc" id="L142">  }</span>
 
   @Override
   public int execute(final ExecutionContext context)
           throws ExecutionException, SuspendedException {
-<span class="fc" id="L148">    final Object[] vals = context.tuple();</span>
-<span class="fc" id="L149">    context.popSyncStackVals(vals);</span>
-<span class="fc" id="L150">    pushDeref(vals[0], vals[1], context);</span>
-<span class="fc" id="L151">    return 1;</span>
+<span class="fc" id="L147">    final Object[] vals = context.tuple();</span>
+<span class="fc" id="L148">    context.popSyncStackVals(vals);</span>
+<span class="fc" id="L149">    pushDeref(vals[0], vals[1], context);</span>
+<span class="fc" id="L150">    return 1;</span>
   }
 
   static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
-<span class="fc" id="L155">    ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());</span>
-<span class="fc" id="L156">    rh.pushDeref(relativeTo, ref, context);</span>
-<span class="fc" id="L157">  }</span>
+<span class="fc" id="L154">    ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());</span>
+<span class="fc" id="L155">    rh.pushDeref(relativeTo, ref, context);</span>
+<span class="fc" id="L156">  }</span>
 
   @Override
   public Object[] getParameters() {
-<span class="fc" id="L161">    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="fc" id="L160">    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

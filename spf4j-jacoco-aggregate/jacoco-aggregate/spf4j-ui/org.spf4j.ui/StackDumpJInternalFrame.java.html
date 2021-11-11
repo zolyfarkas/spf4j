@@ -32,6 +32,7 @@
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
 
+import org.spf4j.stackmonitor.StackSampleSupplier;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.ItemEvent;
 import java.io.BufferedWriter;
@@ -40,11 +41,24 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.SpinnerDateModel;
 import javax.swing.filechooser.FileFilter;
 import org.spf4j.base.Methods;
+import org.spf4j.base.SuppressForbiden;
 import org.spf4j.ssdump2.Converter;
+import org.spf4j.stackmonitor.ProfileMetaData;
 import org.spf4j.stackmonitor.SampleNode;
 
 /**
@@ -56,49 +70,124 @@ import org.spf4j.stackmonitor.SampleNode;
  *
  * @author zoly
  */
-@SuppressFBWarnings({&quot;FCBL_FIELD_COULD_BE_LOCAL&quot;, &quot;SE_BAD_FIELD&quot;})
-public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
+@SuppressFBWarnings({&quot;FCBL_FIELD_COULD_BE_LOCAL&quot;, &quot;SE_BAD_FIELD&quot;, &quot;UP_UNUSED_PARAMETER&quot;})
+class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
+
+<span class="nc" id="L76">  private static final ThreadLocal&lt;Boolean&gt; IS_UPDATE = ThreadLocal.withInitial(() -&gt; Boolean.FALSE);</span>
+
+  private final StackSampleSupplier samplesSupplier;
 
   private SampleNode samples;
+
+  private final SpinnerDateModel startModel;
+
+  private final SpinnerDateModel endModel;
 
   /**
    * Creates new form StackDumpJInternalFrame
    */
-  public StackDumpJInternalFrame(final SampleNode samples,
-          final String title, final boolean isgraph) {
-<span class="nc" id="L69">    super(title);</span>
-<span class="nc" id="L70">    setName(title);</span>
-<span class="nc" id="L71">    initComponents();</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">    if (samples == null) {</span>
-<span class="nc" id="L73">      this.samples = SampleNode.createSampleNode(</span>
+  @SuppressForbiden
+  StackDumpJInternalFrame(final StackSampleSupplier samplesSupplier,
+          final String title, final boolean isgraph) throws IOException {
+<span class="nc" id="L92">    super(title);</span>
+<span class="nc" id="L93">    this.samplesSupplier = samplesSupplier;</span>
+<span class="nc" id="L94">    setName(title);</span>
+<span class="nc" id="L95">    Instant min = samplesSupplier.getMin();</span>
+<span class="nc" id="L96">    Instant max = samplesSupplier.getMax();</span>
+<span class="nc" id="L97">    long startMillis = min.toEpochMilli();</span>
+<span class="nc" id="L98">    Date minDate = new Date(startMillis - startMillis % 1000);</span>
+<span class="nc" id="L99">    long endMillis = max.toEpochMilli();</span>
+<span class="nc" id="L100">    Date maxDate = new Date(endMillis - endMillis % 1000 + 1000 );</span>
+<span class="nc" id="L101">    startModel = new SpinnerDateModel(minDate, minDate, maxDate, Calendar.SECOND);</span>
+<span class="nc" id="L102">    endModel = new SpinnerDateModel(maxDate, minDate, maxDate, Calendar.SECOND);</span>
+<span class="nc" id="L103">    initComponents();</span>
+<span class="nc" id="L104">    ProfileMetaData metaData = samplesSupplier.getMetaData(min, max);</span>
+<span class="nc" id="L105">    DefaultComboBoxModel&lt;String&gt; tagsModel = new DefaultComboBoxModel&lt;&gt;(metaData.getTags().toArray(new String[] {}));</span>
+<span class="nc" id="L106">    this.tagsSelector.setModel(tagsModel);</span>
+<span class="nc" id="L107">    DefaultComboBoxModel&lt;String&gt; contextModel = new DefaultComboBoxModel&lt;&gt;(</span>
+<span class="nc" id="L108">            metaData.getContexts().toArray(new String[] {}));</span>
+<span class="nc" id="L109">    this.contextSelector.setModel(contextModel);</span>
+<span class="nc" id="L110">    this.samples = samplesSupplier.getSamples((String) contextSelector.getSelectedItem(),</span>
+<span class="nc" id="L111">              (String) tagsSelector.getSelectedItem(), min, max);</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">    if (samples == null) {</span>
+<span class="nc" id="L113">      this.samples = SampleNode.createSampleNode(</span>
               new StackTraceElement[]{new StackTraceElement(&quot;NO SAMPLES&quot;, &quot;&quot;, &quot;&quot;, -1)});
-    } else {
-<span class="nc" id="L76">      this.samples = samples;</span>
     }
-<span class="nc" id="L78">    setViewType(isgraph);</span>
-<span class="nc" id="L79">    ssScrollPanel.setVisible(true);</span>
-<span class="nc" id="L80">    pack();</span>
-<span class="nc" id="L81">  }</span>
+<span class="nc" id="L116">    setViewType(isgraph);</span>
+<span class="nc" id="L117">    ssScrollPanel.setVisible(true);</span>
+<span class="nc" id="L118">    pack();</span>
+<span class="nc" id="L119">  }</span>
+
+
+  private static void sync(final Collection&lt;String&gt; newValues, final JComboBox&lt;String&gt; combo) {
+<span class="nc" id="L123">    Set&lt;String&gt; newvals = new HashSet&lt;&gt;(newValues);</span>
+<span class="nc" id="L124">    int l = combo.getItemCount();</span>
+<span class="nc" id="L125">    List&lt;Integer&gt; toRemove = new ArrayList&lt;&gt;(4);</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    for (int i = 0; i &lt; l; i++) {</span>
+<span class="nc" id="L127">      String item = combo.getItemAt(i);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">      if (!newvals.remove(item)) {</span>
+<span class="nc" id="L129">        toRemove.add(i);</span>
+      }
+    }
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    for (Integer remove : toRemove) {</span>
+<span class="nc" id="L133">      combo.removeItemAt(remove);</span>
+<span class="nc" id="L134">    }</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">    for (String newval : newvals) {</span>
+<span class="nc" id="L136">      combo.addItem(newval);</span>
+<span class="nc" id="L137">    }</span>
+<span class="nc" id="L138">  }</span>
+
+  private void update() throws IOException {
+<span class="nc bnc" id="L141" title="All 2 branches missed.">    if (IS_UPDATE.get()) {</span>
+<span class="nc" id="L142">      return;</span>
+    }
+<span class="nc" id="L144">    IS_UPDATE.set(Boolean.TRUE);</span>
+    try {
+<span class="nc" id="L146">      Instant start = Instant.ofEpochMilli(((Date) this.startDate.getValue()).getTime());</span>
+<span class="nc" id="L147">      Instant end = Instant.ofEpochMilli(((Date) this.endDate.getValue()).getTime());</span>
+<span class="nc" id="L148">      ProfileMetaData metaData = samplesSupplier.getMetaData(start, end);</span>
+<span class="nc" id="L149">      sync(metaData.getTags(), tagsSelector);</span>
+<span class="nc" id="L150">      sync(metaData.getContexts(), contextSelector);</span>
+<span class="nc" id="L151">      this.samples = samplesSupplier.getSamples((String) contextSelector.getSelectedItem(),</span>
+<span class="nc" id="L152">                (String) tagsSelector.getSelectedItem(), start, end);</span>
+<span class="nc bnc" id="L153" title="All 2 branches missed.">      if (this.samples == null) {</span>
+<span class="nc" id="L154">        this.samples = SampleNode.createSampleNode(</span>
+                new StackTraceElement[]{new StackTraceElement(&quot;NO SAMPLES&quot;, &quot;&quot;, &quot;&quot;, -1)});
+      }
+<span class="nc" id="L157">      resetViewType(graphToggle.isSelected());</span>
+    } finally {
+<span class="nc" id="L159">      IS_UPDATE.set(Boolean.FALSE);</span>
+    }
+<span class="nc" id="L161">  }</span>
+
+  private void resetViewType(final boolean isgraph) {
+<span class="nc bnc" id="L164" title="All 2 branches missed.">    if (isgraph) {</span>
+<span class="nc" id="L165">      ssScrollPanel.setViewportView(new HotFlameStackPanel(Methods.ROOT, this.samples, new LinkedList&lt;&gt;()));</span>
+    } else {
+<span class="nc" id="L167">      ssScrollPanel.setViewportView(new FlameStackPanel(Methods.ROOT, this.samples, new LinkedList&lt;&gt;()));</span>
+    }
+<span class="nc" id="L169">  }</span>
+
 
   private void setViewType(final boolean isgraph) {
-<span class="nc" id="L84">    StackPanelBase view = (StackPanelBase) ssScrollPanel.getViewport().getView();</span>
-<span class="nc bnc" id="L85" title="All 2 branches missed.">    if (isgraph) {</span>
-<span class="nc" id="L86">      graphToggle.setSelected(true);</span>
+<span class="nc" id="L173">    StackPanelBase view = (StackPanelBase) ssScrollPanel.getViewport().getView();</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">    if (isgraph) {</span>
+<span class="nc" id="L175">      graphToggle.setSelected(true);</span>
       //ssScrollPanel.setViewportView(new ZStackPanel(this.samples));
-<span class="nc bnc" id="L88" title="All 2 branches missed.">      if (view != null) {</span>
-<span class="nc" id="L89">        ssScrollPanel.setViewportView(new HotFlameStackPanel(view.getMethod(), view.getSamples(), view.getHistory()));</span>
+<span class="nc bnc" id="L177" title="All 2 branches missed.">      if (view != null) {</span>
+<span class="nc" id="L178">        ssScrollPanel.setViewportView(new HotFlameStackPanel(view.getMethod(), view.getSamples(), view.getHistory()));</span>
       } else {
-<span class="nc" id="L91">        ssScrollPanel.setViewportView(new HotFlameStackPanel(Methods.ROOT, this.samples, new LinkedList&lt;&gt;()));</span>
+<span class="nc" id="L180">        ssScrollPanel.setViewportView(new HotFlameStackPanel(Methods.ROOT, this.samples, new LinkedList&lt;&gt;()));</span>
       }
     } else {
-<span class="nc" id="L94">      graphToggle.setSelected(false);</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">      if (view != null) {</span>
-<span class="nc" id="L96">        ssScrollPanel.setViewportView(new FlameStackPanel(view.getMethod(), view.getSamples(), view.getHistory()));</span>
+<span class="nc" id="L183">      graphToggle.setSelected(false);</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">      if (view != null) {</span>
+<span class="nc" id="L185">        ssScrollPanel.setViewportView(new FlameStackPanel(view.getMethod(), view.getSamples(), view.getHistory()));</span>
       } else {
-<span class="nc" id="L98">        ssScrollPanel.setViewportView(new FlameStackPanel(Methods.ROOT, this.samples, new LinkedList&lt;&gt;()));</span>
+<span class="nc" id="L187">        ssScrollPanel.setViewportView(new FlameStackPanel(Methods.ROOT, this.samples, new LinkedList&lt;&gt;()));</span>
       }
     }
-<span class="nc" id="L101">  }</span>
+<span class="nc" id="L190">  }</span>
 
   /**
    * This method is called from within the constructor to initialize the form. WARNING: Do NOT modify this code. The
@@ -109,117 +198,212 @@ public class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
   // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
   private void initComponents() {
 
-<span class="nc" id="L112">    ssScrollPanel = new javax.swing.JScrollPane();</span>
-<span class="nc" id="L113">    samplesVisualizerToolbar = new javax.swing.JToolBar();</span>
-<span class="nc" id="L114">    graphToggle = new javax.swing.JToggleButton();</span>
-<span class="nc" id="L115">    exportButton = new javax.swing.JButton();</span>
+<span class="nc" id="L201">    ssScrollPanel = new javax.swing.JScrollPane();</span>
+<span class="nc" id="L202">    samplesVisualizerToolbar = new javax.swing.JToolBar();</span>
+<span class="nc" id="L203">    graphToggle = new javax.swing.JToggleButton();</span>
+<span class="nc" id="L204">    exportButton = new javax.swing.JButton();</span>
+<span class="nc" id="L205">    tagsSelector = new javax.swing.JComboBox&lt;&gt;();</span>
+<span class="nc" id="L206">    contextSelector = new javax.swing.JComboBox&lt;&gt;();</span>
+<span class="nc" id="L207">    startDate = new javax.swing.JSpinner();</span>
+<span class="nc" id="L208">    endDate = new javax.swing.JSpinner();</span>
 
-<span class="nc" id="L117">    setClosable(true);</span>
-<span class="nc" id="L118">    setIconifiable(true);</span>
-<span class="nc" id="L119">    setMaximizable(true);</span>
-<span class="nc" id="L120">    setResizable(true);</span>
+<span class="nc" id="L210">    setClosable(true);</span>
+<span class="nc" id="L211">    setIconifiable(true);</span>
+<span class="nc" id="L212">    setMaximizable(true);</span>
+<span class="nc" id="L213">    setResizable(true);</span>
 
-<span class="nc" id="L122">    ssScrollPanel.setAutoscrolls(true);</span>
+<span class="nc" id="L215">    ssScrollPanel.setAutoscrolls(true);</span>
 
-<span class="nc" id="L124">    samplesVisualizerToolbar.setRollover(true);</span>
+<span class="nc" id="L217">    samplesVisualizerToolbar.setRollover(true);</span>
 
-<span class="nc" id="L126">    graphToggle.setText(&quot;graph&quot;);</span>
-<span class="nc" id="L127">    graphToggle.setFocusable(false);</span>
-<span class="nc" id="L128">    graphToggle.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
-<span class="nc" id="L129">    graphToggle.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
-<span class="nc" id="L130">    graphToggle.addItemListener(new java.awt.event.ItemListener() {</span>
+<span class="nc" id="L219">    graphToggle.setText(&quot;graph&quot;);</span>
+<span class="nc" id="L220">    graphToggle.setFocusable(false);</span>
+<span class="nc" id="L221">    graphToggle.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L222">    graphToggle.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L223">    graphToggle.addItemListener(new java.awt.event.ItemListener() {</span>
       public void itemStateChanged(java.awt.event.ItemEvent evt) {
-<span class="nc" id="L132">        graphToggleItemStateChanged(evt);</span>
-<span class="nc" id="L133">      }</span>
+<span class="nc" id="L225">        graphToggleItemStateChanged(evt);</span>
+<span class="nc" id="L226">      }</span>
     });
-<span class="nc" id="L135">    samplesVisualizerToolbar.add(graphToggle);</span>
+<span class="nc" id="L228">    samplesVisualizerToolbar.add(graphToggle);</span>
 
-<span class="nc" id="L137">    exportButton.setText(&quot;export&quot;);</span>
-<span class="nc" id="L138">    exportButton.setFocusable(false);</span>
-<span class="nc" id="L139">    exportButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
-<span class="nc" id="L140">    exportButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
-<span class="nc" id="L141">    exportButton.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L230">    exportButton.setText(&quot;export&quot;);</span>
+<span class="nc" id="L231">    exportButton.setFocusable(false);</span>
+<span class="nc" id="L232">    exportButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);</span>
+<span class="nc" id="L233">    exportButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);</span>
+<span class="nc" id="L234">    exportButton.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L143">        exportButtonActionPerformed(evt);</span>
-<span class="nc" id="L144">      }</span>
+<span class="nc" id="L236">        exportButtonActionPerformed(evt);</span>
+<span class="nc" id="L237">      }</span>
     });
-<span class="nc" id="L146">    samplesVisualizerToolbar.add(exportButton);</span>
+<span class="nc" id="L239">    samplesVisualizerToolbar.add(exportButton);</span>
 
-<span class="nc" id="L148">    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
-<span class="nc" id="L149">    getContentPane().setLayout(layout);</span>
-<span class="nc" id="L150">    layout.setHorizontalGroup(</span>
-<span class="nc" id="L151">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L152">      .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 412, Short.MAX_VALUE)</span>
-<span class="nc" id="L153">      .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
+<span class="nc" id="L241">    tagsSelector.setModel(new javax.swing.DefaultComboBoxModel&lt;&gt;(new String[] { &quot;Item 1&quot;, &quot;Item 2&quot;, &quot;Item 3&quot;, &quot;Item 4&quot; }));</span>
+<span class="nc" id="L242">    tagsSelector.addItemListener(new java.awt.event.ItemListener() {</span>
+      public void itemStateChanged(java.awt.event.ItemEvent evt) {
+<span class="nc" id="L244">        tagsSelectorItemStateChanged(evt);</span>
+<span class="nc" id="L245">      }</span>
+    });
+<span class="nc" id="L247">    tagsSelector.addActionListener(new java.awt.event.ActionListener() {</span>
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+<span class="nc" id="L249">        tagsSelectorActionPerformed(evt);</span>
+<span class="nc" id="L250">      }</span>
+    });
+<span class="nc" id="L252">    samplesVisualizerToolbar.add(tagsSelector);</span>
+
+<span class="nc" id="L254">    contextSelector.setModel(new javax.swing.DefaultComboBoxModel&lt;&gt;(new String[] { &quot;Item 1&quot;, &quot;Item 2&quot;, &quot;Item 3&quot;, &quot;Item 4&quot; }));</span>
+<span class="nc" id="L255">    contextSelector.addItemListener(new java.awt.event.ItemListener() {</span>
+      public void itemStateChanged(java.awt.event.ItemEvent evt) {
+<span class="nc" id="L257">        contextSelectorItemStateChanged(evt);</span>
+<span class="nc" id="L258">      }</span>
+    });
+<span class="nc" id="L260">    contextSelector.addActionListener(new java.awt.event.ActionListener() {</span>
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+<span class="nc" id="L262">        contextSelectorActionPerformed(evt);</span>
+<span class="nc" id="L263">      }</span>
+    });
+<span class="nc" id="L265">    samplesVisualizerToolbar.add(contextSelector);</span>
+
+<span class="nc" id="L267">    startDate.setModel(this.startModel);</span>
+<span class="nc" id="L268">    startDate.setEditor(new javax.swing.JSpinner.DateEditor(startDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="nc" id="L269">    startDate.setMinimumSize(new java.awt.Dimension(200, 28));</span>
+<span class="nc" id="L270">    startDate.addChangeListener(new javax.swing.event.ChangeListener() {</span>
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+<span class="nc" id="L272">        startDateStateChanged(evt);</span>
+<span class="nc" id="L273">      }</span>
+    });
+<span class="nc" id="L275">    samplesVisualizerToolbar.add(startDate);</span>
+
+<span class="nc" id="L277">    endDate.setModel(this.endModel);</span>
+<span class="nc" id="L278">    endDate.setEditor(new javax.swing.JSpinner.DateEditor(endDate, &quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="nc" id="L279">    endDate.addChangeListener(new javax.swing.event.ChangeListener() {</span>
+      public void stateChanged(javax.swing.event.ChangeEvent evt) {
+<span class="nc" id="L281">        endDateStateChanged(evt);</span>
+<span class="nc" id="L282">      }</span>
+    });
+<span class="nc" id="L284">    samplesVisualizerToolbar.add(endDate);</span>
+
+<span class="nc" id="L286">    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
+<span class="nc" id="L287">    getContentPane().setLayout(layout);</span>
+<span class="nc" id="L288">    layout.setHorizontalGroup(</span>
+<span class="nc" id="L289">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L290">      .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 602, Short.MAX_VALUE)</span>
+<span class="nc" id="L291">      .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)</span>
     );
-<span class="nc" id="L155">    layout.setVerticalGroup(</span>
-<span class="nc" id="L156">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L157">      .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()</span>
-<span class="nc" id="L158">        .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
-<span class="nc" id="L159">        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)</span>
-<span class="nc" id="L160">        .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE))</span>
+<span class="nc" id="L293">    layout.setVerticalGroup(</span>
+<span class="nc" id="L294">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L295">      .add(org.jdesktop.layout.GroupLayout.TRAILING, layout.createSequentialGroup()</span>
+<span class="nc" id="L296">        .add(samplesVisualizerToolbar, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE, 25, org.jdesktop.layout.GroupLayout.PREFERRED_SIZE)</span>
+<span class="nc" id="L297">        .addPreferredGap(org.jdesktop.layout.LayoutStyle.RELATED)</span>
+<span class="nc" id="L298">        .add(ssScrollPanel, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 339, Short.MAX_VALUE))</span>
     );
 
-<span class="nc" id="L163">    pack();</span>
-<span class="nc" id="L164">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+<span class="nc" id="L301">    pack();</span>
+<span class="nc" id="L302">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
 
   private void graphToggleItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_graphToggleItemStateChanged
-<span class="nc bnc" id="L167" title="All 2 branches missed.">    setViewType(evt.getStateChange() == ItemEvent.SELECTED);</span>
-<span class="nc" id="L168">  }//GEN-LAST:event_graphToggleItemStateChanged</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    setViewType(evt.getStateChange() == ItemEvent.SELECTED);</span>
+<span class="nc" id="L306">  }//GEN-LAST:event_graphToggleItemStateChanged</span>
 
   @SuppressFBWarnings({ &quot;PATH_TRAVERSAL_IN&quot;, &quot;RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE&quot;, &quot;UP_UNUSED_PARAMETER&quot; })
   // this is a local app, FB sees problems with Try -&gt; {} genereted code......
   private void exportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportButtonActionPerformed
-<span class="nc" id="L173">    JFileChooser fc = new JFileChooser();</span>
-<span class="nc" id="L174">    FileFilter[] xFF = fc.getChoosableFileFilters();</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">    for (FileFilter ff : xFF) {</span>
-<span class="nc" id="L176">      fc.removeChoosableFileFilter(ff);</span>
+<span class="nc" id="L311">    JFileChooser fc = new JFileChooser();</span>
+<span class="nc" id="L312">    FileFilter[] xFF = fc.getChoosableFileFilters();</span>
+<span class="nc bnc" id="L313" title="All 2 branches missed.">    for (FileFilter ff : xFF) {</span>
+<span class="nc" id="L314">      fc.removeChoosableFileFilter(ff);</span>
     }
-<span class="nc" id="L178">    fc.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);</span>
-<span class="nc" id="L179">    fc.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);</span>
-<span class="nc" id="L180">    fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);</span>
-<span class="nc" id="L181">    fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);</span>
-<span class="nc" id="L182">    fc.setFileFilter(Spf4jFileFilter.D3_JSON);</span>
-<span class="nc" id="L183">    int retrival = fc.showSaveDialog(null);</span>
-<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (retrival == JFileChooser.APPROVE_OPTION) {</span>
-<span class="nc" id="L185">      File selectedFile = fc.getSelectedFile();</span>
-<span class="nc" id="L186">      FileFilter fileFilter = fc.getFileFilter();</span>
-<span class="nc bnc" id="L187" title="All 2 branches missed.">      if (!(fileFilter instanceof Spf4jFileFilter)) {</span>
-<span class="nc" id="L188">        throw new IllegalArgumentException(&quot;Invalid file type selected &quot; + fileFilter);</span>
+<span class="nc" id="L316">    fc.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);</span>
+<span class="nc" id="L317">    fc.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);</span>
+<span class="nc" id="L318">    fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);</span>
+<span class="nc" id="L319">    fc.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);</span>
+<span class="nc" id="L320">    fc.setFileFilter(Spf4jFileFilter.D3_JSON);</span>
+<span class="nc" id="L321">    int retrival = fc.showSaveDialog(null);</span>
+<span class="nc bnc" id="L322" title="All 2 branches missed.">    if (retrival == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L323">      File selectedFile = fc.getSelectedFile();</span>
+<span class="nc" id="L324">      FileFilter fileFilter = fc.getFileFilter();</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">      if (!(fileFilter instanceof Spf4jFileFilter)) {</span>
+<span class="nc" id="L326">        throw new IllegalArgumentException(&quot;Invalid file type selected &quot; + fileFilter);</span>
       }
-<span class="nc" id="L190">      String suffix = ((Spf4jFileFilter) fileFilter).getSuffix();</span>
-<span class="nc bnc" id="L191" title="All 2 branches missed.">      if (!selectedFile.getName().endsWith(suffix)) {</span>
-<span class="nc" id="L192">        selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + suffix);</span>
+<span class="nc" id="L328">      String suffix = ((Spf4jFileFilter) fileFilter).getSuffix();</span>
+<span class="nc bnc" id="L329" title="All 2 branches missed.">      if (!selectedFile.getName().endsWith(suffix)) {</span>
+<span class="nc" id="L330">        selectedFile = new File(selectedFile.getParentFile(), selectedFile.getName() + suffix);</span>
       }
-<span class="nc bnc" id="L194" title="All 2 branches missed.">      if (Spf4jFileFilter.D3_JSON.accept(selectedFile)) { // D3 format.</span>
-<span class="nc" id="L195">        try (BufferedWriter wr = Files.newBufferedWriter(selectedFile.toPath(), StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L196">          samples.writeD3JsonTo(wr);</span>
-<span class="nc" id="L197">        } catch (IOException ex) {</span>
-<span class="nc" id="L198">          throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L199">        }</span>
-<span class="nc bnc" id="L200" title="All 2 branches missed.">      } else if (Spf4jFileFilter.SPF4J_JSON.accept(selectedFile)) {</span>
-<span class="nc" id="L201">        try (BufferedWriter wr = Files.newBufferedWriter(selectedFile.toPath(), StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L202">          samples.writeJsonTo(wr);</span>
-<span class="nc" id="L203">        } catch (IOException ex) {</span>
-<span class="nc" id="L204">          throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L205">        }</span>
-<span class="nc bnc" id="L206" title="All 4 branches missed.">      } else if (Spf4jFileFilter.SSDUMP2.accept(selectedFile) || Spf4jFileFilter.SSDUMP2_GZ.accept(selectedFile)) {</span>
+<span class="nc bnc" id="L332" title="All 2 branches missed.">      if (Spf4jFileFilter.D3_JSON.accept(selectedFile)) { // D3 format.</span>
+<span class="nc" id="L333">        try (BufferedWriter wr = Files.newBufferedWriter(selectedFile.toPath(), StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L334">          samples.writeD3JsonTo(wr);</span>
+<span class="nc" id="L335">        } catch (IOException ex) {</span>
+<span class="nc" id="L336">          throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L337">        }</span>
+<span class="nc bnc" id="L338" title="All 2 branches missed.">      } else if (Spf4jFileFilter.SPF4J_JSON.accept(selectedFile)) {</span>
+<span class="nc" id="L339">        try (BufferedWriter wr = Files.newBufferedWriter(selectedFile.toPath(), StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L340">          samples.writeJsonTo(wr);</span>
+<span class="nc" id="L341">        } catch (IOException ex) {</span>
+<span class="nc" id="L342">          throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L343">        }</span>
+<span class="nc bnc" id="L344" title="All 4 branches missed.">      } else if (Spf4jFileFilter.SSDUMP2.accept(selectedFile) || Spf4jFileFilter.SSDUMP2_GZ.accept(selectedFile)) {</span>
         try {
-<span class="nc" id="L208">          Converter.save(selectedFile, samples);</span>
-<span class="nc" id="L209">        } catch (IOException ex) {</span>
-<span class="nc" id="L210">          throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L211">        }</span>
+<span class="nc" id="L346">          Converter.save(selectedFile, samples);</span>
+<span class="nc" id="L347">        } catch (IOException ex) {</span>
+<span class="nc" id="L348">          throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L349">        }</span>
       } else {
-<span class="nc" id="L213">        throw new IllegalArgumentException(&quot;No ecognized extension for file &quot; + selectedFile);</span>
+<span class="nc" id="L351">        throw new IllegalArgumentException(&quot;No ecognized extension for file &quot; + selectedFile);</span>
       }
     }
-<span class="nc" id="L216">  }//GEN-LAST:event_exportButtonActionPerformed</span>
+<span class="nc" id="L354">  }//GEN-LAST:event_exportButtonActionPerformed</span>
+
+  private void tagsSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tagsSelectorActionPerformed
+
+    try {
+<span class="nc" id="L359">      update();</span>
+<span class="nc" id="L360">    } catch (IOException ex) {</span>
+<span class="nc" id="L361">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L362">    }</span>
+<span class="nc" id="L363">  }//GEN-LAST:event_tagsSelectorActionPerformed</span>
+
+  private void contextSelectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_contextSelectorActionPerformed
+
+    try {
+<span class="nc" id="L368">      update();</span>
+<span class="nc" id="L369">    } catch (IOException ex) {</span>
+<span class="nc" id="L370">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L371">    }</span>
+<span class="nc" id="L372">  }//GEN-LAST:event_contextSelectorActionPerformed</span>
+
+  private void tagsSelectorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_tagsSelectorItemStateChanged
+
+<span class="nc" id="L376">  }//GEN-LAST:event_tagsSelectorItemStateChanged</span>
+
+  private void contextSelectorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_contextSelectorItemStateChanged
+
+<span class="nc" id="L380">  }//GEN-LAST:event_contextSelectorItemStateChanged</span>
+
+  private void startDateStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_startDateStateChanged
+   try {
+<span class="nc" id="L384">      update();</span>
+<span class="nc" id="L385">    } catch (IOException ex) {</span>
+<span class="nc" id="L386">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L387">    }</span>
+<span class="nc" id="L388">  }//GEN-LAST:event_startDateStateChanged</span>
+
+  private void endDateStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_endDateStateChanged
+   try {
+<span class="nc" id="L392">      update();</span>
+<span class="nc" id="L393">    } catch (IOException ex) {</span>
+<span class="nc" id="L394">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L395">    }</span>
+<span class="nc" id="L396">  }//GEN-LAST:event_endDateStateChanged</span>
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
+  private javax.swing.JComboBox&lt;String&gt; contextSelector;
+  private javax.swing.JSpinner endDate;
   private javax.swing.JButton exportButton;
   private javax.swing.JToggleButton graphToggle;
   private javax.swing.JToolBar samplesVisualizerToolbar;
   private javax.swing.JScrollPane ssScrollPanel;
+  private javax.swing.JSpinner startDate;
+  private javax.swing.JComboBox&lt;String&gt; tagsSelector;
   // End of variables declaration//GEN-END:variables
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

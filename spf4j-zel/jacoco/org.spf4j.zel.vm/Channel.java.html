@@ -41,7 +41,7 @@ import java.util.Queue;
  * @author zoly
  */
 @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
-public final class Channel {
+final class Channel {
 
 <span class="fc" id="L46">  public static final Object EOF = new Object();</span>
 
@@ -53,7 +53,7 @@ public final class Channel {
 
   private boolean closed;
 
-<span class="fc" id="L56">  public Channel(final VMExecutor exec) {</span>
+<span class="fc" id="L56">  Channel(final VMExecutor exec) {</span>
 <span class="fc" id="L57">    this.queue = new LinkedList&lt;&gt;();</span>
 <span class="fc" id="L58">    this.readers = new LinkedList&lt;&gt;();</span>
 <span class="fc" id="L59">    this.exec = exec;</span>
@@ -95,9 +95,9 @@ public final class Channel {
   public void close() {
 <span class="fc" id="L96">    synchronized (this) {</span>
       VMFuture&lt;Object&gt; reader;
-<span class="pc bpc" id="L98" title="1 of 2 branches missed.">      while ((reader = readers.poll()) != null) {</span>
-<span class="nc" id="L99">        reader.setResult(EOF);</span>
-<span class="nc" id="L100">        exec.resumeSuspendables(reader);</span>
+<span class="fc bfc" id="L98" title="All 2 branches covered.">      while ((reader = readers.poll()) != null) {</span>
+<span class="fc" id="L99">        reader.setResult(EOF);</span>
+<span class="fc" id="L100">        exec.resumeSuspendables(reader);</span>
       }
 <span class="fc" id="L102">      queue.add(EOF);</span>
 <span class="fc" id="L103">      closed = true;</span>
@@ -124,4 +124,4 @@ public final class Channel {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

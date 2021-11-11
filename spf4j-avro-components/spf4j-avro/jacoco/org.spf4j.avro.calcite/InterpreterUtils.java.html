@@ -17,7 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.List;
 import javax.annotation.Nullable;
-import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.DataContext;
 import org.apache.calcite.interpreter.JaninoRexCompiler;
 import org.apache.calcite.interpreter.Scalar;
 import org.apache.calcite.rel.type.RelDataType;
@@ -37,15 +37,15 @@ public final class InterpreterUtils {
   private InterpreterUtils() { }
 
   @Nullable
-  public static Scalar toScalar(final List&lt;RexNode&gt; filters, final JavaTypeFactory typeFactory,
-          final RelDataType rowType) {
+  public static Scalar toScalar(final List&lt;RexNode&gt; filters,
+          final RelDataType rowType, final DataContext dataContext) {
 <span class="fc bfc" id="L42" title="All 2 branches covered.">    if (filters.isEmpty()) {</span>
 <span class="fc" id="L43">      return null;</span>
     } else {
-<span class="fc" id="L45">      RexBuilder rb = new RexBuilder(typeFactory);</span>
+<span class="fc" id="L45">      RexBuilder rb = new RexBuilder(dataContext.getTypeFactory());</span>
 <span class="fc" id="L46">      JaninoRexCompiler compiler = new JaninoRexCompiler(rb);</span>
       try {
-<span class="fc" id="L48">        return compiler.compile(filters, rowType);</span>
+<span class="fc" id="L48">        return compiler.compile(filters, rowType).apply(dataContext);</span>
 <span class="nc" id="L49">      } catch (UnsupportedOperationException ex) {</span>
 <span class="nc" id="L50">        LOG.warn(&quot;Unable to compile filter: {}&quot;, filters, ex);</span>
 <span class="nc" id="L51">        return null;</span>
@@ -53,4 +53,4 @@ public final class InterpreterUtils {
     }
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

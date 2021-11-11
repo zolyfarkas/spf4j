@@ -49,7 +49,7 @@ import org.spf4j.base.ComparablePair;
 import org.spf4j.perf.impl.Quanta;
 
 @Immutable
-public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
+final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -63,9 +63,9 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   private final long startTimeMillis;
   private final long stepMillis;
 
-  public QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
+  QuantizedXYZDatasetImpl(final String[] dataSources, final double[][] pdata,
 <span class="nc" id="L67">          final long startTimeMillis, final long step) {</span>
-<span class="nc" id="L68">    this.data = pdata.clone();</span>
+<span class="nc" id="L68">    this.data = pdata;</span>
 <span class="nc" id="L69">    this.startTimeMillis = startTimeMillis;</span>
 <span class="nc" id="L70">    this.stepMillis = step;</span>
 <span class="nc" id="L71">    quantas = new ArrayList&lt;&gt;(dataSources.length);</span>
@@ -194,7 +194,7 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   }
 
   public List&lt;ComparablePair&lt;Quanta, Integer&gt;&gt; getQuantas() {
-<span class="nc" id="L197">    return quantas;</span>
+<span class="nc" id="L197">    return Collections.unmodifiableList(quantas);</span>
   }
 
   public TickUnits createXTickUnits() {
@@ -266,4 +266,4 @@ public final class QuantizedXYZDatasetImpl implements XYZDataset, Serializable {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

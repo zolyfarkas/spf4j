@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Validator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.8.5-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp.validation</a> &gt; <span class="el_source">Validator.java</span></div><h1>Validator.java</h1><pre class="source lang-java linenums">/*
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Validator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-maven-avro-schema-plugin - 8.9.3-SNAPSHOT</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.maven.plugin.avro.avscp.validation</a> &gt; <span class="el_source">Validator.java</span></div><h1>Validator.java</h1><pre class="source lang-java linenums">/*
  * Copyright 2018 SPF4J.
  *
  * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
@@ -15,6 +15,7 @@
  */
 package org.spf4j.maven.plugin.avro.avscp.validation;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -29,49 +30,50 @@ public interface Validator&lt;T&gt; {
 
   class Result {
 
-<span class="nc" id="L32">    private static final Result VALID = new Result(true, null, null);</span>
+<span class="nc" id="L33">    private static final Result VALID = new Result(true, null, null);</span>
 
     private final boolean isValid;
     private final String validationErrorMessage;
     private final Exception validationException;
 
     private Result(final boolean isValid, @Nullable final String validationErrorMessage,
-<span class="nc" id="L39">            @Nullable final Exception validationException) {</span>
-<span class="nc" id="L40">      this.isValid = isValid;</span>
-<span class="nc" id="L41">      this.validationErrorMessage = validationErrorMessage;</span>
-<span class="nc" id="L42">      this.validationException = validationException;</span>
-<span class="nc" id="L43">    }</span>
+<span class="nc" id="L40">            @Nullable final Exception validationException) {</span>
+<span class="nc" id="L41">      this.isValid = isValid;</span>
+<span class="nc" id="L42">      this.validationErrorMessage = validationErrorMessage;</span>
+<span class="nc" id="L43">      this.validationException = validationException;</span>
+<span class="nc" id="L44">    }</span>
 
     public boolean isValid() {
-<span class="nc" id="L46">      return isValid;</span>
+<span class="nc" id="L47">      return isValid;</span>
     }
 
     public boolean isFailed() {
-<span class="nc bnc" id="L50" title="All 2 branches missed.">      return !isValid;</span>
+<span class="nc bnc" id="L51" title="All 2 branches missed.">      return !isValid;</span>
     }
 
     public String getValidationErrorMessage() {
-<span class="nc" id="L54">      return validationErrorMessage;</span>
+<span class="nc" id="L55">      return validationErrorMessage;</span>
     }
 
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
     public Exception getValidationException() {
-<span class="nc" id="L58">      return validationException;</span>
+<span class="nc" id="L60">      return validationException;</span>
     }
 
     public static Result valid() {
-<span class="nc" id="L62">      return VALID;</span>
+<span class="nc" id="L64">      return VALID;</span>
     }
 
     public static Result failed(final String validationErrorMessage) {
-<span class="nc" id="L66">      return new Result(false, validationErrorMessage, null);</span>
+<span class="nc" id="L68">      return new Result(false, validationErrorMessage, null);</span>
     }
 
     public static Result failed(final String validationErrorMessage, final Exception ex) {
-<span class="nc" id="L70">      return new Result(false, validationErrorMessage, ex);</span>
+<span class="nc" id="L72">      return new Result(false, validationErrorMessage, ex);</span>
     }
 
     public static Result failed(final Exception ex) {
-<span class="nc" id="L74">      return new Result(false, ex.getMessage(), ex);</span>
+<span class="nc" id="L76">      return new Result(false, ex.getMessage(), ex);</span>
     }
 
   }
@@ -86,4 +88,4 @@ public interface Validator&lt;T&gt; {
   Result validate(T object, ValidatorMojo mojo) throws IOException, MojoExecutionException;
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

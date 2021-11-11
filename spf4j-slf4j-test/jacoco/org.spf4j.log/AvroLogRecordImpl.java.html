@@ -31,6 +31,7 @@
  */
 package org.spf4j.log;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
@@ -50,114 +51,115 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
   private boolean isLogged;
 
   public AvroLogRecordImpl(final LogRecord record) {
-<span class="nc" id="L53">    this(record, false);</span>
-<span class="nc" id="L54">  }</span>
+<span class="nc" id="L54">    this(record, false);</span>
+<span class="nc" id="L55">  }</span>
 
-<span class="nc" id="L56">  public AvroLogRecordImpl(final LogRecord record, final boolean isLogged) {</span>
-<span class="nc" id="L57">    this.record = record;</span>
-<span class="nc" id="L58">    this.isLogged = isLogged;</span>
-<span class="nc" id="L59">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="nc" id="L58">  public AvroLogRecordImpl(final LogRecord record, final boolean isLogged) {</span>
+<span class="nc" id="L59">    this.record = record;</span>
+<span class="nc" id="L60">    this.isLogged = isLogged;</span>
+<span class="nc" id="L61">  }</span>
 
   @Override
   public LogRecord toLogRecord(final String origin, final String traceId) {
-<span class="nc" id="L63">    return record;</span>
+<span class="nc" id="L65">    return LogRecord.newBuilder(record).setOrigin(origin).setTrId(traceId).build();</span>
   }
 
   @Override
   public Object[] getArguments() {
-<span class="nc" id="L68">    return new Object[] {record};</span>
+<span class="nc" id="L70">    return new Object[] {record};</span>
   }
 
   @Override
   public Object[] getExtraArgumentsRaw() {
-<span class="nc" id="L73">    return getArguments();</span>
+<span class="nc" id="L75">    return getArguments();</span>
   }
 
   @Override
   public Object[] getExtraArguments() {
-<span class="nc" id="L78">    return getArguments();</span>
+<span class="nc" id="L80">    return getArguments();</span>
   }
 
   @Override
   public Throwable getExtraThrowable() {
-<span class="nc" id="L83">    return Converters.convert(record.getOrigin(), record.getThrowable());</span>
+<span class="nc" id="L85">    return Converters.convert(record.getOrigin(), record.getThrowable());</span>
   }
 
   @Override
   public Level getLevel() {
-<span class="nc" id="L88">    return Level.fromAvroLevel(record.getLevel());</span>
+<span class="nc" id="L90">    return Level.fromAvroLevel(record.getLevel());</span>
   }
 
   @Override
   public String getLoggerName() {
-<span class="nc" id="L93">    return record.getLogger();</span>
+<span class="nc" id="L95">    return record.getLogger();</span>
   }
 
   @Override
   @Nullable
   public Marker getMarker() {
-<span class="nc" id="L99">    return null;</span>
+<span class="nc" id="L101">    return null;</span>
   }
 
   @Override
   public String getMessage() {
-<span class="nc" id="L104">    return &quot;RemoteLog&quot;;</span>
+<span class="nc" id="L106">    return &quot;RemoteLog&quot;;</span>
   }
 
   @Override
   public String getMessageFormat() {
-<span class="nc" id="L109">    return getMessage();</span>
+<span class="nc" id="L111">    return getMessage();</span>
   }
 
   @Override
   public int getNrMessageArguments() {
-<span class="nc" id="L114">    return 0;</span>
+<span class="nc" id="L116">    return 0;</span>
   }
 
   @Override
   public String getThreadName() {
-<span class="nc" id="L119">    return record.getThr();</span>
+<span class="nc" id="L121">    return record.getThr();</span>
   }
 
   @Override
   public long getTimeStamp() {
-<span class="nc" id="L124">    return record.getTs().toEpochMilli();</span>
+<span class="nc" id="L126">    return record.getTs().toEpochMilli();</span>
   }
 
   @Override
   public Instant getTimeStampInstant() {
-<span class="nc" id="L129">    return record.getTs();</span>
+<span class="nc" id="L131">    return record.getTs();</span>
   }
 
   @Override
   public synchronized boolean isLogged() {
-<span class="nc" id="L134">    return isLogged;</span>
+<span class="nc" id="L136">    return isLogged;</span>
   }
 
   @Override
   public synchronized void setIsLogged() {
-<span class="nc" id="L139">    this.isLogged = true;</span>
-<span class="nc" id="L140">  }</span>
+<span class="nc" id="L141">    this.isLogged = true;</span>
+<span class="nc" id="L142">  }</span>
 
   @Override
   public void attach(final Object obj) {
     // do not attach;
-<span class="nc" id="L145">  }</span>
+<span class="nc" id="L147">  }</span>
 
   @Override
   public Set&lt;Object&gt; getAttachments() {
-<span class="nc" id="L149">    return Collections.EMPTY_SET;</span>
+<span class="nc" id="L151">    return Collections.EMPTY_SET;</span>
   }
 
   @Override
   public boolean hasAttachment(final Object obj) {
-<span class="nc" id="L154">    return false;</span>
+<span class="nc" id="L156">    return false;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L159">    return &quot;AvroLogRecordImpl{&quot; + &quot;record=&quot; + record + &quot;, isLogged=&quot; + isLogged + '}';</span>
+<span class="nc" id="L161">    return &quot;AvroLogRecordImpl{&quot; + &quot;record=&quot; + record + &quot;, isLogged=&quot; + isLogged + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

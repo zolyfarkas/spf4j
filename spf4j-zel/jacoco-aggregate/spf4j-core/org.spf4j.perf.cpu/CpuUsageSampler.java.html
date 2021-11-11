@@ -79,30 +79,30 @@ public final class CpuUsageSampler {
 
   @JmxExport
   public static synchronized void start(@JmxExport(&quot;sampleTimeMillis&quot;) final int sampleTime) {
-<span class="nc bnc" id="L82" title="All 2 branches missed.">    if (samplingFuture == null) {</span>
-<span class="nc" id="L83">      final MeasurementRecorder cpuUsage</span>
-<span class="nc" id="L84">              = RecorderFactory.createDirectRecorder(&quot;cpu_time&quot;, &quot;ns&quot;, sampleTime, MeasurementType.COUNTER);</span>
-<span class="nc" id="L85">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
+<span class="pc bpc" id="L82" title="1 of 2 branches missed.">    if (samplingFuture == null) {</span>
+<span class="fc" id="L83">      final MeasurementRecorder cpuUsage</span>
+<span class="fc" id="L84">              = RecorderFactory.createDirectRecorder(&quot;process.cpu_time&quot;, &quot;ns&quot;, sampleTime, MeasurementType.COUNTER);</span>
+<span class="fc" id="L85">      samplingFuture = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(new AbstractRunnable() {</span>
 
-<span class="nc" id="L87">        private long lastValue = 0;</span>
+<span class="fc" id="L87">        private long lastValue = 0;</span>
 
         @Override
         public synchronized void doRun() {
-<span class="nc" id="L91">          long currTime = getProcessCpuTimeNanos();</span>
-<span class="nc" id="L92">          cpuUsage.record(currTime - lastValue);</span>
-<span class="nc" id="L93">          lastValue = currTime;</span>
-<span class="nc" id="L94">        }</span>
+<span class="fc" id="L91">          long currTime = getProcessCpuTimeNanos();</span>
+<span class="fc" id="L92">          cpuUsage.record(currTime - lastValue);</span>
+<span class="fc" id="L93">          lastValue = currTime;</span>
+<span class="fc" id="L94">        }</span>
       }, sampleTime, sampleTime, TimeUnit.MILLISECONDS);
-<span class="nc" id="L96">    } else {</span>
+<span class="fc" id="L96">    } else {</span>
 <span class="nc" id="L97">      throw new IllegalStateException(&quot;Cpu time Sampling already started &quot; + samplingFuture);</span>
     }
-<span class="nc" id="L99">  }</span>
+<span class="fc" id="L99">  }</span>
 
   @JmxExport
   public static synchronized void stop() {
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">    if (samplingFuture != null) {</span>
-<span class="nc" id="L104">      samplingFuture.cancel(false);</span>
-<span class="nc" id="L105">      samplingFuture = null;</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">    if (samplingFuture != null) {</span>
+<span class="fc" id="L104">      samplingFuture.cancel(false);</span>
+<span class="fc" id="L105">      samplingFuture = null;</span>
     }
 <span class="fc" id="L107">  }</span>
 
@@ -112,4 +112,4 @@ public final class CpuUsageSampler {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

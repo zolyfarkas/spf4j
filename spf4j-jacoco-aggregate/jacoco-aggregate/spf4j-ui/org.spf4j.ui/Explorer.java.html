@@ -31,6 +31,8 @@
  */
 package org.spf4j.ui;
 //CHECKSTYLE:OFF
+import org.spf4j.stackmonitor.AvroStackSampleSupplier;
+import org.spf4j.stackmonitor.StackSampleSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -43,6 +45,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.Map;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -81,369 +84,387 @@ public class Explorer extends javax.swing.JFrame {
   // &lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;Generated Code&quot;&gt;//GEN-BEGIN:initComponents
   private void initComponents() {
 
-<span class="nc" id="L84">    desktopPane = new javax.swing.JDesktopPane();</span>
-<span class="nc" id="L85">    menuBar = new javax.swing.JMenuBar();</span>
-<span class="nc" id="L86">    fileMenu = new javax.swing.JMenu();</span>
-<span class="nc" id="L87">    openMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L88">    fromTextMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L89">    exitMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L90">    editMenu = new javax.swing.JMenu();</span>
-<span class="nc" id="L91">    cutMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L92">    copyMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L93">    pasteMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L94">    deleteMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L95">    jMenu1 = new javax.swing.JMenu();</span>
-<span class="nc" id="L96">    jMenuItem1 = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L97">    jMenuItem2 = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L98">    helpMenu = new javax.swing.JMenu();</span>
-<span class="nc" id="L99">    contentMenuItem = new javax.swing.JMenuItem();</span>
-<span class="nc" id="L100">    aboutMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L87">    desktopPane = new javax.swing.JDesktopPane();</span>
+<span class="nc" id="L88">    menuBar = new javax.swing.JMenuBar();</span>
+<span class="nc" id="L89">    fileMenu = new javax.swing.JMenu();</span>
+<span class="nc" id="L90">    openMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L91">    fromTextMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L92">    exitMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L93">    editMenu = new javax.swing.JMenu();</span>
+<span class="nc" id="L94">    cutMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L95">    copyMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L96">    pasteMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L97">    deleteMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L98">    jMenu1 = new javax.swing.JMenu();</span>
+<span class="nc" id="L99">    jMenuItem1 = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L100">    jMenuItem2 = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L101">    helpMenu = new javax.swing.JMenu();</span>
+<span class="nc" id="L102">    contentMenuItem = new javax.swing.JMenuItem();</span>
+<span class="nc" id="L103">    aboutMenuItem = new javax.swing.JMenuItem();</span>
 
-<span class="nc" id="L102">    setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);</span>
+<span class="nc" id="L105">    setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);</span>
 
-<span class="nc" id="L104">    desktopPane.setAutoscrolls(true);</span>
-<span class="nc" id="L105">    desktopPane.setDoubleBuffered(true);</span>
-<span class="nc" id="L106">    desktopPane.setPreferredSize(new java.awt.Dimension(800, 600));</span>
-<span class="nc" id="L107">    desktopPane.setLayout(null);</span>
+<span class="nc" id="L107">    desktopPane.setAutoscrolls(true);</span>
+<span class="nc" id="L108">    desktopPane.setDoubleBuffered(true);</span>
+<span class="nc" id="L109">    desktopPane.setPreferredSize(new java.awt.Dimension(800, 600));</span>
+<span class="nc" id="L110">    desktopPane.setLayout(null);</span>
 
-<span class="nc" id="L109">    fileMenu.setMnemonic('f');</span>
-<span class="nc" id="L110">    fileMenu.setText(&quot;File&quot;);</span>
+<span class="nc" id="L112">    fileMenu.setMnemonic('f');</span>
+<span class="nc" id="L113">    fileMenu.setText(&quot;File&quot;);</span>
 
-<span class="nc" id="L112">    openMenuItem.setMnemonic('o');</span>
-<span class="nc" id="L113">    openMenuItem.setText(&quot;Open&quot;);</span>
-<span class="nc" id="L114">    openMenuItem.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L115">    openMenuItem.setMnemonic('o');</span>
+<span class="nc" id="L116">    openMenuItem.setText(&quot;Open&quot;);</span>
+<span class="nc" id="L117">    openMenuItem.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L116">        openMenuItemActionPerformed(evt);</span>
-<span class="nc" id="L117">      }</span>
+<span class="nc" id="L119">        openMenuItemActionPerformed(evt);</span>
+<span class="nc" id="L120">      }</span>
     });
-<span class="nc" id="L119">    fileMenu.add(openMenuItem);</span>
+<span class="nc" id="L122">    fileMenu.add(openMenuItem);</span>
 
-<span class="nc" id="L121">    fromTextMenuItem.setMnemonic('o');</span>
-<span class="nc" id="L122">    fromTextMenuItem.setText(&quot;From Text/URL&quot;);</span>
-<span class="nc" id="L123">    fromTextMenuItem.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L124">    fromTextMenuItem.setMnemonic('o');</span>
+<span class="nc" id="L125">    fromTextMenuItem.setText(&quot;From Text/URL&quot;);</span>
+<span class="nc" id="L126">    fromTextMenuItem.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L125">        fromTextMenuItemActionPerformed(evt);</span>
-<span class="nc" id="L126">      }</span>
+<span class="nc" id="L128">        fromTextMenuItemActionPerformed(evt);</span>
+<span class="nc" id="L129">      }</span>
     });
-<span class="nc" id="L128">    fileMenu.add(fromTextMenuItem);</span>
+<span class="nc" id="L131">    fileMenu.add(fromTextMenuItem);</span>
 
-<span class="nc" id="L130">    exitMenuItem.setMnemonic('x');</span>
-<span class="nc" id="L131">    exitMenuItem.setText(&quot;Exit&quot;);</span>
-<span class="nc" id="L132">    exitMenuItem.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L133">    exitMenuItem.setMnemonic('x');</span>
+<span class="nc" id="L134">    exitMenuItem.setText(&quot;Exit&quot;);</span>
+<span class="nc" id="L135">    exitMenuItem.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L134">        exitMenuItemActionPerformed(evt);</span>
-<span class="nc" id="L135">      }</span>
+<span class="nc" id="L137">        exitMenuItemActionPerformed(evt);</span>
+<span class="nc" id="L138">      }</span>
     });
-<span class="nc" id="L137">    fileMenu.add(exitMenuItem);</span>
+<span class="nc" id="L140">    fileMenu.add(exitMenuItem);</span>
 
-<span class="nc" id="L139">    menuBar.add(fileMenu);</span>
+<span class="nc" id="L142">    menuBar.add(fileMenu);</span>
 
-<span class="nc" id="L141">    editMenu.setMnemonic('e');</span>
-<span class="nc" id="L142">    editMenu.setText(&quot;Edit&quot;);</span>
+<span class="nc" id="L144">    editMenu.setMnemonic('e');</span>
+<span class="nc" id="L145">    editMenu.setText(&quot;Edit&quot;);</span>
 
-<span class="nc" id="L144">    cutMenuItem.setMnemonic('t');</span>
-<span class="nc" id="L145">    cutMenuItem.setText(&quot;Cut&quot;);</span>
-<span class="nc" id="L146">    editMenu.add(cutMenuItem);</span>
+<span class="nc" id="L147">    cutMenuItem.setMnemonic('t');</span>
+<span class="nc" id="L148">    cutMenuItem.setText(&quot;Cut&quot;);</span>
+<span class="nc" id="L149">    editMenu.add(cutMenuItem);</span>
 
-<span class="nc" id="L148">    copyMenuItem.setMnemonic('y');</span>
-<span class="nc" id="L149">    copyMenuItem.setText(&quot;Copy&quot;);</span>
-<span class="nc" id="L150">    editMenu.add(copyMenuItem);</span>
+<span class="nc" id="L151">    copyMenuItem.setMnemonic('y');</span>
+<span class="nc" id="L152">    copyMenuItem.setText(&quot;Copy&quot;);</span>
+<span class="nc" id="L153">    editMenu.add(copyMenuItem);</span>
 
-<span class="nc" id="L152">    pasteMenuItem.setMnemonic('p');</span>
-<span class="nc" id="L153">    pasteMenuItem.setText(&quot;Paste&quot;);</span>
-<span class="nc" id="L154">    editMenu.add(pasteMenuItem);</span>
+<span class="nc" id="L155">    pasteMenuItem.setMnemonic('p');</span>
+<span class="nc" id="L156">    pasteMenuItem.setText(&quot;Paste&quot;);</span>
+<span class="nc" id="L157">    editMenu.add(pasteMenuItem);</span>
 
-<span class="nc" id="L156">    deleteMenuItem.setMnemonic('d');</span>
-<span class="nc" id="L157">    deleteMenuItem.setText(&quot;Delete&quot;);</span>
-<span class="nc" id="L158">    editMenu.add(deleteMenuItem);</span>
+<span class="nc" id="L159">    deleteMenuItem.setMnemonic('d');</span>
+<span class="nc" id="L160">    deleteMenuItem.setText(&quot;Delete&quot;);</span>
+<span class="nc" id="L161">    editMenu.add(deleteMenuItem);</span>
 
-<span class="nc" id="L160">    menuBar.add(editMenu);</span>
+<span class="nc" id="L163">    menuBar.add(editMenu);</span>
 
-<span class="nc" id="L162">    jMenu1.setText(&quot;SelfProfile&quot;);</span>
+<span class="nc" id="L165">    jMenu1.setText(&quot;SelfProfile&quot;);</span>
 
-<span class="nc" id="L164">    jMenuItem1.setText(&quot;Start&quot;);</span>
-<span class="nc" id="L165">    jMenuItem1.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L167">    jMenuItem1.setText(&quot;Start&quot;);</span>
+<span class="nc" id="L168">    jMenuItem1.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L167">        jMenuItem1ActionPerformed(evt);</span>
-<span class="nc" id="L168">      }</span>
+<span class="nc" id="L170">        jMenuItem1ActionPerformed(evt);</span>
+<span class="nc" id="L171">      }</span>
     });
-<span class="nc" id="L170">    jMenu1.add(jMenuItem1);</span>
+<span class="nc" id="L173">    jMenu1.add(jMenuItem1);</span>
 
-<span class="nc" id="L172">    jMenuItem2.setText(&quot;Stop &amp; Display&quot;);</span>
-<span class="nc" id="L173">    jMenuItem2.addActionListener(new java.awt.event.ActionListener() {</span>
+<span class="nc" id="L175">    jMenuItem2.setText(&quot;Stop &amp; Display&quot;);</span>
+<span class="nc" id="L176">    jMenuItem2.addActionListener(new java.awt.event.ActionListener() {</span>
       public void actionPerformed(java.awt.event.ActionEvent evt) {
-<span class="nc" id="L175">        jMenuItem2ActionPerformed(evt);</span>
-<span class="nc" id="L176">      }</span>
+<span class="nc" id="L178">        jMenuItem2ActionPerformed(evt);</span>
+<span class="nc" id="L179">      }</span>
     });
-<span class="nc" id="L178">    jMenu1.add(jMenuItem2);</span>
+<span class="nc" id="L181">    jMenu1.add(jMenuItem2);</span>
 
-<span class="nc" id="L180">    menuBar.add(jMenu1);</span>
+<span class="nc" id="L183">    menuBar.add(jMenu1);</span>
 
-<span class="nc" id="L182">    helpMenu.setMnemonic('h');</span>
-<span class="nc" id="L183">    helpMenu.setText(&quot;Help&quot;);</span>
+<span class="nc" id="L185">    helpMenu.setMnemonic('h');</span>
+<span class="nc" id="L186">    helpMenu.setText(&quot;Help&quot;);</span>
 
-<span class="nc" id="L185">    contentMenuItem.setMnemonic('c');</span>
-<span class="nc" id="L186">    contentMenuItem.setText(&quot;Contents&quot;);</span>
-<span class="nc" id="L187">    helpMenu.add(contentMenuItem);</span>
+<span class="nc" id="L188">    contentMenuItem.setMnemonic('c');</span>
+<span class="nc" id="L189">    contentMenuItem.setText(&quot;Contents&quot;);</span>
+<span class="nc" id="L190">    helpMenu.add(contentMenuItem);</span>
 
-<span class="nc" id="L189">    aboutMenuItem.setMnemonic('a');</span>
-<span class="nc" id="L190">    aboutMenuItem.setText(&quot;About&quot;);</span>
-<span class="nc" id="L191">    helpMenu.add(aboutMenuItem);</span>
+<span class="nc" id="L192">    aboutMenuItem.setMnemonic('a');</span>
+<span class="nc" id="L193">    aboutMenuItem.setText(&quot;About&quot;);</span>
+<span class="nc" id="L194">    helpMenu.add(aboutMenuItem);</span>
 
-<span class="nc" id="L193">    menuBar.add(helpMenu);</span>
+<span class="nc" id="L196">    menuBar.add(helpMenu);</span>
 
-<span class="nc" id="L195">    setJMenuBar(menuBar);</span>
+<span class="nc" id="L198">    setJMenuBar(menuBar);</span>
 
-<span class="nc" id="L197">    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
-<span class="nc" id="L198">    getContentPane().setLayout(layout);</span>
-<span class="nc" id="L199">    layout.setHorizontalGroup(</span>
-<span class="nc" id="L200">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L201">      .add(desktopPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1149, Short.MAX_VALUE)</span>
+<span class="nc" id="L200">    org.jdesktop.layout.GroupLayout layout = new org.jdesktop.layout.GroupLayout(getContentPane());</span>
+<span class="nc" id="L201">    getContentPane().setLayout(layout);</span>
+<span class="nc" id="L202">    layout.setHorizontalGroup(</span>
+<span class="nc" id="L203">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L204">      .add(desktopPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 1149, Short.MAX_VALUE)</span>
     );
-<span class="nc" id="L203">    layout.setVerticalGroup(</span>
-<span class="nc" id="L204">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
-<span class="nc" id="L205">      .add(org.jdesktop.layout.GroupLayout.TRAILING, desktopPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 668, Short.MAX_VALUE)</span>
+<span class="nc" id="L206">    layout.setVerticalGroup(</span>
+<span class="nc" id="L207">      layout.createParallelGroup(org.jdesktop.layout.GroupLayout.LEADING)</span>
+<span class="nc" id="L208">      .add(org.jdesktop.layout.GroupLayout.TRAILING, desktopPane, org.jdesktop.layout.GroupLayout.DEFAULT_SIZE, 668, Short.MAX_VALUE)</span>
     );
 
-<span class="nc" id="L208">    pack();</span>
-<span class="nc" id="L209">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
+<span class="nc" id="L211">    pack();</span>
+<span class="nc" id="L212">  }// &lt;/editor-fold&gt;//GEN-END:initComponents</span>
 
   /**
    * Creates new form Explorer
    */
   @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
-<span class="nc" id="L215">  public Explorer(final File... openFiles) throws IOException {</span>
-<span class="nc bnc" id="L216" title="All 2 branches missed.">    if (openFiles.length == 0) {</span>
-<span class="nc" id="L217">      folder = new File(org.spf4j.base.Runtime.USER_DIR);</span>
+<span class="nc" id="L218">  public Explorer(final File... openFiles) throws IOException {</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">    if (openFiles.length == 0) {</span>
+<span class="nc" id="L220">      folder = new File(org.spf4j.base.Runtime.USER_DIR);</span>
     } else {
-<span class="nc" id="L219">      folder = openFiles[0].getParentFile();</span>
+<span class="nc" id="L222">      folder = openFiles[0].getParentFile();</span>
     }
-<span class="nc" id="L221">    initComponents();</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">    for (File file : openFiles) {</span>
-<span class="nc" id="L223">      openFile(file);</span>
+<span class="nc" id="L224">    initComponents();</span>
+<span class="nc bnc" id="L225" title="All 2 branches missed.">    for (File file : openFiles) {</span>
+<span class="nc" id="L226">      openFile(file);</span>
     }
-<span class="nc" id="L225">  }</span>
+<span class="nc" id="L228">  }</span>
 
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
-<span class="nc" id="L228">      System.exit(0);</span>
-<span class="nc" id="L229">    }//GEN-LAST:event_exitMenuItemActionPerformed</span>
+<span class="nc" id="L231">      System.exit(0);</span>
+<span class="nc" id="L232">    }//GEN-LAST:event_exitMenuItemActionPerformed</span>
 
     private void openMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openMenuItemActionPerformed
-<span class="nc" id="L232">      JFileChooser chooser = new JFileChooser();</span>
-<span class="nc" id="L233">      chooser.setName(&quot;openFileDialog&quot;);</span>
-<span class="nc" id="L234">      chooser.setMultiSelectionEnabled(true);</span>
-<span class="nc" id="L235">      chooser.setDialogType(JFileChooser.OPEN_DIALOG);</span>
-<span class="nc" id="L236">      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);</span>
-<span class="nc" id="L237">      chooser.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);</span>
-<span class="nc" id="L238">      chooser.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);</span>
-<span class="nc" id="L239">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP);</span>
-<span class="nc" id="L240">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);</span>
-<span class="nc" id="L241">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);</span>
-<span class="nc" id="L242">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);</span>
-<span class="nc" id="L243">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);</span>
-<span class="nc" id="L244">      chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);</span>
-<span class="nc" id="L245">      chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);</span>
-<span class="nc" id="L246">      chooser.addChoosableFileFilter(Spf4jFileFilter.AVRO_TABLEDEF);</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">      if (folder != null) {</span>
-<span class="nc" id="L248">        chooser.setCurrentDirectory(folder);</span>
+<span class="nc" id="L235">      JFileChooser chooser = new JFileChooser();</span>
+<span class="nc" id="L236">      chooser.setName(&quot;openFileDialog&quot;);</span>
+<span class="nc" id="L237">      chooser.setMultiSelectionEnabled(true);</span>
+<span class="nc" id="L238">      chooser.setDialogType(JFileChooser.OPEN_DIALOG);</span>
+<span class="nc" id="L239">      chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);</span>
+<span class="nc" id="L240">      chooser.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);</span>
+<span class="nc" id="L241">      chooser.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);</span>
+<span class="nc" id="L242">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP);</span>
+<span class="nc" id="L243">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);</span>
+<span class="nc" id="L244">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);</span>
+<span class="nc" id="L245">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);</span>
+<span class="nc" id="L246">      chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);</span>
+<span class="nc" id="L247">      chooser.addChoosableFileFilter(Spf4jFileFilter.PROFILE_AVRO);</span>
+<span class="nc" id="L248">      chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB);</span>
+<span class="nc" id="L249">      chooser.addChoosableFileFilter(Spf4jFileFilter.TSDB2);</span>
+<span class="nc" id="L250">      chooser.addChoosableFileFilter(Spf4jFileFilter.AVRO_TABLEDEF);</span>
+<span class="nc bnc" id="L251" title="All 2 branches missed.">      if (folder != null) {</span>
+<span class="nc" id="L252">        chooser.setCurrentDirectory(folder);</span>
       }
 
-<span class="nc" id="L251">      int returnVal = chooser.showOpenDialog(this);</span>
+<span class="nc" id="L255">      int returnVal = chooser.showOpenDialog(this);</span>
 
-<span class="nc bnc" id="L253" title="All 2 branches missed.">      if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
-<span class="nc" id="L254">        File [] files = chooser.getSelectedFiles();</span>
-<span class="nc bnc" id="L255" title="All 2 branches missed.">        for (File file : files) {</span>
+<span class="nc bnc" id="L257" title="All 2 branches missed.">      if (returnVal == JFileChooser.APPROVE_OPTION) {</span>
+<span class="nc" id="L258">        File [] files = chooser.getSelectedFiles();</span>
+<span class="nc bnc" id="L259" title="All 2 branches missed.">        for (File file : files) {</span>
           try {
-<span class="nc" id="L257">            openFile(file);</span>
-<span class="nc" id="L258">          } catch (IOException ex) {</span>
-<span class="nc" id="L259">            throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L260">          }</span>
+<span class="nc" id="L261">            openFile(file);</span>
+<span class="nc" id="L262">          } catch (IOException ex) {</span>
+<span class="nc" id="L263">            throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L264">          }</span>
         }
       }
-<span class="nc" id="L263">    }//GEN-LAST:event_openMenuItemActionPerformed</span>
+<span class="nc" id="L267">    }//GEN-LAST:event_openMenuItemActionPerformed</span>
 
   /**
    * Create an Edit menu to support cut/copy/paste.
    */
   public JMenuBar createContextMenuBar() {
-<span class="nc" id="L269">    JMenuItem menuItem = null;</span>
-<span class="nc" id="L270">    JMenuBar menuBar = new JMenuBar();</span>
-<span class="nc" id="L271">    JMenu mainMenu = new JMenu(&quot;Edit&quot;);</span>
-<span class="nc" id="L272">    mainMenu.setMnemonic(KeyEvent.VK_E);</span>
+<span class="nc" id="L273">    JMenuItem menuItem = null;</span>
+<span class="nc" id="L274">    JMenuBar menuBar = new JMenuBar();</span>
+<span class="nc" id="L275">    JMenu mainMenu = new JMenu(&quot;Edit&quot;);</span>
+<span class="nc" id="L276">    mainMenu.setMnemonic(KeyEvent.VK_E);</span>
 
-<span class="nc" id="L274">    menuItem = new JMenuItem(new DefaultEditorKit.CutAction());</span>
-<span class="nc" id="L275">    menuItem.setText(&quot;Cut&quot;);</span>
-<span class="nc" id="L276">    menuItem.setMnemonic(KeyEvent.VK_X);</span>
-<span class="nc" id="L277">    mainMenu.add(menuItem);</span>
+<span class="nc" id="L278">    menuItem = new JMenuItem(new DefaultEditorKit.CutAction());</span>
+<span class="nc" id="L279">    menuItem.setText(&quot;Cut&quot;);</span>
+<span class="nc" id="L280">    menuItem.setMnemonic(KeyEvent.VK_X);</span>
+<span class="nc" id="L281">    mainMenu.add(menuItem);</span>
 
-<span class="nc" id="L279">    menuItem = new JMenuItem(new DefaultEditorKit.CopyAction());</span>
-<span class="nc" id="L280">    menuItem.setText(&quot;Copy&quot;);</span>
-<span class="nc" id="L281">    menuItem.setMnemonic(KeyEvent.VK_C);</span>
-<span class="nc" id="L282">    mainMenu.add(menuItem);</span>
+<span class="nc" id="L283">    menuItem = new JMenuItem(new DefaultEditorKit.CopyAction());</span>
+<span class="nc" id="L284">    menuItem.setText(&quot;Copy&quot;);</span>
+<span class="nc" id="L285">    menuItem.setMnemonic(KeyEvent.VK_C);</span>
+<span class="nc" id="L286">    mainMenu.add(menuItem);</span>
 
-<span class="nc" id="L284">    menuItem = new JMenuItem(new DefaultEditorKit.PasteAction());</span>
-<span class="nc" id="L285">    menuItem.setText(&quot;Paste&quot;);</span>
-<span class="nc" id="L286">    menuItem.setMnemonic(KeyEvent.VK_V);</span>
-<span class="nc" id="L287">    mainMenu.add(menuItem);</span>
+<span class="nc" id="L288">    menuItem = new JMenuItem(new DefaultEditorKit.PasteAction());</span>
+<span class="nc" id="L289">    menuItem.setText(&quot;Paste&quot;);</span>
+<span class="nc" id="L290">    menuItem.setMnemonic(KeyEvent.VK_V);</span>
+<span class="nc" id="L291">    mainMenu.add(menuItem);</span>
 
-<span class="nc" id="L289">    menuBar.add(mainMenu);</span>
-<span class="nc" id="L290">    return menuBar;</span>
+<span class="nc" id="L293">    menuBar.add(mainMenu);</span>
+<span class="nc" id="L294">    return menuBar;</span>
   }
 
 
   private void fromTextMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fromTextMenuItemActionPerformed
 
-<span class="nc" id="L296">    final JDialog frame = new JDialog(this, &quot;Enter json stack samples&quot;, true);</span>
-<span class="nc" id="L297">    frame.setName(&quot;fromTextDialog&quot;);</span>
-<span class="nc" id="L298">    frame.setJMenuBar(createContextMenuBar());</span>
-<span class="nc" id="L299">    TextEntryPanel panel = new TextEntryPanel((title, samples) -&gt; {</span>
-<span class="nc" id="L300">        JInternalFrame f = new StackDumpJInternalFrame(samples, title, true);</span>
-<span class="nc" id="L301">        frame.setVisible(false);</span>
-<span class="nc" id="L302">        f.setVisible(true);</span>
-<span class="nc" id="L303">        desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
-<span class="nc" id="L304">    }, (ex) -&gt; {</span>
-<span class="nc" id="L305">      JOptionPane.showMessageDialog(frame, &quot;Invalid input &quot; + ex);</span>
-<span class="nc" id="L306">      frame.setVisible(false);</span>
-<span class="nc" id="L307">      frame.dispose();</span>
-<span class="nc" id="L308">    });</span>
-<span class="nc" id="L309">    frame.getContentPane().add(panel);</span>
-<span class="nc" id="L310">    frame.pack();</span>
-<span class="nc" id="L311">    frame.setVisible(true);</span>
-<span class="nc" id="L312">  }//GEN-LAST:event_fromTextMenuItemActionPerformed</span>
+<span class="nc" id="L300">    final JDialog frame = new JDialog(this, &quot;Enter json stack samples&quot;, true);</span>
+<span class="nc" id="L301">    frame.setName(&quot;fromTextDialog&quot;);</span>
+<span class="nc" id="L302">    frame.setJMenuBar(createContextMenuBar());</span>
+<span class="nc" id="L303">    TextEntryPanel panel = new TextEntryPanel((title, samples) -&gt; {</span>
+<span class="nc" id="L304">        Instant now = Instant.now();</span>
+        JInternalFrame f;
+        try {
+<span class="nc" id="L307">          f = new StackDumpJInternalFrame(new OneStackSampleSupplier(now, now, samples), title, true);</span>
+<span class="nc" id="L308">        } catch (IOException ex) {</span>
+<span class="nc" id="L309">         throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L310">        }</span>
+<span class="nc" id="L311">        frame.setVisible(false);</span>
+<span class="nc" id="L312">        f.setVisible(true);</span>
+<span class="nc" id="L313">        desktopPane.add(f, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
+<span class="nc" id="L314">    }, (ex) -&gt; {</span>
+<span class="nc" id="L315">      JOptionPane.showMessageDialog(frame, &quot;Invalid input &quot; + ex);</span>
+<span class="nc" id="L316">      frame.setVisible(false);</span>
+<span class="nc" id="L317">      frame.dispose();</span>
+<span class="nc" id="L318">    });</span>
+<span class="nc" id="L319">    frame.getContentPane().add(panel);</span>
+<span class="nc" id="L320">    frame.pack();</span>
+<span class="nc" id="L321">    frame.setVisible(true);</span>
+<span class="nc" id="L322">  }//GEN-LAST:event_fromTextMenuItemActionPerformed</span>
 
   private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
     try {
-<span class="nc" id="L316">      sampler = Sampler.getSampler(10, 100000, new File(&quot;.&quot;), &quot;dump&quot;);</span>
-<span class="nc" id="L317">      sampler.start();</span>
-<span class="nc" id="L318">    } catch (InterruptedException ex) {</span>
-<span class="nc" id="L319">      Thread.currentThread().interrupt();</span>
-<span class="nc" id="L320">      throw new RuntimeException(ex);</span>
-<span class="nc" id="L321">    }</span>
-<span class="nc" id="L322">  }//GEN-LAST:event_jMenuItem1ActionPerformed</span>
+<span class="nc" id="L326">      sampler = Sampler.getSampler(10, 100000, new File(&quot;.&quot;), &quot;dump&quot;);</span>
+<span class="nc" id="L327">      sampler.start();</span>
+<span class="nc" id="L328">    } catch (InterruptedException ex) {</span>
+<span class="nc" id="L329">      Thread.currentThread().interrupt();</span>
+<span class="nc" id="L330">      throw new RuntimeException(ex);</span>
+<span class="nc" id="L331">    } catch (IOException ex) {</span>
+<span class="nc" id="L332">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L333">    }</span>
+<span class="nc" id="L334">  }//GEN-LAST:event_jMenuItem1ActionPerformed</span>
 
   private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-<span class="nc bnc" id="L325" title="All 2 branches missed.">    if (sampler != null) {</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">    if (sampler != null) {</span>
       try {
-<span class="nc" id="L327">        sampler.stop();</span>
-<span class="nc" id="L328">      } catch (InterruptedException ex) {</span>
-<span class="nc" id="L329">        Thread.currentThread().interrupt();</span>
-<span class="nc" id="L330">        throw new RuntimeException(ex);</span>
-<span class="nc" id="L331">      }</span>
-<span class="nc" id="L332">      Map&lt;String, SampleNode&gt; samples = sampler.getStackCollectionsAndReset();</span>
-<span class="nc bnc" id="L333" title="All 2 branches missed.">      for (Map.Entry&lt;String, SampleNode&gt; entry : samples.entrySet()) {</span>
-        try {
-<span class="nc" id="L335">          setFrames(entry.getValue(), &quot;self:&quot; + entry.getKey());</span>
-<span class="nc" id="L336">        } catch (IOException ex) {</span>
-<span class="nc" id="L337">          throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L338">        }</span>
-<span class="nc" id="L339">      }</span>
+<span class="nc" id="L339">        sampler.stop();</span>
+<span class="nc" id="L340">      } catch (InterruptedException ex) {</span>
+<span class="nc" id="L341">        Thread.currentThread().interrupt();</span>
+<span class="nc" id="L342">        throw new RuntimeException(ex);</span>
+<span class="nc" id="L343">      }</span>
+<span class="nc" id="L344">      Map&lt;String, SampleNode&gt; samples = sampler.getStackCollectionsAndReset();</span>
+      try {
+<span class="nc" id="L346">        setFrames(samples, &quot;self&quot;);</span>
+<span class="nc" id="L347">      } catch (IOException ex) {</span>
+<span class="nc" id="L348">        throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L349">      }</span>
     }
-<span class="nc" id="L341">  }//GEN-LAST:event_jMenuItem2ActionPerformed</span>
+<span class="nc" id="L351">  }//GEN-LAST:event_jMenuItem2ActionPerformed</span>
 
   private void openFile(final File file) throws IOException {
-<span class="nc" id="L344">    String fileName = file.getName();</span>
+<span class="nc" id="L354">    String fileName = file.getName();</span>
     JInternalFrame frame;
-<span class="nc bnc" id="L346" title="All 2 branches missed.">    if (Spf4jFileFilter.TSDB.accept(file)) {</span>
-<span class="nc" id="L347">      frame = new TSDBViewJInternalFrame(file);</span>
-<span class="nc" id="L348">      frame.setVisible(true);</span>
-<span class="nc" id="L349">      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
-<span class="nc bnc" id="L350" title="All 2 branches missed.">    } else if (Spf4jFileFilter.TSDB2.accept(file)) {</span>
-<span class="nc" id="L351">      frame = new TSDB2ViewJInternalFrame(file);</span>
-<span class="nc" id="L352">      frame.setVisible(true);</span>
-<span class="nc" id="L353">      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
-<span class="nc bnc" id="L354" title="All 2 branches missed.">    } else if (Spf4jFileFilter.AVRO_TABLEDEF.accept(file)) {</span>
-<span class="nc" id="L355">      frame = new MStoreViewJInternalFrame(file);</span>
-<span class="nc" id="L356">      frame.setVisible(true);</span>
-<span class="nc" id="L357">      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
-<span class="nc bnc" id="L358" title="All 2 branches missed.">    } else if (Spf4jFileFilter.SSDUMP.accept(file)) {</span>
-<span class="nc" id="L359">      SampleNode samples = loadLegacyFormat(file);</span>
-<span class="nc" id="L360">      setFrames(samples, fileName);</span>
-<span class="nc bnc" id="L361" title="All 4 branches missed.">    } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {</span>
-<span class="nc" id="L362">      SampleNode samples = org.spf4j.ssdump2.Converter.load(file);</span>
-<span class="nc" id="L363">      setFrames(samples, fileName);</span>
-<span class="nc bnc" id="L364" title="All 4 branches missed.">    } else if (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {</span>
-<span class="nc" id="L365">      Map&lt;String, SampleNode&gt; loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);</span>
-<span class="nc bnc" id="L366" title="All 2 branches missed.">      for (Map.Entry&lt;String, SampleNode&gt; entry : loadLabeledDumps.entrySet()) {</span>
-<span class="nc" id="L367">        setFrames(entry.getValue(), fileName + ':' + entry.getKey());</span>
-<span class="nc" id="L368">      }</span>
-<span class="nc bnc" id="L369" title="All 2 branches missed.">    } else if (Spf4jFileFilter.D3_JSON.accept(file)) {</span>
-<span class="nc" id="L370">      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L371">        Pair&lt;Method, SampleNode&gt; parse = SampleNode.parseD3Json(br);</span>
-<span class="nc" id="L372">        setFrames(parse.getSecond(), fileName);</span>
-<span class="nc" id="L373">      }</span>
-<span class="nc bnc" id="L374" title="All 2 branches missed.">    } else if (Spf4jFileFilter.SPF4J_JSON.accept(file)) {</span>
-<span class="nc" id="L375">      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {</span>
-<span class="nc" id="L376">        Pair&lt;Method, SampleNode&gt; parse = SampleNode.parse(br);</span>
-<span class="nc" id="L377">        setFrames(parse.getSecond(), fileName);</span>
-<span class="nc" id="L378">      }</span>
-    } else {
-<span class="nc" id="L380">      throw new IOException(&quot;Unsupported file format &quot; + fileName);</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">    if (Spf4jFileFilter.TSDB.accept(file)) {</span>
+<span class="nc" id="L357">      frame = new TSDBViewJInternalFrame(file);</span>
+<span class="nc" id="L358">      frame.setVisible(true);</span>
+<span class="nc" id="L359">      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
+<span class="nc bnc" id="L360" title="All 2 branches missed.">    } else if (Spf4jFileFilter.TSDB2.accept(file)) {</span>
+<span class="nc" id="L361">      frame = new TSDB2ViewJInternalFrame(file);</span>
+<span class="nc" id="L362">      frame.setVisible(true);</span>
+<span class="nc" id="L363">      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">    } else if (Spf4jFileFilter.AVRO_TABLEDEF.accept(file)) {</span>
+<span class="nc" id="L365">      frame = new MStoreViewJInternalFrame(file);</span>
+<span class="nc" id="L366">      frame.setVisible(true);</span>
+<span class="nc" id="L367">      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">    } else if (Spf4jFileFilter.SSDUMP.accept(file)) {</span>
+<span class="nc" id="L369">      SampleNode samples = loadLegacyFormat(file);</span>
+<span class="nc" id="L370">      setFrames(samples, fileName);</span>
+<span class="nc bnc" id="L371" title="All 4 branches missed.">    } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {</span>
+<span class="nc" id="L372">      SampleNode samples = org.spf4j.ssdump2.Converter.load(file);</span>
+<span class="nc" id="L373">      setFrames(samples, fileName);</span>
+<span class="nc bnc" id="L374" title="All 4 branches missed.">    } else if (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {</span>
+<span class="nc" id="L375">      Map&lt;String, SampleNode&gt; loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);</span>
+<span class="nc" id="L376">      setFrames(loadLabeledDumps, fileName);</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">    } else if (Spf4jFileFilter.D3_JSON.accept(file)) {</span>
+<span class="nc" id="L378">      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L379">        Pair&lt;Method, SampleNode&gt; parse = SampleNode.parseD3Json(br);</span>
+<span class="nc" id="L380">        setFrames(parse.getSecond(), fileName);</span>
+<span class="nc" id="L381">      }</span>
+<span class="nc bnc" id="L382" title="All 2 branches missed.">    } else if (Spf4jFileFilter.SPF4J_JSON.accept(file)) {</span>
+<span class="nc" id="L383">      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L384">        Pair&lt;Method, SampleNode&gt; parse = SampleNode.parse(br);</span>
+<span class="nc" id="L385">        setFrames(parse.getSecond(), fileName);</span>
+<span class="nc" id="L386">      }</span>
+<span class="nc bnc" id="L387" title="All 2 branches missed.">    } else if (Spf4jFileFilter.PROFILE_AVRO.accept(file)) {</span>
+<span class="nc" id="L388">      setFrames(new AvroStackSampleSupplier(file.toPath()), fileName);</span>
+    }else {
+<span class="nc" id="L390">      throw new IOException(&quot;Unsupported file format &quot; + fileName);</span>
     }
-<span class="nc" id="L382">  }</span>
+<span class="nc" id="L392">  }</span>
 
   private static SampleNode loadLegacyFormat(final File file) throws IOException {
-<span class="nc" id="L385">    InputStream fis = Files.newInputStream(file.toPath());</span>
-<span class="nc" id="L386">    return loadLegacyFormat(fis);</span>
+<span class="nc" id="L395">    InputStream fis = Files.newInputStream(file.toPath());</span>
+<span class="nc" id="L396">    return loadLegacyFormat(fis);</span>
   }
 
   @VisibleForTesting
   static SampleNode loadLegacyFormat(InputStream fis) throws IOException {
-<span class="fc" id="L391">    try (BufferedInputStream bis = new BufferedInputStream(fis)) {</span>
-<span class="fc" id="L392">      final CodedInputStream is = CodedInputStream.newInstance(bis);</span>
-<span class="fc" id="L393">      is.setRecursionLimit(Short.MAX_VALUE);</span>
-<span class="fc" id="L394">      return Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));</span>
+<span class="fc" id="L401">    try (BufferedInputStream bis = new BufferedInputStream(fis)) {</span>
+<span class="fc" id="L402">      final CodedInputStream is = CodedInputStream.newInstance(bis);</span>
+<span class="fc" id="L403">      is.setRecursionLimit(Short.MAX_VALUE);</span>
+<span class="fc" id="L404">      return Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));</span>
     }
   }
 
+  private void setFrames(StackSampleSupplier samples , String fileName) throws IOException {
+<span class="nc" id="L409">    JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, false);</span>
+<span class="nc" id="L410">    frame.setVisible(true);</span>
+<span class="nc" id="L411">    desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
+<span class="nc" id="L412">  }</span>
+
+
+  private void setFrames(Map&lt;String, SampleNode&gt; samples , String fileName) throws IOException {
+<span class="nc" id="L416">    Instant now = Instant.now();</span>
+<span class="nc" id="L417">    setFrames(new MultiStackSampleSupplier(now, now, samples), fileName);</span>
+<span class="nc" id="L418">  }</span>
+
   private void setFrames(SampleNode samples, String fileName) throws IOException {
-<span class="nc" id="L399">    JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, false);</span>
-<span class="nc" id="L400">    frame.setVisible(true);</span>
-<span class="nc" id="L401">    desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);</span>
-<span class="nc" id="L402">  }</span>
+<span class="nc" id="L421">    Instant now = Instant.now();</span>
+<span class="nc" id="L422">    setFrames(new OneStackSampleSupplier(now, now, samples), fileName);</span>
+<span class="nc" id="L423">  }</span>
 
 
   /**
    * @param args the command line arguments
    */
   public static void main(final String[] args) {
-<span class="nc" id="L409">    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionDisplayer());</span>
-<span class="nc" id="L410">    System.setProperty(&quot;spf4j.tsdb2.lenientRead&quot;, &quot;true&quot;);</span>
+<span class="nc" id="L430">    Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionDisplayer());</span>
+<span class="nc" id="L431">    System.setProperty(&quot;spf4j.tsdb2.lenientRead&quot;, &quot;true&quot;);</span>
     /* Set the Nimbus look and feel */
     //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot; Look and feel setting code (optional) &quot;&gt;
     /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
      */
     try {
-<span class="nc bnc" id="L417" title="All 2 branches missed.">      for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {</span>
-<span class="nc bnc" id="L418" title="All 2 branches missed.">        if (&quot;Nimbus&quot;.equals(info.getName())) {</span>
-<span class="nc" id="L419">          javax.swing.UIManager.setLookAndFeel(info.getClassName());</span>
-<span class="nc" id="L420">          break;</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">      for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {</span>
+<span class="nc bnc" id="L439" title="All 2 branches missed.">        if (&quot;Nimbus&quot;.equals(info.getName())) {</span>
+<span class="nc" id="L440">          javax.swing.UIManager.setLookAndFeel(info.getClassName());</span>
+<span class="nc" id="L441">          break;</span>
         }
       }
-<span class="nc" id="L423">    } catch (ClassNotFoundException ex) {</span>
-<span class="nc" id="L424">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
-<span class="nc" id="L425">    } catch (InstantiationException ex) {</span>
-<span class="nc" id="L426">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
-<span class="nc" id="L427">    } catch (IllegalAccessException ex) {</span>
-<span class="nc" id="L428">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
-<span class="nc" id="L429">    } catch (javax.swing.UnsupportedLookAndFeelException ex) {</span>
-<span class="nc" id="L430">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
-<span class="nc" id="L431">    }</span>
+<span class="nc" id="L444">    } catch (ClassNotFoundException ex) {</span>
+<span class="nc" id="L445">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
+<span class="nc" id="L446">    } catch (InstantiationException ex) {</span>
+<span class="nc" id="L447">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
+<span class="nc" id="L448">    } catch (IllegalAccessException ex) {</span>
+<span class="nc" id="L449">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
+<span class="nc" id="L450">    } catch (javax.swing.UnsupportedLookAndFeelException ex) {</span>
+<span class="nc" id="L451">      java.util.logging.Logger.getLogger(Explorer.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);</span>
+<span class="nc" id="L452">    }</span>
     //&lt;/editor-fold&gt;
 
     /* Create and display the form */
-<span class="nc" id="L435">    java.awt.EventQueue.invokeLater(new AbstractRunnable(false) {</span>
+<span class="nc" id="L456">    java.awt.EventQueue.invokeLater(new AbstractRunnable(false) {</span>
       @Override
       @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
       public void doRun() throws IOException {
-<span class="nc" id="L439">        File[] files = new File[args.length];</span>
-<span class="nc bnc" id="L440" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
-<span class="nc" id="L441">          files[i] = new File(args[i]);</span>
+<span class="nc" id="L460">        File[] files = new File[args.length];</span>
+<span class="nc bnc" id="L461" title="All 2 branches missed.">        for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="nc" id="L462">          files[i] = new File(args[i]);</span>
         }
-<span class="nc" id="L443">        new Explorer(files).setVisible(true);</span>
-<span class="nc" id="L444">      }</span>
+<span class="nc" id="L464">        new Explorer(files).setVisible(true);</span>
+<span class="nc" id="L465">      }</span>
     });
-<span class="nc" id="L446">  }</span>
+<span class="nc" id="L467">  }</span>
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JMenuItem aboutMenuItem;
   private javax.swing.JMenuItem contentMenuItem;
@@ -465,5 +486,6 @@ public class Explorer extends javax.swing.JFrame {
   // End of variables declaration//GEN-END:variables
 
 
+
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

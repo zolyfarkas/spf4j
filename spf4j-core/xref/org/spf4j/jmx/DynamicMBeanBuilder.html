@@ -298,86 +298,87 @@
 <a class="jxr_linenumber" name="L290" href="#L290">290</a>     String methodName = method.getName();
 <a class="jxr_linenumber" name="L291" href="#L291">291</a>     <strong class="jxr_keyword">int</strong> nrParams = method.getParameterCount();
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>     <strong class="jxr_keyword">if</strong> (nrParams == 0 &amp;&amp; methodName.startsWith(<span class="jxr_string">"get"</span>)) {
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>       String valueName = methodName.substring(<span class="jxr_string">"get"</span>.length());
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>       valueName = Strings.withFirstCharLower(valueName);
-<a class="jxr_linenumber" name="L295" href="#L295">295</a>       addGetter(valueName, exportedAttributes, annot, method, object);
-<a class="jxr_linenumber" name="L296" href="#L296">296</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (nrParams == 0 &amp;&amp; methodName.startsWith(<span class="jxr_string">"is"</span>)) {
-<a class="jxr_linenumber" name="L297" href="#L297">297</a>       String valueName = methodName.substring(<span class="jxr_string">"is"</span>.length());
-<a class="jxr_linenumber" name="L298" href="#L298">298</a>       valueName = Strings.withFirstCharLower(valueName);
-<a class="jxr_linenumber" name="L299" href="#L299">299</a>       addGetter(valueName, exportedAttributes, annot, method, object);
-<a class="jxr_linenumber" name="L300" href="#L300">300</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (nrParams == 1 &amp;&amp; methodName.startsWith(<span class="jxr_string">"set"</span>)) {
-<a class="jxr_linenumber" name="L301" href="#L301">301</a>       addSetter(methodName, exportedAttributes, method, object, annot);
-<a class="jxr_linenumber" name="L302" href="#L302">302</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L303" href="#L303">303</a>       String opName = methodName;
-<a class="jxr_linenumber" name="L304" href="#L304">304</a>       String nameOverwrite = annot.value();
-<a class="jxr_linenumber" name="L305" href="#L305">305</a>       <strong class="jxr_keyword">if</strong> (!<span class="jxr_string">""</span>.equals(nameOverwrite)) {
-<a class="jxr_linenumber" name="L306" href="#L306">306</a>         opName = nameOverwrite;
-<a class="jxr_linenumber" name="L307" href="#L307">307</a>       }
-<a class="jxr_linenumber" name="L308" href="#L308">308</a>       <a href="../../../org/spf4j/jmx/ExportedOperation.html">ExportedOperation</a> existing = exportedOps.put(opName, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedOperationImpl.html">ExportedOperationImpl</a>(opName,
-<a class="jxr_linenumber" name="L309" href="#L309">309</a>               annot.description(), method, object, annot.mapOpenType()));
-<a class="jxr_linenumber" name="L310" href="#L310">310</a>       <strong class="jxr_keyword">if</strong> (existing != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L311" href="#L311">311</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"exporting operations with same name not supported: "</span> + opName);
-<a class="jxr_linenumber" name="L312" href="#L312">312</a>       }
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     }
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>   }
-<a class="jxr_linenumber" name="L315" href="#L315">315</a> 
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addSetter(<strong class="jxr_keyword">final</strong> String methodName, <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedAttributes,
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>           <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/JmxExport.html">JmxExport</a> annot) {
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>     String customName = annot.value();
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>     String valueName;
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>     <strong class="jxr_keyword">if</strong> (<span class="jxr_string">""</span>.equals(customName)) {
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>       valueName = methodName.substring(<span class="jxr_string">"set"</span>.length());
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>       valueName = Strings.withFirstCharLower(valueName);
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>       valueName = customName;
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>     }
-<a class="jxr_linenumber" name="L326" href="#L326">326</a> 
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>     <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a> existing = (BeanExportedValue) exportedAttributes.get(valueName);
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>     Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>     <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>       existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a>(valueName, <strong class="jxr_keyword">null</strong>,
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>               <strong class="jxr_keyword">null</strong>, method, object, parameterType, annot.mapOpenType());
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>       <strong class="jxr_keyword">if</strong> (existing.getValueType() != parameterType) {
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>                 <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + ' ' + method);
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>       }
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>       existing = existing.withSetter(method);
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>     }
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>     exportedAttributes.put(valueName, existing);
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>   }
-<a class="jxr_linenumber" name="L341" href="#L341">341</a> 
-<a class="jxr_linenumber" name="L342" href="#L342">342</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addGetter(<strong class="jxr_keyword">final</strong> String pvalueName,
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>           <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&lt;?&gt;&gt; exported,
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/JmxExport.html">JmxExport</a> annot, <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object) {
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>     String customName = annot.value();
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>     String valueName = <span class="jxr_string">""</span>.equals(customName) ? pvalueName : customName;
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>     <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a> existing = (BeanExportedValue) exported.get(valueName);
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>     <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>       existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a>(
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>               valueName, annot.description(),
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>               method, <strong class="jxr_keyword">null</strong>, object, method.getGenericReturnType(), annot.mapOpenType());
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>       <strong class="jxr_keyword">if</strong> (existing.getValueType() != method.getReturnType()) {
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>                 <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + ' ' + method);
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>       }
-<a class="jxr_linenumber" name="L357" href="#L357">357</a>       existing = existing.withGetter(method, annot.description());
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>     }
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>     exported.put(valueName, existing);
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>   }
-<a class="jxr_linenumber" name="L361" href="#L361">361</a> 
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>   @Override
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"MBeanBuilder{"</span> + <span class="jxr_string">"exportedAttributes="</span> + exportedAttributes
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>             + <span class="jxr_string">", exportedOps="</span> + exportedOps + '}';
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>   }
-<a class="jxr_linenumber" name="L367" href="#L367">367</a> 
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>       addGetter(<span class="jxr_string">"get"</span>, methodName, exportedAttributes, annot, method, object);
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (nrParams == 0 &amp;&amp; methodName.startsWith(<span class="jxr_string">"is"</span>)) {
+<a class="jxr_linenumber" name="L295" href="#L295">295</a>       addGetter(<span class="jxr_string">"is"</span>, methodName, exportedAttributes, annot, method, object);
+<a class="jxr_linenumber" name="L296" href="#L296">296</a>     } <strong class="jxr_keyword">else</strong> <strong class="jxr_keyword">if</strong> (nrParams == 1 &amp;&amp; methodName.startsWith(<span class="jxr_string">"set"</span>)) {
+<a class="jxr_linenumber" name="L297" href="#L297">297</a>       addSetter(methodName, exportedAttributes, method, object, annot);
+<a class="jxr_linenumber" name="L298" href="#L298">298</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L299" href="#L299">299</a>       String opName = methodName;
+<a class="jxr_linenumber" name="L300" href="#L300">300</a>       String nameOverwrite = annot.value();
+<a class="jxr_linenumber" name="L301" href="#L301">301</a>       <strong class="jxr_keyword">if</strong> (!<span class="jxr_string">""</span>.equals(nameOverwrite)) {
+<a class="jxr_linenumber" name="L302" href="#L302">302</a>         opName = nameOverwrite;
+<a class="jxr_linenumber" name="L303" href="#L303">303</a>       }
+<a class="jxr_linenumber" name="L304" href="#L304">304</a>       <a href="../../../org/spf4j/jmx/ExportedOperation.html">ExportedOperation</a> existing = exportedOps.put(opName, <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/ExportedOperationImpl.html">ExportedOperationImpl</a>(opName,
+<a class="jxr_linenumber" name="L305" href="#L305">305</a>               annot.description(), method, object, annot.mapOpenType()));
+<a class="jxr_linenumber" name="L306" href="#L306">306</a>       <strong class="jxr_keyword">if</strong> (existing != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L307" href="#L307">307</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(<span class="jxr_string">"exporting operations with same name not supported: "</span> + opName);
+<a class="jxr_linenumber" name="L308" href="#L308">308</a>       }
+<a class="jxr_linenumber" name="L309" href="#L309">309</a>     }
+<a class="jxr_linenumber" name="L310" href="#L310">310</a>   }
+<a class="jxr_linenumber" name="L311" href="#L311">311</a> 
+<a class="jxr_linenumber" name="L312" href="#L312">312</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addSetter(
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>           <strong class="jxr_keyword">final</strong> String methodName, <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedAttributes,
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>           <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object, <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/JmxExport.html">JmxExport</a> annot) {
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>     String customName = annot.value();
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>     String valueName;
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>     <strong class="jxr_keyword">if</strong> (<span class="jxr_string">""</span>.equals(customName)) {
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>       valueName = Strings.methodToAttribute(<span class="jxr_string">"set"</span>, methodName);
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>       valueName = customName;
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>     }
+<a class="jxr_linenumber" name="L322" href="#L322">322</a> 
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>     <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a> existing = (BeanExportedValue) exportedAttributes.get(valueName);
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>     Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>     <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>       existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a>(valueName, <strong class="jxr_keyword">null</strong>,
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>               <strong class="jxr_keyword">null</strong>, method, object, parameterType, annot.mapOpenType());
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>       <strong class="jxr_keyword">if</strong> (existing.getValueType() != parameterType) {
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>                 <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + ' ' + method);
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>       }
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>       existing = existing.withSetter(method);
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>     }
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>     exportedAttributes.put(valueName, existing);
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>   }
+<a class="jxr_linenumber" name="L337" href="#L337">337</a> 
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">static</strong> <strong class="jxr_keyword">void</strong> addGetter(<strong class="jxr_keyword">final</strong> String prefix, <strong class="jxr_keyword">final</strong> String methodName,
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>           <strong class="jxr_keyword">final</strong> Map&lt;String, ExportedValue&lt;?&gt;&gt; exported,
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>           <strong class="jxr_keyword">final</strong> <a href="../../../org/spf4j/jmx/JmxExport.html">JmxExport</a> annot, <strong class="jxr_keyword">final</strong> Method method, <strong class="jxr_keyword">final</strong> Object object) {
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>     String customName = annot.value();
+<a class="jxr_linenumber" name="L342" href="#L342">342</a>     String valueName;
+<a class="jxr_linenumber" name="L343" href="#L343">343</a>     <strong class="jxr_keyword">if</strong> (<span class="jxr_string">""</span>.equals(customName)) {
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>       valueName = Strings.methodToAttribute(prefix, methodName);
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>       valueName = customName;
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>     }
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>     <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a> existing = (BeanExportedValue) exported.get(valueName);
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>     <strong class="jxr_keyword">if</strong> (existing == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>       existing = <strong class="jxr_keyword">new</strong> <a href="../../../org/spf4j/jmx/BeanExportedValue.html">BeanExportedValue</a>(
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>               valueName, annot.description(),
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>               method, <strong class="jxr_keyword">null</strong>, object, method.getGenericReturnType(), annot.mapOpenType());
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>       <strong class="jxr_keyword">if</strong> (existing.getValueType() != method.getReturnType()) {
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalArgumentException(
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>                 <span class="jxr_string">"Getter and setter icorrectly defined "</span> + existing + ' ' + method);
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>       }
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>       existing = existing.withGetter(method, annot.description());
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>     }
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>     exported.put(valueName, existing);
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>   }
+<a class="jxr_linenumber" name="L362" href="#L362">362</a> 
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>   @Override
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"MBeanBuilder{"</span> + <span class="jxr_string">"exportedAttributes="</span> + exportedAttributes
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             + <span class="jxr_string">", exportedOps="</span> + exportedOps + '}';
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>   }
 <a class="jxr_linenumber" name="L368" href="#L368">368</a> 
 <a class="jxr_linenumber" name="L369" href="#L369">369</a> 
-<a class="jxr_linenumber" name="L370" href="#L370">370</a> }
+<a class="jxr_linenumber" name="L370" href="#L370">370</a> 
+<a class="jxr_linenumber" name="L371" href="#L371">371</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2021 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

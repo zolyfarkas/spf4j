@@ -15,6 +15,7 @@
  */
 package org.spf4j.avro.csv;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import javax.annotation.Nullable;
@@ -40,191 +41,192 @@ public final class CsvEncoder extends Encoder implements Parser.ActionHandler {
 
   private final Schema writerSchema;
 
-<span class="fc" id="L43">  private boolean firstItem = true;</span>
+<span class="fc" id="L44">  private boolean firstItem = true;</span>
 
-<span class="fc" id="L45">  public CsvEncoder(final CsvWriter csvWriter, final Schema writerSchema) throws IOException {</span>
-<span class="fc" id="L46">    this.csvWriter = csvWriter;</span>
-<span class="fc" id="L47">    this.parser = new Parser(new JsonGrammarGenerator().generate(writerSchema), this);</span>
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">    if (writerSchema.getType() != Schema.Type.ARRAY) {</span>
-<span class="nc" id="L49">      throw new IllegalArgumentException(&quot;schema must be an array: &quot; + writerSchema);</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L47">  public CsvEncoder(final CsvWriter csvWriter, final Schema writerSchema) {</span>
+<span class="fc" id="L48">    this.csvWriter = csvWriter;</span>
+<span class="fc" id="L49">    this.parser = new Parser(new JsonGrammarGenerator().generate(writerSchema), this);</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (writerSchema.getType() != Schema.Type.ARRAY) {</span>
+<span class="nc" id="L51">      throw new IllegalArgumentException(&quot;schema must be an array: &quot; + writerSchema);</span>
     }
-<span class="pc bpc" id="L51" title="1 of 2 branches missed.">    if (writerSchema.getElementType().getType() != Schema.Type.RECORD) {</span>
-<span class="nc" id="L52">      throw new IllegalArgumentException(&quot;schema  array element must be record: &quot; + writerSchema);</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">    if (writerSchema.getElementType().getType() != Schema.Type.RECORD) {</span>
+<span class="nc" id="L54">      throw new IllegalArgumentException(&quot;schema  array element must be record: &quot; + writerSchema);</span>
     }
-<span class="fc" id="L54">    this.writerSchema = writerSchema;</span>
-<span class="fc" id="L55">  }</span>
+<span class="fc" id="L56">    this.writerSchema = writerSchema;</span>
+<span class="fc" id="L57">  }</span>
 
   public void writeHeader() throws IOException {
-<span class="fc" id="L58">    writeHeader(&quot;&quot;, writerSchema.getElementType());</span>
-<span class="fc" id="L59">    csvWriter.writeEol();</span>
-<span class="fc" id="L60">  }</span>
+<span class="fc" id="L60">    writeHeader(&quot;&quot;, writerSchema.getElementType());</span>
+<span class="fc" id="L61">    csvWriter.writeEol();</span>
+<span class="fc" id="L62">  }</span>
 
   private void writeHeader(final String prefix, final Schema rowSchema) throws IOException {
-<span class="fc bfc" id="L63" title="All 2 branches covered.">    for (Schema.Field field : rowSchema.getFields()) {</span>
-<span class="fc" id="L64">      Schema schema = field.schema();</span>
-<span class="fc" id="L65">      Schema.Type type = schema.getType();</span>
-<span class="fc" id="L66">      String name = prefix + field.name();</span>
-<span class="pc bpc" id="L67" title="1 of 4 branches missed.">      switch (type) {</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">    for (Schema.Field field : rowSchema.getFields()) {</span>
+<span class="fc" id="L66">      Schema schema = field.schema();</span>
+<span class="fc" id="L67">      Schema.Type type = schema.getType();</span>
+<span class="fc" id="L68">      String name = prefix + field.name();</span>
+<span class="pc bpc" id="L69" title="1 of 4 branches missed.">      switch (type) {</span>
         case ARRAY:
         case MAP:
-<span class="nc" id="L70">          throw new UnsupportedOperationException(type + &quot; unsupported in CSV row&quot; + rowSchema);</span>
+<span class="nc" id="L72">          throw new UnsupportedOperationException(type + &quot; unsupported in CSV row&quot; + rowSchema);</span>
         case UNION:
-<span class="fc" id="L72">          csvWriter.writeElement(name + &quot;.type&quot;);</span>
-<span class="fc bfc" id="L73" title="All 2 branches covered.">          for (Schema us : schema.getTypes()) {</span>
-<span class="pc bpc" id="L74" title="1 of 2 branches missed.">            switch (us.getType()) {</span>
+<span class="fc" id="L74">          csvWriter.writeElement(name + &quot;.type&quot;);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">          for (Schema us : schema.getTypes()) {</span>
+<span class="pc bpc" id="L76" title="1 of 2 branches missed.">            switch (us.getType()) {</span>
               case ARRAY:
               case RECORD:
               case MAP:
-<span class="nc" id="L78">                throw new UnsupportedOperationException(type + &quot; unsupported in CSV row union&quot; + rowSchema);</span>
+<span class="nc" id="L80">                throw new UnsupportedOperationException(type + &quot; unsupported in CSV row union&quot; + rowSchema);</span>
               default:
-<span class="fc" id="L80">                continue;</span>
+<span class="fc" id="L82">                continue;</span>
             }
           }
-<span class="fc" id="L83">          csvWriter.writeElement(name);</span>
-<span class="fc" id="L84">          break;</span>
+<span class="fc" id="L85">          csvWriter.writeElement(name);</span>
+<span class="fc" id="L86">          break;</span>
         case RECORD:
-<span class="fc" id="L86">          writeHeader(name + '.', schema);</span>
-<span class="fc" id="L87">          break;</span>
+<span class="fc" id="L88">          writeHeader(name + '.', schema);</span>
+<span class="fc" id="L89">          break;</span>
         default:
-<span class="fc" id="L89">          csvWriter.writeElement(name);</span>
+<span class="fc" id="L91">          csvWriter.writeElement(name);</span>
       }
-<span class="fc" id="L91">    }</span>
-<span class="fc" id="L92">  }</span>
+<span class="fc" id="L93">    }</span>
+<span class="fc" id="L94">  }</span>
 
   @Override
   public void writeNull() throws IOException {
-<span class="fc" id="L96">    parser.advance(Symbol.NULL);</span>
-<span class="fc" id="L97">    csvWriter.writeElement(&quot;&quot;);</span>
-<span class="fc" id="L98">  }</span>
+<span class="fc" id="L98">    parser.advance(Symbol.NULL);</span>
+<span class="fc" id="L99">    csvWriter.writeElement(&quot;&quot;);</span>
+<span class="fc" id="L100">  }</span>
 
   @Override
   public void writeBoolean(final boolean bln) throws IOException {
-<span class="fc" id="L102">    parser.advance(Symbol.BOOLEAN);</span>
-<span class="fc" id="L103">    csvWriter.writeElement(Boolean.toString(bln));</span>
-<span class="fc" id="L104">  }</span>
+<span class="fc" id="L104">    parser.advance(Symbol.BOOLEAN);</span>
+<span class="fc" id="L105">    csvWriter.writeElement(Boolean.toString(bln));</span>
+<span class="fc" id="L106">  }</span>
 
   @Override
   public void writeInt(final int i) throws IOException {
-<span class="fc" id="L108">    parser.advance(Symbol.INT);</span>
-<span class="fc" id="L109">    csvWriter.writeElement(Integer.toString(i));</span>
-<span class="fc" id="L110">  }</span>
+<span class="fc" id="L110">    parser.advance(Symbol.INT);</span>
+<span class="fc" id="L111">    csvWriter.writeElement(Integer.toString(i));</span>
+<span class="fc" id="L112">  }</span>
 
   @Override
   public void writeLong(final long l) throws IOException {
-<span class="fc" id="L114">    parser.advance(Symbol.LONG);</span>
-<span class="fc" id="L115">    csvWriter.writeElement(Long.toString(l));</span>
-<span class="fc" id="L116">  }</span>
+<span class="fc" id="L116">    parser.advance(Symbol.LONG);</span>
+<span class="fc" id="L117">    csvWriter.writeElement(Long.toString(l));</span>
+<span class="fc" id="L118">  }</span>
 
   @Override
   public void writeFloat(final float f) throws IOException {
-<span class="nc" id="L120">    parser.advance(Symbol.FLOAT);</span>
-<span class="nc" id="L121">    csvWriter.writeElement(Float.toString(f));</span>
-<span class="nc" id="L122">  }</span>
+<span class="nc" id="L122">    parser.advance(Symbol.FLOAT);</span>
+<span class="nc" id="L123">    csvWriter.writeElement(Float.toString(f));</span>
+<span class="nc" id="L124">  }</span>
 
   @Override
   public void writeDouble(final double d) throws IOException {
-<span class="fc" id="L126">    parser.advance(Symbol.DOUBLE);</span>
-<span class="fc" id="L127">    csvWriter.writeElement(Double.toString(d));</span>
-<span class="fc" id="L128">  }</span>
+<span class="fc" id="L128">    parser.advance(Symbol.DOUBLE);</span>
+<span class="fc" id="L129">    csvWriter.writeElement(Double.toString(d));</span>
+<span class="fc" id="L130">  }</span>
 
   @Override
   public void writeString(final Utf8 utf8) throws IOException {
-<span class="fc" id="L132">    parser.advance(Symbol.STRING);</span>
-<span class="fc" id="L133">    csvWriter.writeElement(utf8);</span>
-<span class="fc" id="L134">  }</span>
+<span class="fc" id="L134">    parser.advance(Symbol.STRING);</span>
+<span class="fc" id="L135">    csvWriter.writeElement(utf8);</span>
+<span class="fc" id="L136">  }</span>
 
   @Override
   public void writeBytes(final ByteBuffer bb) throws IOException {
-<span class="fc" id="L138">    parser.advance(Symbol.BYTES);</span>
-<span class="fc" id="L139">    int position = bb.position();</span>
-<span class="fc" id="L140">    csvWriter.writeElement(Base64.encodeBase64(bb.array(), bb.arrayOffset() + position, bb.limit() - position));</span>
-<span class="fc" id="L141">  }</span>
+<span class="fc" id="L140">    parser.advance(Symbol.BYTES);</span>
+<span class="fc" id="L141">    int position = bb.position();</span>
+<span class="fc" id="L142">    csvWriter.writeElement(Base64.encodeBase64(bb.array(), bb.arrayOffset() + position, bb.limit() - position));</span>
+<span class="fc" id="L143">  }</span>
 
   @Override
   public void writeBytes(final byte[] bytes, final int i, final int length) throws IOException {
-<span class="nc" id="L145">    parser.advance(Symbol.BYTES);</span>
-<span class="nc" id="L146">    csvWriter.writeElement(Base64.encodeBase64(bytes, i, length));</span>
-<span class="nc" id="L147">  }</span>
+<span class="nc" id="L147">    parser.advance(Symbol.BYTES);</span>
+<span class="nc" id="L148">    csvWriter.writeElement(Base64.encodeBase64(bytes, i, length));</span>
+<span class="nc" id="L149">  }</span>
 
   @Override
   public void writeFixed(final byte[] bytes, final int i, final int length) throws IOException {
-<span class="nc" id="L151">    parser.advance(Symbol.FIXED);</span>
-<span class="nc" id="L152">    csvWriter.writeElement(Base64.encodeBase64(bytes, i, length));</span>
-<span class="nc" id="L153">  }</span>
+<span class="nc" id="L153">    parser.advance(Symbol.FIXED);</span>
+<span class="nc" id="L154">    csvWriter.writeElement(Base64.encodeBase64(bytes, i, length));</span>
+<span class="nc" id="L155">  }</span>
 
   @Override
   public void writeEnum(final int e) throws IOException {
-<span class="fc" id="L157">    parser.advance(Symbol.ENUM);</span>
-<span class="fc" id="L158">    Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();</span>
-<span class="fc" id="L159">    csvWriter.writeElement(top.getLabel(e));</span>
-<span class="fc" id="L160">  }</span>
+<span class="fc" id="L159">    parser.advance(Symbol.ENUM);</span>
+<span class="fc" id="L160">    Symbol.EnumLabelsAction top = (Symbol.EnumLabelsAction) parser.popSymbol();</span>
+<span class="fc" id="L161">    csvWriter.writeElement(top.getLabel(e));</span>
+<span class="fc" id="L162">  }</span>
 
   @Override
   public void writeArrayStart() throws IOException {
-<span class="fc" id="L164">    firstItem = true;</span>
-<span class="fc" id="L165">    parser.advance(Symbol.ARRAY_START);</span>
+<span class="fc" id="L166">    firstItem = true;</span>
+<span class="fc" id="L167">    parser.advance(Symbol.ARRAY_START);</span>
     // do nothing.
-<span class="fc" id="L167">  }</span>
+<span class="fc" id="L169">  }</span>
 
   @Override
   public void writeArrayEnd() throws IOException {
-<span class="fc" id="L171">    parser.advance(Symbol.ITEM_END);</span>
-<span class="fc" id="L172">    parser.advance(Symbol.ARRAY_END);</span>
+<span class="fc" id="L173">    parser.advance(Symbol.ITEM_END);</span>
+<span class="fc" id="L174">    parser.advance(Symbol.ARRAY_END);</span>
     // do nothing.
-<span class="fc" id="L174">  }</span>
+<span class="fc" id="L176">  }</span>
 
   @Override
   public void writeMapStart() {
-<span class="nc" id="L178">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L180">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public void writeMapEnd() {
-<span class="nc" id="L183">    throw new UnsupportedOperationException();</span>
+<span class="nc" id="L185">    throw new UnsupportedOperationException();</span>
   }
 
   @Override
   public void writeIndex(final int unionIndex) throws IOException {
-<span class="fc" id="L188">    parser.advance(Symbol.UNION);</span>
-<span class="fc" id="L189">    Symbol.Alternative top = (Symbol.Alternative) parser.popSymbol();</span>
-<span class="fc" id="L190">    Symbol symbol = top.getSymbol(unionIndex);</span>
-<span class="fc" id="L191">    csvWriter.writeElement(top.getLabel(unionIndex));</span>
-<span class="fc" id="L192">    parser.pushSymbol(Symbol.UNION_END);</span>
-<span class="fc" id="L193">    parser.pushSymbol(symbol);</span>
-<span class="fc" id="L194">  }</span>
+<span class="fc" id="L190">    parser.advance(Symbol.UNION);</span>
+<span class="fc" id="L191">    Symbol.Alternative top = (Symbol.Alternative) parser.popSymbol();</span>
+<span class="fc" id="L192">    Symbol symbol = top.getSymbol(unionIndex);</span>
+<span class="fc" id="L193">    csvWriter.writeElement(top.getLabel(unionIndex));</span>
+<span class="fc" id="L194">    parser.pushSymbol(Symbol.UNION_END);</span>
+<span class="fc" id="L195">    parser.pushSymbol(symbol);</span>
+<span class="fc" id="L196">  }</span>
 
   @Override
   public void flush() throws IOException {
-<span class="fc" id="L198">    csvWriter.flush();</span>
-<span class="fc" id="L199">  }</span>
+<span class="fc" id="L200">    csvWriter.flush();</span>
+<span class="fc" id="L201">  }</span>
 
   @Override
   @Nullable
   public Symbol doAction(final Symbol symbol, final Symbol symbol1) {
-<span class="fc" id="L204">    return null;</span>
+<span class="fc" id="L206">    return null;</span>
   }
 
   @Override
   public void setItemCount(final long l) {
     // nothing to do.
-<span class="fc" id="L210">  }</span>
+<span class="fc" id="L212">  }</span>
 
   @Override
   public void startItem() throws IOException {
-<span class="fc bfc" id="L214" title="All 2 branches covered.">    if (!firstItem) {</span>
-<span class="fc" id="L215">      parser.advance(Symbol.ITEM_END);</span>
-<span class="fc" id="L216">      csvWriter.writeEol();</span>
+<span class="fc bfc" id="L216" title="All 2 branches covered.">    if (!firstItem) {</span>
+<span class="fc" id="L217">      parser.advance(Symbol.ITEM_END);</span>
+<span class="fc" id="L218">      csvWriter.writeEol();</span>
     } else {
-<span class="fc" id="L218">      firstItem = false;</span>
+<span class="fc" id="L220">      firstItem = false;</span>
     }
     // nothing to do
-<span class="fc" id="L221">  }</span>
+<span class="fc" id="L223">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L225">    return &quot;CsvEncoder{&quot; + &quot;csvWriter=&quot; + csvWriter + &quot;, parser=&quot; + parser</span>
+<span class="nc" id="L227">    return &quot;CsvEncoder{&quot; + &quot;csvWriter=&quot; + csvWriter + &quot;, parser=&quot; + parser</span>
             + &quot;, writerSchema=&quot; + writerSchema + &quot;, firstItem=&quot; + firstItem + '}';
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

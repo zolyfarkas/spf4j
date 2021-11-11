@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>SLEEP.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel-javax</a> &gt; <a href="../index.html" class="el_bundle">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.instr</a> &gt; <span class="el_source">SLEEP.java</span></div><h1>SLEEP.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.zel.instr;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import org.spf4j.base.Arrays;
+import org.spf4j.concurrent.DefaultScheduler;
+import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.SuspendedException;
+import org.spf4j.zel.vm.VMASyncFuture;
+
+/**
+ *
+ * @author zoly
+ */
+@SuppressFBWarnings(&quot;MDM_THREAD_YIELD&quot;)
+public final class SLEEP extends Instruction {
+
+  private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L52">  public static final Instruction INSTANCE = new SLEEP();</span>
+
+  private SLEEP() {
+  }
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws SuspendedException, InterruptedException, ExecutionException {
+<span class="fc" id="L60">    Number param = (Number) context.popSyncStackVal();</span>
+<span class="fc" id="L61">    final long sleepMillis = param.longValue();</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">    if (sleepMillis &gt; 0) {</span>
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">      if (context.getExecService() == null) {</span>
+<span class="nc" id="L64">        Thread.sleep(sleepMillis);</span>
+      } else {
+<span class="fc" id="L66">        final VMASyncFuture&lt;Object&gt; future = new VMASyncFuture&lt;&gt;();</span>
+<span class="fc" id="L67">        DefaultScheduler.INSTANCE.schedule(</span>
+                new RunnableImpl(context, future), sleepMillis, TimeUnit.MILLISECONDS);
+<span class="fc" id="L69">        context.incrementInstructionPointer();</span>
+<span class="nc" id="L70">        context.suspend(future);</span>
+      }
+    }
+<span class="fc" id="L73">    return 1;</span>
+
+  }
+
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L79">    return Arrays.EMPTY_OBJ_ARRAY;</span>
+  }
+
+  private static final class RunnableImpl implements Runnable {
+
+    private final ExecutionContext context;
+    private final VMASyncFuture&lt;Object&gt; future;
+
+<span class="fc" id="L87">    RunnableImpl(final ExecutionContext context, final VMASyncFuture&lt;Object&gt; future) {</span>
+<span class="fc" id="L88">      this.context = context;</span>
+<span class="fc" id="L89">      this.future = future;</span>
+<span class="fc" id="L90">    }</span>
+
+    @Override
+    public void run() {
+      Object stuff;
+      do {
+<span class="fc" id="L96">        stuff = context.getExecService().resumeSuspendables(future);</span>
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">      } while (stuff == null);</span>
+<span class="fc" id="L98">    }</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

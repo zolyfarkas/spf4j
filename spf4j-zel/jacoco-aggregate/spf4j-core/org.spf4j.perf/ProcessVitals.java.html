@@ -38,10 +38,12 @@ import org.spf4j.perf.memory.GCUsageSampler;
 import org.spf4j.perf.memory.MemoryUsageSampler;
 
 /**
- * Utility monitoring to collect
+ * Utility to collect process vitals. (cpu, memory, ...)
  * @author Zoltan Farkas
  */
 public final class ProcessVitals implements AutoCloseable {
+
+  private static ProcessVitals vitalsSigleton;
 
   private final int openFilesSampleTimeMillis;
 
@@ -53,51 +55,69 @@ public final class ProcessVitals implements AutoCloseable {
 
   private final int cpuUseSampleTimeMillis;
 
-  public ProcessVitals() {
-<span class="nc" id="L57">    this(Integer.getInteger(&quot;spf4j.vitals.openFilesSampleTimeMillis&quot;, 60000),</span>
-<span class="nc" id="L58">         Integer.getInteger(&quot;spf4j.vitals.memoryUseSampleTimeMillis&quot;, 6000),</span>
-<span class="nc" id="L59">         Integer.getInteger(&quot;spf4j.vitals.gcUseSampleTimeMillis&quot;, 10000),</span>
-<span class="nc" id="L60">         Integer.getInteger(&quot;spf4j.vitals.threadUseSampleTimeMillis&quot;, 10000),</span>
-<span class="nc" id="L61">         Integer.getInteger(&quot;spf4j.vitals.cpuUseSampleTimeMillis&quot;, 10000));</span>
-<span class="nc" id="L62">  }</span>
-
-
-  public ProcessVitals(final int openFilesSampleTimeMillis,
+  private ProcessVitals(final int openFilesSampleTimeMillis,
           final int memoryUseSampleTimeMillis,
           final int gcUseSampleTimeMillis,
           final int threadUseSampleTimeMillis,
-<span class="nc" id="L69">          final int cpuUseSampleTimeMillis) {</span>
-<span class="nc" id="L70">    this.openFilesSampleTimeMillis = openFilesSampleTimeMillis;</span>
-<span class="nc" id="L71">    this.memoryUseSampleTimeMillis = memoryUseSampleTimeMillis;</span>
-<span class="nc" id="L72">    this.gcUseSampleTimeMillis = gcUseSampleTimeMillis;</span>
-<span class="nc" id="L73">    this.threadUseSampleTimeMillis = threadUseSampleTimeMillis;</span>
-<span class="nc" id="L74">    this.cpuUseSampleTimeMillis = cpuUseSampleTimeMillis;</span>
-<span class="nc" id="L75">  }</span>
+<span class="fc" id="L62">          final int cpuUseSampleTimeMillis) {</span>
+<span class="fc" id="L63">    this.openFilesSampleTimeMillis = openFilesSampleTimeMillis;</span>
+<span class="fc" id="L64">    this.memoryUseSampleTimeMillis = memoryUseSampleTimeMillis;</span>
+<span class="fc" id="L65">    this.gcUseSampleTimeMillis = gcUseSampleTimeMillis;</span>
+<span class="fc" id="L66">    this.threadUseSampleTimeMillis = threadUseSampleTimeMillis;</span>
+<span class="fc" id="L67">    this.cpuUseSampleTimeMillis = cpuUseSampleTimeMillis;</span>
+<span class="fc" id="L68">  }</span>
 
 
+  public static synchronized ProcessVitals get() {
+<span class="nc" id="L72">    return vitalsSigleton;</span>
+  }
+
+  public static ProcessVitals getOrCreate() {
+<span class="fc" id="L76">    return getOrCreate(Integer.getInteger(&quot;spf4j.vitals.openFilesSampleTimeMillis&quot;, 60000),</span>
+<span class="fc" id="L77">         Integer.getInteger(&quot;spf4j.vitals.memoryUseSampleTimeMillis&quot;, 5000),</span>
+<span class="fc" id="L78">         Integer.getInteger(&quot;spf4j.vitals.gcUseSampleTimeMillis&quot;, 5000),</span>
+<span class="fc" id="L79">         Integer.getInteger(&quot;spf4j.vitals.threadUseSampleTimeMillis&quot;, 5000),</span>
+<span class="fc" id="L80">         Integer.getInteger(&quot;spf4j.vitals.cpuUseSampleTimeMillis&quot;, 5000));</span>
+  }
+
+  public static synchronized ProcessVitals getOrCreate(final int openFilesSampleTimeMillis,
+          final int memoryUseSampleTimeMillis,
+          final int gcUseSampleTimeMillis,
+          final int threadUseSampleTimeMillis,
+          final int cpuUseSampleTimeMillis) {
+<span class="fc" id="L88">    ProcessVitals current = vitalsSigleton;</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">    if (current != null) {</span>
+<span class="nc" id="L90">      return current;</span>
+    }
+<span class="fc" id="L92">    current = new ProcessVitals(openFilesSampleTimeMillis,</span>
+            memoryUseSampleTimeMillis, gcUseSampleTimeMillis,
+            threadUseSampleTimeMillis, cpuUseSampleTimeMillis);
+<span class="fc" id="L95">    vitalsSigleton = current;</span>
+<span class="fc" id="L96">    return current;</span>
+  }
 
 
   public void start() {
-<span class="nc" id="L81">    OpenFilesSampler.start(openFilesSampleTimeMillis);</span>
-<span class="nc" id="L82">    MemoryUsageSampler.start(memoryUseSampleTimeMillis);</span>
-<span class="nc" id="L83">    GCUsageSampler.start(gcUseSampleTimeMillis);</span>
-<span class="nc" id="L84">    ThreadUsageSampler.start(threadUseSampleTimeMillis);</span>
-<span class="nc" id="L85">    CpuUsageSampler.start(cpuUseSampleTimeMillis);</span>
-<span class="nc" id="L86">  }</span>
+<span class="fc" id="L101">    OpenFilesSampler.start(openFilesSampleTimeMillis);</span>
+<span class="fc" id="L102">    MemoryUsageSampler.start(memoryUseSampleTimeMillis);</span>
+<span class="fc" id="L103">    GCUsageSampler.start(gcUseSampleTimeMillis);</span>
+<span class="fc" id="L104">    ThreadUsageSampler.start(threadUseSampleTimeMillis);</span>
+<span class="fc" id="L105">    CpuUsageSampler.start(cpuUseSampleTimeMillis);</span>
+<span class="fc" id="L106">  }</span>
 
 
   @Override
   public void close()  {
-<span class="nc" id="L91">    OpenFilesSampler.stop();</span>
-<span class="nc" id="L92">    MemoryUsageSampler.stop();</span>
-<span class="nc" id="L93">    GCUsageSampler.stop();</span>
-<span class="nc" id="L94">    ThreadUsageSampler.stop();</span>
-<span class="nc" id="L95">    CpuUsageSampler.stop();</span>
-<span class="nc" id="L96">  }</span>
+<span class="fc" id="L111">    OpenFilesSampler.stop();</span>
+<span class="fc" id="L112">    MemoryUsageSampler.stop();</span>
+<span class="fc" id="L113">    GCUsageSampler.stop();</span>
+<span class="fc" id="L114">    ThreadUsageSampler.stop();</span>
+<span class="fc" id="L115">    CpuUsageSampler.stop();</span>
+<span class="fc" id="L116">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L100">    return &quot;ProcessVitals{&quot; + &quot;openFilesSampleTimeMillis=&quot; + openFilesSampleTimeMillis</span>
+<span class="nc" id="L120">    return &quot;ProcessVitals{&quot; + &quot;openFilesSampleTimeMillis=&quot; + openFilesSampleTimeMillis</span>
             + &quot;, memoryUseSampleTimeMillis=&quot; + memoryUseSampleTimeMillis + &quot;, gcUseSampleTimeMillis=&quot;
             + gcUseSampleTimeMillis + &quot;, threadUseSampleTimeMillis=&quot; + threadUseSampleTimeMillis
             + &quot;, cpuUseSampleTimeMillis=&quot; + cpuUseSampleTimeMillis + '}';
@@ -107,4 +127,4 @@ public final class ProcessVitals implements AutoCloseable {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

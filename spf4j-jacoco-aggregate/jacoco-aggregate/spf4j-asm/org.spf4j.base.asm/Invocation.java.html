@@ -31,6 +31,7 @@
  */
 package org.spf4j.base.asm;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -49,92 +50,94 @@ public final class Invocation {
     private final Object[] parameters;
     private final Method invokedMethod;
 
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
     public Invocation(final String cName, final String mName, final String mDesc,
-<span class="fc" id="L53">            final Object[] parameters, final String src, final int ln, final Method invokedMethod) {</span>
-<span class="fc" id="L54">        caleeClassName = cName;</span>
-<span class="fc" id="L55">        caleeMethodName = mName;</span>
-<span class="fc" id="L56">        caleeMethodDesc = mDesc;</span>
-<span class="fc" id="L57">        this.parameters = parameters.clone();</span>
-<span class="fc" id="L58">        caleeSource = src;</span>
-<span class="fc" id="L59">        caleeLine = ln;</span>
-<span class="fc" id="L60">        this.invokedMethod = invokedMethod;</span>
-<span class="fc" id="L61">    }</span>
+<span class="fc" id="L55">            final Object[] parameters, final String src, final int ln, final Method invokedMethod) {</span>
+<span class="fc" id="L56">        caleeClassName = cName;</span>
+<span class="fc" id="L57">        caleeMethodName = mName;</span>
+<span class="fc" id="L58">        caleeMethodDesc = mDesc;</span>
+<span class="fc" id="L59">        this.parameters = parameters.clone();</span>
+<span class="fc" id="L60">        caleeSource = src;</span>
+<span class="fc" id="L61">        caleeLine = ln;</span>
+<span class="fc" id="L62">        this.invokedMethod = invokedMethod;</span>
+<span class="fc" id="L63">    }</span>
 
     public String getCaleeClassName() {
-<span class="nc" id="L64">        return caleeClassName;</span>
+<span class="nc" id="L66">        return caleeClassName;</span>
     }
 
     public String getCaleeMethodName() {
-<span class="fc" id="L68">        return caleeMethodName;</span>
+<span class="fc" id="L70">        return caleeMethodName;</span>
     }
 
     public String getCaleeMethodDesc() {
-<span class="nc" id="L72">        return caleeMethodDesc;</span>
+<span class="nc" id="L74">        return caleeMethodDesc;</span>
     }
 
     public String getCaleeSource() {
-<span class="nc" id="L76">        return caleeSource;</span>
+<span class="nc" id="L78">        return caleeSource;</span>
     }
 
     public int getCaleeLine() {
-<span class="nc" id="L80">        return caleeLine;</span>
+<span class="nc" id="L82">        return caleeLine;</span>
     }
 
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
     public Method getInvokedMethod() {
-<span class="fc" id="L84">        return invokedMethod;</span>
+<span class="fc" id="L87">        return invokedMethod;</span>
     }
 
     public Object[] getParameters() {
-<span class="fc" id="L88">        return parameters.clone();</span>
+<span class="fc" id="L91">        return parameters.clone();</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L93">        return &quot;Invocation{&quot; + &quot;caleeClassName=&quot; + caleeClassName + &quot;, caleeMethodName=&quot;</span>
+<span class="fc" id="L96">        return &quot;Invocation{&quot; + &quot;caleeClassName=&quot; + caleeClassName + &quot;, caleeMethodName=&quot;</span>
                 + caleeMethodName + &quot;, caleeMethodDesc=&quot; + caleeMethodDesc + &quot;, caleeSource=&quot;
-<span class="fc" id="L95">                + caleeSource + &quot;, caleeLine=&quot; + caleeLine + &quot;, parameters=&quot; + Arrays.toString(parameters)</span>
+<span class="fc" id="L98">                + caleeSource + &quot;, caleeLine=&quot; + caleeLine + &quot;, parameters=&quot; + Arrays.toString(parameters)</span>
                 + &quot;, invokedMethod=&quot; + invokedMethod + '}';
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L101">        int hash = 7;</span>
-<span class="nc" id="L102">        hash = 97 * hash + Objects.hashCode(this.caleeClassName);</span>
-<span class="nc" id="L103">        return 97 * hash + Objects.hashCode(this.caleeMethodName);</span>
+<span class="nc" id="L104">        int hash = 7;</span>
+<span class="nc" id="L105">        hash = 97 * hash + Objects.hashCode(this.caleeClassName);</span>
+<span class="nc" id="L106">        return 97 * hash + Objects.hashCode(this.caleeMethodName);</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="nc bnc" id="L108" title="All 2 branches missed.">        if (this == obj) {</span>
-<span class="nc" id="L109">            return true;</span>
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (this == obj) {</span>
+<span class="nc" id="L112">            return true;</span>
         }
-<span class="nc bnc" id="L111" title="All 2 branches missed.">        if (obj == null) {</span>
-<span class="nc" id="L112">            return false;</span>
-        }
-<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (obj == null) {</span>
 <span class="nc" id="L115">            return false;</span>
         }
-<span class="nc" id="L117">        final Invocation other = (Invocation) obj;</span>
-<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (this.caleeLine != other.caleeLine) {</span>
-<span class="nc" id="L119">            return false;</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">        if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L118">            return false;</span>
         }
-<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (!Objects.equals(this.caleeClassName, other.caleeClassName)) {</span>
+<span class="nc" id="L120">        final Invocation other = (Invocation) obj;</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (this.caleeLine != other.caleeLine) {</span>
 <span class="nc" id="L122">            return false;</span>
         }
-<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (!Objects.equals(this.caleeMethodName, other.caleeMethodName)) {</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (!Objects.equals(this.caleeClassName, other.caleeClassName)) {</span>
 <span class="nc" id="L125">            return false;</span>
         }
-<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (!Objects.equals(this.caleeMethodDesc, other.caleeMethodDesc)) {</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">        if (!Objects.equals(this.caleeMethodName, other.caleeMethodName)) {</span>
 <span class="nc" id="L128">            return false;</span>
         }
-<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (!Objects.equals(this.caleeSource, other.caleeSource)) {</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (!Objects.equals(this.caleeMethodDesc, other.caleeMethodDesc)) {</span>
 <span class="nc" id="L131">            return false;</span>
         }
-<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (!Arrays.deepEquals(this.parameters, other.parameters)) {</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        if (!Objects.equals(this.caleeSource, other.caleeSource)) {</span>
 <span class="nc" id="L134">            return false;</span>
         }
-<span class="nc" id="L136">        return Objects.equals(this.invokedMethod, other.invokedMethod);</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        if (!Arrays.deepEquals(this.parameters, other.parameters)) {</span>
+<span class="nc" id="L137">            return false;</span>
+        }
+<span class="nc" id="L139">        return Objects.equals(this.invokedMethod, other.invokedMethod);</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

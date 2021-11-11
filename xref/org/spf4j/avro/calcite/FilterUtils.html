@@ -105,42 +105,43 @@
 <a class="jxr_linenumber" name="L97" href="#L97">97</a>  
 <a class="jxr_linenumber" name="L98" href="#L98">98</a>    <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Predicate&lt;IndexedRecord&gt; toPredicate(<strong class="jxr_keyword">final</strong> List&lt;RexNode&gt; filter,
 <a class="jxr_linenumber" name="L99" href="#L99">99</a>            <strong class="jxr_keyword">final</strong> JavaTypeFactoryImpl javaTypeFactoryImpl, <strong class="jxr_keyword">final</strong> RelDataType rowType) {
-<a class="jxr_linenumber" name="L100" href="#L100">100</a>     Scalar scalar = InterpreterUtils.toScalar(filter, javaTypeFactoryImpl, rowType);
-<a class="jxr_linenumber" name="L101" href="#L101">101</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Predicate&lt;IndexedRecord&gt;() {
-<a class="jxr_linenumber" name="L102" href="#L102">102</a> 
-<a class="jxr_linenumber" name="L103" href="#L103">103</a>       <strong class="jxr_keyword">private</strong> <a href="../../../../org/apache/calcite/interpreter/Spf4jDataContext.html">Spf4jDataContext</a> context = <strong class="jxr_keyword">new</strong> <a href="../../../../org/apache/calcite/interpreter/Spf4jDataContext.html">Spf4jDataContext</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/avro/calcite/EmbededDataContext.html">EmbededDataContext</a>(javaTypeFactoryImpl, <strong class="jxr_keyword">null</strong>));
-<a class="jxr_linenumber" name="L104" href="#L104">104</a>       {
-<a class="jxr_linenumber" name="L105" href="#L105">105</a>         context.values =  <strong class="jxr_keyword">new</strong> Object[rowType.getFieldCount()];
-<a class="jxr_linenumber" name="L106" href="#L106">106</a>       }
-<a class="jxr_linenumber" name="L107" href="#L107">107</a> 
-<a class="jxr_linenumber" name="L108" href="#L108">108</a>       @Override
-<a class="jxr_linenumber" name="L109" href="#L109">109</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">boolean</strong> test(<strong class="jxr_keyword">final</strong> IndexedRecord x) {
-<a class="jxr_linenumber" name="L110" href="#L110">110</a>         IndexedRecords.copyRecord(x, context.values);
-<a class="jxr_linenumber" name="L111" href="#L111">111</a>         <strong class="jxr_keyword">return</strong> (Boolean) scalar.execute(context);
-<a class="jxr_linenumber" name="L112" href="#L112">112</a>       }
-<a class="jxr_linenumber" name="L113" href="#L113">113</a>     };
-<a class="jxr_linenumber" name="L114" href="#L114">114</a>   }
-<a class="jxr_linenumber" name="L115" href="#L115">115</a> 
-<a class="jxr_linenumber" name="L116" href="#L116">116</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Predicate&lt;IndexedRecord&gt; toPredicate(@Nullable <strong class="jxr_keyword">final</strong> Iterable&lt;String&gt; expr,
-<a class="jxr_linenumber" name="L117" href="#L117">117</a>           <strong class="jxr_keyword">final</strong> Schema recSchema) <strong class="jxr_keyword">throws</strong> SqlParseException, ValidationException, RelConversionException {
-<a class="jxr_linenumber" name="L118" href="#L118">118</a>     <strong class="jxr_keyword">if</strong> (expr == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L119" href="#L119">119</a>       <strong class="jxr_keyword">return</strong> (x) -&gt; <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L120" href="#L120">120</a>     }
-<a class="jxr_linenumber" name="L121" href="#L121">121</a>     Iterator&lt;String&gt; it = expr.iterator();
-<a class="jxr_linenumber" name="L122" href="#L122">122</a>     <strong class="jxr_keyword">if</strong> (!it.hasNext()) {
-<a class="jxr_linenumber" name="L123" href="#L123">123</a>       <strong class="jxr_keyword">return</strong> (x) -&gt; <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L124" href="#L124">124</a>     }
-<a class="jxr_linenumber" name="L125" href="#L125">125</a>     Predicate&lt;IndexedRecord&gt; result = toPredicate(it.next(), recSchema);
-<a class="jxr_linenumber" name="L126" href="#L126">126</a>     <strong class="jxr_keyword">while</strong> (it.hasNext()) {
-<a class="jxr_linenumber" name="L127" href="#L127">127</a>       result = result.and(toPredicate(it.next(), recSchema));
-<a class="jxr_linenumber" name="L128" href="#L128">128</a>     }
-<a class="jxr_linenumber" name="L129" href="#L129">129</a>     <strong class="jxr_keyword">return</strong> result;
-<a class="jxr_linenumber" name="L130" href="#L130">130</a>   }
-<a class="jxr_linenumber" name="L131" href="#L131">131</a> 
+<a class="jxr_linenumber" name="L100" href="#L100">100</a>     <a href="../../../../org/apache/calcite/interpreter/Spf4jDataContext.html">Spf4jDataContext</a> context = <strong class="jxr_keyword">new</strong> <a href="../../../../org/apache/calcite/interpreter/Spf4jDataContext.html">Spf4jDataContext</a>(<strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/avro/calcite/EmbededDataContext.html">EmbededDataContext</a>(javaTypeFactoryImpl, <strong class="jxr_keyword">null</strong>));
+<a class="jxr_linenumber" name="L101" href="#L101">101</a>     context.values =  <strong class="jxr_keyword">new</strong> Object[rowType.getFieldCount()];
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     Scalar scalar = InterpreterUtils.toScalar(filter, rowType, context.root);
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">new</strong> Predicate&lt;IndexedRecord&gt;() {
+<a class="jxr_linenumber" name="L104" href="#L104">104</a> 
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>       @Override
+<a class="jxr_linenumber" name="L106" href="#L106">106</a>       <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> <strong class="jxr_keyword">boolean</strong> test(<strong class="jxr_keyword">final</strong> IndexedRecord x) {
+<a class="jxr_linenumber" name="L107" href="#L107">107</a>         IndexedRecords.copyRecord(x, context.values);
+<a class="jxr_linenumber" name="L108" href="#L108">108</a>         Boolean result = (Boolean) scalar.execute(context);
+<a class="jxr_linenumber" name="L109" href="#L109">109</a>         <strong class="jxr_keyword">if</strong> (result == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L110" href="#L110">110</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IllegalStateException(<span class="jxr_string">"Filter predicate: "</span> + filter + <span class="jxr_string">" cannot eval to null"</span>);
+<a class="jxr_linenumber" name="L111" href="#L111">111</a>         }
+<a class="jxr_linenumber" name="L112" href="#L112">112</a>         <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L113" href="#L113">113</a>       }
+<a class="jxr_linenumber" name="L114" href="#L114">114</a>     };
+<a class="jxr_linenumber" name="L115" href="#L115">115</a>   }
+<a class="jxr_linenumber" name="L116" href="#L116">116</a> 
+<a class="jxr_linenumber" name="L117" href="#L117">117</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> Predicate&lt;IndexedRecord&gt; toPredicate(@Nullable <strong class="jxr_keyword">final</strong> Iterable&lt;String&gt; expr,
+<a class="jxr_linenumber" name="L118" href="#L118">118</a>           <strong class="jxr_keyword">final</strong> Schema recSchema) <strong class="jxr_keyword">throws</strong> SqlParseException, ValidationException, RelConversionException {
+<a class="jxr_linenumber" name="L119" href="#L119">119</a>     <strong class="jxr_keyword">if</strong> (expr == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L120" href="#L120">120</a>       <strong class="jxr_keyword">return</strong> (x) -&gt; <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L121" href="#L121">121</a>     }
+<a class="jxr_linenumber" name="L122" href="#L122">122</a>     Iterator&lt;String&gt; it = expr.iterator();
+<a class="jxr_linenumber" name="L123" href="#L123">123</a>     <strong class="jxr_keyword">if</strong> (!it.hasNext()) {
+<a class="jxr_linenumber" name="L124" href="#L124">124</a>       <strong class="jxr_keyword">return</strong> (x) -&gt; <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L125" href="#L125">125</a>     }
+<a class="jxr_linenumber" name="L126" href="#L126">126</a>     Predicate&lt;IndexedRecord&gt; result = toPredicate(it.next(), recSchema);
+<a class="jxr_linenumber" name="L127" href="#L127">127</a>     <strong class="jxr_keyword">while</strong> (it.hasNext()) {
+<a class="jxr_linenumber" name="L128" href="#L128">128</a>       result = result.and(toPredicate(it.next(), recSchema));
+<a class="jxr_linenumber" name="L129" href="#L129">129</a>     }
+<a class="jxr_linenumber" name="L130" href="#L130">130</a>     <strong class="jxr_keyword">return</strong> result;
+<a class="jxr_linenumber" name="L131" href="#L131">131</a>   }
 <a class="jxr_linenumber" name="L132" href="#L132">132</a> 
-<a class="jxr_linenumber" name="L133" href="#L133">133</a> }
+<a class="jxr_linenumber" name="L133" href="#L133">133</a> 
+<a class="jxr_linenumber" name="L134" href="#L134">134</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2021 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

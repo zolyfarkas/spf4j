@@ -75,10 +75,10 @@ public final class PushbackReader extends FilterReader {
 
     @Override
     public int read(final char[] cbuf, final int poff, final int plen) throws IOException {
-<span class="nc" id="L78">        int off = poff;</span>
-<span class="nc" id="L79">        int len = plen;</span>
-<span class="nc" id="L80">        ensureOpen();</span>
-<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (len &lt;= 0) {</span>
+<span class="fc" id="L78">        int off = poff;</span>
+<span class="fc" id="L79">        int len = plen;</span>
+<span class="fc" id="L80">        ensureOpen();</span>
+<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (len &lt;= 0) {</span>
 <span class="nc bnc" id="L82" title="All 2 branches missed.">            if (len &lt; 0) {</span>
 <span class="nc" id="L83">                throw new IndexOutOfBoundsException(&quot;len = &quot; + len);</span>
 <span class="nc bnc" id="L84" title="All 4 branches missed.">            } else if ((off &lt; 0) || (off &gt; cbuf.length)) {</span>
@@ -86,22 +86,22 @@ public final class PushbackReader extends FilterReader {
             }
 <span class="nc" id="L87">            return 0;</span>
         }
-<span class="nc" id="L89">        int avail = buf.length - pos;</span>
-<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (avail &gt; 0) {</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">            if (len &lt; avail) {</span>
+<span class="fc" id="L89">        int avail = buf.length - pos;</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">        if (avail &gt; 0) {</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">            if (len &lt; avail) {</span>
 <span class="nc" id="L92">                avail = len;</span>
             }
-<span class="nc" id="L94">            System.arraycopy(buf, pos, cbuf, off, avail);</span>
-<span class="nc" id="L95">            pos += avail;</span>
-<span class="nc" id="L96">            off += avail;</span>
-<span class="nc" id="L97">            len -= avail;</span>
+<span class="fc" id="L94">            System.arraycopy(buf, pos, cbuf, off, avail);</span>
+<span class="fc" id="L95">            pos += avail;</span>
+<span class="fc" id="L96">            off += avail;</span>
+<span class="fc" id="L97">            len -= avail;</span>
         }
-<span class="nc bnc" id="L99" title="All 2 branches missed.">        if (len &gt; 0) {</span>
-<span class="nc" id="L100">            len = super.read(cbuf, off, len);</span>
-<span class="nc bnc" id="L101" title="All 2 branches missed.">            if (len == -1) {</span>
-<span class="nc bnc" id="L102" title="All 2 branches missed.">                return (avail == 0) ? -1 : avail;</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">        if (len &gt; 0) {</span>
+<span class="fc" id="L100">            len = super.read(cbuf, off, len);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">            if (len == -1) {</span>
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">                return (avail == 0) ? -1 : avail;</span>
             }
-<span class="nc" id="L104">            return avail + len;</span>
+<span class="fc" id="L104">            return avail + len;</span>
         }
 <span class="nc" id="L106">        return avail;</span>
     }
@@ -133,8 +133,8 @@ public final class PushbackReader extends FilterReader {
 
     @Override
     public boolean ready() throws IOException {
-<span class="nc" id="L136">        ensureOpen();</span>
-<span class="nc bnc" id="L137" title="All 4 branches missed.">        return (pos &lt; buf.length) || super.ready();</span>
+<span class="fc" id="L136">        ensureOpen();</span>
+<span class="pc bpc" id="L137" title="2 of 4 branches missed.">        return (pos &lt; buf.length) || super.ready();</span>
     }
 
     @Override
@@ -188,4 +188,4 @@ public final class PushbackReader extends FilterReader {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

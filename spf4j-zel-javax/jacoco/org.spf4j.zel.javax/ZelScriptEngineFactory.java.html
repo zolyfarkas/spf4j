@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ZelScriptEngineFactory.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-zel-javax</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.javax</a> &gt; <span class="el_source">ZelScriptEngineFactory.java</span></div><h1>ZelScriptEngineFactory.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2021 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.zel.javax;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
+import javax.annotation.Nullable;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import org.apache.commons.text.StringEscapeUtils;
+import org.spf4j.io.Csv;
+import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.Program;
+
+/**
+ * A javax script engine interface for the ZEL language.
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings(&quot;FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY&quot;)
+public final class ZelScriptEngineFactory implements ScriptEngineFactory {
+
+  private final Map&lt;String, Object&gt; parameters;
+
+<span class="fc" id="L40">  public ZelScriptEngineFactory() {</span>
+<span class="fc" id="L41">    parameters = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L42">    parameters.put(ScriptEngine.NAME, &quot;zel&quot;);</span>
+<span class="fc" id="L43">    parameters.put(ScriptEngine.ENGINE, &quot;zel&quot;);</span>
+<span class="fc" id="L44">    parameters.put(ScriptEngine.LANGUAGE, &quot;zel&quot;);</span>
+<span class="fc" id="L45">    parameters.put(ScriptEngine.ENGINE_VERSION, ExecutionContext.class.getPackage().getImplementationVersion());</span>
+<span class="fc" id="L46">    parameters.put(ScriptEngine.LANGUAGE_VERSION, Program.class.getPackage().getImplementationVersion());</span>
+<span class="fc" id="L47">    parameters.put(&quot;THREADING&quot;, &quot;STATELESS&quot;);</span>
+<span class="fc" id="L48">  }</span>
+
+  @Override
+  public String getEngineName() {
+<span class="nc" id="L52">    return &quot;zel&quot;;</span>
+  }
+
+  @Override
+  @Nullable
+  public String getEngineVersion() {
+<span class="nc" id="L58">    return (String) parameters.get(ScriptEngine.ENGINE_VERSION);</span>
+  }
+
+  @Override
+  public List&lt;String&gt; getExtensions() {
+<span class="nc" id="L63">    return Collections.emptyList();</span>
+  }
+
+  @Override
+  public List&lt;String&gt; getMimeTypes() {
+<span class="nc" id="L68">    return Collections.singletonList(&quot;text/zel&quot;);</span>
+  }
+
+  @Override
+  public List&lt;String&gt; getNames() {
+<span class="fc" id="L73">    return Collections.singletonList(&quot;zel&quot;);</span>
+  }
+
+  @Override
+  public String getLanguageName() {
+<span class="nc" id="L78">    return &quot;zel&quot;;</span>
+  }
+
+  @Override
+  public String getLanguageVersion() {
+<span class="nc" id="L83">    return (String) parameters.get(ScriptEngine.LANGUAGE_VERSION);</span>
+  }
+
+  @Override
+  public Object getParameter(final String key) {
+<span class="nc" id="L88">    return parameters.get(key);</span>
+  }
+
+  @Override
+  public String getMethodCallSyntax(final String obj, final String m, final String... args) {
+<span class="nc" id="L93">    Object[] params = new Object[args.length];</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">    for (int i = 0; i &lt; args.length; i++) {</span>
+<span class="nc" id="L95">      Object v = args[i];</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">      if (v == null) {</span>
+<span class="nc" id="L97">        params[i] = &quot;null&quot;;</span>
+      } else {
+<span class="nc" id="L99">        params[i] = v;</span>
+      }
+    }
+<span class="nc bnc" id="L102" title="All 2 branches missed.">    if (obj != null) {</span>
+<span class="nc" id="L103">      return obj + &quot;.&quot; + m + Csv.CSV.toCsvRowString(params);</span>
+    } else {
+<span class="nc" id="L105">      return  m + Csv.CSV.toCsvRowString(params);</span>
+    }
+  }
+
+  @Override
+  public String getOutputStatement(final String toDisplay) {
+<span class="nc" id="L111">    return &quot;out(\&quot;&quot; + StringEscapeUtils.escapeJava(toDisplay) + &quot;\&quot;)&quot;;</span>
+  }
+
+  @Override
+  public String getProgram(final String... statements) {
+<span class="nc" id="L116">    return String.join(&quot;;&quot;, statements);</span>
+  }
+
+  @Override
+  public ScriptEngine getScriptEngine() {
+<span class="fc" id="L121">    return new ZelScriptEngine(Collections.unmodifiableMap(parameters));</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L126">    return &quot;ZelScriptEngineFactory{&quot; + &quot;parameters=&quot; + parameters + '}';</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

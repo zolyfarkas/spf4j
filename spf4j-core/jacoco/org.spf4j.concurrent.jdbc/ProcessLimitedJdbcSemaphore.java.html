@@ -31,55 +31,53 @@
  */
 package org.spf4j.concurrent.jdbc;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.Semaphore;
 
-/**
- *
- * @author zoly
- */
 public final class ProcessLimitedJdbcSemaphore implements Semaphore {
 
   private final JdbcSemaphore jdbcSemaphore;
 
   private final java.util.concurrent.Semaphore semaphore;
 
-<span class="nc" id="L48">  public ProcessLimitedJdbcSemaphore(final JdbcSemaphore jdbcSemaphore, final int maxProcessPermits) {</span>
-<span class="nc" id="L49">    this.jdbcSemaphore = jdbcSemaphore;</span>
-<span class="nc" id="L50">    this.semaphore = new java.util.concurrent.Semaphore(maxProcessPermits);</span>
-<span class="nc" id="L51">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="nc" id="L46">  public ProcessLimitedJdbcSemaphore(final JdbcSemaphore jdbcSemaphore, final int maxProcessPermits) {</span>
+<span class="nc" id="L47">    this.jdbcSemaphore = jdbcSemaphore;</span>
+<span class="nc" id="L48">    this.semaphore = new java.util.concurrent.Semaphore(maxProcessPermits);</span>
+<span class="nc" id="L49">  }</span>
 
   @Override
   public void release(final int nrReservations) {
-<span class="nc" id="L55">    jdbcSemaphore.release(nrReservations);</span>
-<span class="nc" id="L56">    semaphore.release(nrReservations);</span>
-<span class="nc" id="L57">  }</span>
+<span class="nc" id="L53">    jdbcSemaphore.release(nrReservations);</span>
+<span class="nc" id="L54">    semaphore.release(nrReservations);</span>
+<span class="nc" id="L55">  }</span>
 
 
   @Override
   public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
-<span class="nc" id="L62">    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="nc bnc" id="L63" title="All 2 branches missed.">    if (nanosToDeadline &lt;= 0) {</span>
-<span class="nc" id="L64">      return false;</span>
+<span class="nc" id="L60">    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">    if (nanosToDeadline &lt;= 0) {</span>
+<span class="nc" id="L62">      return false;</span>
     }
-<span class="nc bnc" id="L66" title="All 2 branches missed.">    if (semaphore.tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS)) {</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">    if (semaphore.tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS)) {</span>
       try {
-<span class="nc" id="L68">        return jdbcSemaphore.tryAcquire(nrPermits, deadlineNanos);</span>
-<span class="nc" id="L69">      } catch (InterruptedException | RuntimeException e) {</span>
-<span class="nc" id="L70">        semaphore.release();</span>
-<span class="nc" id="L71">        throw e;</span>
+<span class="nc" id="L66">        return jdbcSemaphore.tryAcquire(nrPermits, deadlineNanos);</span>
+<span class="nc" id="L67">      } catch (InterruptedException | RuntimeException e) {</span>
+<span class="nc" id="L68">        semaphore.release();</span>
+<span class="nc" id="L69">        throw e;</span>
       }
     } else {
-<span class="nc" id="L74">      return false;</span>
+<span class="nc" id="L72">      return false;</span>
     }
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L80">    return &quot;ProcessLimitedJdbcSemaphore{&quot; + &quot;jdbcSemaphore=&quot; + jdbcSemaphore + &quot;, semaphore=&quot; + semaphore + '}';</span>
+<span class="nc" id="L78">    return &quot;ProcessLimitedJdbcSemaphore{&quot; + &quot;jdbcSemaphore=&quot; + jdbcSemaphore + &quot;, semaphore=&quot; + semaphore + '}';</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -44,20 +44,23 @@ final class CountLimitedPartialRetryPredicate&lt;T, V, C extends Callable&lt;? e
 <span class="fc bfc" id="L44" title="All 2 branches covered.">    if (decision == null) {</span>
 <span class="fc" id="L45">      return null;</span>
     }
-<span class="fc bfc" id="L47" title="All 2 branches covered.">    if (count &lt;= 0) {</span>
-<span class="fc" id="L48">      return RetryDecision.abort();</span>
+<span class="pc bpc" id="L47" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
+<span class="nc" id="L48">      return decision;</span>
     }
-<span class="pc bpc" id="L50" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
-<span class="fc" id="L51">      count--;</span>
+<span class="fc bfc" id="L50" title="All 2 branches covered.">    if (count &lt;= 0) {</span>
+<span class="fc" id="L51">      return RetryDecision.abort();</span>
     }
-<span class="fc" id="L53">    return decision;</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
+<span class="fc" id="L54">      count--;</span>
+    }
+<span class="fc" id="L56">    return decision;</span>
   }
 
   @Override
   public synchronized String toString() {
-<span class="nc" id="L58">    return &quot;CountLimitedPartialRetryPredicate{wrapped=&quot; + wrapped</span>
+<span class="nc" id="L61">    return &quot;CountLimitedPartialRetryPredicate{wrapped=&quot; + wrapped</span>
             + &quot;, count=&quot; + count + '}';
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

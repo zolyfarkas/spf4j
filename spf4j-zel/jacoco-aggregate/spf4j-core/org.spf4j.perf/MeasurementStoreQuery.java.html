@@ -59,13 +59,13 @@ public interface MeasurementStoreQuery {
     @SuppressWarnings(&quot;unchecked&quot;)
 <span class="fc" id="L60">    Collection&lt;Long&gt; mids = (Collection&lt;Long&gt;) measurement.getObjectProp(TimeSeriesRecord.IDS_PROP);</span>
     @SuppressWarnings(&quot;unchecked&quot;)
-    long fromMs;
+    final long fromMs;
 <span class="pc bpc" id="L63" title="1 of 2 branches missed.">    if (from == null) {</span>
 <span class="nc" id="L64">      fromMs = Long.MIN_VALUE;</span>
     } else {
 <span class="fc" id="L66">      fromMs = from.toEpochMilli();</span>
     }
-    long toMs;
+    final long toMs;
 <span class="pc bpc" id="L69" title="1 of 2 branches missed.">    if (to == null) {</span>
 <span class="nc" id="L70">      toMs = Long.MAX_VALUE;</span>
     } else {
@@ -102,7 +102,7 @@ public interface MeasurementStoreQuery {
           final Instant from, final Instant to) throws IOException {
 <span class="fc" id="L103">    AvroCloseableIterable&lt;Observation&gt; observations = getObservations(measurement, from, to);</span>
 <span class="fc" id="L104">    Iterable&lt;TimeSeriesRecord&gt; tsr = Iterables.transform(observations,</span>
-<span class="fc" id="L105">             (obs) -&gt; TableDefs.toRecord(measurement, obs));</span>
+<span class="fc" id="L105">             obs -&gt; TableDefs.toRecord(measurement, obs));</span>
 <span class="fc" id="L106">    return AvroCloseableIterable.from(tsr, observations, measurement);</span>
   }
 
@@ -110,9 +110,9 @@ public interface MeasurementStoreQuery {
   default AvroCloseableIterable&lt;TimeSeriesRecord&gt; getAggregatedMeasurementData(
           final Schema measurement,
           final Instant from, final Instant to,
-          final int aggFreq,  final TimeUnit tu) throws IOException {
+          final long aggFreq,  final TimeUnit tu) throws IOException {
 <span class="fc" id="L114">    long aggTime = tu.toMillis(aggFreq);</span>
-<span class="fc" id="L115">    int frequencyMillis = TimeSeriesRecord.getFrequencyMillis(measurement);</span>
+<span class="fc" id="L115">    long frequencyMillis = TimeSeriesRecord.getFrequencyMillis(measurement);</span>
 <span class="fc" id="L116">    AvroCloseableIterable&lt;TimeSeriesRecord&gt; iterable = getMeasurementData(measurement, from, to);</span>
 <span class="fc" id="L117">    return AvroCloseableIterable.from(() -&gt; new TimeSeriesAggregatingIterator&lt;&gt;(iterable,</span>
 <span class="fc" id="L118">            (TimeSeriesRecord rec) -&gt; rec.getTimeStamp().toEpochMilli(),</span>
@@ -121,4 +121,4 @@ public interface MeasurementStoreQuery {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

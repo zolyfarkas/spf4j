@@ -21,6 +21,7 @@ import java.util.function.BiFunction;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.base.TimeSource;
+import org.spf4j.base.Timing;
 
 /**
  * @author Zoltan Farkas
@@ -30,34 +31,46 @@ final class TimeLimitedPartialRetryPredicate&lt;T, V, C extends Callable&lt;? ex
         implements BiFunction&lt;V, C, RetryDecision&lt;T, C&gt;&gt; {
 
   private final BiFunction&lt;V, C, RetryDecision&lt;T, C&gt;&gt; wrapped;
-  private long nanosDeadline;
+  private long deadlineNanos;
 
   TimeLimitedPartialRetryPredicate(final long startTimeNanos, final long deadlineNanos,
           final long time, final TimeUnit tu,
-<span class="nc" id="L37">          final BiFunction&lt;V, C, RetryDecision&lt;T, C&gt;&gt; wrapped) {</span>
-<span class="nc" id="L38">    this.wrapped = wrapped;</span>
-<span class="nc" id="L39">    long ttd = deadlineNanos - startTimeNanos;</span>
-<span class="nc" id="L40">    long tun = tu.toNanos(time);</span>
-<span class="nc bnc" id="L41" title="All 2 branches missed.">    this.nanosDeadline = (ttd &lt; tun) ? deadlineNanos : startTimeNanos + tun;</span>
-<span class="nc" id="L42">  }</span>
+          final double maxTimeToRetryFactor,
+<span class="nc" id="L39">          final BiFunction&lt;V, C, RetryDecision&lt;T, C&gt;&gt; wrapped) {</span>
+<span class="nc" id="L40">    this.wrapped = wrapped;</span>
+<span class="nc" id="L41">    long ttd = (long) ((deadlineNanos - startTimeNanos) * maxTimeToRetryFactor);</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">    if (time &gt; 0) {</span>
+<span class="nc" id="L43">      long tun = tu.toNanos(time);</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">      this.deadlineNanos = (ttd &lt; tun) ? startTimeNanos + ttd : startTimeNanos + tun;</span>
+<span class="nc" id="L45">    } else {</span>
+<span class="nc" id="L46">      this.deadlineNanos = startTimeNanos + ttd;</span>
+    }
+<span class="nc" id="L48">  }</span>
 
   @Override
   @Nullable
   public RetryDecision&lt;T, C&gt; apply(final V value, final C what) {
-<span class="nc" id="L47">    RetryDecision&lt;T, C&gt; decision = wrapped.apply(value, what);</span>
-<span class="nc bnc" id="L48" title="All 2 branches missed.">    if (decision == null) {</span>
-<span class="nc" id="L49">      return null;</span>
+<span class="nc" id="L53">    RetryDecision&lt;T, C&gt; decision = wrapped.apply(value, what);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">    if (decision == null) {</span>
+<span class="nc" id="L55">      return null;</span>
     }
-<span class="nc bnc" id="L51" title="All 2 branches missed.">    if (TimeSource.nanoTime() &gt;= nanosDeadline) {</span>
-<span class="nc" id="L52">      return RetryDecision.abort();</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">    if (decision.getDecisionType() == RetryDecision.Type.Abort) {</span>
+<span class="nc" id="L58">      return decision;</span>
     }
-<span class="nc" id="L54">    return decision;</span>
+<span class="nc" id="L60">    long currNanoTime = TimeSource.nanoTime();</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">    if (currNanoTime &gt;= deadlineNanos) {</span>
+<span class="nc" id="L62">      Timing currentTiming = Timing.getCurrentTiming();</span>
+<span class="nc" id="L63">      return RetryDecision.abortThrow(new NotEnoughTimeToRetry(&quot;Past deadline: &quot;</span>
+<span class="nc" id="L64">                + currentTiming.fromNanoTimeToInstant(currNanoTime) + &quot;, deadline = &quot;</span>
+<span class="nc" id="L65">                + currentTiming.fromNanoTimeToInstant(deadlineNanos)));</span>
+    }
+<span class="nc" id="L67">    return decision;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L59">    return &quot;TimeLimitedPartialRetryPredicate{&quot; + &quot;wrapped=&quot; + wrapped + &quot;, nanosDeadline=&quot; + nanosDeadline + '}';</span>
+<span class="nc" id="L72">    return &quot;TimeLimitedPartialRetryPredicate{&quot; + &quot;wrapped=&quot; + wrapped + &quot;, nanosDeadline=&quot; + deadlineNanos + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

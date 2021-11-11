@@ -31,6 +31,7 @@
  */
 package org.spf4j.jmx;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InvalidObjectException;
 import java.io.NotSerializableException;
 import java.util.function.Consumer;
@@ -59,97 +60,99 @@ public final class GenericExportedValue&lt;T&gt; implements ExportedValue {
   private final JMXBeanMapping converter;
   private final OpenType&lt;?&gt; openType;
 
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public GenericExportedValue(
           @Nonnull final String name, @Nonnull final String description,
           @Nonnull final Supplier&lt;T&gt; getter, @Nullable final Consumer&lt;T&gt; setter,
-<span class="nc" id="L65">          final Class&lt;T&gt; clasz) throws NotSerializableException {</span>
-<span class="nc" id="L66">    this.description = description;</span>
-<span class="nc" id="L67">    this.name = name;</span>
-<span class="nc" id="L68">    this.getter = getter;</span>
-<span class="nc" id="L69">    this.setter = setter;</span>
-<span class="nc" id="L70">    this.clasz = clasz;</span>
-<span class="nc" id="L71">    this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(clasz);</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">    this.openType = this.converter == null ? null : this.converter.getOpenType();</span>
-<span class="nc" id="L73">  }</span>
+<span class="nc" id="L67">          final Class&lt;T&gt; clasz) throws NotSerializableException {</span>
+<span class="nc" id="L68">    this.description = description;</span>
+<span class="nc" id="L69">    this.name = name;</span>
+<span class="nc" id="L70">    this.getter = getter;</span>
+<span class="nc" id="L71">    this.setter = setter;</span>
+<span class="nc" id="L72">    this.clasz = clasz;</span>
+<span class="nc" id="L73">    this.converter = GlobalMXBeanMapperSupplier.getOpenTypeMapping(clasz);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">    this.openType = this.converter == null ? null : this.converter.getOpenType();</span>
+<span class="nc" id="L75">  }</span>
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public GenericExportedValue(
           @Nonnull final String name, @Nonnull final String description,
           @Nonnull final Supplier&lt;CompositeData&gt; getter,
           @Nullable final Consumer&lt;CompositeData&gt; setter,
-<span class="fc" id="L80">          final CompositeType openType) {</span>
-<span class="fc" id="L81">    this.description = description;</span>
-<span class="fc" id="L82">    this.name = name;</span>
-<span class="fc" id="L83">    this.getter = (Supplier) getter;</span>
-<span class="fc" id="L84">    this.setter = (Consumer) setter;</span>
-<span class="fc" id="L85">    this.clasz = (Class) CompositeData.class;</span>
-<span class="fc" id="L86">    this.converter = null;</span>
-<span class="fc" id="L87">    this.openType = openType;</span>
-<span class="fc" id="L88">  }</span>
+<span class="fc" id="L82">          final CompositeType openType) {</span>
+<span class="fc" id="L83">    this.description = description;</span>
+<span class="fc" id="L84">    this.name = name;</span>
+<span class="fc" id="L85">    this.getter = (Supplier) getter;</span>
+<span class="fc" id="L86">    this.setter = (Consumer) setter;</span>
+<span class="fc" id="L87">    this.clasz = (Class) CompositeData.class;</span>
+<span class="fc" id="L88">    this.converter = null;</span>
+<span class="fc" id="L89">    this.openType = openType;</span>
+<span class="fc" id="L90">  }</span>
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public GenericExportedValue(
           @Nonnull final String name, @Nonnull final String description,
           @Nonnull final Supplier&lt;TabularData&gt; getter,
           @Nullable final Consumer&lt;TabularData&gt; setter,
-<span class="fc" id="L95">          final TabularType openType) {</span>
-<span class="fc" id="L96">    this.description = description;</span>
-<span class="fc" id="L97">    this.name = name;</span>
-<span class="fc" id="L98">    this.getter = (Supplier) getter;</span>
-<span class="fc" id="L99">    this.setter = (Consumer) setter;</span>
-<span class="fc" id="L100">    this.clasz = (Class) TabularData.class;</span>
-<span class="fc" id="L101">    this.converter = null;</span>
-<span class="fc" id="L102">    this.openType = openType;</span>
-<span class="fc" id="L103">  }</span>
+<span class="fc" id="L97">          final TabularType openType) {</span>
+<span class="fc" id="L98">    this.description = description;</span>
+<span class="fc" id="L99">    this.name = name;</span>
+<span class="fc" id="L100">    this.getter = (Supplier) getter;</span>
+<span class="fc" id="L101">    this.setter = (Consumer) setter;</span>
+<span class="fc" id="L102">    this.clasz = (Class) TabularData.class;</span>
+<span class="fc" id="L103">    this.converter = null;</span>
+<span class="fc" id="L104">    this.openType = openType;</span>
+<span class="fc" id="L105">  }</span>
 
 
   @Override
   public String getName() {
-<span class="fc" id="L108">    return name;</span>
+<span class="fc" id="L110">    return name;</span>
   }
 
   @Override
   public String getDescription() {
-<span class="fc" id="L113">      return description;</span>
+<span class="fc" id="L115">      return description;</span>
   }
 
   @Override
   public Object get() throws OpenDataException {
-<span class="fc" id="L118">    Object val = getter.get();</span>
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">    if (converter == null) {</span>
-<span class="fc" id="L120">      return val;</span>
+<span class="fc" id="L120">    Object val = getter.get();</span>
+<span class="pc bpc" id="L121" title="1 of 2 branches missed.">    if (converter == null) {</span>
+<span class="fc" id="L122">      return val;</span>
     } else {
-<span class="nc" id="L122">      return converter.toOpenValue(val);</span>
+<span class="nc" id="L124">      return converter.toOpenValue(val);</span>
     }
   }
 
   @Override
   public void set(final Object value) throws InvalidObjectException {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">    if (converter == null) {</span>
-<span class="nc" id="L129">      setter.accept((T) value);</span>
+<span class="nc bnc" id="L130" title="All 2 branches missed.">    if (converter == null) {</span>
+<span class="nc" id="L131">      setter.accept((T) value);</span>
     } else {
-<span class="nc" id="L131">      setter.accept((T) converter.fromOpenValue(value));</span>
+<span class="nc" id="L133">      setter.accept((T) converter.fromOpenValue(value));</span>
     }
-<span class="nc" id="L133">  }</span>
+<span class="nc" id="L135">  }</span>
 
   @Override
   public boolean isWriteable() {
-<span class="pc bpc" id="L137" title="1 of 2 branches missed.">    return setter != null;</span>
+<span class="pc bpc" id="L139" title="1 of 2 branches missed.">    return setter != null;</span>
   }
 
   @Override
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public Class getValueType() {
-<span class="fc" id="L142">    return clasz;</span>
+<span class="fc" id="L145">    return clasz;</span>
   }
 
   @Override
   public String toString() {
     try {
-<span class="nc" id="L148">      return &quot;GenericExportedValue{&quot; + &quot;val=&quot; + get() + &quot;valClass=&quot; + getValueType()</span>
-<span class="nc" id="L149">              + &quot;valopenType=&quot; + getValueOpenType() + &quot;, description=&quot;</span>
-<span class="nc" id="L150">              + getDescription() + &quot;, name=&quot; + name + &quot;, converter=&quot; + converter + '}';</span>
-<span class="nc" id="L151">    } catch (OpenDataException ex) {</span>
-<span class="nc" id="L152">      throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L151">      return &quot;GenericExportedValue{&quot; + &quot;val=&quot; + get() + &quot;valClass=&quot; + getValueType()</span>
+<span class="nc" id="L152">              + &quot;valopenType=&quot; + getValueOpenType() + &quot;, description=&quot;</span>
+<span class="nc" id="L153">              + getDescription() + &quot;, name=&quot; + name + &quot;, converter=&quot; + converter + '}';</span>
+<span class="nc" id="L154">    } catch (OpenDataException ex) {</span>
+<span class="nc" id="L155">      throw new UncheckedExecutionException(ex);</span>
     }
   }
 
@@ -157,8 +160,8 @@ public final class GenericExportedValue&lt;T&gt; implements ExportedValue {
 
   @Override
   public OpenType getValueOpenType() {
-<span class="fc" id="L160">    return openType;</span>
+<span class="fc" id="L163">    return openType;</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -32,6 +32,7 @@
 package org.spf4j.failsafe;
 
 import com.google.common.util.concurrent.RateLimiter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.TimeSource;
 import org.spf4j.concurrent.PermitSupplier;
@@ -43,17 +44,18 @@ public final class GuavaRateLimiter implements PermitSupplier {
 
   private final RateLimiter limiter;
 
-<span class="nc" id="L46">  public GuavaRateLimiter(final RateLimiter limiter) {</span>
-<span class="nc" id="L47">    this.limiter = limiter;</span>
-<span class="nc" id="L48">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="nc" id="L48">  public GuavaRateLimiter(final RateLimiter limiter) {</span>
+<span class="nc" id="L49">    this.limiter = limiter;</span>
+<span class="nc" id="L50">  }</span>
 
   @Override
   public boolean tryAcquire(final int nrPermits, final long deadlineNanos) throws InterruptedException {
-<span class="nc" id="L52">    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="nc bnc" id="L53" title="All 2 branches missed.">    if (nanosToDeadline &lt;= 0) {</span>
-<span class="nc" id="L54">      return false;</span>
+<span class="nc" id="L54">    long nanosToDeadline = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="nc bnc" id="L55" title="All 2 branches missed.">    if (nanosToDeadline &lt;= 0) {</span>
+<span class="nc" id="L56">      return false;</span>
     }
-<span class="nc" id="L56">    return tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L58">    return tryAcquire(nrPermits, nanosToDeadline, TimeUnit.NANOSECONDS);</span>
   }
 
   @Override
@@ -61,21 +63,17 @@ public final class GuavaRateLimiter implements PermitSupplier {
     // guava rate limiter is interruptible
     // however they made the decision to return false and set the thread state to interrupted....
     // which only prolongs the inevitable...
-<span class="nc" id="L64">    boolean result = this.limiter.tryAcquire(nrPermits, timeout, unit);</span>
-<span class="nc bnc" id="L65" title="All 2 branches missed.">    if (Thread.interrupted()) {</span>
-<span class="nc" id="L66">      throw new InterruptedException();</span>
+<span class="nc" id="L66">    boolean result = this.limiter.tryAcquire(nrPermits, timeout, unit);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">    if (Thread.interrupted()) {</span>
+<span class="nc" id="L68">      throw new InterruptedException();</span>
     }
-<span class="nc" id="L68">    return result;</span>
-  }
-
-  public RateLimiter getLimiter() {
-<span class="nc" id="L72">    return limiter;</span>
+<span class="nc" id="L70">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L77">    return &quot;GuavaRateLimiter{&quot; + &quot;limiter=&quot; + limiter + '}';</span>
+<span class="nc" id="L75">    return &quot;GuavaRateLimiter{&quot; + &quot;limiter=&quot; + limiter + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

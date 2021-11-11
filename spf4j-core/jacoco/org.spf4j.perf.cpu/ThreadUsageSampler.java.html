@@ -216,12 +216,12 @@ public final class ThreadUsageSampler {
 
   private static final class ThreadStateRecorder extends AbstractRunnable {
 
-    private final MeasurementRecorder cpuUsage;
+    private final MeasurementRecorder threadCounter;
     private final boolean withStackTraces;
 
 <span class="nc" id="L222">    ThreadStateRecorder(final int sampleTime, final boolean withStackTraces) {</span>
-<span class="nc" id="L223">      this.cpuUsage</span>
-<span class="nc" id="L224">              = RecorderFactory.createDirectRecorder(&quot;peak_thread_count&quot;, &quot;count&quot;, sampleTime);</span>
+<span class="nc" id="L223">      this.threadCounter</span>
+<span class="nc" id="L224">              = RecorderFactory.createDirectRecorder(&quot;process.peak_thread_count&quot;, &quot;count&quot;, sampleTime);</span>
 <span class="nc" id="L225">      this.withStackTraces = withStackTraces;</span>
 <span class="nc" id="L226">    }</span>
 <span class="nc" id="L227">    private int maxThreadsNr = 0;</span>
@@ -229,7 +229,7 @@ public final class ThreadUsageSampler {
     @Override
     public void doRun() {
 <span class="nc" id="L231">      final int peakThreadCount = TH_BEAN.getPeakThreadCount();</span>
-<span class="nc" id="L232">      cpuUsage.record(peakThreadCount);</span>
+<span class="nc" id="L232">      threadCounter.record(peakThreadCount);</span>
 <span class="nc bnc" id="L233" title="All 2 branches missed.">      if (TH_BEAN.getThreadCount() &gt; maxThreadsNr) {</span>
 <span class="nc" id="L234">        synchronized (ThreadUsageSampler.class) {</span>
 <span class="nc" id="L235">          Thread[] ths = Threads.getThreads();</span>
@@ -261,4 +261,4 @@ public final class ThreadUsageSampler {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -225,11 +225,11 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
   @Override
   public Collection&lt;ObjectHolder&lt;T&gt;&gt; tryReturnObjectsIfNotNeededAnymore() throws InterruptedException {
 <span class="fc" id="L227">    boolean acquired = lock.tryLock(0, TimeUnit.SECONDS);</span>
-<span class="pc bpc" id="L228" title="1 of 2 branches missed.">    if (acquired) {</span>
+<span class="fc bfc" id="L228" title="All 2 branches covered.">    if (acquired) {</span>
       try {
-<span class="pc bpc" id="L230" title="1 of 2 branches missed.">        if (!thread.isAlive()) {</span>
-<span class="nc bnc" id="L231" title="All 2 branches missed.">          if (!borrowedObjects.isEmpty()) {</span>
-<span class="nc" id="L232">            throw new IllegalStateException(&quot;Objects not returned by dead thread: &quot; + borrowedObjects);</span>
+<span class="fc bfc" id="L230" title="All 2 branches covered.">        if (!thread.isAlive()) {</span>
+<span class="pc bpc" id="L231" title="1 of 2 branches missed.">          if (!borrowedObjects.isEmpty()) {</span>
+<span class="fc" id="L232">            throw new IllegalStateException(&quot;Objects not returned by dead thread: &quot; + borrowedObjects);</span>
           }
 <span class="nc" id="L234">          return localObjects;</span>
         }
@@ -238,7 +238,7 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
 <span class="fc" id="L238">        lock.unlock();</span>
       }
     } else {
-<span class="nc" id="L241">      return Collections.EMPTY_LIST;</span>
+<span class="fc" id="L241">      return Collections.EMPTY_LIST;</span>
     }
   }
 
@@ -263,4 +263,4 @@ final class LocalObjectPool&lt;T&gt; implements RecyclingSupplier&lt;T&gt;, Obje
     }
   }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

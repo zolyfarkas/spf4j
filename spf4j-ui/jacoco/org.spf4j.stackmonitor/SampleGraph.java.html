@@ -37,6 +37,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.graph.ElementOrder;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.set.hash.THashSet;
@@ -87,46 +88,47 @@ public final class SampleGraph {
     private final Method method;
     private int idxInHierarchy;
 
-<span class="fc" id="L90">    public SampleKey(final Method method, final int idxInHierarchy) {</span>
-<span class="fc" id="L91">      this.method = method;</span>
-<span class="fc" id="L92">      this.idxInHierarchy = idxInHierarchy;</span>
-<span class="fc" id="L93">    }</span>
+<span class="fc" id="L91">    SampleKey(final Method method, final int idxInHierarchy) {</span>
+<span class="fc" id="L92">      this.method = method;</span>
+<span class="fc" id="L93">      this.idxInHierarchy = idxInHierarchy;</span>
+<span class="fc" id="L94">    }</span>
 
     @Override
     public int hashCode() {
-<span class="fc" id="L97">      int hash = 59 + Objects.hashCode(this.method);</span>
-<span class="fc" id="L98">      return 59 * hash + this.idxInHierarchy;</span>
+<span class="fc" id="L98">      int hash = 59 + Objects.hashCode(this.method);</span>
+<span class="fc" id="L99">      return 59 * hash + this.idxInHierarchy;</span>
     }
 
     @Override
     public boolean equals(final Object obj) {
-<span class="fc bfc" id="L103" title="All 2 branches covered.">      if (this == obj) {</span>
-<span class="fc" id="L104">        return true;</span>
+<span class="fc bfc" id="L104" title="All 2 branches covered.">      if (this == obj) {</span>
+<span class="fc" id="L105">        return true;</span>
       }
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">      if (obj == null) {</span>
-<span class="nc" id="L107">        return false;</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">      if (obj == null) {</span>
+<span class="nc" id="L108">        return false;</span>
       }
-<span class="pc bpc" id="L109" title="1 of 2 branches missed.">      if (getClass() != obj.getClass()) {</span>
-<span class="nc" id="L110">        return false;</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">      if (getClass() != obj.getClass()) {</span>
+<span class="nc" id="L111">        return false;</span>
       }
-<span class="fc" id="L112">      final SampleKey other = (SampleKey) obj;</span>
-<span class="fc bfc" id="L113" title="All 2 branches covered.">      if (this.idxInHierarchy != other.idxInHierarchy) {</span>
-<span class="fc" id="L114">        return false;</span>
+<span class="fc" id="L113">      final SampleKey other = (SampleKey) obj;</span>
+<span class="fc bfc" id="L114" title="All 2 branches covered.">      if (this.idxInHierarchy != other.idxInHierarchy) {</span>
+<span class="fc" id="L115">        return false;</span>
       }
-<span class="fc" id="L116">      return Objects.equals(this.method, other.method);</span>
+<span class="fc" id="L117">      return Objects.equals(this.method, other.method);</span>
     }
 
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
     public Method getMethod() {
-<span class="fc" id="L120">      return method;</span>
+<span class="fc" id="L122">      return method;</span>
     }
 
     @Override
     public String toString() {
-<span class="fc" id="L125">      StringBuilder sb = new StringBuilder(32);</span>
-<span class="fc" id="L126">      Methods.writeTo(method, sb);</span>
-<span class="fc" id="L127">      sb.append('_');</span>
-<span class="fc" id="L128">      sb.append(idxInHierarchy);</span>
-<span class="fc" id="L129">      return sb.toString();</span>
+<span class="fc" id="L127">      StringBuilder sb = new StringBuilder(32);</span>
+<span class="fc" id="L128">      Methods.writeTo(method, sb);</span>
+<span class="fc" id="L129">      sb.append('_');</span>
+<span class="fc" id="L130">      sb.append(idxInHierarchy);</span>
+<span class="fc" id="L131">      return sb.toString();</span>
     }
 
   }
@@ -139,27 +141,28 @@ public final class SampleGraph {
     protected int level;
     private final SampleNode node;
 
-<span class="fc" id="L142">    public Sample(final SampleKey key, final int nrSamples, final int level, final SampleNode node) {</span>
-<span class="fc" id="L143">      this.key = key;</span>
-<span class="fc" id="L144">      this.nrSamples = nrSamples;</span>
-<span class="fc" id="L145">      this.level = level;</span>
-<span class="fc" id="L146">      this.node = node;</span>
-<span class="fc" id="L147">    }</span>
+<span class="fc" id="L144">    Sample(final SampleKey key, final int nrSamples, final int level, final SampleNode node) {</span>
+<span class="fc" id="L145">      this.key = key;</span>
+<span class="fc" id="L146">      this.nrSamples = nrSamples;</span>
+<span class="fc" id="L147">      this.level = level;</span>
+<span class="fc" id="L148">      this.node = node;</span>
+<span class="fc" id="L149">    }</span>
 
     public final SampleKey getKey() {
-<span class="fc" id="L150">      return key;</span>
+<span class="fc" id="L152">      return key;</span>
     }
 
     public final int getNrSamples() {
-<span class="fc" id="L154">      return nrSamples;</span>
+<span class="fc" id="L156">      return nrSamples;</span>
     }
 
     public final int getLevel() {
-<span class="fc" id="L158">      return level;</span>
+<span class="fc" id="L160">      return level;</span>
     }
 
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
     public final SampleNode getNode() {
-<span class="nc" id="L162">      return node;</span>
+<span class="nc" id="L165">      return node;</span>
     }
 
     /**
@@ -167,7 +170,7 @@ public final class SampleGraph {
      */
     @Override
     public String toString() {
-<span class="nc" id="L170">      return &quot;Sample{&quot; + &quot;key=&quot; + key + &quot;, nrSamples=&quot; + nrSamples + &quot;, level=&quot; + level + '}';</span>
+<span class="nc" id="L173">      return &quot;Sample{&quot; + &quot;key=&quot; + key + &quot;, nrSamples=&quot; + nrSamples + &quot;, level=&quot; + level + '}';</span>
     }
 
   }
@@ -175,20 +178,20 @@ public final class SampleGraph {
   public static final class AggSample extends Sample {
 
     public AggSample(final Sample sample) {
-<span class="fc" id="L178">      super(sample.key, sample.nrSamples, sample.level, sample.node);</span>
-<span class="fc" id="L179">    }</span>
+<span class="fc" id="L181">      super(sample.key, sample.nrSamples, sample.level, sample.node);</span>
+<span class="fc" id="L182">    }</span>
 
     public void add(final Sample sample) {
-<span class="fc" id="L182">      this.nrSamples += sample.nrSamples;</span>
-<span class="fc" id="L183">    }</span>
+<span class="fc" id="L185">      this.nrSamples += sample.nrSamples;</span>
+<span class="fc" id="L186">    }</span>
 
     public void addLevel(final int plevel) {
-<span class="fc" id="L186">      this.level = Math.max(plevel, this.level);</span>
-<span class="fc" id="L187">    }</span>
+<span class="fc" id="L189">      this.level = Math.max(plevel, this.level);</span>
+<span class="fc" id="L190">    }</span>
 
     @Override
     public String toString() {
-<span class="fc" id="L191">      return &quot;AggSample{&quot; + &quot;key=&quot; + getKey() + &quot;, nrSamples=&quot; + nrSamples + &quot;, level=&quot; + level + '}';</span>
+<span class="fc" id="L194">      return &quot;AggSample{&quot; + &quot;key=&quot; + getKey() + &quot;, nrSamples=&quot; + nrSamples + &quot;, level=&quot; + level + '}';</span>
     }
 
   }
@@ -199,30 +202,30 @@ public final class SampleGraph {
     private final Method method;
     private final SampleNode node;
 
-<span class="fc" id="L202">    TraversalData(final Sample parent, final Method method, final SampleNode node) {</span>
-<span class="fc" id="L203">      this.parent = parent;</span>
-<span class="fc" id="L204">      this.method = method;</span>
-<span class="fc" id="L205">      this.node = node;</span>
-<span class="fc" id="L206">    }</span>
+<span class="fc" id="L205">    TraversalData(final Sample parent, final Method method, final SampleNode node) {</span>
+<span class="fc" id="L206">      this.parent = parent;</span>
+<span class="fc" id="L207">      this.method = method;</span>
+<span class="fc" id="L208">      this.node = node;</span>
+<span class="fc" id="L209">    }</span>
 
   }
 
-<span class="fc" id="L210">  public SampleGraph(final Method m, final SampleNode node) {</span>
-<span class="fc" id="L211">    int nrNodes = node.getNrNodes();</span>
-<span class="fc" id="L212">    vertexMap = MultimapBuilder.hashKeys(nrNodes).hashSetValues(1).build();</span>
-<span class="fc" id="L213">    aggregates = new THashMap&lt;&gt;(nrNodes);</span>
-<span class="fc" id="L214">    sampleTree = GraphBuilder.directed()</span>
-<span class="fc" id="L215">            .nodeOrder(ElementOrder.unordered())</span>
-<span class="fc" id="L216">            .allowsSelfLoops(false)</span>
-<span class="fc" id="L217">            .expectedNodeCount(nrNodes)</span>
-<span class="fc" id="L218">            .build();</span>
-<span class="fc" id="L219">    aggGraph = GraphBuilder.directed()</span>
-<span class="fc" id="L220">            .nodeOrder(ElementOrder.unordered())</span>
-<span class="fc" id="L221">            .allowsSelfLoops(false)</span>
-<span class="fc" id="L222">            .expectedNodeCount(nrNodes)</span>
-<span class="fc" id="L223">            .build();</span>
-<span class="fc" id="L224">    rootVertex = tree2Graph(m, node);</span>
-<span class="fc" id="L225">  }</span>
+<span class="fc" id="L213">  public SampleGraph(final Method m, final SampleNode node) {</span>
+<span class="fc" id="L214">    int nrNodes = node.getNrNodes();</span>
+<span class="fc" id="L215">    vertexMap = MultimapBuilder.hashKeys(nrNodes).hashSetValues(1).build();</span>
+<span class="fc" id="L216">    aggregates = new THashMap&lt;&gt;(nrNodes);</span>
+<span class="fc" id="L217">    sampleTree = GraphBuilder.directed()</span>
+<span class="fc" id="L218">            .nodeOrder(ElementOrder.unordered())</span>
+<span class="fc" id="L219">            .allowsSelfLoops(false)</span>
+<span class="fc" id="L220">            .expectedNodeCount(nrNodes)</span>
+<span class="fc" id="L221">            .build();</span>
+<span class="fc" id="L222">    aggGraph = GraphBuilder.directed()</span>
+<span class="fc" id="L223">            .nodeOrder(ElementOrder.unordered())</span>
+<span class="fc" id="L224">            .allowsSelfLoops(false)</span>
+<span class="fc" id="L225">            .expectedNodeCount(nrNodes)</span>
+<span class="fc" id="L226">            .build();</span>
+<span class="fc" id="L227">    rootVertex = tree2Graph(m, node);</span>
+<span class="fc" id="L228">  }</span>
 
   /**
    * Compute a duplication occurrence from root index for a method. (number of occurrences of this method on a stack
@@ -233,79 +236,79 @@ public final class SampleGraph {
    * @return
    */
   private int computeMethodIdx(final Sample from, final Method m) {
-<span class="fc bfc" id="L236" title="All 2 branches covered.">    if (from.key.method.equals(m)) {</span>
-<span class="fc" id="L237">      return from.key.idxInHierarchy + 1;</span>
+<span class="fc bfc" id="L239" title="All 2 branches covered.">    if (from.key.method.equals(m)) {</span>
+<span class="fc" id="L240">      return from.key.idxInHierarchy + 1;</span>
     } else {
-<span class="fc" id="L239">      Set&lt;Sample&gt; predecessors = sampleTree.predecessors(from);</span>
-<span class="fc" id="L240">      int size = predecessors.size();</span>
-<span class="fc bfc" id="L241" title="All 2 branches covered.">      if (size == 1) {</span>
-<span class="fc" id="L242">        return computeMethodIdx(predecessors.iterator().next(), m);</span>
-<span class="pc bpc" id="L243" title="1 of 2 branches missed.">      } else if (size &gt; 1) {</span>
-<span class="nc" id="L244">        throw new IllegalStateException(&quot;Cannot have multiple predecesors for &quot; + from + &quot;, pred = &quot; + predecessors);</span>
+<span class="fc" id="L242">      Set&lt;Sample&gt; predecessors = sampleTree.predecessors(from);</span>
+<span class="fc" id="L243">      int size = predecessors.size();</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">      if (size == 1) {</span>
+<span class="fc" id="L245">        return computeMethodIdx(predecessors.iterator().next(), m);</span>
+<span class="pc bpc" id="L246" title="1 of 2 branches missed.">      } else if (size &gt; 1) {</span>
+<span class="nc" id="L247">        throw new IllegalStateException(&quot;Cannot have multiple predecesors for &quot; + from + &quot;, pred = &quot; + predecessors);</span>
       } else {
-<span class="fc" id="L246">        return 0;</span>
+<span class="fc" id="L249">        return 0;</span>
       }
     }
   }
 
   private Sample tree2Graph(final Method m, final SampleNode node) {
-<span class="fc" id="L252">    Sample parentVertex = new Sample(new SampleKey(m, 0), node.getSampleCount(), 0, node);</span>
-<span class="pc bpc" id="L253" title="1 of 2 branches missed.">    if (!sampleTree.addNode(parentVertex)) {</span>
-<span class="nc" id="L254">      throw new IllegalStateException();</span>
-    }
-<span class="pc bpc" id="L256" title="1 of 2 branches missed.">    if (!vertexMap.put(parentVertex.key, parentVertex)) {</span>
+<span class="fc" id="L255">    Sample parentVertex = new Sample(new SampleKey(m, 0), node.getSampleCount(), 0, node);</span>
+<span class="pc bpc" id="L256" title="1 of 2 branches missed.">    if (!sampleTree.addNode(parentVertex)) {</span>
 <span class="nc" id="L257">      throw new IllegalStateException();</span>
     }
-<span class="fc" id="L259">    AggSample aggSampleVertex = new AggSample(parentVertex);</span>
-<span class="fc" id="L260">    aggGraph.addNode(aggSampleVertex);</span>
-<span class="fc" id="L261">    aggregates.put(parentVertex.key, aggSampleVertex);</span>
-<span class="fc" id="L262">    Deque&lt;TraversalData&gt; dq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L263">    TMap&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
-<span class="fc" id="L264">    subNodes.forEachEntry((k, v) -&gt; {</span>
-<span class="fc" id="L265">      dq.add(new TraversalData(parentVertex, k, v));</span>
-<span class="fc" id="L266">      return true;</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">    if (!vertexMap.put(parentVertex.key, parentVertex)) {</span>
+<span class="nc" id="L260">      throw new IllegalStateException();</span>
+    }
+<span class="fc" id="L262">    AggSample aggSampleVertex = new AggSample(parentVertex);</span>
+<span class="fc" id="L263">    aggGraph.addNode(aggSampleVertex);</span>
+<span class="fc" id="L264">    aggregates.put(parentVertex.key, aggSampleVertex);</span>
+<span class="fc" id="L265">    Deque&lt;TraversalData&gt; dq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L266">    TMap&lt;Method, SampleNode&gt; subNodes = node.getSubNodes();</span>
+<span class="fc" id="L267">    subNodes.forEachEntry((k, v) -&gt; {</span>
+<span class="fc" id="L268">      dq.add(new TraversalData(parentVertex, k, v));</span>
+<span class="fc" id="L269">      return true;</span>
     });
     TraversalData t;
-<span class="fc bfc" id="L269" title="All 2 branches covered.">    while ((t = dq.pollFirst()) != null) {</span>
-<span class="fc" id="L270">      SampleKey vtxk = new SampleKey(t.method, computeMethodIdx(t.parent, t.method));</span>
-<span class="fc" id="L271">      Sample vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);</span>
-<span class="fc" id="L272">      AggSample aggParent = aggregates.get(t.parent.key);</span>
+<span class="fc bfc" id="L272" title="All 2 branches covered.">    while ((t = dq.pollFirst()) != null) {</span>
+<span class="fc" id="L273">      SampleKey vtxk = new SampleKey(t.method, computeMethodIdx(t.parent, t.method));</span>
+<span class="fc" id="L274">      Sample vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);</span>
+<span class="fc" id="L275">      AggSample aggParent = aggregates.get(t.parent.key);</span>
       AggSample current;
       do {
-<span class="fc" id="L275">        current = aggregates.get(vtxk);</span>
-<span class="fc bfc" id="L276" title="All 2 branches covered.">        if (current == null) {</span>
-<span class="fc" id="L277">          current = new AggSample(vtx);</span>
-<span class="fc" id="L278">          aggGraph.addNode(current);</span>
-<span class="fc" id="L279">          aggregates.put(vtxk, current);</span>
+<span class="fc" id="L278">        current = aggregates.get(vtxk);</span>
+<span class="fc bfc" id="L279" title="All 2 branches covered.">        if (current == null) {</span>
+<span class="fc" id="L280">          current = new AggSample(vtx);</span>
+<span class="fc" id="L281">          aggGraph.addNode(current);</span>
+<span class="fc" id="L282">          aggregates.put(vtxk, current);</span>
         } else {
 //          if (isParentDescendant(current, aggParent)) {
 //            vtxk = new SampleKey(vtxk.method, vtxk.idxInHierarchy + 1);
 //            vtx = new Sample(vtxk, t.node.getSampleCount(), t.parent.level + 1, t.node);
 //            continue;
 //          }
-<span class="fc" id="L286">          current.add(vtx);</span>
+<span class="fc" id="L289">          current.add(vtx);</span>
         }
         break;
       } while (true);
-<span class="pc bpc" id="L290" title="1 of 2 branches missed.">      if (!sampleTree.addNode(vtx)) {</span>
-<span class="nc" id="L291">        throw new IllegalStateException();</span>
-      }
-<span class="pc bpc" id="L293" title="1 of 2 branches missed.">      if (!vertexMap.put(vtx.key, vtx)) {</span>
+<span class="pc bpc" id="L293" title="1 of 2 branches missed.">      if (!sampleTree.addNode(vtx)) {</span>
 <span class="nc" id="L294">        throw new IllegalStateException();</span>
       }
-<span class="fc" id="L296">      aggGraph.putEdge(aggParent, current);</span>
-<span class="pc bpc" id="L297" title="1 of 2 branches missed.">      if (!sampleTree.putEdge(t.parent, vtx)) {</span>
-<span class="nc" id="L298">        throw new IllegalStateException();</span>
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">      if (!vertexMap.put(vtx.key, vtx)) {</span>
+<span class="nc" id="L297">        throw new IllegalStateException();</span>
       }
-<span class="fc" id="L300">      TMap&lt;Method, SampleNode&gt; subNodes2 = t.node.getSubNodes();</span>
-<span class="fc" id="L301">      final Sample vvv = vtx;</span>
-<span class="fc" id="L302">      subNodes2.forEachEntry((k, v) -&gt; {</span>
-<span class="fc" id="L303">        dq.add(new TraversalData(vvv, k, v));</span>
-<span class="fc" id="L304">        return true;</span>
+<span class="fc" id="L299">      aggGraph.putEdge(aggParent, current);</span>
+<span class="pc bpc" id="L300" title="1 of 2 branches missed.">      if (!sampleTree.putEdge(t.parent, vtx)) {</span>
+<span class="nc" id="L301">        throw new IllegalStateException();</span>
+      }
+<span class="fc" id="L303">      TMap&lt;Method, SampleNode&gt; subNodes2 = t.node.getSubNodes();</span>
+<span class="fc" id="L304">      final Sample vvv = vtx;</span>
+<span class="fc" id="L305">      subNodes2.forEachEntry((k, v) -&gt; {</span>
+<span class="fc" id="L306">        dq.add(new TraversalData(vvv, k, v));</span>
+<span class="fc" id="L307">        return true;</span>
       });
-<span class="fc" id="L306">    }</span>
-<span class="fc" id="L307">    updateLevels(aggSampleVertex);</span>
-<span class="fc" id="L308">    return parentVertex;</span>
+<span class="fc" id="L309">    }</span>
+<span class="fc" id="L310">    updateLevels(aggSampleVertex);</span>
+<span class="fc" id="L311">    return parentVertex;</span>
   }
 
   /**
@@ -314,87 +317,87 @@ public final class SampleGraph {
    * @param l
    */
   private void updateLevels(final AggSample sample) {
-<span class="fc" id="L317">    Set&lt;AggSample&gt; seen = new THashSet&lt;&gt;();</span>
-<span class="fc" id="L318">    ArrayDeque&lt;Pair&lt;AggSample, Integer&gt;&gt; trq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L319">    aggGraph.successors(sample).forEach((n) -&gt; trq.add(Pair.of(n, sample.level + 1)));</span>
+<span class="fc" id="L320">    Set&lt;AggSample&gt; seen = new THashSet&lt;&gt;();</span>
+<span class="fc" id="L321">    ArrayDeque&lt;Pair&lt;AggSample, Integer&gt;&gt; trq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L322">    aggGraph.successors(sample).forEach((n) -&gt; trq.add(Pair.of(n, sample.level + 1)));</span>
     Pair&lt;AggSample, Integer&gt; curr;
-<span class="fc bfc" id="L321" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
-<span class="fc" id="L322">      AggSample first = curr.getFirst();</span>
-<span class="fc bfc" id="L323" title="All 2 branches covered.">      if (seen.add(first)) {</span>
-<span class="fc" id="L324">        Integer second = curr.getSecond();</span>
-<span class="fc" id="L325">        first.addLevel(second);</span>
-<span class="fc" id="L326">        Set&lt;AggSample&gt; successors = aggGraph.successors(first);</span>
-<span class="fc" id="L327">        successors.forEach((n) -&gt; trq.add(Pair.of(n, second + 1)));</span>
+<span class="fc bfc" id="L324" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
+<span class="fc" id="L325">      AggSample first = curr.getFirst();</span>
+<span class="fc bfc" id="L326" title="All 2 branches covered.">      if (seen.add(first)) {</span>
+<span class="fc" id="L327">        Integer second = curr.getSecond();</span>
+<span class="fc" id="L328">        first.addLevel(second);</span>
+<span class="fc" id="L329">        Set&lt;AggSample&gt; successors = aggGraph.successors(first);</span>
+<span class="fc" id="L330">        successors.forEach((n) -&gt; trq.add(Pair.of(n, second + 1)));</span>
       }
-<span class="fc" id="L329">    }</span>
-<span class="fc" id="L330">  }</span>
+<span class="fc" id="L332">    }</span>
+<span class="fc" id="L333">  }</span>
 
   public Sample getRootVertex() {
-<span class="nc" id="L333">    return rootVertex;</span>
+<span class="nc" id="L336">    return rootVertex;</span>
   }
 
   public AggSample getAggRootVertex() {
-<span class="fc" id="L337">    return aggregates.get(rootVertex.key);</span>
+<span class="fc" id="L340">    return aggregates.get(rootVertex.key);</span>
   }
 
   public int getAggNodesNr() {
-<span class="fc" id="L341">    return this.aggregates.size();</span>
+<span class="fc" id="L344">    return this.aggregates.size();</span>
   }
 
   public boolean haveCommonChild(final AggSample a, final AggSample b) {
-<span class="fc bfc" id="L345" title="All 2 branches covered.">    if (a.getKey().equals(b.getKey())) {</span>
-<span class="fc" id="L346">      return true;</span>
+<span class="fc bfc" id="L348" title="All 2 branches covered.">    if (a.getKey().equals(b.getKey())) {</span>
+<span class="fc" id="L349">      return true;</span>
     }
-<span class="fc" id="L348">    Set&lt;SampleKey&gt; traversed = new THashSet&lt;&gt;();</span>
-<span class="fc" id="L349">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L350">    trq.add(a);</span>
-<span class="fc" id="L351">    trq.add(b);</span>
+<span class="fc" id="L351">    Set&lt;SampleKey&gt; traversed = new THashSet&lt;&gt;();</span>
+<span class="fc" id="L352">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L353">    trq.add(a);</span>
+<span class="fc" id="L354">    trq.add(b);</span>
     AggSample curr;
-<span class="fc bfc" id="L353" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
-<span class="fc bfc" id="L354" title="All 2 branches covered.">      if (!traversed.add(curr.getKey())) {</span>
-<span class="fc" id="L355">        return true;</span>
+<span class="fc bfc" id="L356" title="All 2 branches covered.">    while ((curr = trq.pollFirst()) != null) {</span>
+<span class="fc bfc" id="L357" title="All 2 branches covered.">      if (!traversed.add(curr.getKey())) {</span>
+<span class="fc" id="L358">        return true;</span>
       }
-<span class="fc" id="L357">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
+<span class="fc" id="L360">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
     }
-<span class="fc" id="L359">    return false;</span>
+<span class="fc" id="L362">    return false;</span>
   }
 
   public boolean isParentDescendant(final AggSample a, final AggSample b) {
-<span class="fc" id="L363">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
-<span class="fc" id="L364">    trq.add(a);</span>
+<span class="fc" id="L366">    ArrayDeque&lt;AggSample&gt; trq = new ArrayDeque&lt;&gt;();</span>
+<span class="fc" id="L367">    trq.add(a);</span>
     AggSample curr;
-<span class="pc bpc" id="L366" title="1 of 2 branches missed.">    while ((curr = trq.pollFirst()) != null) {</span>
-<span class="fc bfc" id="L367" title="All 2 branches covered.">      if (curr.equals(b)) {</span>
-<span class="fc" id="L368">        return true;</span>
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">    while ((curr = trq.pollFirst()) != null) {</span>
+<span class="fc bfc" id="L370" title="All 2 branches covered.">      if (curr.equals(b)) {</span>
+<span class="fc" id="L371">        return true;</span>
       }
-<span class="fc" id="L370">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
+<span class="fc" id="L373">      aggGraph.successors(curr).forEach((n) -&gt; trq.add(n));</span>
     }
-<span class="nc" id="L372">    return false;</span>
+<span class="nc" id="L375">    return false;</span>
   }
 
   public Set&lt;AggSample&gt; getParents(final AggSample node) {
-<span class="fc" id="L376">    return aggGraph.predecessors(node);</span>
+<span class="fc" id="L379">    return aggGraph.predecessors(node);</span>
   }
 
   public Set&lt;AggSample&gt; getChildren(final AggSample node) {
-<span class="fc" id="L380">    return aggGraph.successors(node);</span>
+<span class="fc" id="L383">    return aggGraph.successors(node);</span>
   }
 
   public AggSample getAggNode(final SampleKey key) {
-<span class="fc" id="L384">    return this.aggregates.get(key);</span>
+<span class="fc" id="L387">    return this.aggregates.get(key);</span>
   }
 
   public Set&lt;Sample&gt; getSamples(final SampleKey key) {
-<span class="nc" id="L388">    return this.vertexMap.get(key);</span>
+<span class="nc" id="L391">    return this.vertexMap.get(key);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L393">    return &quot;SampleGraph{&quot; + &quot;vertexMap=&quot; + vertexMap</span>
+<span class="nc" id="L396">    return &quot;SampleGraph{&quot; + &quot;vertexMap=&quot; + vertexMap</span>
             + &quot;, aggregates=&quot; + aggregates + &quot;, sampleTree=&quot; + sampleTree
             + &quot;, aggGraph=&quot; + aggGraph
             + &quot;, rootVertex=&quot; + rootVertex + '}';
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

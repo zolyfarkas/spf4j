@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ProcessMeasurementStore.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.perf.impl</a> &gt; <span class="el_source">ProcessMeasurementStore.java</span></div><h1>ProcessMeasurementStore.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.perf.impl;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.spf4j.base.CharSequences;
+import org.spf4j.io.Csv;
+import org.spf4j.io.csv.CsvParseException;
+import org.spf4j.perf.MeasurementStore;
+import org.spf4j.perf.impl.ms.Flusher;
+import org.spf4j.perf.impl.ms.MultiStore;
+import org.spf4j.perf.impl.ms.StoreType;
+import org.spf4j.perf.impl.ms.tsdb.AvroMeasurementStore;
+import org.spf4j.recyclable.ObjectCreationException;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class ProcessMeasurementStore {
+
+  private static final MeasurementStore MEASUREMENT_STORE;
+
+  static {
+    MeasurementStore mStore;
+    try {
+<span class="fc" id="L65">      mStore = buildStoreFromConfig(System.getProperty(&quot;spf4j.perf.ms.config&quot;, null));</span>
+<span class="nc" id="L66">    } catch (IOException | ObjectCreationException ex) {</span>
+<span class="nc" id="L67">      Logger.getLogger(ProcessMeasurementStore.class.getName())</span>
+<span class="nc" id="L68">              .log(Level.SEVERE, &quot;Cannot initialize measurement store, installing NOP store&quot;, ex);</span>
+<span class="nc" id="L69">      mStore = new NopMeasurementStore();</span>
+<span class="fc" id="L70">    }</span>
+<span class="pc bpc" id="L71" title="2 of 4 branches missed.">    if (!(mStore instanceof NopMeasurementStore) &amp;&amp; Boolean.getBoolean(&quot;spf4j.perf.ms.periodicFlush&quot;)) {</span>
+<span class="nc" id="L72">      Flusher.flushEvery(Integer.getInteger(&quot;spf4j.perf.ms.flushIntervalMillis&quot;, 60000), mStore);</span>
+    }
+<span class="fc" id="L74">    MEASUREMENT_STORE = mStore;</span>
+<span class="fc" id="L75">  }</span>
+
+  private ProcessMeasurementStore() {
+  }
+
+  public static MeasurementStore getMeasurementStore() {
+<span class="fc" id="L81">    return MEASUREMENT_STORE;</span>
+  }
+
+  /**
+   * Configuration is a coma separated list of stores:
+   * TSDB@/path/to/file.tsdb,TSDB_TXT@/path/to/file.tsdbtxt,GRAPHITE_UDP@1.1.1.1:8080,GRAPHITE_TCP@1.1.1.1:8080
+   *
+   * @param configuration
+   * @return a measurement store.
+   */
+  @Nonnull
+  @SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;) // the config is not supplied by a user.
+  private static MeasurementStore buildStoreFromConfig(@Nullable final String configuration)
+          throws IOException, ObjectCreationException {
+
+<span class="pc bpc" id="L96" title="1 of 4 branches missed.">    if (configuration == null || configuration.trim().isEmpty()) {</span>
+<span class="fc" id="L97">      return new AvroMeasurementStore(Paths.get(System.getProperty(&quot;spf4j.perf.ms.defaultTsdbFolderPath&quot;,</span>
+<span class="fc" id="L98">              System.getProperty(&quot;java.io.tmpdir&quot;))),</span>
+<span class="fc" id="L99">              CharSequences.validatedFileName(System.getProperty(&quot;spf4j.perf.ms.defaultTsdbFileNamePrefix&quot;,</span>
+<span class="fc" id="L100">                      ManagementFactory.getRuntimeMXBean().getName())));</span>
+    }
+
+    List&lt;String&gt; stores;
+    try {
+<span class="fc" id="L105">      stores = Csv.readRow(new StringReader(configuration));</span>
+<span class="nc" id="L106">    } catch (CsvParseException ex) {</span>
+<span class="nc" id="L107">      throw new IllegalArgumentException(&quot;Invalid configuration &quot; + configuration, ex);</span>
+<span class="fc" id="L108">    }</span>
+<span class="fc" id="L109">    final int size = stores.size();</span>
+<span class="pc bpc" id="L110" title="1 of 2 branches missed.">    if (size == 1) {</span>
+<span class="nc" id="L111">      return StoreType.fromString(stores.get(0));</span>
+    } else {
+<span class="fc" id="L113">      MeasurementStore[] mstores = new MeasurementStore[size];</span>
+<span class="fc" id="L114">      int i = 0;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">      for (String config : stores) {</span>
+<span class="fc" id="L116">        mstores[i] = StoreType.fromString(config);</span>
+<span class="fc" id="L117">        i++;</span>
+<span class="fc" id="L118">      }</span>
+<span class="fc" id="L119">      return new MultiStore(mstores);</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

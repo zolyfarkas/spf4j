@@ -34,6 +34,7 @@ package org.spf4j.io;
 import com.google.common.io.BaseEncoding;
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
 import edu.umd.cs.findbugs.annotations.DischargesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -69,7 +70,7 @@ public final class PipedOutputStream extends OutputStream {
 
   private byte[] buffer;
 
-<span class="fc" id="L72">  private final Object sync = new Object();</span>
+<span class="fc" id="L73">  private final Object sync = new Object();</span>
 
   private int startIdx;
   private int endIdx;
@@ -81,20 +82,20 @@ public final class PipedOutputStream extends OutputStream {
   private final Long globalDeadlineNanos;
 
   public PipedOutputStream() {
-<span class="nc" id="L84">    this(8192);</span>
-<span class="nc" id="L85">  }</span>
+<span class="nc" id="L85">    this(8192);</span>
+<span class="nc" id="L86">  }</span>
 
   public PipedOutputStream(final int bufferSize) {
-<span class="fc" id="L88">    this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);</span>
-<span class="fc" id="L89">  }</span>
+<span class="fc" id="L89">    this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="fc" id="L90">  }</span>
 
   /**
    * @deprecated use constructor that takes globalDeadlineNanos.
    */
   @Deprecated
   public PipedOutputStream(final int bufferSize, final long globalDeadlineMillis) {
-<span class="nc" id="L96">    this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW, globalDeadlineMillis);</span>
-<span class="nc" id="L97">  }</span>
+<span class="nc" id="L97">    this(bufferSize, ArraySuppliers.Bytes.JAVA_NEW, globalDeadlineMillis);</span>
+<span class="nc" id="L98">  }</span>
 
   /**
    * Create a PipedOutputStream with a global deadline relative to System.nanoTime().
@@ -102,13 +103,13 @@ public final class PipedOutputStream extends OutputStream {
    * @param bufferSize the buffer size.
    */
   public PipedOutputStream(final long globalDeadlineNanos, final int bufferSize) {
-<span class="nc" id="L105">    this(globalDeadlineNanos, bufferSize, ArraySuppliers.Bytes.JAVA_NEW);</span>
-<span class="nc" id="L106">  }</span>
+<span class="nc" id="L106">    this(globalDeadlineNanos, bufferSize, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="nc" id="L107">  }</span>
 
   public PipedOutputStream(final int bufferSize,
           final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider) {
-<span class="fc" id="L110">    this(null, bufferSize, bufferProvider);</span>
-<span class="fc" id="L111">  }</span>
+<span class="fc" id="L111">    this(null, bufferSize, bufferProvider);</span>
+<span class="fc" id="L112">  }</span>
 
   /**
    * @deprecated use constructor that takes globalDeadlineNanos.
@@ -116,9 +117,9 @@ public final class PipedOutputStream extends OutputStream {
   @Deprecated
   public PipedOutputStream(final int bufferSize,
           final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider, @Nullable final Long globalDeadlineMillis) {
-<span class="nc bnc" id="L119" title="All 2 branches missed.">    this(globalDeadlineMillis == null ? null</span>
-<span class="nc" id="L120">            : Timing.getCurrentTiming().fromEpochMillisToNanoTime(globalDeadlineMillis), bufferSize, bufferProvider);</span>
-<span class="nc" id="L121">  }</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">    this(globalDeadlineMillis == null ? null</span>
+<span class="nc" id="L121">            : Timing.getCurrentTiming().fromEpochMillisToNanoTime(globalDeadlineMillis), bufferSize, bufferProvider);</span>
+<span class="nc" id="L122">  }</span>
 
   /**
    * Create a PipedOutputStream.
@@ -127,224 +128,225 @@ public final class PipedOutputStream extends OutputStream {
    * @param bufferProvider a buffer provider. (to allow more efficient recycling)
    */
   public PipedOutputStream(@Nullable final Long globalDeadlineNanos, final int bufferSize,
-<span class="fc" id="L130">          final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider) {</span>
-<span class="pc bpc" id="L131" title="1 of 2 branches missed.">    if (bufferSize &lt; 2) {</span>
-<span class="nc" id="L132">      throw new IllegalArgumentException(&quot;Illegal buffer size &quot; + bufferSize);</span>
+<span class="fc" id="L131">          final SizedRecyclingSupplier&lt;byte[]&gt; bufferProvider) {</span>
+<span class="pc bpc" id="L132" title="1 of 2 branches missed.">    if (bufferSize &lt; 2) {</span>
+<span class="nc" id="L133">      throw new IllegalArgumentException(&quot;Illegal buffer size &quot; + bufferSize);</span>
     }
-<span class="fc" id="L134">    this.bufferProvider = bufferProvider;</span>
-<span class="fc" id="L135">    buffer = bufferProvider.get(bufferSize);</span>
-<span class="fc" id="L136">    startIdx = 0;</span>
-<span class="fc" id="L137">    endIdx = 0;</span>
-<span class="fc" id="L138">    readerPerceivedEndIdx = 0;</span>
-<span class="fc" id="L139">    writerClosed = false;</span>
-<span class="fc" id="L140">    nrReadStreams = 0;</span>
-<span class="fc" id="L141">    closedException = null;</span>
-<span class="fc" id="L142">    this.globalDeadlineNanos = globalDeadlineNanos;</span>
-<span class="fc" id="L143">  }</span>
+<span class="fc" id="L135">    this.bufferProvider = bufferProvider;</span>
+<span class="fc" id="L136">    buffer = bufferProvider.get(bufferSize);</span>
+<span class="fc" id="L137">    startIdx = 0;</span>
+<span class="fc" id="L138">    endIdx = 0;</span>
+<span class="fc" id="L139">    readerPerceivedEndIdx = 0;</span>
+<span class="fc" id="L140">    writerClosed = false;</span>
+<span class="fc" id="L141">    nrReadStreams = 0;</span>
+<span class="fc" id="L142">    closedException = null;</span>
+<span class="fc" id="L143">    this.globalDeadlineNanos = globalDeadlineNanos;</span>
+<span class="fc" id="L144">  }</span>
 
   @Override
   public void write(final byte[] b, final int off, final int len) throws IOException {
-<span class="fc" id="L147">    long deadline = getNanoDeadline();</span>
-<span class="fc" id="L148">    writeUntil(b, off, len, deadline);</span>
-<span class="fc" id="L149">  }</span>
+<span class="fc" id="L148">    long deadline = getNanoDeadline();</span>
+<span class="fc" id="L149">    writeUntil(b, off, len, deadline);</span>
+<span class="fc" id="L150">  }</span>
 
   public long getNanoDeadline() {
-<span class="pc bpc" id="L152" title="1 of 2 branches missed.">    if (globalDeadlineNanos == null) {</span>
-<span class="fc" id="L153">      return ExecutionContexts.getContextDeadlineNanos();</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">    if (globalDeadlineNanos == null) {</span>
+<span class="fc" id="L154">      return ExecutionContexts.getContextDeadlineNanos();</span>
     } else {
-<span class="nc" id="L155">      return globalDeadlineNanos;</span>
+<span class="nc" id="L156">      return globalDeadlineNanos;</span>
     }
   }
 
   public void writeUntil(final byte[] b, final int off, final int len, final long deadlineNanos) throws IOException {
-<span class="fc" id="L160">    int bytesWritten = 0;</span>
-<span class="fc bfc" id="L161" title="All 2 branches covered.">    while (bytesWritten &lt; len) {</span>
-<span class="fc" id="L162">      synchronized (sync) {</span>
-<span class="fc" id="L163">        int a2w = 0;</span>
-<span class="pc bpc" id="L164" title="1 of 4 branches missed.">        while (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {</span>
-<span class="fc" id="L165">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L166" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
-<span class="nc" id="L167">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
+<span class="fc" id="L161">    int bytesWritten = 0;</span>
+<span class="fc bfc" id="L162" title="All 2 branches covered.">    while (bytesWritten &lt; len) {</span>
+<span class="fc" id="L163">      synchronized (sync) {</span>
+<span class="fc" id="L164">        int a2w = 0;</span>
+<span class="pc bpc" id="L165" title="1 of 4 branches missed.">        while (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {</span>
+<span class="fc" id="L166">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L167" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="nc" id="L168">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
           }
           try {
-<span class="fc" id="L170">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
-<span class="nc" id="L171">          } catch (InterruptedException ex) {</span>
-<span class="nc" id="L172">            throw new IOException(&quot;Interrupted while writing &quot; + Arrays.toString(b), ex);</span>
-<span class="fc" id="L173">          }</span>
-<span class="fc" id="L174">        }</span>
-<span class="pc bpc" id="L175" title="1 of 2 branches missed.">        if (writerClosed) {</span>
-<span class="nc" id="L176">          throw new IOException(&quot;Cannot write, stream closed &quot; + this, closedException);</span>
+<span class="fc" id="L171">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
+<span class="nc" id="L172">          } catch (InterruptedException ex) {</span>
+<span class="nc" id="L173">            throw new IOException(&quot;Interrupted while writing &quot; + Arrays.toString(b), ex);</span>
+<span class="fc" id="L174">          }</span>
+<span class="fc" id="L175">        }</span>
+<span class="pc bpc" id="L176" title="1 of 2 branches missed.">        if (writerClosed) {</span>
+<span class="nc" id="L177">          throw new IOException(&quot;Cannot write, stream closed &quot; + this, closedException);</span>
         }
-<span class="fc" id="L178">        a2w = Math.min(a2w, len - bytesWritten);</span>
-<span class="fc" id="L179">        int wrToEnd = Math.min(a2w, buffer.length - endIdx);</span>
-<span class="fc" id="L180">        System.arraycopy(b, off + bytesWritten, buffer, endIdx, wrToEnd);</span>
-<span class="fc" id="L181">        endIdx += wrToEnd;</span>
-<span class="fc" id="L182">        bytesWritten += wrToEnd;</span>
-<span class="fc" id="L183">        int wrapArround = a2w - wrToEnd;</span>
-<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (wrapArround &gt; 0) {</span>
-<span class="fc" id="L185">          System.arraycopy(b, off + bytesWritten, buffer, 0, wrapArround);</span>
-<span class="fc" id="L186">          endIdx = wrapArround;</span>
-<span class="fc" id="L187">          bytesWritten += wrapArround;</span>
-<span class="fc bfc" id="L188" title="All 2 branches covered.">        } else if (endIdx &gt;= buffer.length) {</span>
-<span class="fc" id="L189">          endIdx = 0;</span>
+<span class="fc" id="L179">        a2w = Math.min(a2w, len - bytesWritten);</span>
+<span class="fc" id="L180">        int wrToEnd = Math.min(a2w, buffer.length - endIdx);</span>
+<span class="fc" id="L181">        System.arraycopy(b, off + bytesWritten, buffer, endIdx, wrToEnd);</span>
+<span class="fc" id="L182">        endIdx += wrToEnd;</span>
+<span class="fc" id="L183">        bytesWritten += wrToEnd;</span>
+<span class="fc" id="L184">        int wrapArround = a2w - wrToEnd;</span>
+<span class="fc bfc" id="L185" title="All 2 branches covered.">        if (wrapArround &gt; 0) {</span>
+<span class="fc" id="L186">          System.arraycopy(b, off + bytesWritten, buffer, 0, wrapArround);</span>
+<span class="fc" id="L187">          endIdx = wrapArround;</span>
+<span class="fc" id="L188">          bytesWritten += wrapArround;</span>
+<span class="fc bfc" id="L189" title="All 2 branches covered.">        } else if (endIdx &gt;= buffer.length) {</span>
+<span class="fc" id="L190">          endIdx = 0;</span>
         }
-<span class="fc bfc" id="L191" title="All 2 branches covered.">        if (availableToWrite() &lt; 1) {</span>
-<span class="fc" id="L192">          flush();</span>
+<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (availableToWrite() &lt; 1) {</span>
+<span class="fc" id="L193">          flush();</span>
         }
-<span class="fc" id="L194">      }</span>
+<span class="fc" id="L195">      }</span>
     }
-<span class="fc" id="L196">  }</span>
+<span class="fc" id="L197">  }</span>
 
   @Override
   public void write(final int b) throws IOException {
-<span class="fc" id="L200">    long deadline = getNanoDeadline();</span>
-<span class="fc" id="L201">    writeUntil(b, deadline);</span>
-<span class="fc" id="L202">  }</span>
+<span class="fc" id="L201">    long deadline = getNanoDeadline();</span>
+<span class="fc" id="L202">    writeUntil(b, deadline);</span>
+<span class="fc" id="L203">  }</span>
 
   public void writeUntil(final int b, final long deadlineNanos) throws IOException {
-<span class="fc" id="L205">    synchronized (sync) {</span>
-<span class="fc" id="L206">      int a2w = 0;</span>
-<span class="fc bfc" id="L207" title="All 4 branches covered.">      while (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {</span>
+<span class="fc" id="L206">    synchronized (sync) {</span>
+<span class="fc" id="L207">      int a2w = 0;</span>
+<span class="fc bfc" id="L208" title="All 4 branches covered.">      while (!writerClosed &amp;&amp; (a2w = availableToWrite()) &lt; 1) {</span>
         try {
-<span class="fc" id="L209">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="fc bfc" id="L210" title="All 2 branches covered.">          if (timeToWaitNanos &lt;= 0) {</span>
-<span class="fc" id="L211">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
+<span class="fc" id="L210">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="fc bfc" id="L211" title="All 2 branches covered.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="fc" id="L212">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
           }
-<span class="fc" id="L213">          TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
-<span class="nc" id="L214">        } catch (InterruptedException ex) {</span>
-<span class="nc" id="L215">          throw new IOException(&quot;Interrupted while writing &quot; + b, ex);</span>
-<span class="fc" id="L216">        }</span>
+<span class="fc" id="L214">          TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
+<span class="nc" id="L215">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L216">          throw new IOException(&quot;Interrupted while writing &quot; + b, ex);</span>
+<span class="fc" id="L217">        }</span>
       }
-<span class="fc bfc" id="L218" title="All 2 branches covered.">      if (writerClosed) {</span>
-<span class="fc" id="L219">        throw new IOException(&quot;Cannot write stream closed &quot; + this, closedException);</span>
+<span class="fc bfc" id="L219" title="All 2 branches covered.">      if (writerClosed) {</span>
+<span class="fc" id="L220">        throw new IOException(&quot;Cannot write stream closed &quot; + this, closedException);</span>
       }
-<span class="fc" id="L221">      buffer[endIdx++] = (byte) b;</span>
-<span class="fc bfc" id="L222" title="All 2 branches covered.">      if (endIdx &gt;= buffer.length) {</span>
-<span class="fc" id="L223">        endIdx = 0;</span>
+<span class="fc" id="L222">      buffer[endIdx++] = (byte) b;</span>
+<span class="fc bfc" id="L223" title="All 2 branches covered.">      if (endIdx &gt;= buffer.length) {</span>
+<span class="fc" id="L224">        endIdx = 0;</span>
       }
-<span class="fc bfc" id="L225" title="All 2 branches covered.">      if (a2w &lt; 2) {</span>
-<span class="fc" id="L226">        flush();</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">      if (a2w &lt; 2) {</span>
+<span class="fc" id="L227">        flush();</span>
       }
-<span class="fc" id="L228">    }</span>
-<span class="fc" id="L229">  }</span>
+<span class="fc" id="L229">    }</span>
+<span class="fc" id="L230">  }</span>
 
   private int availableToWrite() {
-<span class="fc bfc" id="L232" title="All 2 branches covered.">    if (startIdx &lt;= endIdx) {</span>
-<span class="fc" id="L233">      return startIdx + buffer.length - endIdx - 1;</span>
+<span class="fc bfc" id="L233" title="All 2 branches covered.">    if (startIdx &lt;= endIdx) {</span>
+<span class="fc" id="L234">      return startIdx + buffer.length - endIdx - 1;</span>
     } else {
-<span class="fc" id="L235">      return startIdx - endIdx - 1;</span>
+<span class="fc" id="L236">      return startIdx - endIdx - 1;</span>
     }
   }
 
   private int availableToRead() {
-<span class="fc bfc" id="L240" title="All 2 branches covered.">    if (startIdx &lt;= readerPerceivedEndIdx) {</span>
-<span class="fc" id="L241">      return readerPerceivedEndIdx - startIdx;</span>
+<span class="fc bfc" id="L241" title="All 2 branches covered.">    if (startIdx &lt;= readerPerceivedEndIdx) {</span>
+<span class="fc" id="L242">      return readerPerceivedEndIdx - startIdx;</span>
     } else {
-<span class="fc" id="L243">      return buffer.length - startIdx + readerPerceivedEndIdx;</span>
+<span class="fc" id="L244">      return buffer.length - startIdx + readerPerceivedEndIdx;</span>
     }
   }
 
   private int contentInBuffer() {
-<span class="nc bnc" id="L248" title="All 2 branches missed.">    if (startIdx &lt;= endIdx) {</span>
-<span class="nc" id="L249">      return endIdx - startIdx;</span>
+<span class="nc bnc" id="L249" title="All 2 branches missed.">    if (startIdx &lt;= endIdx) {</span>
+<span class="nc" id="L250">      return endIdx - startIdx;</span>
     } else {
-<span class="nc" id="L251">      return buffer.length - startIdx + endIdx;</span>
+<span class="nc" id="L252">      return buffer.length - startIdx + endIdx;</span>
     }
   }
 
   @Override
   public void flush() {
-<span class="fc" id="L257">    synchronized (sync) {</span>
-<span class="fc bfc" id="L258" title="All 2 branches covered.">      if (readerPerceivedEndIdx != endIdx) {</span>
-<span class="fc" id="L259">        readerPerceivedEndIdx = endIdx;</span>
-<span class="fc" id="L260">        sync.notifyAll();</span>
+<span class="fc" id="L258">    synchronized (sync) {</span>
+<span class="fc bfc" id="L259" title="All 2 branches covered.">      if (readerPerceivedEndIdx != endIdx) {</span>
+<span class="fc" id="L260">        readerPerceivedEndIdx = endIdx;</span>
+<span class="fc" id="L261">        sync.notifyAll();</span>
       }
-<span class="fc" id="L262">    }</span>
-<span class="fc" id="L263">  }</span>
+<span class="fc" id="L263">    }</span>
+<span class="fc" id="L264">  }</span>
 
   @Override
   @DischargesObligation
   public void close() {
-<span class="fc" id="L268">    synchronized (sync) {</span>
-<span class="fc bfc" id="L269" title="All 2 branches covered.">      if (!writerClosed) {</span>
+<span class="fc" id="L269">    synchronized (sync) {</span>
+<span class="fc bfc" id="L270" title="All 2 branches covered.">      if (!writerClosed) {</span>
         try {
-<span class="fc" id="L271">          writerClosed = true;</span>
-<span class="fc" id="L272">          flush();</span>
+<span class="fc" id="L272">          writerClosed = true;</span>
+<span class="fc" id="L273">          flush();</span>
         } finally {
-<span class="pc bpc" id="L274" title="1 of 4 branches missed.">          if (nrReadStreams == 0 &amp;&amp; availableToRead() == 0) {</span>
-<span class="nc" id="L275">            bufferProvider.recycle(buffer);</span>
-<span class="nc" id="L276">            buffer = null;</span>
+<span class="pc bpc" id="L275" title="1 of 4 branches missed.">          if (nrReadStreams == 0 &amp;&amp; availableToRead() == 0) {</span>
+<span class="nc" id="L276">            bufferProvider.recycle(buffer);</span>
+<span class="nc" id="L277">            buffer = null;</span>
           }
-<span class="fc" id="L278">          sync.notifyAll();</span>
+<span class="fc" id="L279">          sync.notifyAll();</span>
         }
       }
-<span class="fc" id="L281">    }</span>
-<span class="fc" id="L282">  }</span>
+<span class="fc" id="L282">    }</span>
+<span class="fc" id="L283">  }</span>
 
 
   /**
    * Close this piped output stream, and provide a exception reason.
    * Designed to propagate exception details from the consumer to the producer.
    * A consumer that reads data from a InputStream connected to this PipedOutpuStream,
-   * can close this pipe, and provide a exception. THis exception will be used as cause for any
+   * can close this pipe, and provide a exception. This exception will be used as cause for any
    * exceptions thrown by subsequent attempted write operations.
    * @param ex the exception to use as root cause.
    */
   @DischargesObligation
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
   public void close(final Exception ex) {
-<span class="fc" id="L295">    synchronized (sync) {</span>
-<span class="pc bpc" id="L296" title="1 of 2 branches missed.">      if (closedException != null) {</span>
-<span class="nc" id="L297">        ex.addSuppressed(closedException);</span>
+<span class="fc" id="L297">    synchronized (sync) {</span>
+<span class="pc bpc" id="L298" title="1 of 2 branches missed.">      if (closedException != null) {</span>
+<span class="nc" id="L299">        ex.addSuppressed(closedException);</span>
       }
-<span class="fc" id="L299">      closedException = ex;</span>
-<span class="fc" id="L300">      close();</span>
-<span class="fc" id="L301">    }</span>
-<span class="fc" id="L302">  }</span>
+<span class="fc" id="L301">      closedException = ex;</span>
+<span class="fc" id="L302">      close();</span>
+<span class="fc" id="L303">    }</span>
+<span class="fc" id="L304">  }</span>
 
 
   public InputStream getInputStream() {
-<span class="fc" id="L306">    synchronized (sync) {</span>
-<span class="pc bpc" id="L307" title="1 of 4 branches missed.">      if (writerClosed &amp;&amp; availableToRead() == 0) {</span>
-<span class="nc" id="L308">        return EmptyInputStream.EMPTY;</span>
+<span class="fc" id="L308">    synchronized (sync) {</span>
+<span class="pc bpc" id="L309" title="1 of 4 branches missed.">      if (writerClosed &amp;&amp; availableToRead() == 0) {</span>
+<span class="nc" id="L310">        return EmptyInputStream.INSTANCE;</span>
       }
-<span class="fc" id="L310">      nrReadStreams++;</span>
-<span class="fc" id="L311">      return new PipedInputStream();</span>
+<span class="fc" id="L312">      nrReadStreams++;</span>
+<span class="fc" id="L313">      return new PipedInputStream();</span>
     }
 
   }
 
   public synchronized byte[] getUnreadBytesFromBuffer() {
-<span class="nc" id="L317">    final int size = contentInBuffer();</span>
-<span class="nc bnc" id="L318" title="All 2 branches missed.">    if (size == 0) {</span>
-<span class="nc" id="L319">      return org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;</span>
+<span class="nc" id="L319">    final int size = contentInBuffer();</span>
+<span class="nc bnc" id="L320" title="All 2 branches missed.">    if (size == 0) {</span>
+<span class="nc" id="L321">      return org.spf4j.base.Arrays.EMPTY_BYTE_ARRAY;</span>
     }
-<span class="nc" id="L321">    byte[] result = new byte[size];</span>
-<span class="nc bnc" id="L322" title="All 2 branches missed.">    if (startIdx &lt; endIdx) {</span>
-<span class="nc" id="L323">      System.arraycopy(buffer, startIdx, result, 0, result.length);</span>
+<span class="nc" id="L323">    byte[] result = new byte[size];</span>
+<span class="nc bnc" id="L324" title="All 2 branches missed.">    if (startIdx &lt; endIdx) {</span>
+<span class="nc" id="L325">      System.arraycopy(buffer, startIdx, result, 0, result.length);</span>
     } else {
-<span class="nc" id="L325">      final int toEnd = buffer.length - startIdx;</span>
-<span class="nc" id="L326">      System.arraycopy(buffer, startIdx, result, 0, toEnd);</span>
-<span class="nc" id="L327">      System.arraycopy(buffer, 0, result, toEnd, endIdx);</span>
+<span class="nc" id="L327">      final int toEnd = buffer.length - startIdx;</span>
+<span class="nc" id="L328">      System.arraycopy(buffer, startIdx, result, 0, toEnd);</span>
+<span class="nc" id="L329">      System.arraycopy(buffer, 0, result, toEnd, endIdx);</span>
     }
-<span class="nc" id="L329">    return result;</span>
+<span class="nc" id="L331">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L334">    synchronized (sync) {</span>
-<span class="pc bpc" id="L335" title="1 of 2 branches missed.">      if (buffer == null) {</span>
-<span class="nc" id="L336">        return &quot;PipedOutputStream{readers=&quot; + nrReadStreams + &quot;, startIdx=&quot; + startIdx</span>
+<span class="fc" id="L336">    synchronized (sync) {</span>
+<span class="pc bpc" id="L337" title="1 of 2 branches missed.">      if (buffer == null) {</span>
+<span class="nc" id="L338">        return &quot;PipedOutputStream{readers=&quot; + nrReadStreams + &quot;, startIdx=&quot; + startIdx</span>
                 + &quot;, endIdx=&quot; + endIdx
                 + &quot;, readerPerceivedEndIdx=&quot; + readerPerceivedEndIdx
                 + &quot;, closed=&quot; + writerClosed + '}';
       } else {
-<span class="pc bpc" id="L341" title="1 of 2 branches missed.">        return &quot;PipedOutputStream{readers=&quot; + nrReadStreams + &quot;, bufferLength=&quot;</span>
+<span class="pc bpc" id="L343" title="1 of 2 branches missed.">        return &quot;PipedOutputStream{readers=&quot; + nrReadStreams + &quot;, bufferLength=&quot;</span>
                 + buffer.length + &quot;, startIdx=&quot; + startIdx
                 + &quot;, endIdx=&quot; + endIdx
                 + &quot;, readerPerceivedEndIdx=&quot; + readerPerceivedEndIdx
                 + ((writerClosed)
                         ? &quot;, closed=&quot; + writerClosed
-<span class="pc" id="L347">                        : &quot;, unread=&quot; + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))</span>
+<span class="pc" id="L349">                        : &quot;, unread=&quot; + BaseEncoding.base64().encode(getUnreadBytesFromBuffer()))</span>
                 + '}';
       }
     }
@@ -352,127 +354,128 @@ public final class PipedOutputStream extends OutputStream {
 
   public final class PipedInputStream extends InputStream {
 
-<span class="fc" id="L355">    private boolean readerClosed = false;</span>
+<span class="fc" id="L357">    private boolean readerClosed = false;</span>
 
-<span class="fc" id="L357">    private PipedInputStream() {</span>
-<span class="fc" id="L358">    }</span>
+<span class="fc" id="L359">    private PipedInputStream() {</span>
+<span class="fc" id="L360">    }</span>
 
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
     public PipedOutputStream getOutputStream() {
-<span class="nc" id="L361">      return PipedOutputStream.this;</span>
+<span class="nc" id="L364">      return PipedOutputStream.this;</span>
     }
 
     @Override
     public int read() throws IOException {
-<span class="fc" id="L366">      long deadline = getNanoDeadline();</span>
-<span class="fc" id="L367">      return readUntil(deadline);</span>
+<span class="fc" id="L369">      long deadline = getNanoDeadline();</span>
+<span class="fc" id="L370">      return readUntil(deadline);</span>
     }
 
     public int readUntil(final long deadlineNanos) throws IOException {
-<span class="fc" id="L371">      synchronized (sync) {</span>
-<span class="fc" id="L372">        int availableToRead = 0;</span>
-<span class="pc bpc" id="L373" title="1 of 6 branches missed.">        while (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {</span>
-<span class="fc" id="L374">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L375" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
-<span class="nc" id="L376">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
+<span class="fc" id="L374">      synchronized (sync) {</span>
+<span class="fc" id="L375">        int availableToRead = 0;</span>
+<span class="pc bpc" id="L376" title="1 of 6 branches missed.">        while (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {</span>
+<span class="fc" id="L377">          long timeToWaitNanos = deadlineNanos - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L378" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="nc" id="L379">            throw new IOTimeoutException(deadlineNanos, -timeToWaitNanos);</span>
           }
           try {
-<span class="fc" id="L379">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
-<span class="nc" id="L380">          } catch (InterruptedException ex) {</span>
-<span class="nc" id="L381">            throw new IOException(&quot;Interrupted while reading from &quot;</span>
+<span class="fc" id="L382">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
+<span class="nc" id="L383">          } catch (InterruptedException ex) {</span>
+<span class="nc" id="L384">            throw new IOException(&quot;Interrupted while reading from &quot;</span>
                     + PipedOutputStream.this, ex);
-<span class="fc" id="L383">          }</span>
-<span class="fc" id="L384">        }</span>
-<span class="pc bpc" id="L385" title="1 of 2 branches missed.">        if (readerClosed) {</span>
-<span class="nc" id="L386">          throw new IOException(&quot;Reader is closed for &quot; + PipedOutputStream.this);</span>
+<span class="fc" id="L386">          }</span>
+<span class="fc" id="L387">        }</span>
+<span class="pc bpc" id="L388" title="1 of 2 branches missed.">        if (readerClosed) {</span>
+<span class="nc" id="L389">          throw new IOException(&quot;Reader is closed for &quot; + PipedOutputStream.this);</span>
         }
-<span class="fc bfc" id="L388" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
-<span class="pc bpc" id="L389" title="1 of 2 branches missed.">          if (!writerClosed) {</span>
-<span class="nc" id="L390">            throw new IllegalStateException(&quot;Stream must be closed &quot; + PipedOutputStream.this);</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
+<span class="pc bpc" id="L392" title="1 of 2 branches missed.">          if (!writerClosed) {</span>
+<span class="nc" id="L393">            throw new IllegalStateException(&quot;Stream must be closed &quot; + PipedOutputStream.this);</span>
           }
-<span class="fc" id="L392">          return -1;</span>
+<span class="fc" id="L395">          return -1;</span>
         }
-<span class="fc" id="L394">        int result = buffer[startIdx];</span>
-<span class="fc" id="L395">        startIdx++;</span>
-<span class="fc bfc" id="L396" title="All 2 branches covered.">        if (startIdx &gt;= buffer.length) {</span>
-<span class="fc" id="L397">          startIdx = 0;</span>
+<span class="fc" id="L397">        int result = buffer[startIdx];</span>
+<span class="fc" id="L398">        startIdx++;</span>
+<span class="fc bfc" id="L399" title="All 2 branches covered.">        if (startIdx &gt;= buffer.length) {</span>
+<span class="fc" id="L400">          startIdx = 0;</span>
         }
-<span class="fc" id="L399">        sync.notifyAll();</span>
-<span class="fc" id="L400">        return result;</span>
+<span class="fc" id="L402">        sync.notifyAll();</span>
+<span class="fc" id="L403">        return result;</span>
       }
     }
 
     @Override
     public int read(final byte[] b, final int off, final int len) throws IOException {
-<span class="fc" id="L406">      long deadline = getNanoDeadline();</span>
-<span class="fc" id="L407">      return readUntil(len, b, off, deadline);</span>
+<span class="fc" id="L409">      long deadline = getNanoDeadline();</span>
+<span class="fc" id="L410">      return readUntil(len, b, off, deadline);</span>
     }
 
     public int readUntil(final int len, final byte[] b, final int off, final long deadline)
             throws IOException {
-<span class="fc" id="L412">      int bytesWritten = 0;</span>
-<span class="fc" id="L413">      synchronized (sync) {</span>
-<span class="fc" id="L414">        int availableToRead = 0;</span>
-<span class="pc bpc" id="L415" title="1 of 6 branches missed.">        while (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {</span>
-<span class="fc" id="L416">          long timeToWaitNanos = deadline - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L417" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
-<span class="nc" id="L418">            throw new IOTimeoutException(deadline, -timeToWaitNanos);</span>
+<span class="fc" id="L415">      int bytesWritten = 0;</span>
+<span class="fc" id="L416">      synchronized (sync) {</span>
+<span class="fc" id="L417">        int availableToRead = 0;</span>
+<span class="pc bpc" id="L418" title="1 of 6 branches missed.">        while (!readerClosed &amp;&amp; (availableToRead = availableToRead()) &lt; 1 &amp;&amp; !writerClosed) {</span>
+<span class="fc" id="L419">          long timeToWaitNanos = deadline - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L420" title="1 of 2 branches missed.">          if (timeToWaitNanos &lt;= 0) {</span>
+<span class="nc" id="L421">            throw new IOTimeoutException(deadline, -timeToWaitNanos);</span>
           }
           try {
-<span class="fc" id="L421">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
-<span class="nc" id="L422">          } catch (InterruptedException ex) {</span>
-<span class="nc" id="L423">            throw new IOException(&quot;Interrupted while reading from &quot; + PipedOutputStream.this, ex);</span>
-<span class="fc" id="L424">          }</span>
-<span class="fc" id="L425">        }</span>
-<span class="pc bpc" id="L426" title="1 of 2 branches missed.">        if (readerClosed) {</span>
-<span class="nc" id="L427">          throw new IOException(&quot;Reader is closed for &quot; + PipedOutputStream.this);</span>
+<span class="fc" id="L424">            TimeUnit.NANOSECONDS.timedWait(sync, timeToWaitNanos);</span>
+<span class="nc" id="L425">          } catch (InterruptedException ex) {</span>
+<span class="nc" id="L426">            throw new IOException(&quot;Interrupted while reading from &quot; + PipedOutputStream.this, ex);</span>
+<span class="fc" id="L427">          }</span>
+<span class="fc" id="L428">        }</span>
+<span class="pc bpc" id="L429" title="1 of 2 branches missed.">        if (readerClosed) {</span>
+<span class="nc" id="L430">          throw new IOException(&quot;Reader is closed for &quot; + PipedOutputStream.this);</span>
         }
-<span class="fc bfc" id="L429" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
-<span class="pc bpc" id="L430" title="1 of 2 branches missed.">          if (!writerClosed) {</span>
-<span class="nc" id="L431">            throw new IllegalStateException(&quot;Stream should be closed, &quot; + PipedOutputStream.this);</span>
+<span class="fc bfc" id="L432" title="All 2 branches covered.">        if (availableToRead == 0) {</span>
+<span class="pc bpc" id="L433" title="1 of 2 branches missed.">          if (!writerClosed) {</span>
+<span class="nc" id="L434">            throw new IllegalStateException(&quot;Stream should be closed, &quot; + PipedOutputStream.this);</span>
           }
-<span class="fc" id="L433">          return -1;</span>
+<span class="fc" id="L436">          return -1;</span>
         }
-<span class="fc" id="L435">        availableToRead = Math.min(availableToRead, len);</span>
-<span class="fc" id="L436">        int readToEnd = Math.min(availableToRead, buffer.length - startIdx);</span>
-<span class="fc" id="L437">        System.arraycopy(buffer, startIdx, b, off, readToEnd);</span>
-<span class="fc" id="L438">        bytesWritten += readToEnd;</span>
-<span class="fc" id="L439">        startIdx += readToEnd;</span>
-<span class="fc" id="L440">        int remaining = availableToRead - readToEnd;</span>
-<span class="fc bfc" id="L441" title="All 2 branches covered.">        if (remaining &gt; 0) {</span>
-<span class="fc" id="L442">          System.arraycopy(buffer, 0, b, off + readToEnd, remaining);</span>
-<span class="fc" id="L443">          bytesWritten += remaining;</span>
-<span class="fc" id="L444">          startIdx = remaining;</span>
-<span class="fc bfc" id="L445" title="All 2 branches covered.">        } else if (startIdx &gt;= buffer.length) {</span>
-<span class="fc" id="L446">          startIdx = 0;</span>
+<span class="fc" id="L438">        availableToRead = Math.min(availableToRead, len);</span>
+<span class="fc" id="L439">        int readToEnd = Math.min(availableToRead, buffer.length - startIdx);</span>
+<span class="fc" id="L440">        System.arraycopy(buffer, startIdx, b, off, readToEnd);</span>
+<span class="fc" id="L441">        bytesWritten += readToEnd;</span>
+<span class="fc" id="L442">        startIdx += readToEnd;</span>
+<span class="fc" id="L443">        int remaining = availableToRead - readToEnd;</span>
+<span class="fc bfc" id="L444" title="All 2 branches covered.">        if (remaining &gt; 0) {</span>
+<span class="fc" id="L445">          System.arraycopy(buffer, 0, b, off + readToEnd, remaining);</span>
+<span class="fc" id="L446">          bytesWritten += remaining;</span>
+<span class="fc" id="L447">          startIdx = remaining;</span>
+<span class="fc bfc" id="L448" title="All 2 branches covered.">        } else if (startIdx &gt;= buffer.length) {</span>
+<span class="fc" id="L449">          startIdx = 0;</span>
         }
-<span class="fc" id="L448">        sync.notifyAll();</span>
-<span class="fc" id="L449">        return bytesWritten;</span>
+<span class="fc" id="L451">        sync.notifyAll();</span>
+<span class="fc" id="L452">        return bytesWritten;</span>
       }
     }
 
     @Override
     public int available() {
-<span class="nc" id="L455">      synchronized (sync) {</span>
-<span class="nc bnc" id="L456" title="All 2 branches missed.">        if (readerClosed) {</span>
-<span class="nc" id="L457">          throw new UncheckedIOException(&quot;Reader is closed for &quot; + PipedOutputStream.this, null);</span>
+<span class="nc" id="L458">      synchronized (sync) {</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">        if (readerClosed) {</span>
+<span class="nc" id="L460">          throw new UncheckedIOException(&quot;Reader is closed for &quot; + PipedOutputStream.this, null);</span>
         }
-<span class="nc" id="L459">        return availableToRead();</span>
+<span class="nc" id="L462">        return availableToRead();</span>
       }
     }
 
     @Override
     public void close() {
-<span class="fc" id="L465">      synchronized (sync) {</span>
-<span class="fc" id="L466">        nrReadStreams--;</span>
-<span class="fc" id="L467">        readerClosed = true;</span>
-<span class="pc bpc" id="L468" title="2 of 6 branches missed.">        if (writerClosed &amp;&amp; nrReadStreams == 0 &amp;&amp; availableToRead() == 0) {</span>
-<span class="fc" id="L469">          bufferProvider.recycle(buffer);</span>
-<span class="fc" id="L470">          buffer = null;</span>
+<span class="fc" id="L468">      synchronized (sync) {</span>
+<span class="fc" id="L469">        nrReadStreams--;</span>
+<span class="fc" id="L470">        readerClosed = true;</span>
+<span class="pc bpc" id="L471" title="2 of 6 branches missed.">        if (writerClosed &amp;&amp; nrReadStreams == 0 &amp;&amp; availableToRead() == 0) {</span>
+<span class="fc" id="L472">          bufferProvider.recycle(buffer);</span>
+<span class="fc" id="L473">          buffer = null;</span>
         }
-<span class="fc" id="L472">        sync.notifyAll();</span>
-<span class="fc" id="L473">      }</span>
-<span class="fc" id="L474">    }</span>
+<span class="fc" id="L475">        sync.notifyAll();</span>
+<span class="fc" id="L476">      }</span>
+<span class="fc" id="L477">    }</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

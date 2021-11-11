@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AvroProfilePersister.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">AvroProfilePersister.java</span></div><h1>AvroProfilePersister.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.annotation.Nullable;
+import org.apache.avro.file.CodecFactory;
+import org.apache.avro.file.DataFileWriter;
+import org.apache.avro.specific.SpecificDatumWriter;
+import org.spf4j.base.DateTimeFormats;
+import org.spf4j.base.avro.ApplicationStackSamples;
+import org.spf4j.base.avro.Converters;
+
+/**
+ *
+ * @author Zoltan Farkas
+ */
+public final class AvroProfilePersister implements ProfilePersister {
+
+  private final DataFileWriter&lt;ApplicationStackSamples&gt; writer;
+
+  private final boolean compress;
+
+  private final Path targetFolder;
+
+  private final String baseFileName;
+
+  private final Path targetFile;
+
+  private final long bucketTimeMillis;
+
+  @SuppressFBWarnings(&quot;NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE&quot;)
+  public AvroProfilePersister(final Path targetFolder,
+          final String baseFileName, final boolean compress, final long bucketTimeMillis)
+<span class="fc" id="L70">          throws IOException {</span>
+<span class="fc" id="L71">      DataFileWriter&lt;ApplicationStackSamples&gt; dataWriter =</span>
+              new DataFileWriter&lt;&gt;(new SpecificDatumWriter&lt;&gt;(ApplicationStackSamples.class));
+<span class="fc" id="L73">      this.bucketTimeMillis = bucketTimeMillis;</span>
+<span class="fc" id="L74">      this.compress = compress;</span>
+<span class="fc" id="L75">      this.targetFolder = targetFolder;</span>
+<span class="fc" id="L76">      this.baseFileName = baseFileName;</span>
+<span class="pc bpc" id="L77" title="1 of 2 branches missed.">      if (compress) {</span>
+        try {
+<span class="nc" id="L79">          Class.forName(&quot;com.github.luben.zstd.Zstd&quot;);</span>
+<span class="nc" id="L80">          dataWriter.setCodec(CodecFactory.zstandardCodec(-2, true));</span>
+<span class="fc" id="L81">        } catch (ClassNotFoundException | UnsatisfiedLinkError ex) {</span>
+<span class="fc" id="L82">          Logger.getLogger(AvroProfilePersister.class.getName()).fine(&quot;Fallback avro compress to deflate&quot;);</span>
+<span class="fc" id="L83">          dataWriter.setCodec(CodecFactory.deflateCodec(1));</span>
+<span class="nc" id="L84">        }</span>
+      }
+<span class="fc" id="L86">      dataWriter.setMeta(&quot;appVersion&quot;, org.spf4j.base.Runtime.getAppVersionString());</span>
+<span class="fc" id="L87">      dataWriter.setMeta(&quot;bucketTimeMillis&quot;, bucketTimeMillis);</span>
+<span class="fc" id="L88">      String fileName = baseFileName + ProfileFileFormat.SSP.getSuffix();</span>
+<span class="fc" id="L89">      targetFile = targetFolder.resolve(fileName);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">      if (Files.isWritable(targetFile)) {</span>
+<span class="fc" id="L91">        Files.move(targetFile, targetFile.resolveSibling(targetFile.getFileName().toString()</span>
+<span class="fc" id="L92">                + &quot;.backup.&quot; + DateTimeFormats.COMPACT_TS_FORMAT.format(Instant.now())));</span>
+      }
+<span class="fc" id="L94">      dataWriter.create(ApplicationStackSamples.getClassSchema(), targetFile.toFile());</span>
+<span class="fc" id="L95">      this.writer = dataWriter;</span>
+<span class="fc" id="L96">  }</span>
+
+
+  @Override
+  public boolean isCompressing() {
+<span class="nc" id="L101">   return this.compress;</span>
+  }
+
+  @Override
+  public ProfilePersister withBaseFileName(final Path ptargetPath, final String pbaseFileName) throws IOException {
+<span class="nc" id="L106">    return new AvroProfilePersister(ptargetPath, pbaseFileName, compress, bucketTimeMillis);</span>
+  }
+
+  @Override
+  public ProfilePersister witCompression(final boolean pcompress) throws IOException {
+<span class="nc" id="L111">     return new AvroProfilePersister(this.targetFolder, this.baseFileName, pcompress, bucketTimeMillis);</span>
+  }
+
+  @Override
+  public Path persist(final Map&lt;String, SampleNode&gt; profile, @Nullable final String tag,
+          final Instant profileFrom, final Instant profileTo)
+          throws IOException {
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">    if (profile.isEmpty()) {</span>
+<span class="nc" id="L119">      return this.targetFile;</span>
+    }
+<span class="fc bfc" id="L121" title="All 2 branches covered.">    for (Map.Entry&lt;String, SampleNode&gt; entry : profile.entrySet()) {</span>
+<span class="fc" id="L122">      SampleNode sampleNode = entry.getValue();</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">      if (sampleNode != null) {</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        this.writer.append(new ApplicationStackSamples(profileFrom, profileTo,</span>
+              tag == null ? &quot;&quot; : tag,
+<span class="fc" id="L126">              entry.getKey(), Converters.convert(sampleNode)));</span>
+      }
+<span class="fc" id="L128">    }</span>
+<span class="fc" id="L129">    return this.targetFile;</span>
+  }
+
+  @Override
+  public Path getTargetPath() {
+<span class="nc" id="L134">    return this.targetFolder;</span>
+  }
+
+  @Override
+  public String getBaseFileName() {
+<span class="nc" id="L139">    return this.baseFileName;</span>
+  }
+
+  @Override
+  public void flush() throws IOException {
+<span class="nc" id="L144">    this.writer.fSync();</span>
+<span class="nc" id="L145">  }</span>
+
+  @Override
+  public void close() throws IOException {
+<span class="fc" id="L149">    this.writer.close();</span>
+<span class="fc" id="L150">  }</span>
+
+  public Path getTargetFile() {
+<span class="fc" id="L153">    return targetFile;</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L158">    return &quot;AvroProfilePersister{&quot; + &quot;compress=&quot; + compress + &quot;, targetFolder=&quot; + targetFolder</span>
+            + &quot;, baseFileName=&quot; + baseFileName + &quot;, targetFile=&quot; + targetFile + '}';
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -443,8 +443,8 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
               }
             }
           }, deadlineNanos);
-<span class="nc" id="L446">        } catch (SQLTimeoutException ex) {</span>
-<span class="nc" id="L447">          return false;</span>
+<span class="fc" id="L446">        } catch (SQLTimeoutException ex) {</span>
+<span class="fc" id="L447">          return false;</span>
 <span class="nc" id="L448">        } catch (SQLException ex) {</span>
 <span class="nc" id="L449">          throw new LockRuntimeException(ex);</span>
 <span class="fc" id="L450">        }</span>
@@ -480,10 +480,10 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 <span class="pc bpc" id="L480" title="1 of 2 branches missed.">            if (releaseDeadOwnerPermits(nrPermits) &lt;= 0) { //wait of we did not find anything dead to release.</span>
 <span class="fc" id="L481">              long wtimeMilis = Math.min(TimeUnit.NANOSECONDS.toMillis(deadlineNanos - TimeSource.nanoTime()),</span>
 <span class="fc" id="L482">                      ThreadLocalRandom.current().nextLong(acquirePollMillis));</span>
-<span class="pc bpc" id="L483" title="1 of 2 branches missed.">              if (wtimeMilis &gt; 0) {</span>
+<span class="fc bfc" id="L483" title="All 2 branches covered.">              if (wtimeMilis &gt; 0) {</span>
 <span class="fc" id="L484">                syncObj.wait(wtimeMilis);</span>
               } else {
-<span class="nc" id="L486">                break;</span>
+<span class="fc" id="L486">                break;</span>
               }
             }
 <span class="nc" id="L489">          } catch (SQLException ex) {</span>
@@ -813,4 +813,4 @@ public final class JdbcSemaphore implements AutoCloseable, Semaphore {
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

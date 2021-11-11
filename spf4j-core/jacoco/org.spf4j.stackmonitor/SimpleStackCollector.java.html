@@ -32,6 +32,7 @@
 package org.spf4j.stackmonitor;
 
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Collections;
 import java.util.Map;
 
@@ -45,44 +46,45 @@ public final class SimpleStackCollector implements ISampler {
 
   private final StackCollector collector;
 
-<span class="fc" id="L48">  public SimpleStackCollector(final Thread ignore) {</span>
-<span class="fc" id="L49">    this.ignore = ignore;</span>
-<span class="fc" id="L50">    this.collector = new StackCollectorImpl();</span>
-<span class="fc" id="L51">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L50">  public SimpleStackCollector(final Thread ignore) {</span>
+<span class="fc" id="L51">    this.ignore = ignore;</span>
+<span class="fc" id="L52">    this.collector = new StackCollectorImpl();</span>
+<span class="fc" id="L53">  }</span>
 
   @Override
   public void sample() {
-<span class="fc" id="L55">    Map&lt;Thread, StackTraceElement[]&gt; stackDump = Thread.getAllStackTraces();</span>
-<span class="fc" id="L56">    stackDump.remove(ignore);</span>
-<span class="fc bfc" id="L57" title="All 2 branches covered.">    for (Map.Entry&lt;Thread, StackTraceElement[]&gt; element : stackDump.entrySet()) {</span>
-<span class="fc" id="L58">      StackTraceElement[] stackTrace = element.getValue();</span>
-<span class="fc bfc" id="L59" title="All 2 branches covered.">      if (stackTrace.length &gt; 0) {</span>
-<span class="fc" id="L60">        collector.collect(stackTrace);</span>
+<span class="fc" id="L57">    Map&lt;Thread, StackTraceElement[]&gt; stackDump = Thread.getAllStackTraces();</span>
+<span class="fc" id="L58">    stackDump.remove(ignore);</span>
+<span class="fc bfc" id="L59" title="All 2 branches covered.">    for (Map.Entry&lt;Thread, StackTraceElement[]&gt; element : stackDump.entrySet()) {</span>
+<span class="fc" id="L60">      StackTraceElement[] stackTrace = element.getValue();</span>
+<span class="fc bfc" id="L61" title="All 2 branches covered.">      if (stackTrace.length &gt; 0) {</span>
+<span class="fc" id="L62">        collector.collect(stackTrace);</span>
       } else {
-<span class="fc" id="L62">        collector.collect(new StackTraceElement[]{</span>
-<span class="fc" id="L63">          new StackTraceElement(&quot;Thread&quot;, element.getKey().getName(), &quot;&quot;, 0)</span>
+<span class="fc" id="L64">        collector.collect(new StackTraceElement[]{</span>
+<span class="fc" id="L65">          new StackTraceElement(&quot;Thread&quot;, element.getKey().getName(), &quot;&quot;, 0)</span>
         });
       }
-<span class="fc" id="L66">    }</span>
-<span class="fc" id="L67">  }</span>
+<span class="fc" id="L68">    }</span>
+<span class="fc" id="L69">  }</span>
 
   @Override
   public Map&lt;String, SampleNode&gt; getCollectionsAndReset() {
-<span class="fc" id="L71">    SampleNode nodes = collector.getAndReset();</span>
-<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+<span class="fc" id="L73">    SampleNode nodes = collector.getAndReset();</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
   }
 
   @Override
   public Map&lt;String, SampleNode&gt; getCollections() {
-<span class="fc" id="L77">    SampleNode nodes = collector.get();</span>
-<span class="pc bpc" id="L78" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
+<span class="fc" id="L79">    SampleNode nodes = collector.get();</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">    return nodes == null ? Collections.EMPTY_MAP : ImmutableMap.of(&quot;ALL&quot;, nodes);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L83">    return &quot;SimpleStackCollector{&quot; + &quot;ignore=&quot; + ignore + &quot;, collector=&quot; + collector + '}';</span>
+<span class="nc" id="L85">    return &quot;SimpleStackCollector{&quot; + &quot;ignore=&quot; + ignore + &quot;, collector=&quot; + collector + '}';</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

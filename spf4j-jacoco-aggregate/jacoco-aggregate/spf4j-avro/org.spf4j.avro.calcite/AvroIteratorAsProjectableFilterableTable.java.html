@@ -17,7 +17,7 @@ package org.spf4j.avro.calcite;
 
 import java.util.List;
 import java.util.function.Supplier;
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.apache.avro.generic.IndexedRecord;
 import org.apache.calcite.DataContext;
 import org.apache.calcite.interpreter.Scalar;
@@ -46,25 +46,26 @@ public final class AvroIteratorAsProjectableFilterableTable extends AbstractAvro
 <span class="fc" id="L46">  }</span>
 
   @Override
-  public Enumerable&lt;Object[]&gt; scan(final DataContext root, final List&lt;RexNode&gt; filters,
+  public Enumerable&lt;@Nullable Object[]&gt; scan(final DataContext root,
+          final List&lt;RexNode&gt; filters,
           @Nullable final int[] projection)  {
-<span class="fc" id="L51">    org.apache.avro.Schema componentType = getComponentType();</span>
-<span class="fc" id="L52">    LOG.debug(&quot;Filtered+Projected Table scan of {} with filter {} and projection {}&quot;, componentType.getName(),</span>
+<span class="fc" id="L52">    org.apache.avro.Schema componentType = getComponentType();</span>
+<span class="fc" id="L53">    LOG.debug(&quot;Filtered+Projected Table scan of {} with filter {} and projection {}&quot;, componentType.getName(),</span>
             filters, projection);
-<span class="fc" id="L54">    Scalar filter = InterpreterUtils.toScalar(filters, root.getTypeFactory(), this.getRowType(root.getTypeFactory()));</span>
-<span class="fc" id="L55">    Enumerable&lt;Object[]&gt; result</span>
+<span class="fc" id="L55">    Scalar filter = InterpreterUtils.toScalar(filters, this.getRowType(root.getTypeFactory()), root);</span>
+<span class="fc" id="L56">    Enumerable&lt;Object[]&gt; result</span>
             = new FilteringProjectingAvroEnumerable(componentType, root, filter, projection, dataSupplier);
-<span class="fc bfc" id="L57" title="All 2 branches covered.">    if (filter != null) {</span>
-<span class="fc" id="L58">      filters.clear();</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">    if (filter != null) {</span>
+<span class="fc" id="L59">      filters.clear();</span>
     }
-<span class="fc" id="L60">    return result;</span>
+<span class="fc" id="L61">    return result;</span>
   }
 
 
   @Override
   public String toString() {
-<span class="nc" id="L66">    return &quot;AvroProjectableFilterableTable{&quot; + &quot;dataSupplier=&quot; + dataSupplier + '}';</span>
+<span class="nc" id="L67">    return &quot;AvroProjectableFilterableTable{&quot; + &quot;dataSupplier=&quot; + dataSupplier + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

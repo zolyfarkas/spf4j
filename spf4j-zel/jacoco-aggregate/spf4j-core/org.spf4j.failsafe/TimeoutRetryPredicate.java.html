@@ -18,7 +18,7 @@ package org.spf4j.failsafe;
 import java.util.concurrent.Callable;
 import org.spf4j.base.TimeSource;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import org.spf4j.base.Timing;
 
 /**
  * @author Zoltan Farkas
@@ -41,23 +41,23 @@ final class TimeoutRetryPredicate&lt;T, C extends Callable&lt;T&gt;&gt; implemen
 <span class="fc bfc" id="L41" title="All 2 branches covered.">    if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
 <span class="fc" id="L42">      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);</span>
 <span class="pc bpc" id="L43" title="1 of 2 branches missed.">      if (timeToDeadlineNanos &lt; decision.getDelayNanos()) {</span>
-<span class="nc" id="L44">         return (RetryDecision) RetryDecision.abortThrow(new TimeoutException(&quot;Time to deadline not enough &quot;</span>
-                  + timeToDeadlineNanos + &quot; ns, last result = &quot; + value));
+<span class="nc" id="L44">         return (RetryDecision) RetryDecision.abortThrow(new NotEnoughTimeToRetry(&quot;Time to deadline not enough &quot;</span>
+                  + timeToDeadlineNanos + &quot; ns, deadline = &quot;
+<span class="nc" id="L46">                 + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos) + &quot;, last result = &quot; + value));</span>
       }
     }
-<span class="fc" id="L48">    return decision;</span>
+<span class="fc" id="L49">    return decision;</span>
   }
 
   @Override
   public RetryDecision&lt;T, C&gt; getExceptionDecision(final Throwable value, final C what) {
-<span class="fc" id="L53">    RetryDecision&lt;T, C&gt; decision = predicate.getExceptionDecision(value, what);</span>
-<span class="fc bfc" id="L54" title="All 2 branches covered.">    if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
-<span class="fc" id="L55">      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);</span>
-<span class="fc bfc" id="L56" title="All 2 branches covered.">      if (timeToDeadlineNanos &lt; decision.getDelayNanos()) {</span>
-        //throw exception. attach explanation why retry not done.
-<span class="fc" id="L58">        value.addSuppressed(new NotEnoughTimeToRetry(&quot;Time to deadline not enough &quot;</span>
-                + timeToDeadlineNanos + &quot; ns &quot;));
-<span class="fc" id="L60">        return (RetryDecision) RetryDecision.abortThrow(value);</span>
+<span class="fc" id="L54">    RetryDecision&lt;T, C&gt; decision = predicate.getExceptionDecision(value, what);</span>
+<span class="fc bfc" id="L55" title="All 2 branches covered.">    if (decision.getDecisionType() == RetryDecision.Type.Retry) {</span>
+<span class="fc" id="L56">      long timeToDeadlineNanos = TimeSource.getTimeToDeadline(deadlineNanos, TimeUnit.NANOSECONDS);</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">      if (timeToDeadlineNanos &lt; decision.getDelayNanos()) {</span>
+<span class="fc" id="L58">        return (RetryDecision) RetryDecision.abortThrow(new NotEnoughTimeToRetry(&quot;Time to deadline not enough &quot;</span>
+                + timeToDeadlineNanos + &quot; ns, deadline = &quot;
+<span class="fc" id="L60">                + Timing.getCurrentTiming().fromNanoTimeToInstant(deadlineNanos), value));</span>
       }
     }
 <span class="fc" id="L63">    return decision;</span>
@@ -69,4 +69,4 @@ final class TimeoutRetryPredicate&lt;T, C extends Callable&lt;T&gt;&gt; implemen
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

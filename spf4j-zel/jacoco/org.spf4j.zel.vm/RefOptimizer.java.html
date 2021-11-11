@@ -33,6 +33,7 @@ package org.spf4j.zel.vm;
 
 import java.util.Map;
 import java.util.function.Function;
+import javax.annotation.Nullable;
 import org.spf4j.zel.instr.Instruction;
 import org.spf4j.zel.instr.LODAX;
 import org.spf4j.zel.instr.LODAXF;
@@ -47,49 +48,59 @@ public final class RefOptimizer implements Function&lt;Program, Program&gt; {
 
     private RefOptimizer() { }
 
-<span class="fc" id="L50">    public static final Function&lt;Program, Program&gt; INSTANCE = new RefOptimizer();</span>
+<span class="fc" id="L51">    public static final Function&lt;Program, Program&gt; INSTANCE = new RefOptimizer();</span>
 
     @Override
     public Program apply(final Program input) {
-<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        if (input == null) {</span>
-<span class="nc" id="L55">            throw new IllegalArgumentException(&quot;Input cannot be null for &quot; + this);</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">        if (input == null) {</span>
+<span class="nc" id="L56">            throw new IllegalArgumentException(&quot;Input cannot be null for &quot; + this);</span>
         }
-<span class="fc" id="L57">        Instruction[] instructions = input.getInstructions().clone();</span>
-<span class="fc" id="L58">        Map&lt;String, Integer&gt; lsym = input.getLocalSymbolTable();</span>
-<span class="fc" id="L59">        Map&lt;String, Integer&gt; gsym = input.getGlobalSymbolTable();</span>
+<span class="fc" id="L58">        Instruction[] instructions = input.getInstructions().clone();</span>
+<span class="fc" id="L59">        Map&lt;String, Integer&gt; lsym = input.getLocalSymbolTable();</span>
+<span class="fc" id="L60">        Map&lt;String, Integer&gt; gsym = input.getGlobalSymbolTable();</span>
 
-<span class="fc bfc" id="L61" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
-<span class="fc" id="L62">            Instruction instr = instructions[i];</span>
-<span class="fc bfc" id="L63" title="All 2 branches covered.">            if (LODX.class.equals(instr.getClass())) {</span>
-<span class="fc" id="L64">                String symbol = ((LODX) instr).getSymbol();</span>
-<span class="fc" id="L65">                Address addr = getAddress(lsym, symbol, gsym);</span>
-<span class="fc" id="L66">                instructions[i] = new LODXF(addr);</span>
-<span class="fc bfc" id="L67" title="All 2 branches covered.">            } else if (LODAX.class.equals(instr.getClass())) {</span>
-<span class="fc" id="L68">                String symbol = ((LODAX) instr).getSymbol();</span>
-<span class="fc" id="L69">                Address addr = getAddress(lsym, symbol, gsym);</span>
-<span class="fc" id="L70">                instructions[i] = new LODAXF(addr);</span>
+<span class="fc bfc" id="L62" title="All 2 branches covered.">        for (int i = 0; i &lt; instructions.length; i++) {</span>
+<span class="fc" id="L63">            Instruction instr = instructions[i];</span>
+<span class="fc bfc" id="L64" title="All 2 branches covered.">            if (LODX.class.equals(instr.getClass())) {</span>
+<span class="fc" id="L65">                String symbol = ((LODX) instr).getSymbol();</span>
+<span class="fc" id="L66">                Address addr = getAddress(lsym, symbol, gsym);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">                if (addr == null) {</span>
+<span class="nc" id="L68">                  continue;</span>
+                }
+<span class="fc" id="L70">                instructions[i] = new LODXF(addr);</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">            } else if (LODAX.class.equals(instr.getClass())) {</span>
+<span class="fc" id="L72">                String symbol = ((LODAX) instr).getSymbol();</span>
+<span class="fc" id="L73">                Address addr = getAddress(lsym, symbol, gsym);</span>
+<span class="pc bpc" id="L74" title="1 of 2 branches missed.">                if (addr == null) {</span>
+<span class="nc" id="L75">                  continue;</span>
+                }
+<span class="fc" id="L77">                instructions[i] = new LODAXF(addr);</span>
             }
         }
 
-<span class="fc" id="L74">        return new Program(input.getName(), input.getGlobalSymbolTable(),</span>
-<span class="fc" id="L75">                    input.getGlobalMem(), input.getLocalSymbolTable(),</span>
-<span class="fc" id="L76">                    instructions, input.getDebug(), input.getSource(),</span>
-<span class="fc" id="L77">                    input.getType(), input.getExecType(),</span>
-<span class="fc" id="L78">                    input.hasDeterministicFunctions(), input.getParameterNamesInternal());</span>
+<span class="fc" id="L81">        return new Program(input.getName(), input.getGlobalSymbolTable(),</span>
+<span class="fc" id="L82">                    input.getGlobalMem(), input.getLocalSymbolTable(),</span>
+<span class="fc" id="L83">                    instructions, input.getDebug(), input.getSource(),</span>
+<span class="fc" id="L84">                    input.getType(), input.getExecType(),</span>
+<span class="fc" id="L85">                    input.hasDeterministicFunctions(), input.getParameterNamesInternal());</span>
     }
 
+    @Nullable
     private static Address getAddress(final Map&lt;String, Integer&gt; lsym,
             final String symbol, final Map&lt;String, Integer&gt; gsym) {
         Address addr;
-<span class="fc" id="L84">        Integer idx = lsym.get(symbol);</span>
-<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (idx == null) {</span>
-<span class="fc" id="L86">            idx = gsym.get(symbol);</span>
-<span class="fc" id="L87">            addr = new Address(idx, Address.Scope.GLOBAL);</span>
+<span class="fc" id="L92">        Integer idx = lsym.get(symbol);</span>
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (idx == null) {</span>
+<span class="fc" id="L94">            idx = gsym.get(symbol);</span>
+<span class="pc bpc" id="L95" title="1 of 2 branches missed.">            if (idx == null) {</span>
+<span class="nc" id="L96">              return null;</span>
+            }
+<span class="fc" id="L98">            addr = new Address(idx, Address.Scope.GLOBAL);</span>
         } else {
-<span class="fc" id="L89">            addr = new Address(idx, Address.Scope.LOCAL);</span>
+<span class="fc" id="L100">            addr = new Address(idx, Address.Scope.LOCAL);</span>
         }
-<span class="fc" id="L91">        return addr;</span>
+<span class="fc" id="L102">        return addr;</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -111,24 +111,25 @@ public final class UnboundedLoadingCache2&lt;K, V&gt; implements LoadingCache&lt
 <span class="nc" id="L111">  }</span>
 
   @Override
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public ConcurrentMap&lt;K, V&gt; asMap() {
-<span class="nc" id="L115">    return map;</span>
+<span class="nc" id="L116">    return map;</span>
   }
 
   @Override
   public V getIfPresent(final Object key) {
-<span class="nc" id="L120">    return map.get(key);</span>
+<span class="nc" id="L121">    return map.get(key);</span>
   }
 
   @Override
   public V get(final K key, final Callable&lt;? extends V&gt; valueLoader) {
-<span class="nc" id="L125">    return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
+<span class="nc" id="L126">    return map.computeIfAbsent(key, new Function&lt;K, V&gt;() {</span>
       @Override
       public V apply(final K t) {
         try {
-<span class="nc" id="L129">          return valueLoader.call();</span>
-<span class="nc" id="L130">        } catch (Exception ex) {</span>
-<span class="nc" id="L131">          throw new UncheckedExecutionException(ex);</span>
+<span class="nc" id="L130">          return valueLoader.call();</span>
+<span class="nc" id="L131">        } catch (Exception ex) {</span>
+<span class="nc" id="L132">          throw new UncheckedExecutionException(ex);</span>
         }
       }
     });
@@ -137,64 +138,64 @@ public final class UnboundedLoadingCache2&lt;K, V&gt; implements LoadingCache&lt
   @Override
   @SuppressFBWarnings(&quot;RV_RETURN_VALUE_IGNORED&quot;)
   public ImmutableMap&lt;K, V&gt; getAllPresent(final Iterable&lt;?&gt; keys) {
-<span class="nc" id="L140">    ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L142">      V val = getIfPresent(key);</span>
-<span class="nc bnc" id="L143" title="All 2 branches missed.">      if (val != null) {</span>
-<span class="nc" id="L144">        builder.put(key, val);</span>
+<span class="nc" id="L141">    ImmutableMap.Builder&lt;K, V&gt; builder = ImmutableMap.builder();</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L143">      V val = getIfPresent(key);</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">      if (val != null) {</span>
+<span class="nc" id="L145">        builder.put(key, val);</span>
       }
-<span class="nc" id="L146">    }</span>
-<span class="nc" id="L147">    return builder.build();</span>
+<span class="nc" id="L147">    }</span>
+<span class="nc" id="L148">    return builder.build();</span>
   }
 
   @Override
   public void put(final K key, final V value) {
-<span class="nc" id="L152">    map.put(key, value);</span>
-<span class="nc" id="L153">  }</span>
+<span class="nc" id="L153">    map.put(key, value);</span>
+<span class="nc" id="L154">  }</span>
 
   @Override
   public void putAll(final Map&lt;? extends K, ? extends V&gt; m) {
-<span class="nc bnc" id="L157" title="All 2 branches missed.">    for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
-<span class="nc" id="L158">      put(entry.getKey(), entry.getValue());</span>
-<span class="nc" id="L159">    }</span>
-<span class="nc" id="L160">  }</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">    for (Map.Entry&lt;? extends K, ? extends V&gt; entry : m.entrySet()) {</span>
+<span class="nc" id="L159">      put(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L160">    }</span>
+<span class="nc" id="L161">  }</span>
 
   @Override
   public void invalidate(final Object key) {
-<span class="nc" id="L164">    map.remove(key);</span>
-<span class="nc" id="L165">  }</span>
+<span class="nc" id="L165">    map.remove(key);</span>
+<span class="nc" id="L166">  }</span>
 
   @Override
   public void invalidateAll(final Iterable&lt;?&gt; keys) {
-<span class="nc bnc" id="L169" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
-<span class="nc" id="L170">      invalidate(key);</span>
-<span class="nc" id="L171">    }</span>
-<span class="nc" id="L172">  }</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">    for (K key : (Iterable&lt;K&gt;) keys) {</span>
+<span class="nc" id="L171">      invalidate(key);</span>
+<span class="nc" id="L172">    }</span>
+<span class="nc" id="L173">  }</span>
 
   @Override
   public void invalidateAll() {
-<span class="nc" id="L176">    map.clear();</span>
-<span class="nc" id="L177">  }</span>
+<span class="nc" id="L177">    map.clear();</span>
+<span class="nc" id="L178">  }</span>
 
   @Override
   public long size() {
-<span class="nc" id="L181">    return map.size();</span>
+<span class="nc" id="L182">    return map.size();</span>
   }
 
   @Override
   public CacheStats stats() {
-<span class="nc" id="L186">    throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
+<span class="nc" id="L187">    throw new UnsupportedOperationException(&quot;Not supported&quot;);</span>
   }
 
   @Override
   public void cleanUp() {
-<span class="nc" id="L191">    map.clear();</span>
-<span class="nc" id="L192">  }</span>
+<span class="nc" id="L192">    map.clear();</span>
+<span class="nc" id="L193">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L196">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
+<span class="nc" id="L197">    return &quot;UnboundedLoadingCache{&quot; + &quot;map=&quot; + map + &quot;, loader=&quot; + loader + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

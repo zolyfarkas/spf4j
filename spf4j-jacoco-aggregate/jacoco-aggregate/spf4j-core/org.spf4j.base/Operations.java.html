@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>Operations.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">Operations.java</span></div><h1>Operations.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.MutableGraph;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.specific.SpecificDatumReader;
+import org.spf4j.avro.AvroCompatUtils;
+import org.spf4j.base.avro.Operation;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class Operations {
+
+  private static final MutableGraph&lt;String&gt; OP_GRAPH;
+
+  static {
+    try {
+<span class="fc" id="L59">      OP_GRAPH = getRegisteredOperations();</span>
+<span class="nc" id="L60">    } catch (IOException ex) {</span>
+<span class="nc" id="L61">      throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L62">    }</span>
+<span class="fc" id="L63">  }</span>
+
+  private Operations() {
+  }
+
+  private static MutableGraph&lt;String&gt; getRegisteredOperations() throws IOException {
+<span class="fc" id="L69">    MutableGraph&lt;String&gt; graph = GraphBuilder.directed().build();</span>
+<span class="pc bpc" id="L70" title="1 of 2 branches missed.">    for (Enumeration&lt;URL&gt; e = ClassLoader.getSystemResources(&quot;operations.json&quot;); e.hasMoreElements();) {</span>
+<span class="nc" id="L71">      URL url = e.nextElement();</span>
+<span class="nc" id="L72">      try (InputStream is = url.openStream()) {</span>
+<span class="nc" id="L73">        SpecificDatumReader&lt;org.spf4j.base.avro.Operations&gt; reader</span>
+                = new SpecificDatumReader&lt;&gt;(org.spf4j.base.avro.Operations.class);
+<span class="nc" id="L75">        Decoder dec = AvroCompatUtils.getJsonDecoder(org.spf4j.base.avro.Operations.getClassSchema(), is);</span>
+<span class="nc" id="L76">        org.spf4j.base.avro.Operations ops = reader.read(null, dec);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (Operation op : ops.getOperations()) {</span>
+<span class="nc" id="L78">          addOperation(op, graph);</span>
+<span class="nc" id="L79">        }</span>
+      }
+<span class="nc" id="L81">    }</span>
+<span class="fc" id="L82">    return graph;</span>
+  }
+
+  private static void addOperation(final Operation op, final MutableGraph&lt;String&gt; graph) {
+<span class="fc" id="L86">    String opName = op.getName();</span>
+<span class="fc" id="L87">    graph.addNode(opName);</span>
+<span class="fc bfc" id="L88" title="All 2 branches covered.">    for (String pop : op.getPropagates()) {</span>
+<span class="fc" id="L89">      graph.addNode(pop);</span>
+<span class="fc" id="L90">      graph.putEdge(pop, opName);</span>
+<span class="fc" id="L91">    }</span>
+<span class="fc" id="L92">  }</span>
+
+  /**
+   * Method that will return the provided operation and all its sub-operations recursively.
+   * @param operationName
+   * @return operation and all its sub-operations recursively
+   */
+  public static Set&lt;String&gt; getOperations(final String operationName) {
+<span class="fc" id="L100">    Set&lt;String&gt; children = OP_GRAPH.predecessors(operationName);</span>
+<span class="fc bfc" id="L101" title="All 2 branches covered.">    if (children.isEmpty()) {</span>
+<span class="fc" id="L102">      return Collections.singleton(operationName);</span>
+    } else {
+<span class="fc" id="L104">      Set&lt;String&gt; response = new HashSet&lt;&gt;(8);</span>
+<span class="fc" id="L105">      response.add(operationName);</span>
+<span class="fc" id="L106">      response.addAll(children);</span>
+<span class="fc" id="L107">      ArrayDeque&lt;String&gt; queue = new ArrayDeque&lt;&gt;(4);</span>
+<span class="fc" id="L108">      queue.addAll(children);</span>
+      do {
+<span class="fc" id="L110">        String op = queue.removeFirst();</span>
+<span class="fc" id="L111">        children = OP_GRAPH.predecessors(op);</span>
+<span class="fc bfc" id="L112" title="All 4 branches covered.">        if (!children.isEmpty() &amp;&amp; response.addAll(children)) {</span>
+<span class="fc" id="L113">            queue.addAll(children);</span>
+        }
+<span class="fc bfc" id="L115" title="All 2 branches covered.">      } while (!queue.isEmpty());</span>
+<span class="fc" id="L116">      return Collections.unmodifiableSet(response);</span>
+    }
+  }
+
+  @VisibleForTesting
+  static void addOperation(final Operation op) {
+<span class="fc" id="L122">    addOperation(op, OP_GRAPH);</span>
+<span class="fc" id="L123">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

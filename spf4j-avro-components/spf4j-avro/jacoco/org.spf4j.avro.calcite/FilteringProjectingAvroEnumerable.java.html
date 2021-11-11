@@ -79,53 +79,62 @@ class FilteringProjectingAvroEnumerable extends AbstractEnumerable&lt;Object[]&g
 <span class="fc" id="L79">            IndexedRecord ir = iterator.next();</span>
 <span class="fc" id="L80">            IndexedRecords.copyRecord(ir, rawRow);</span>
 <span class="fc" id="L81">            spf4jDataContext.values = rawRow;</span>
-<span class="pc bpc" id="L82" title="1 of 4 branches missed.">            Boolean match = filterExpression == null || (Boolean) filterExpression.execute(spf4jDataContext);</span>
-<span class="pc bpc" id="L83" title="1 of 2 branches missed.">            if (match) {</span>
-<span class="fc" id="L84">              break;</span>
+            boolean match;
+<span class="fc bfc" id="L83" title="All 2 branches covered.">            if (filterExpression == null) {</span>
+<span class="fc" id="L84">              match = true;</span>
+            } else {
+<span class="fc" id="L86">              Boolean result = (Boolean) filterExpression.execute(spf4jDataContext);</span>
+<span class="pc bpc" id="L87" title="1 of 2 branches missed.">              if (result == null) {</span>
+<span class="nc" id="L88">                throw new IllegalStateException(&quot;Filter expression cannot evaluate to null: &quot; + filterExpression);</span>
+              }
+<span class="fc" id="L90">              match = result;</span>
             }
-<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!iterator.hasNext()) {</span>
-<span class="nc" id="L87">              current = null;</span>
-<span class="nc" id="L88">              return false;</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">            if (match) {</span>
+<span class="fc" id="L93">              break;</span>
             }
-<span class="nc" id="L90">          }</span>
-<span class="pc bpc" id="L91" title="1 of 2 branches missed.">          if (projection == null) {</span>
-<span class="fc" id="L92">            current = rawRow.clone();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            if (!iterator.hasNext()) {</span>
+<span class="nc" id="L96">              current = null;</span>
+<span class="nc" id="L97">              return false;</span>
+            }
+<span class="nc" id="L99">          }</span>
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">          if (projection == null) {</span>
+<span class="fc" id="L101">            current = rawRow.clone();</span>
           } else {
-<span class="nc" id="L94">            current = new Object[projection.length];</span>
-<span class="nc bnc" id="L95" title="All 2 branches missed.">            for (int i = 0; i &lt; projection.length; i++) {</span>
-<span class="nc" id="L96">              current[i] = rawRow[projection[i]];</span>
+<span class="nc" id="L103">            current = new Object[projection.length];</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">            for (int i = 0; i &lt; projection.length; i++) {</span>
+<span class="nc" id="L105">              current[i] = rawRow[projection[i]];</span>
             }
           }
-<span class="fc" id="L99">          return true;</span>
+<span class="fc" id="L108">          return true;</span>
         } else {
-<span class="fc" id="L101">          current = null;</span>
-<span class="fc" id="L102">          return false;</span>
+<span class="fc" id="L110">          current = null;</span>
+<span class="fc" id="L111">          return false;</span>
         }
       }
 
       @Override
       public void reset() {
-<span class="nc" id="L108">        iterator.close();</span>
-<span class="nc" id="L109">        iterator = stream.get();</span>
-<span class="nc" id="L110">        current = null;</span>
-<span class="nc" id="L111">      }</span>
+<span class="nc" id="L117">        iterator.close();</span>
+<span class="nc" id="L118">        iterator = stream.get();</span>
+<span class="nc" id="L119">        current = null;</span>
+<span class="nc" id="L120">      }</span>
 
       @Override
       public void close() {
-<span class="fc" id="L115">        iterator.close();</span>
-<span class="fc" id="L116">      }</span>
+<span class="fc" id="L124">        iterator.close();</span>
+<span class="fc" id="L125">      }</span>
     };
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L122">    return &quot;FilteringProjectingAvroEnumerable{&quot; + &quot;rawRow=&quot; + Arrays.toString(rawRow)</span>
+<span class="nc" id="L131">    return &quot;FilteringProjectingAvroEnumerable{&quot; + &quot;rawRow=&quot; + Arrays.toString(rawRow)</span>
             + &quot;, spf4jDataContext=&quot; + spf4jDataContext + &quot;, filterExpression=&quot;
-<span class="nc" id="L124">            + filterExpression + &quot;, projection=&quot; + Arrays.toString(projection) + &quot;, stream=&quot;</span>
+<span class="nc" id="L133">            + filterExpression + &quot;, projection=&quot; + Arrays.toString(projection) + &quot;, stream=&quot;</span>
             + stream + &quot;, cancelFlag=&quot; + cancelFlag + '}';
   }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

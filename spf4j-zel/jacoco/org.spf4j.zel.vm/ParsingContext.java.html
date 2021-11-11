@@ -33,84 +33,82 @@ package org.spf4j.zel.vm;
 
 import java.io.Serializable;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.spf4j.zel.instr.Instruction;
 
-
+@ParametersAreNonnullByDefault
 public interface ParsingContext {
 
+  final class Location implements Serializable {
 
-    final class Location implements Serializable {
-        private static final long serialVersionUID = 1L;
-        private final int row;
-        private final int column;
+    private static final long serialVersionUID = 1L;
+    private final int row;
+    private final int column;
 
-<span class="fc" id="L47">        public Location(final int row, final int column) {</span>
-<span class="fc" id="L48">            this.row = row - 1;</span>
-<span class="fc" id="L49">            this.column = column;</span>
-<span class="fc" id="L50">        }</span>
+<span class="fc" id="L48">    public Location(final int row, final int column) {</span>
+<span class="fc" id="L49">      this.row = row - 1;</span>
+<span class="fc" id="L50">      this.column = column;</span>
+<span class="fc" id="L51">    }</span>
 
-        @Override
-        public String toString() {
-<span class="nc" id="L54">            return &quot;Location{&quot; + &quot;row=&quot; + row + &quot;, column=&quot; + column + '}';</span>
-        }
-
-        public int getRow() {
-<span class="fc" id="L58">            return row;</span>
-        }
-
-        public int getColumn() {
-<span class="nc" id="L62">            return column;</span>
-        }
-
+    @Override
+    public String toString() {
+<span class="nc" id="L55">      return &quot;Location{&quot; + &quot;row=&quot; + row + &quot;, column=&quot; + column + '}';</span>
     }
 
+    public int getRow() {
+<span class="fc" id="L59">      return row;</span>
+    }
 
-    /**
-     * generate instruction code with argument
-     *
-     * @param instr Instruction
-     * @param arg Object
-     */
-    void generateCode(Location[] loc, Instruction... args);
+    public int getColumn() {
+<span class="nc" id="L63">      return column;</span>
+    }
 
+  }
 
-    void generateCode(Location loc, Instruction instr);
+  /**
+   * generate instruction code with argument
+   *
+   * @param instr Instruction
+   * @param arg Object
+   */
+  void generateCode(Location[] loc, Instruction... args);
 
+  void generateCode(Location loc, Instruction instr);
 
-    void staticSymbol(String name, Object object);
+  void staticSymbol(String name, Object object);
 
-    /**
-     * Add code to this context
-     *
-     * @param code Object[]
-     */
-    void generateCodeAll(ParsingContext parsingContext);
+  void staticSymbol(String name);
 
+  /**
+   * Add code to this context
+   *
+   * @param code Object[]
+   */
+  void generateCodeAll(ParsingContext parsingContext);
 
-    /**
-     * return the current code address
-     *
-     * @return
-     */
-    int getAddress();
+  /**
+   * return the current code address
+   *
+   * @return
+   */
+  int getAddress();
 
+  Instruction getLast();
 
-    Instruction getLast();
+  /**
+   * get the code generated in this context
+   *
+   * @return Object[]
+   */
+  @Nullable
+  ProgramBuilder getProgramBuilder();
 
-    /**
-     * get the code generated in this context
-     *
-     * @return Object[]
-     */
-    @Nullable
-    ProgramBuilder getProgramBuilder();
-
-    /**
-     * clone this context
-     *
-     * @return
-     */
-    ParsingContext createSubContext();
+  /**
+   * clone this context
+   *
+   * @return
+   */
+  ParsingContext createSubContext();
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

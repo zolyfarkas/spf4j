@@ -37,6 +37,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.io.IOException;
@@ -47,62 +48,64 @@ import java.util.ServiceLoader;
  */
 public final class Json {
 
-<span class="fc" id="L50">  public static final JsonFactory FACTORY = new JsonFactory();</span>
+<span class="fc" id="L51">  public static final JsonFactory FACTORY = new JsonFactory();</span>
 
-<span class="fc" id="L52">  public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);</span>
+<span class="fc" id="L53">  public static final ObjectMapper MAPPER = new ObjectMapper(FACTORY);</span>
 
   private Json() { }
 
   static {
-<span class="fc" id="L57">    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);</span>
-<span class="fc" id="L58">    SimpleModule module = new SimpleModule(&quot;spf4j&quot;);</span>
-<span class="fc" id="L59">    loadServices(module);</span>
-<span class="fc" id="L60">    module.addSerializer(JsonWriteable.class, jsonWritableSerializer());</span>
-<span class="fc" id="L61">    MAPPER.registerModule(module);</span>
-<span class="fc" id="L62">    ServiceLoader&lt;Module&gt; loader = ServiceLoader.load(Module.class);</span>
-<span class="pc bpc" id="L63" title="1 of 2 branches missed.">    for (Module mod : loader) {</span>
-<span class="nc" id="L64">      MAPPER.registerModule(mod);</span>
-<span class="nc" id="L65">    }</span>
-<span class="fc" id="L66">  }</span>
+<span class="fc" id="L58">    FACTORY.disable(JsonParser.Feature.AUTO_CLOSE_SOURCE);</span>
+<span class="fc" id="L59">    SimpleModule module = new SimpleModule(&quot;spf4j&quot;);</span>
+<span class="fc" id="L60">    loadServices(module);</span>
+<span class="fc" id="L61">    module.addSerializer(JsonWriteable.class, jsonWritableSerializer());</span>
+<span class="fc" id="L62">    MAPPER.registerModule(module);</span>
+<span class="fc" id="L63">    ServiceLoader&lt;Module&gt; loader = ServiceLoader.load(Module.class);</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">    for (Module mod : loader) {</span>
+<span class="nc" id="L65">      MAPPER.registerModule(mod);</span>
+<span class="nc" id="L66">    }</span>
+<span class="fc" id="L67">    MAPPER.disable(SerializationFeature.FLUSH_AFTER_WRITE_VALUE);</span>
+<span class="fc" id="L68">    FACTORY.setCodec(MAPPER);</span>
+<span class="fc" id="L69">  }</span>
 
   private static void loadServices(final SimpleModule module) {
-<span class="fc" id="L69">    ServiceLoader&lt;JsonSerializer&gt; loader = ServiceLoader.load(JsonSerializer.class);</span>
-<span class="fc bfc" id="L70" title="All 2 branches covered.">    for (JsonSerializer ser : loader) {</span>
-<span class="fc" id="L71">      module.addSerializer(ser);</span>
-<span class="fc" id="L72">    }</span>
-<span class="fc" id="L73">  }</span>
+<span class="fc" id="L72">    ServiceLoader&lt;JsonSerializer&gt; loader = ServiceLoader.load(JsonSerializer.class);</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">    for (JsonSerializer ser : loader) {</span>
+<span class="fc" id="L74">      module.addSerializer(ser);</span>
+<span class="fc" id="L75">    }</span>
+<span class="fc" id="L76">  }</span>
 
   public static JsonSerializer&lt;JsonWriteable&gt; jsonWritableSerializer() {
-<span class="fc" id="L76">    return new JsonSerializer&lt;JsonWriteable&gt;() {</span>
+<span class="fc" id="L79">    return new JsonSerializer&lt;JsonWriteable&gt;() {</span>
       @Override
       public void serialize(final JsonWriteable value, final JsonGenerator jgen, final SerializerProvider provider)
               throws IOException {
-<span class="fc" id="L80">        Object outputTarget = jgen.getOutputTarget();</span>
-<span class="pc bpc" id="L81" title="1 of 2 branches missed.">        if (outputTarget instanceof Appendable) {</span>
-<span class="fc" id="L82">          jgen.flush();</span>
-<span class="fc bfc" id="L83" title="All 2 branches covered.">          if (jgen.getOutputContext().getCurrentName() != null) {</span>
-<span class="fc" id="L84">            ((Appendable) outputTarget).append(':');</span>
+<span class="fc" id="L83">        Object outputTarget = jgen.getOutputTarget();</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">        if (outputTarget instanceof Appendable) {</span>
+<span class="fc" id="L85">          jgen.flush();</span>
+<span class="fc bfc" id="L86" title="All 2 branches covered.">          if (jgen.getOutputContext().getCurrentName() != null) {</span>
+<span class="fc" id="L87">            ((Appendable) outputTarget).append(':');</span>
           }
-<span class="fc" id="L86">          value.writeJsonTo((Appendable) outputTarget);</span>
-<span class="fc" id="L87">          return;</span>
+<span class="fc" id="L89">          value.writeJsonTo((Appendable) outputTarget);</span>
+<span class="fc" id="L90">          return;</span>
         }
-<span class="nc" id="L89">        StringBuilder json = new StringBuilder(32);</span>
-<span class="nc" id="L90">        value.writeJsonTo(json);</span>
-<span class="nc" id="L91">        jgen.writeRawValue(json.toString());</span>
-<span class="nc" id="L92">      }</span>
+<span class="nc" id="L92">        StringBuilder json = new StringBuilder(32);</span>
+<span class="nc" id="L93">        value.writeJsonTo(json);</span>
+<span class="nc" id="L94">        jgen.writeRawValue(json.toString());</span>
+<span class="nc" id="L95">      }</span>
     };
   }
 
   public static JsonSerializer&lt;Object&gt; toStringJsonWritableSerializer() {
-<span class="nc" id="L97">    return new JsonSerializer&lt;Object&gt;() {</span>
+<span class="nc" id="L100">    return new JsonSerializer&lt;Object&gt;() {</span>
       @Override
       public void serialize(final Object value, final JsonGenerator jgen, final SerializerProvider provider)
               throws IOException {
-<span class="nc" id="L101">        jgen.writeString(value.toString());</span>
-<span class="nc" id="L102">      }</span>
+<span class="nc" id="L104">        jgen.writeString(value.toString());</span>
+<span class="nc" id="L105">      }</span>
     };
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

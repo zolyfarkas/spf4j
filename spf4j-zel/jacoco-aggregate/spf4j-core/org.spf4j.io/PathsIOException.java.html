@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
 
@@ -48,26 +49,26 @@ public final class PathsIOException extends IOException {
 
   private final List&lt;URI&gt; paths;
 
-<span class="nc" id="L51">  public PathsIOException(final Path path, final IOException ex) {</span>
-<span class="nc" id="L52">    this.paths = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L53">    paths.add(path.toUri());</span>
-<span class="nc" id="L54">    this.addSuppressed(ex);</span>
-<span class="nc" id="L55">  }</span>
+<span class="nc" id="L52">  public PathsIOException(final Path path, final IOException ex) {</span>
+<span class="nc" id="L53">    this.paths = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L54">    paths.add(path.toUri());</span>
+<span class="nc" id="L55">    this.addSuppressed(ex);</span>
+<span class="nc" id="L56">  }</span>
 
   public void add(final Path path, final IOException ex) {
-<span class="nc" id="L58">    paths.add(path.toUri());</span>
-<span class="nc" id="L59">    this.addSuppressed(ex);</span>
-<span class="nc" id="L60">  }</span>
+<span class="nc" id="L59">    paths.add(path.toUri());</span>
+<span class="nc" id="L60">    this.addSuppressed(ex);</span>
+<span class="nc" id="L61">  }</span>
 
   @Nonnull
   public List&lt;URI&gt; getPaths() {
-<span class="nc" id="L64">    return paths;</span>
+<span class="nc" id="L65">    return Collections.unmodifiableList(paths);</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L69">    return &quot;PathsIOException{&quot; + &quot;paths=&quot; + paths + '}';</span>
+<span class="nc" id="L70">    return &quot;PathsIOException{&quot; + &quot;paths=&quot; + paths + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -31,21 +31,23 @@
  */
 package org.spf4j.failsafe;
 
+import java.util.concurrent.TimeoutException;
+
 /**
- * an informational &quot;attachment&quot; exception, to explain why no retry reason for a exception.
+ * An more specific exception, for the situation when a retry is not practical.
  * @author Zoltan Farkas
  */
-public class NotEnoughTimeToRetry extends RuntimeException {
+public class NotEnoughTimeToRetry extends TimeoutException {
 
   public NotEnoughTimeToRetry(final String message) {
-<span class="fc" id="L41">    super(message);</span>
-<span class="fc" id="L42">  }</span>
+<span class="nc" id="L43">    super(message);</span>
+<span class="nc" id="L44">  }</span>
 
-  @Override
-  public void setStackTrace(final StackTraceElement[] stackTrace) {
-    //No stack trace.
-<span class="nc" id="L47">  }</span>
+  public NotEnoughTimeToRetry(final String message, final Throwable cause) {
+<span class="fc" id="L47">    super(message);</span>
+<span class="fc" id="L48">    this.initCause(cause);</span>
+<span class="fc" id="L49">  }</span>
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

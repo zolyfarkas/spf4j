@@ -32,6 +32,7 @@
 package org.spf4j.perf.io;
 
 import edu.umd.cs.findbugs.annotations.CleanupObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.spf4j.perf.MeasurementRecorderSource;
@@ -42,51 +43,51 @@ import org.spf4j.perf.MeasurementRecorderSource;
  */
 @CleanupObligation
 public final class MeasuredOutputStream extends OutputStream {
-    
+
     private final OutputStream os;
     private final String from;
     private final MeasurementRecorderSource recorderSource;
-    
-    
+
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
     public MeasuredOutputStream(final OutputStream os, final String from,
-<span class="fc" id="L52">            final MeasurementRecorderSource recorderSource) {</span>
-<span class="fc" id="L53">     this.os = os;</span>
-<span class="fc" id="L54">     this.from = from;</span>
-<span class="fc" id="L55">     this.recorderSource = recorderSource;</span>
-<span class="fc" id="L56">    }</span>
+<span class="fc" id="L53">            final MeasurementRecorderSource recorderSource) {</span>
+<span class="fc" id="L54">     this.os = os;</span>
+<span class="fc" id="L55">     this.from = from;</span>
+<span class="fc" id="L56">     this.recorderSource = recorderSource;</span>
+<span class="fc" id="L57">    }</span>
 
     @Override
     public void write(final int b) throws IOException {
-<span class="nc" id="L60">        os.write(b);</span>
-<span class="nc" id="L61">        recorderSource.getRecorder(from).record(1);</span>
-<span class="nc" id="L62">    }</span>
+<span class="nc" id="L61">        os.write(b);</span>
+<span class="nc" id="L62">        recorderSource.getRecorder(from).record(1);</span>
+<span class="nc" id="L63">    }</span>
 
     @Override
     public void write(final byte[] b) throws IOException {
-<span class="nc" id="L66">        os.write(b);</span>
-<span class="nc" id="L67">        recorderSource.getRecorder(from).record(b.length);</span>
-<span class="nc" id="L68">    }</span>
+<span class="nc" id="L67">        os.write(b);</span>
+<span class="nc" id="L68">        recorderSource.getRecorder(from).record(b.length);</span>
+<span class="nc" id="L69">    }</span>
 
     @Override
     public void write(final byte[] b, final int off, final int len) throws IOException {
-<span class="fc" id="L72">        os.write(b, off, len);</span>
-<span class="fc" id="L73">        recorderSource.getRecorder(from).record(len);</span>
-<span class="fc" id="L74">    }</span>
+<span class="fc" id="L73">        os.write(b, off, len);</span>
+<span class="fc" id="L74">        recorderSource.getRecorder(from).record(len);</span>
+<span class="fc" id="L75">    }</span>
 
     @Override
     public void flush() throws IOException {
-<span class="fc" id="L78">        os.flush();</span>
-<span class="fc" id="L79">    }</span>
+<span class="fc" id="L79">        os.flush();</span>
+<span class="fc" id="L80">    }</span>
 
     @Override
     public void close() throws IOException {
-<span class="fc" id="L83">        os.close();</span>
-<span class="fc" id="L84">    }</span>
+<span class="fc" id="L84">        os.close();</span>
+<span class="fc" id="L85">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L88">        return &quot;MeasuredOutputStream{&quot; + &quot;os=&quot; + os + &quot;, from=&quot; + from + &quot;, recorderSource=&quot; + recorderSource + '}';</span>
+<span class="nc" id="L89">        return &quot;MeasuredOutputStream{&quot; + &quot;os=&quot; + os + &quot;, from=&quot; + from + &quot;, recorderSource=&quot; + recorderSource + '}';</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

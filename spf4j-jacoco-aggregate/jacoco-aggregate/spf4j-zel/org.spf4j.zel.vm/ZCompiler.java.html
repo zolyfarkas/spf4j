@@ -18,8 +18,8 @@ public class ZCompiler implements ZCompilerConstants {
 
     public static void compile(String source, String xpr, ParsingContext context) throws ParseException
     {
-<span class="fc" id="L21">       compile(source, new java.io.StringReader(xpr), context);</span>
-<span class="fc" id="L22">    }</span>
+<span class="nc" id="L21">       compile(source, new java.io.StringReader(xpr), context);</span>
+<span class="nc" id="L22">    }</span>
 
    /**
      * Compile a ZEL expression from Stream.
@@ -867,7 +867,7 @@ void compare(ParsingContext context) throws ParseException {Token x;
 <span class="fc" id="L867">        jj_consume_token(LIKE);</span>
 <span class="fc" id="L868">        jj_consume_token(STRING);</span>
 <span class="fc" id="L869">context.generateCode(new Location(token.beginLine, token.beginColumn),</span>
-<span class="fc" id="L870">              new org.spf4j.zel.instr.RLIKE(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1)), option));</span>
+<span class="fc" id="L870">              new org.spf4j.zel.instr.RLIKE(org.apache.commons.text.StringEscapeUtils.unescapeJava(token.image.substring(1, token.image.length()-1)), option));</span>
 <span class="fc" id="L871">        break;</span>
         }
       default:
@@ -1333,7 +1333,7 @@ try {
         }
       case STRING:{
 <span class="fc" id="L1335">        jj_consume_token(STRING);</span>
-<span class="fc" id="L1336">context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(org.spf4j.base.Strings.unescape(token.image.substring(1, token.image.length()-1))));</span>
+<span class="fc" id="L1336">context.generateCode(new Location(token.beginLine, token.beginColumn), new PUSH(org.apache.commons.text.StringEscapeUtils.unescapeJava(token.image.substring(1, token.image.length()-1))));</span>
 <span class="fc" id="L1337">        break;</span>
         }
       case MATCHEXP:{
@@ -2931,4 +2931,4 @@ try {
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -49,16 +49,17 @@ public final class Template&lt;T, R, E extends Exception&gt; {
   private final Class&lt;E&gt; exClass;
   private final RetryPolicy&lt;R, Callable&lt;? extends R&gt;&gt; retryPolicy;
 
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
   public Template(final RecyclingSupplier&lt;T&gt; pool, final RetryPolicy&lt;R, Callable&lt;? extends R&gt;&gt; retryPolicy,
-<span class="nc" id="L53">          final Class&lt;E&gt; exClass) {</span>
-<span class="nc" id="L54">    this.pool = pool;</span>
-<span class="nc" id="L55">    this.exClass = exClass;</span>
-<span class="nc" id="L56">    this.retryPolicy = retryPolicy;</span>
-<span class="nc" id="L57">  }</span>
+<span class="nc" id="L54">          final Class&lt;E&gt; exClass) {</span>
+<span class="nc" id="L55">    this.pool = pool;</span>
+<span class="nc" id="L56">    this.exClass = exClass;</span>
+<span class="nc" id="L57">    this.retryPolicy = retryPolicy;</span>
+<span class="nc" id="L58">  }</span>
 
   public R doOnSupplied(final HandlerNano&lt;T, R, E&gt; handler, final long timeout, final TimeUnit tu)
           throws InterruptedException, E, TimeoutException {
-<span class="nc" id="L61">    return doOnSupplied(handler, timeout, tu, pool, retryPolicy, exClass);</span>
+<span class="nc" id="L62">    return doOnSupplied(handler, timeout, tu, pool, retryPolicy, exClass);</span>
   }
 
   public static &lt;T, R, E extends Exception&gt; R doOnSupplied(final HandlerNano&lt;T, R, E&gt; handler,
@@ -66,18 +67,18 @@ public final class Template&lt;T, R, E extends Exception&gt; {
           final RecyclingSupplier&lt;T&gt; pool, final RetryPolicy&lt;R, Callable&lt;? extends R&gt;&gt; retryPolicy,
           final Class&lt;E&gt; exClass)
           throws E, InterruptedException, TimeoutException {
-<span class="fc" id="L69">    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {</span>
-<span class="fc" id="L70">      return retryPolicy.call(new Callable&lt;R&gt;() {</span>
+<span class="fc" id="L70">    try (ExecutionContext ctx = ExecutionContexts.start(handler.toString(), timeout, tu)) {</span>
+<span class="fc" id="L71">      return retryPolicy.call(new Callable&lt;R&gt;() {</span>
         @Override
         public R call()
                 throws InterruptedException, TimeoutException, E {
           try {
-<span class="fc" id="L75">            return Template.doOnSupplied(handler, pool, ctx.getDeadlineNanos(), exClass);</span>
-<span class="nc" id="L76">          } catch (ObjectCreationException | ObjectBorrowException ex) {</span>
-<span class="nc" id="L77">            throw new UncheckedExecutionException(ex);</span>
+<span class="fc" id="L76">            return Template.doOnSupplied(handler, pool, ctx.getDeadlineNanos(), exClass);</span>
+<span class="nc" id="L77">          } catch (ObjectCreationException | ObjectBorrowException ex) {</span>
+<span class="nc" id="L78">            throw new UncheckedExecutionException(ex);</span>
           }
         }
-<span class="fc" id="L80">      }, exClass, ctx.getDeadlineNanos());</span>
+<span class="fc" id="L81">      }, exClass, ctx.getDeadlineNanos());</span>
     }
   }
 
@@ -86,39 +87,39 @@ public final class Template&lt;T, R, E extends Exception&gt; {
   private static &lt;T, R, E extends Exception&gt; R doOnSupplied(final HandlerNano&lt;T, R, E&gt; handler,
           final RecyclingSupplier&lt;T&gt; pool, final long deadlineNanos, final Class&lt;E&gt; exClass)
           throws E, ObjectCreationException, ObjectBorrowException, InterruptedException, TimeoutException {
-<span class="fc" id="L89">    T object = pool.get();</span>
+<span class="fc" id="L90">    T object = pool.get();</span>
     R result;
     try {
-<span class="fc" id="L92">      result = handler.handle(object, deadlineNanos);</span>
-<span class="nc" id="L93">    } catch (RuntimeException e) {</span>
+<span class="fc" id="L93">      result = handler.handle(object, deadlineNanos);</span>
+<span class="nc" id="L94">    } catch (RuntimeException e) {</span>
       try {
-<span class="nc" id="L95">        pool.recycle(object, e);</span>
-<span class="nc" id="L96">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L97">        Throwables.suppressLimited(ex, e);</span>
-<span class="nc" id="L98">        throw ex;</span>
-<span class="nc" id="L99">      }</span>
-<span class="nc" id="L100">      throw e;</span>
-<span class="fc" id="L101">    } catch (Exception e) {</span>
+<span class="nc" id="L96">        pool.recycle(object, e);</span>
+<span class="nc" id="L97">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L98">        Throwables.suppressLimited(ex, e);</span>
+<span class="nc" id="L99">        throw ex;</span>
+<span class="nc" id="L100">      }</span>
+<span class="nc" id="L101">      throw e;</span>
+<span class="fc" id="L102">    } catch (Exception e) {</span>
       try {
-<span class="fc" id="L103">        pool.recycle(object, e);</span>
-<span class="nc" id="L104">      } catch (RuntimeException ex) {</span>
-<span class="nc" id="L105">        Throwables.suppressLimited(ex, e);</span>
-<span class="nc" id="L106">        throw ex;</span>
-<span class="fc" id="L107">      }</span>
-<span class="pc bpc" id="L108" title="1 of 2 branches missed.">      if (exClass.isAssignableFrom(e.getClass())) {</span>
-<span class="fc" id="L109">        throw (E) e;</span>
+<span class="fc" id="L104">        pool.recycle(object, e);</span>
+<span class="nc" id="L105">      } catch (RuntimeException ex) {</span>
+<span class="nc" id="L106">        Throwables.suppressLimited(ex, e);</span>
+<span class="nc" id="L107">        throw ex;</span>
+<span class="fc" id="L108">      }</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">      if (exClass.isAssignableFrom(e.getClass())) {</span>
+<span class="fc" id="L110">        throw (E) e;</span>
       } else {
-<span class="nc" id="L111">        throw new UncheckedExecutionException(e);</span>
+<span class="nc" id="L112">        throw new UncheckedExecutionException(e);</span>
       }
-<span class="fc" id="L113">    }</span>
-<span class="fc" id="L114">    pool.recycle(object, null);</span>
-<span class="fc" id="L115">    return result;</span>
+<span class="fc" id="L114">    }</span>
+<span class="fc" id="L115">    pool.recycle(object, null);</span>
+<span class="fc" id="L116">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L120">    return &quot;Template{&quot; + &quot;pool=&quot; + pool + &quot;, exClass=&quot; + exClass + &quot;, retryPolicy=&quot; + retryPolicy + '}';</span>
+<span class="nc" id="L121">    return &quot;Template{&quot; + &quot;pool=&quot; + pool + &quot;, exClass=&quot; + exClass + &quot;, retryPolicy=&quot; + retryPolicy + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

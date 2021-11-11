@@ -290,82 +290,83 @@ static void exportMethod(final Method method,
 <span class="fc" id="L290">    String methodName = method.getName();</span>
 <span class="fc" id="L291">    int nrParams = method.getParameterCount();</span>
 <span class="fc bfc" id="L292" title="All 4 branches covered.">    if (nrParams == 0 &amp;&amp; methodName.startsWith(&quot;get&quot;)) {</span>
-<span class="fc" id="L293">      String valueName = methodName.substring(&quot;get&quot;.length());</span>
-<span class="fc" id="L294">      valueName = Strings.withFirstCharLower(valueName);</span>
-<span class="fc" id="L295">      addGetter(valueName, exportedAttributes, annot, method, object);</span>
-<span class="fc bfc" id="L296" title="All 4 branches covered.">    } else if (nrParams == 0 &amp;&amp; methodName.startsWith(&quot;is&quot;)) {</span>
-<span class="fc" id="L297">      String valueName = methodName.substring(&quot;is&quot;.length());</span>
-<span class="fc" id="L298">      valueName = Strings.withFirstCharLower(valueName);</span>
-<span class="fc" id="L299">      addGetter(valueName, exportedAttributes, annot, method, object);</span>
-<span class="fc bfc" id="L300" title="All 4 branches covered.">    } else if (nrParams == 1 &amp;&amp; methodName.startsWith(&quot;set&quot;)) {</span>
-<span class="fc" id="L301">      addSetter(methodName, exportedAttributes, method, object, annot);</span>
+<span class="fc" id="L293">      addGetter(&quot;get&quot;, methodName, exportedAttributes, annot, method, object);</span>
+<span class="fc bfc" id="L294" title="All 4 branches covered.">    } else if (nrParams == 0 &amp;&amp; methodName.startsWith(&quot;is&quot;)) {</span>
+<span class="fc" id="L295">      addGetter(&quot;is&quot;, methodName, exportedAttributes, annot, method, object);</span>
+<span class="fc bfc" id="L296" title="All 4 branches covered.">    } else if (nrParams == 1 &amp;&amp; methodName.startsWith(&quot;set&quot;)) {</span>
+<span class="fc" id="L297">      addSetter(methodName, exportedAttributes, method, object, annot);</span>
     } else {
-<span class="fc" id="L303">      String opName = methodName;</span>
-<span class="fc" id="L304">      String nameOverwrite = annot.value();</span>
-<span class="fc bfc" id="L305" title="All 2 branches covered.">      if (!&quot;&quot;.equals(nameOverwrite)) {</span>
-<span class="fc" id="L306">        opName = nameOverwrite;</span>
+<span class="fc" id="L299">      String opName = methodName;</span>
+<span class="fc" id="L300">      String nameOverwrite = annot.value();</span>
+<span class="fc bfc" id="L301" title="All 2 branches covered.">      if (!&quot;&quot;.equals(nameOverwrite)) {</span>
+<span class="fc" id="L302">        opName = nameOverwrite;</span>
       }
-<span class="fc" id="L308">      ExportedOperation existing = exportedOps.put(opName, new ExportedOperationImpl(opName,</span>
-<span class="fc" id="L309">              annot.description(), method, object, annot.mapOpenType()));</span>
-<span class="pc bpc" id="L310" title="1 of 2 branches missed.">      if (existing != null) {</span>
-<span class="nc" id="L311">        throw new IllegalArgumentException(&quot;exporting operations with same name not supported: &quot; + opName);</span>
+<span class="fc" id="L304">      ExportedOperation existing = exportedOps.put(opName, new ExportedOperationImpl(opName,</span>
+<span class="fc" id="L305">              annot.description(), method, object, annot.mapOpenType()));</span>
+<span class="pc bpc" id="L306" title="1 of 2 branches missed.">      if (existing != null) {</span>
+<span class="nc" id="L307">        throw new IllegalArgumentException(&quot;exporting operations with same name not supported: &quot; + opName);</span>
       }
     }
-<span class="fc" id="L314">  }</span>
+<span class="fc" id="L310">  }</span>
 
-  private static void addSetter(final String methodName, final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedAttributes,
+  private static void addSetter(
+          final String methodName, final Map&lt;String, ExportedValue&lt;?&gt;&gt; exportedAttributes,
           final Method method, final Object object, final JmxExport annot) {
-<span class="fc" id="L318">    String customName = annot.value();</span>
+<span class="fc" id="L315">    String customName = annot.value();</span>
     String valueName;
-<span class="fc bfc" id="L320" title="All 2 branches covered.">    if (&quot;&quot;.equals(customName)) {</span>
-<span class="fc" id="L321">      valueName = methodName.substring(&quot;set&quot;.length());</span>
-<span class="fc" id="L322">      valueName = Strings.withFirstCharLower(valueName);</span>
+<span class="fc bfc" id="L317" title="All 2 branches covered.">    if (&quot;&quot;.equals(customName)) {</span>
+<span class="fc" id="L318">      valueName = Strings.methodToAttribute(&quot;set&quot;, methodName);</span>
     } else {
-<span class="fc" id="L324">      valueName = customName;</span>
+<span class="fc" id="L320">      valueName = customName;</span>
     }
 
-<span class="fc" id="L327">    BeanExportedValue existing = (BeanExportedValue) exportedAttributes.get(valueName);</span>
-<span class="fc" id="L328">    Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];</span>
-<span class="fc bfc" id="L329" title="All 2 branches covered.">    if (existing == null) {</span>
-<span class="fc" id="L330">      existing = new BeanExportedValue(valueName, null,</span>
-<span class="fc" id="L331">              null, method, object, parameterType, annot.mapOpenType());</span>
+<span class="fc" id="L323">    BeanExportedValue existing = (BeanExportedValue) exportedAttributes.get(valueName);</span>
+<span class="fc" id="L324">    Class&lt;?&gt; parameterType = Reflections.getParameterTypes(method)[0];</span>
+<span class="fc bfc" id="L325" title="All 2 branches covered.">    if (existing == null) {</span>
+<span class="fc" id="L326">      existing = new BeanExportedValue(valueName, null,</span>
+<span class="fc" id="L327">              null, method, object, parameterType, annot.mapOpenType());</span>
     } else {
-<span class="pc bpc" id="L333" title="1 of 2 branches missed.">      if (existing.getValueType() != parameterType) {</span>
-<span class="nc" id="L334">        throw new IllegalArgumentException(</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">      if (existing.getValueType() != parameterType) {</span>
+<span class="nc" id="L330">        throw new IllegalArgumentException(</span>
                 &quot;Getter and setter icorrectly defined &quot; + existing + ' ' + method);
       }
-<span class="fc" id="L337">      existing = existing.withSetter(method);</span>
+<span class="fc" id="L333">      existing = existing.withSetter(method);</span>
     }
-<span class="fc" id="L339">    exportedAttributes.put(valueName, existing);</span>
-<span class="fc" id="L340">  }</span>
+<span class="fc" id="L335">    exportedAttributes.put(valueName, existing);</span>
+<span class="fc" id="L336">  }</span>
 
-  private static void addGetter(final String pvalueName,
+  private static void addGetter(final String prefix, final String methodName,
           final Map&lt;String, ExportedValue&lt;?&gt;&gt; exported,
           final JmxExport annot, final Method method, final Object object) {
-<span class="fc" id="L345">    String customName = annot.value();</span>
-<span class="fc bfc" id="L346" title="All 2 branches covered.">    String valueName = &quot;&quot;.equals(customName) ? pvalueName : customName;</span>
-<span class="fc" id="L347">    BeanExportedValue existing = (BeanExportedValue) exported.get(valueName);</span>
-<span class="fc bfc" id="L348" title="All 2 branches covered.">    if (existing == null) {</span>
-<span class="fc" id="L349">      existing = new BeanExportedValue(</span>
-<span class="fc" id="L350">              valueName, annot.description(),</span>
-<span class="fc" id="L351">              method, null, object, method.getGenericReturnType(), annot.mapOpenType());</span>
+<span class="fc" id="L341">    String customName = annot.value();</span>
+    String valueName;
+<span class="fc bfc" id="L343" title="All 2 branches covered.">    if (&quot;&quot;.equals(customName)) {</span>
+<span class="fc" id="L344">      valueName = Strings.methodToAttribute(prefix, methodName);</span>
     } else {
-<span class="pc bpc" id="L353" title="1 of 2 branches missed.">      if (existing.getValueType() != method.getReturnType()) {</span>
-<span class="nc" id="L354">        throw new IllegalArgumentException(</span>
+<span class="fc" id="L346">      valueName = customName;</span>
+    }
+<span class="fc" id="L348">    BeanExportedValue existing = (BeanExportedValue) exported.get(valueName);</span>
+<span class="fc bfc" id="L349" title="All 2 branches covered.">    if (existing == null) {</span>
+<span class="fc" id="L350">      existing = new BeanExportedValue(</span>
+<span class="fc" id="L351">              valueName, annot.description(),</span>
+<span class="fc" id="L352">              method, null, object, method.getGenericReturnType(), annot.mapOpenType());</span>
+    } else {
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">      if (existing.getValueType() != method.getReturnType()) {</span>
+<span class="nc" id="L355">        throw new IllegalArgumentException(</span>
                 &quot;Getter and setter icorrectly defined &quot; + existing + ' ' + method);
       }
-<span class="fc" id="L357">      existing = existing.withGetter(method, annot.description());</span>
+<span class="fc" id="L358">      existing = existing.withGetter(method, annot.description());</span>
     }
-<span class="fc" id="L359">    exported.put(valueName, existing);</span>
-<span class="fc" id="L360">  }</span>
+<span class="fc" id="L360">    exported.put(valueName, existing);</span>
+<span class="fc" id="L361">  }</span>
 
   @Override
   public String toString() {
-<span class="nc" id="L364">    return &quot;MBeanBuilder{&quot; + &quot;exportedAttributes=&quot; + exportedAttributes</span>
+<span class="nc" id="L365">    return &quot;MBeanBuilder{&quot; + &quot;exportedAttributes=&quot; + exportedAttributes</span>
             + &quot;, exportedOps=&quot; + exportedOps + '}';
   }
 
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -49,42 +49,43 @@ public final class LoggingProcessHandler implements ProcessHandler&lt;Void, Void
 
   private Logger log;
 
-<span class="nc" id="L52">  public LoggingProcessHandler(final Logger log) {</span>
-<span class="nc" id="L53">    this.log = log;</span>
-<span class="nc" id="L54">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="nc" id="L53">  public LoggingProcessHandler(final Logger log) {</span>
+<span class="nc" id="L54">    this.log = log;</span>
+<span class="nc" id="L55">  }</span>
 
   public void started(final Process p) {
-<span class="nc" id="L57">    int pid = ProcessUtil.getPid(p);</span>
-<span class="nc" id="L58">    log.log(Level.FINE, &quot;Started {0} with pid={1} &quot;, new Object[]{p, pid});</span>
-<span class="nc" id="L59">    this.log = Logger.getLogger(log.getName() + '.' + pid);</span>
-<span class="nc" id="L60">  }</span>
+<span class="nc" id="L58">    int pid = ProcessUtil.getPid(p);</span>
+<span class="nc" id="L59">    log.log(Level.FINE, &quot;Started {0} with pid={1} &quot;, new Object[]{p, pid});</span>
+<span class="nc" id="L60">    this.log = Logger.getLogger(log.getName() + '.' + pid);</span>
+<span class="nc" id="L61">  }</span>
 
   @Override
   @Nullable
   public Void handleStdOut(final InputStream is) throws IOException {
-<span class="nc" id="L65">    BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.defaultCharset()));</span>
+<span class="nc" id="L66">    BufferedReader reader = new BufferedReader(new InputStreamReader(is, Charset.defaultCharset()));</span>
     String line;
-<span class="nc bnc" id="L67" title="All 2 branches missed.">    while ((line = reader.readLine()) != null) {</span>
-<span class="nc" id="L68">      log.fine(line);</span>
+<span class="nc bnc" id="L68" title="All 2 branches missed.">    while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L69">      log.fine(line);</span>
     }
-<span class="nc" id="L70">    return null;</span>
+<span class="nc" id="L71">    return null;</span>
   }
 
   @Override
   @Nullable
   public Void handleStdErr(final InputStream stderr) throws IOException {
-<span class="nc" id="L76">    BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));</span>
+<span class="nc" id="L77">    BufferedReader reader = new BufferedReader(new InputStreamReader(stderr, Charset.defaultCharset()));</span>
     String line;
-<span class="nc bnc" id="L78" title="All 2 branches missed.">    while ((line = reader.readLine()) != null) {</span>
-<span class="nc" id="L79">      log.severe(line);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">    while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L80">      log.severe(line);</span>
     }
-<span class="nc" id="L81">    return null;</span>
+<span class="nc" id="L82">    return null;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L86">    return &quot;LoggingProcessHandler{&quot; + &quot;log=&quot; + log + '}';</span>
+<span class="nc" id="L87">    return &quot;LoggingProcessHandler{&quot; + &quot;log=&quot; + log + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

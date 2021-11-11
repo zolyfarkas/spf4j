@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ResultMatchers.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.base</a> &gt; <span class="el_source">ResultMatchers.java</span></div><h1>ResultMatchers.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.base;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceLoader;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
+import javax.annotation.Nullable;
+import org.spf4j.avro.Configs;
+import org.spf4j.base.avro.ObjectPattern;
+import org.spf4j.base.avro.ThrowablePattern;
+import org.spf4j.base.avro.OperationsResultPatterns;
+import org.spf4j.base.avro.OperationResultPatterns;
+import org.spf4j.ds.CopyOnWriteMap;
+
+/**
+ * @author Zoltan Farkas
+ */
+public final class ResultMatchers {
+
+  private static final Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; RESULT_MATCHERS;
+
+  static {
+    try {
+<span class="fc" id="L72">      RESULT_MATCHERS  = new CopyOnWriteMap&lt;&gt;(getRegisteredResultMatchers());</span>
+<span class="nc" id="L73">    } catch (IOException ex) {</span>
+<span class="nc" id="L74">      throw new ExceptionInInitializerError(ex);</span>
+<span class="fc" id="L75">    }</span>
+<span class="fc" id="L76">  }</span>
+
+  public interface Supplier extends Function&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; {
+    default Supplier chain(final Supplier fallback) {
+<span class="nc" id="L80">      Supplier current = this;</span>
+<span class="nc" id="L81">      return t -&gt; {</span>
+<span class="nc" id="L82">        Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt; result = current.apply(t);</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (result != null) {</span>
+<span class="nc" id="L84">          return result;</span>
+        } else {
+<span class="nc" id="L86">          return fallback.apply(t);</span>
+        }
+      };
+    }
+  }
+
+  private ResultMatchers() { }
+
+
+  private static Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; getRegisteredResultMatchers()
+          throws IOException {
+<span class="fc" id="L97">    Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; reasons = new HashMap&lt;&gt;();</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">    for (ThrowableMatcher reason : ServiceLoader.load(ThrowableMatcher.class)) {</span>
+<span class="nc" id="L99">      reasons.put(reason.getOperationName(), Either.left(reason));</span>
+<span class="nc" id="L100">    }</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">    for (Enumeration&lt;URL&gt; e = ClassLoader.getSystemResources(&quot;result_matchers.json&quot;); e.hasMoreElements();) {</span>
+<span class="nc" id="L102">      URL url = e.nextElement();</span>
+<span class="nc" id="L103">      try (InputStream is = url.openStream();</span>
+<span class="nc" id="L104">              Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {</span>
+<span class="nc" id="L105">        Configs.read(OperationsResultPatterns.class, reader);</span>
+<span class="nc" id="L106">        OperationsResultPatterns patterns = Configs.read(OperationsResultPatterns.class, reader);</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">        for (OperationResultPatterns opPat : patterns.getPatterns().values()) {</span>
+<span class="nc" id="L108">          add(reasons, opPat.getThrowablePatterns(), true);</span>
+<span class="nc" id="L109">          add2(reasons, opPat.getReturnPatterns(), true);</span>
+<span class="nc" id="L110">        }</span>
+      }
+<span class="nc" id="L112">    }</span>
+<span class="fc" id="L113">    return reasons;</span>
+  }
+
+  public static Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; operationsFromConfigValue(
+          final String value) {
+<span class="nc" id="L118">    Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; reasons = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L119">    try (Reader reader = new StringReader(value)) {</span>
+<span class="nc" id="L120">      OperationsResultPatterns patterns = Configs.read(OperationsResultPatterns.class, reader);</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">      for (OperationResultPatterns opPat : patterns.getPatterns().values()) {</span>
+<span class="nc" id="L122">        add(reasons, opPat.getThrowablePatterns(), true);</span>
+<span class="nc" id="L123">        add2(reasons, opPat.getReturnPatterns(), true);</span>
+<span class="nc" id="L124">      }</span>
+<span class="nc" id="L125">    } catch (IOException ex) {</span>
+<span class="nc" id="L126">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L127">    }</span>
+<span class="nc" id="L128">    return reasons;</span>
+  }
+
+  public static Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; operationfromConfigValue(
+          final String value) {
+<span class="nc" id="L133">    Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; reasons = new HashMap&lt;&gt;();</span>
+<span class="nc" id="L134">    try (Reader reader = new StringReader(value)) {</span>
+<span class="nc" id="L135">      OperationResultPatterns patterns = Configs.read(OperationResultPatterns.class, reader);</span>
+<span class="nc" id="L136">      add(reasons, patterns.getThrowablePatterns(), true);</span>
+<span class="nc" id="L137">      add2(reasons, patterns.getReturnPatterns(), true);</span>
+<span class="nc" id="L138">    } catch (IOException ex) {</span>
+<span class="nc" id="L139">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L140">    }</span>
+<span class="nc" id="L141">    return reasons;</span>
+  }
+
+  @Nullable
+  public static Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt; getThrowableResultMatcher(final String reason) {
+<span class="nc" id="L146">    return RESULT_MATCHERS.get(reason);</span>
+  }
+
+  public static Supplier toSupplier() {
+<span class="fc" id="L150">    return ResultMatchers::getThrowableResultMatcher;</span>
+  }
+
+  public static Predicate&lt;Throwable&gt; toPredicate(final ThrowablePattern pattern) throws ClassNotFoundException {
+<span class="nc" id="L154">    Class&lt;? extends Throwable&gt; clasz = (Class) Class.forName(pattern.getType());</span>
+<span class="nc" id="L155">    Pattern regex = pattern.getMsgPattern();</span>
+<span class="nc" id="L156">    Map&lt;String, List&lt;Integer&gt;&gt; codes = pattern.getCodes();</span>
+<span class="nc" id="L157">    return new ThrowablePredicate(clasz, regex, codes);</span>
+  }
+
+  public static Predicate&lt;Object&gt; toPredicate(final ObjectPattern pattern) throws ClassNotFoundException {
+<span class="nc" id="L161">    Class&lt;? extends Object&gt; clasz = (Class) Class.forName(pattern.getType());</span>
+<span class="nc" id="L162">    Map&lt;String, List&lt;Integer&gt;&gt; codes = pattern.getCodes();</span>
+<span class="nc" id="L163">    return new ObjectPredicate(clasz, codes);</span>
+  }
+
+  public static void add(final Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; predicates,
+          final Map&lt;String, ThrowablePattern&gt; patterns, final boolean lenient) {
+<span class="nc bnc" id="L168" title="All 2 branches missed.">    for (Map.Entry&lt;String, ThrowablePattern&gt; entry : patterns.entrySet()) {</span>
+<span class="nc" id="L169">      ThrowablePattern pattern = entry.getValue();</span>
+<span class="nc" id="L170">      String name = entry.getKey();</span>
+      try {
+<span class="nc" id="L172">         predicates.put(name, Either.left(toPredicate(pattern)));</span>
+<span class="nc" id="L173">      } catch (ClassNotFoundException ex) {</span>
+<span class="nc bnc" id="L174" title="All 2 branches missed.">        if (lenient) {</span>
+<span class="nc" id="L175">          Logger logger = Logger.getLogger(ResultMatchers.class.getName());</span>
+<span class="nc" id="L176">          logger.log(Level.WARNING, &quot;Cannot register predicate {0}, class not found: {1}&quot;,</span>
+<span class="nc" id="L177">                          new Object[] {name, pattern.getType()});</span>
+<span class="nc" id="L178">          logger.log(Level.FINE, &quot;Exception detail&quot;, ex);</span>
+<span class="nc" id="L179">        } else {</span>
+<span class="nc" id="L180">          throw new RuntimeException(ex);</span>
+        }
+<span class="nc" id="L182">      }</span>
+<span class="nc" id="L183">    }</span>
+<span class="nc" id="L184">  }</span>
+
+
+  public static void add2(final  Map&lt;String, Either&lt;Predicate&lt;Throwable&gt;, Predicate&lt;Object&gt;&gt;&gt; predicates,
+          final Map&lt;String, ObjectPattern&gt; patterns, final boolean lenient) {
+<span class="nc bnc" id="L189" title="All 2 branches missed.">    for (Map.Entry&lt;String, ObjectPattern&gt; entry : patterns.entrySet()) {</span>
+<span class="nc" id="L190">      ObjectPattern pattern = entry.getValue();</span>
+<span class="nc" id="L191">      String name = entry.getKey();</span>
+      try {
+<span class="nc" id="L193">         predicates.put(name, Either.right(toPredicate(pattern)));</span>
+<span class="nc" id="L194">      } catch (ClassNotFoundException ex) {</span>
+<span class="nc bnc" id="L195" title="All 2 branches missed.">        if (lenient) {</span>
+<span class="nc" id="L196">          Logger logger = Logger.getLogger(ResultMatchers.class.getName());</span>
+<span class="nc" id="L197">          logger.log(Level.WARNING, &quot;Cannot register predicate {0}, class not found: {1}&quot;,</span>
+<span class="nc" id="L198">                          new Object[] {name, pattern.getType()});</span>
+<span class="nc" id="L199">          logger.log(Level.FINE, &quot;Exception detail&quot;, ex);</span>
+<span class="nc" id="L200">        } else {</span>
+<span class="nc" id="L201">          throw new RuntimeException(ex);</span>
+        }
+<span class="nc" id="L203">      }</span>
+<span class="nc" id="L204">    }</span>
+<span class="nc" id="L205">  }</span>
+
+
+  @SuppressFBWarnings(&quot;DMC_DUBIOUS_MAP_COLLECTION&quot;)
+  private static class ObjectPredicate implements Predicate&lt;Object&gt; {
+
+    private final Class&lt;? extends Object&gt; clasz;
+    private final Map&lt;String, List&lt;Integer&gt;&gt; codes;
+
+<span class="nc" id="L214">    ObjectPredicate(final Class&lt;? extends Object&gt; clasz, final Map&lt;String, List&lt;Integer&gt;&gt; codes) {</span>
+<span class="nc" id="L215">      this.clasz = clasz;</span>
+<span class="nc" id="L216">      this.codes = codes;</span>
+<span class="nc" id="L217">    }</span>
+
+    @Override
+    public boolean test(final Object t) {
+<span class="nc" id="L221">      Class&lt;? extends Object&gt; tClass = t.getClass();</span>
+<span class="nc bnc" id="L222" title="All 2 branches missed.">      if (clasz.isAssignableFrom(tClass)) {</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">          for (Map.Entry&lt;String, List&lt;Integer&gt;&gt; entry : codes.entrySet()) {</span>
+<span class="nc" id="L224">            String getterName = Strings.attributeToMethod(&quot;get&quot;, entry.getKey());</span>
+<span class="nc" id="L225">            Method m = Reflections.getMethod(tClass, getterName);</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">            if (m == null) {</span>
+<span class="nc" id="L227">              return false;</span>
+            }
+            Object result;
+            try {
+<span class="nc" id="L231">              result = m.invoke(t);</span>
+<span class="nc" id="L232">            } catch (IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L233">              throw new RuntimeException(ex);</span>
+<span class="nc" id="L234">            }</span>
+<span class="nc" id="L235">            boolean hasCode = false;</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">            for (Integer code : entry.getValue()) {</span>
+<span class="nc bnc" id="L237" title="All 2 branches missed.">              if (code.equals(result)) {</span>
+<span class="nc" id="L238">                hasCode = true;</span>
+<span class="nc" id="L239">                break;</span>
+              }
+<span class="nc" id="L241">            }</span>
+<span class="nc bnc" id="L242" title="All 2 branches missed.">            if (!hasCode) {</span>
+<span class="nc" id="L243">              return false;</span>
+            }
+<span class="nc" id="L245">          }</span>
+<span class="nc" id="L246">          return true;</span>
+      }
+<span class="nc" id="L248">      return false;</span>
+    }
+  }
+
+  @SuppressFBWarnings(&quot;DMC_DUBIOUS_MAP_COLLECTION&quot;)
+  private static class ThrowablePredicate implements Predicate&lt;Throwable&gt; {
+
+    private final Class&lt;? extends Throwable&gt; clasz;
+    private final Pattern messageRegex;
+    private final Map&lt;String, List&lt;Integer&gt;&gt; codes;
+
+    ThrowablePredicate(final Class&lt;? extends Throwable&gt; clasz,
+<span class="nc" id="L260">            final Pattern messageRegex, final Map&lt;String, List&lt;Integer&gt;&gt; codes) {</span>
+<span class="nc" id="L261">      this.clasz = clasz;</span>
+<span class="nc" id="L262">      this.messageRegex = messageRegex;</span>
+<span class="nc" id="L263">      this.codes = codes;</span>
+<span class="nc" id="L264">    }</span>
+
+    @Override
+    public boolean test(final Throwable t) {
+<span class="nc" id="L268">      Class&lt;? extends Throwable&gt; tClass = t.getClass();</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">      if (clasz.isAssignableFrom(tClass)) {</span>
+<span class="nc" id="L270">        String msg = t.getMessage();</span>
+<span class="nc bnc" id="L271" title="All 2 branches missed.">        if (msg == null) {</span>
+<span class="nc" id="L272">          msg = &quot;&quot;;</span>
+        }
+<span class="nc bnc" id="L274" title="All 2 branches missed.">        if (messageRegex.matcher(msg).matches()) {</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">          for (Map.Entry&lt;String, List&lt;Integer&gt;&gt; entry : codes.entrySet()) {</span>
+<span class="nc" id="L276">            String getterName = Strings.attributeToMethod(&quot;get&quot;, entry.getKey());</span>
+<span class="nc" id="L277">            Method m = Reflections.getMethod(tClass, getterName);</span>
+<span class="nc bnc" id="L278" title="All 2 branches missed.">            if (m == null) {</span>
+<span class="nc" id="L279">              return false;</span>
+            }
+            Object result;
+            try {
+<span class="nc" id="L283">              result = m.invoke(t);</span>
+<span class="nc" id="L284">            } catch (IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L285">              throw new RuntimeException(ex);</span>
+<span class="nc" id="L286">            }</span>
+<span class="nc" id="L287">            boolean hasCode = false;</span>
+<span class="nc bnc" id="L288" title="All 2 branches missed.">            for (Integer code : entry.getValue()) {</span>
+<span class="nc bnc" id="L289" title="All 2 branches missed.">              if (code.equals(result)) {</span>
+<span class="nc" id="L290">                hasCode = true;</span>
+<span class="nc" id="L291">                break;</span>
+              }
+<span class="nc" id="L293">            }</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">            if (!hasCode) {</span>
+<span class="nc" id="L295">              return false;</span>
+            }
+<span class="nc" id="L297">          }</span>
+<span class="nc" id="L298">          return true;</span>
+        }
+      }
+<span class="nc" id="L301">      return false;</span>
+    }
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

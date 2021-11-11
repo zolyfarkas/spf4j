@@ -159,6 +159,34 @@ public final class Slf4jMessageFormatter {
 <span class="fc" id="L159">    return format(Slf4jMessageFormatter::exHandle, firstArgIdx, to, messagePattern, appSupplier, argArray);</span>
   }
 
+
+  public static int getFormatParameterNumber(@Nonnull final String messagePattern) {
+<span class="fc" id="L164">    int nrParams = 0;</span>
+<span class="fc" id="L165">    int i = 0;</span>
+    int j;
+<span class="fc bfc" id="L167" title="All 2 branches covered.">    while ((j = messagePattern.indexOf(DELIM_STR, i)) &gt;= 0) {</span>
+<span class="fc bfc" id="L168" title="All 2 branches covered.">        if (isEscapedDelimeter(messagePattern, j)) {</span>
+<span class="pc bpc" id="L169" title="1 of 2 branches missed.">          if (isDoubleEscaped(messagePattern, j)) {</span>
+            // The escape character preceding the delimiter start is
+            // itself escaped: &quot;abc x:\\{}&quot;
+            // we have to consume one backward slash
+<span class="nc" id="L173">            nrParams++;</span>
+<span class="nc" id="L174">            i = j + 2;</span>
+          } else {
+<span class="fc" id="L176">            i = j + 1;</span>
+          }
+        } else {
+          // normal case
+<span class="fc" id="L180">          nrParams++;</span>
+<span class="fc" id="L181">          i = j + 2;</span>
+        }
+    }
+<span class="fc" id="L184">    return nrParams;</span>
+  }
+
+
+
+
   /**
    * Slf4j message formatter.
    *
@@ -176,224 +204,224 @@ public final class Slf4jMessageFormatter {
           @Nonnull final Appendable to, @Nonnull final String messagePattern,
           @Nonnull final ObjectAppenderSupplier appSupplier, final Object... argArray)
           throws IOException {
-<span class="fc" id="L179">    int i = 0;</span>
-<span class="fc" id="L180">    final int len = argArray.length;</span>
-<span class="fc" id="L181">    int k = firstArgIdx;</span>
-<span class="fc bfc" id="L182" title="All 2 branches covered.">    for (; k &lt; len; k++) {</span>
-<span class="fc" id="L183">      int j = messagePattern.indexOf(DELIM_STR, i);</span>
-<span class="fc bfc" id="L184" title="All 2 branches covered.">      if (j == -1) {</span>
+<span class="fc" id="L207">    int i = 0;</span>
+<span class="fc" id="L208">    final int len = argArray.length;</span>
+<span class="fc" id="L209">    int k = firstArgIdx;</span>
+<span class="fc bfc" id="L210" title="All 2 branches covered.">    for (; k &lt; len; k++) {</span>
+<span class="fc" id="L211">      int j = messagePattern.indexOf(DELIM_STR, i);</span>
+<span class="fc bfc" id="L212" title="All 2 branches covered.">      if (j == -1) {</span>
         // no more variables
-<span class="fc" id="L186">        break;</span>
+<span class="fc" id="L214">        break;</span>
       } else {
-<span class="fc bfc" id="L188" title="All 2 branches covered.">        if (isEscapedDelimeter(messagePattern, j)) {</span>
-<span class="pc bpc" id="L189" title="1 of 2 branches missed.">          if (!isDoubleEscaped(messagePattern, j)) {</span>
-<span class="fc" id="L190">            k--; // DELIM_START was escaped, thus should not be incremented</span>
-<span class="fc" id="L191">            to.append(messagePattern, i, j - 1);</span>
-<span class="fc" id="L192">            to.append(DELIM_START);</span>
-<span class="fc" id="L193">            i = j + 1;</span>
-          } else {
+<span class="fc bfc" id="L216" title="All 2 branches covered.">        if (isEscapedDelimeter(messagePattern, j)) {</span>
+<span class="pc bpc" id="L217" title="1 of 2 branches missed.">          if (isDoubleEscaped(messagePattern, j)) {</span>
             // The escape character preceding the delimiter start is
             // itself escaped: &quot;abc x:\\{}&quot;
             // we have to consume one backward slash
-<span class="nc" id="L198">            to.append(messagePattern, i, j - 1);</span>
-<span class="nc" id="L199">            deeplyAppendParameter(exHandler, to, argArray[k], new THashSet&lt;&gt;(), appSupplier);</span>
-<span class="nc" id="L200">            i = j + 2;</span>
+<span class="nc" id="L221">            to.append(messagePattern, i, j - 1);</span>
+<span class="nc" id="L222">            deeplyAppendParameter(exHandler, to, argArray[k], new THashSet&lt;&gt;(), appSupplier);</span>
+<span class="nc" id="L223">            i = j + 2;</span>
+          } else {
+<span class="fc" id="L225">            k--; // DELIM_START was escaped, thus should not be incremented</span>
+<span class="fc" id="L226">            to.append(messagePattern, i, j - 1);</span>
+<span class="fc" id="L227">            to.append(DELIM_START);</span>
+<span class="fc" id="L228">            i = j + 1;</span>
           }
         } else {
           // normal case
-<span class="fc" id="L204">          to.append(messagePattern, i, j);</span>
-<span class="fc" id="L205">          deeplyAppendParameter(exHandler, to, argArray[k], new THashSet&lt;&gt;(), appSupplier);</span>
-<span class="fc" id="L206">          i = j + 2;</span>
+<span class="fc" id="L232">          to.append(messagePattern, i, j);</span>
+<span class="fc" id="L233">          deeplyAppendParameter(exHandler, to, argArray[k], new THashSet&lt;&gt;(), appSupplier);</span>
+<span class="fc" id="L234">          i = j + 2;</span>
         }
       }
     }
     // append the characters following the last {} pair.
-<span class="fc" id="L211">    to.append(messagePattern, i, messagePattern.length());</span>
-<span class="fc" id="L212">    return k;</span>
+<span class="fc" id="L239">    to.append(messagePattern, i, messagePattern.length());</span>
+<span class="fc" id="L240">    return k;</span>
   }
 
   private static boolean isEscapedDelimeter(final String messagePattern, final int delimeterStartIndex) {
-<span class="fc bfc" id="L216" title="All 2 branches covered.">    if (delimeterStartIndex == 0) {</span>
-<span class="fc" id="L217">      return false;</span>
+<span class="fc bfc" id="L244" title="All 2 branches covered.">    if (delimeterStartIndex == 0) {</span>
+<span class="fc" id="L245">      return false;</span>
     }
-<span class="fc bfc" id="L219" title="All 2 branches covered.">    return messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;</span>
+<span class="fc bfc" id="L247" title="All 2 branches covered.">    return messagePattern.charAt(delimeterStartIndex - 1) == ESCAPE_CHAR;</span>
   }
 
   private static boolean isDoubleEscaped(final String messagePattern, final int delimeterStartIndex) {
-<span class="pc bpc" id="L223" title="3 of 4 branches missed.">    return delimeterStartIndex &gt;= 2 &amp;&amp; messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;</span>
+<span class="pc bpc" id="L251" title="3 of 4 branches missed.">    return delimeterStartIndex &gt;= 2 &amp;&amp; messagePattern.charAt(delimeterStartIndex - 2) == ESCAPE_CHAR;</span>
   }
 
   // special treatment of array values was suggested by 'lizongbo'
   @SuppressFBWarnings(&quot;ITC_INHERITANCE_TYPE_CHECKING&quot;)
   private static void deeplyAppendParameter(final ErrorHandler exHandler, final Appendable sbuf, final Object o,
           final Set&lt;Object[]&gt; seen, final ObjectAppenderSupplier appSupplier) throws IOException {
-<span class="fc bfc" id="L230" title="All 2 branches covered.">    if (o == null) {</span>
-<span class="fc" id="L231">      sbuf.append(&quot;null&quot;);</span>
-<span class="fc" id="L232">      return;</span>
+<span class="fc bfc" id="L258" title="All 2 branches covered.">    if (o == null) {</span>
+<span class="fc" id="L259">      sbuf.append(&quot;null&quot;);</span>
+<span class="fc" id="L260">      return;</span>
     }
-<span class="fc bfc" id="L234" title="All 2 branches covered.">    if (!o.getClass().isArray()) {</span>
-<span class="fc" id="L235">      safeObjectAppend(exHandler, sbuf, o, appSupplier);</span>
+<span class="fc bfc" id="L262" title="All 2 branches covered.">    if (!o.getClass().isArray()) {</span>
+<span class="fc" id="L263">      safeObjectAppend(exHandler, sbuf, o, appSupplier);</span>
     } else {
       // check for primitive array types because they
       // unfortunately cannot be cast to Object[]
-<span class="pc bpc" id="L239" title="1 of 2 branches missed.">      if (o instanceof boolean[]) {</span>
-<span class="nc" id="L240">        booleanArrayAppend(sbuf, (boolean[]) o);</span>
-<span class="fc bfc" id="L241" title="All 2 branches covered.">      } else if (o instanceof byte[]) {</span>
-<span class="fc" id="L242">        byteArrayAppend(sbuf, (byte[]) o);</span>
-<span class="pc bpc" id="L243" title="1 of 2 branches missed.">      } else if (o instanceof char[]) {</span>
-<span class="nc" id="L244">        charArrayAppend(sbuf, (char[]) o);</span>
-<span class="pc bpc" id="L245" title="1 of 2 branches missed.">      } else if (o instanceof short[]) {</span>
-<span class="nc" id="L246">        shortArrayAppend(sbuf, (short[]) o);</span>
-<span class="fc bfc" id="L247" title="All 2 branches covered.">      } else if (o instanceof int[]) {</span>
-<span class="fc" id="L248">        intArrayAppend(sbuf, (int[]) o);</span>
-<span class="fc bfc" id="L249" title="All 2 branches covered.">      } else if (o instanceof long[]) {</span>
-<span class="fc" id="L250">        longArrayAppend(sbuf, (long[]) o);</span>
-<span class="pc bpc" id="L251" title="1 of 2 branches missed.">      } else if (o instanceof float[]) {</span>
-<span class="nc" id="L252">        floatArrayAppend(sbuf, (float[]) o);</span>
-<span class="pc bpc" id="L253" title="1 of 2 branches missed.">      } else if (o instanceof double[]) {</span>
-<span class="nc" id="L254">        doubleArrayAppend(sbuf, (double[]) o);</span>
+<span class="pc bpc" id="L267" title="1 of 2 branches missed.">      if (o instanceof boolean[]) {</span>
+<span class="nc" id="L268">        booleanArrayAppend(sbuf, (boolean[]) o);</span>
+<span class="fc bfc" id="L269" title="All 2 branches covered.">      } else if (o instanceof byte[]) {</span>
+<span class="fc" id="L270">        byteArrayAppend(sbuf, (byte[]) o);</span>
+<span class="pc bpc" id="L271" title="1 of 2 branches missed.">      } else if (o instanceof char[]) {</span>
+<span class="nc" id="L272">        charArrayAppend(sbuf, (char[]) o);</span>
+<span class="pc bpc" id="L273" title="1 of 2 branches missed.">      } else if (o instanceof short[]) {</span>
+<span class="nc" id="L274">        shortArrayAppend(sbuf, (short[]) o);</span>
+<span class="fc bfc" id="L275" title="All 2 branches covered.">      } else if (o instanceof int[]) {</span>
+<span class="fc" id="L276">        intArrayAppend(sbuf, (int[]) o);</span>
+<span class="fc bfc" id="L277" title="All 2 branches covered.">      } else if (o instanceof long[]) {</span>
+<span class="fc" id="L278">        longArrayAppend(sbuf, (long[]) o);</span>
+<span class="pc bpc" id="L279" title="1 of 2 branches missed.">      } else if (o instanceof float[]) {</span>
+<span class="nc" id="L280">        floatArrayAppend(sbuf, (float[]) o);</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">      } else if (o instanceof double[]) {</span>
+<span class="nc" id="L282">        doubleArrayAppend(sbuf, (double[]) o);</span>
       } else {
-<span class="fc" id="L256">        objectArrayAppend(exHandler, sbuf, (Object[]) o, seen, appSupplier);</span>
+<span class="fc" id="L284">        objectArrayAppend(exHandler, sbuf, (Object[]) o, seen, appSupplier);</span>
       }
     }
-<span class="fc" id="L259">  }</span>
+<span class="fc" id="L287">  }</span>
 
   @SuppressWarnings(&quot;unchecked&quot;)
   public static void safeObjectAppend(final ErrorHandler exHandler, final Appendable sbuf, final Object obj,
           final ObjectAppenderSupplier appSupplier) throws IOException {
     try {
-<span class="fc" id="L265">      appSupplier.get((Class) obj.getClass()).append(obj, sbuf, appSupplier);</span>
-<span class="fc" id="L266">    } catch (IOException | RuntimeException | StackOverflowError t) {</span>
-<span class="fc" id="L267">      exHandler.accept(obj, sbuf, t);</span>
-<span class="fc" id="L268">    }</span>
+<span class="fc" id="L293">      appSupplier.get((Class) obj.getClass()).append(obj, sbuf, appSupplier);</span>
+<span class="fc" id="L294">    } catch (IOException | RuntimeException | StackOverflowError t) {</span>
+<span class="fc" id="L295">      exHandler.accept(obj, sbuf, t);</span>
+<span class="fc" id="L296">    }</span>
 
-<span class="fc" id="L270">  }</span>
+<span class="fc" id="L298">  }</span>
 
   @SuppressFBWarnings(&quot;ABC_ARRAY_BASED_COLLECTIONS&quot;)
   private static void objectArrayAppend(final ErrorHandler exHandler, final Appendable sbuf,
           final Object[] a, final Set&lt;Object[]&gt; seen,
           final ObjectAppenderSupplier appSupplier) throws IOException {
-<span class="fc" id="L276">    sbuf.append('[');</span>
-<span class="fc bfc" id="L277" title="All 2 branches covered.">    if (seen.add(a)) {</span>
-<span class="fc" id="L278">      final int len = a.length;</span>
-<span class="fc bfc" id="L279" title="All 2 branches covered.">      if (len &gt; 0) {</span>
-<span class="fc" id="L280">        deeplyAppendParameter(exHandler, sbuf, a[0], seen, appSupplier);</span>
-<span class="fc bfc" id="L281" title="All 2 branches covered.">        for (int i = 1; i &lt; len; i++) {</span>
-<span class="fc" id="L282">          sbuf.append(&quot;, &quot;);</span>
-<span class="fc" id="L283">          deeplyAppendParameter(exHandler, sbuf, a[i], seen, appSupplier);</span>
+<span class="fc" id="L304">    sbuf.append('[');</span>
+<span class="fc bfc" id="L305" title="All 2 branches covered.">    if (seen.add(a)) {</span>
+<span class="fc" id="L306">      final int len = a.length;</span>
+<span class="fc bfc" id="L307" title="All 2 branches covered.">      if (len &gt; 0) {</span>
+<span class="fc" id="L308">        deeplyAppendParameter(exHandler, sbuf, a[0], seen, appSupplier);</span>
+<span class="fc bfc" id="L309" title="All 2 branches covered.">        for (int i = 1; i &lt; len; i++) {</span>
+<span class="fc" id="L310">          sbuf.append(&quot;, &quot;);</span>
+<span class="fc" id="L311">          deeplyAppendParameter(exHandler, sbuf, a[i], seen, appSupplier);</span>
         }
       }
       // allow repeats in siblings
-<span class="fc" id="L287">      seen.remove(a);</span>
-<span class="fc" id="L288">    } else {</span>
-<span class="fc" id="L289">      sbuf.append(&quot;...&quot;);</span>
+<span class="fc" id="L315">      seen.remove(a);</span>
+<span class="fc" id="L316">    } else {</span>
+<span class="fc" id="L317">      sbuf.append(&quot;...&quot;);</span>
     }
-<span class="fc" id="L291">    sbuf.append(']');</span>
-<span class="fc" id="L292">  }</span>
+<span class="fc" id="L319">    sbuf.append(']');</span>
+<span class="fc" id="L320">  }</span>
 
   private static void booleanArrayAppend(final Appendable sbuf, final boolean[] a) throws IOException {
-<span class="nc" id="L295">    sbuf.append('[');</span>
-<span class="nc" id="L296">    final int len = a.length;</span>
-<span class="nc bnc" id="L297" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L298">      sbuf.append(Boolean.toString(a[0]));</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="nc" id="L300">        sbuf.append(&quot;, &quot;);</span>
-<span class="nc" id="L301">        sbuf.append(Boolean.toString(a[i]));</span>
+<span class="nc" id="L323">    sbuf.append('[');</span>
+<span class="nc" id="L324">    final int len = a.length;</span>
+<span class="nc bnc" id="L325" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L326">      sbuf.append(Boolean.toString(a[0]));</span>
+<span class="nc bnc" id="L327" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="nc" id="L328">        sbuf.append(&quot;, &quot;);</span>
+<span class="nc" id="L329">        sbuf.append(Boolean.toString(a[i]));</span>
       }
     }
-<span class="nc" id="L304">    sbuf.append(']');</span>
-<span class="nc" id="L305">  }</span>
+<span class="nc" id="L332">    sbuf.append(']');</span>
+<span class="nc" id="L333">  }</span>
 
   private static void byteArrayAppend(final Appendable sbuf, final byte[] a) throws IOException {
-<span class="fc" id="L308">    sbuf.append('[');</span>
-<span class="fc" id="L309">    final int len = a.length;</span>
-<span class="pc bpc" id="L310" title="1 of 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="fc" id="L311">      sbuf.append(Byte.toString(a[0]));</span>
-<span class="fc bfc" id="L312" title="All 2 branches covered.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="fc" id="L313">        sbuf.append(&quot;, &quot;);</span>
-<span class="fc" id="L314">        sbuf.append(Byte.toString(a[i]));</span>
+<span class="fc" id="L336">    sbuf.append('[');</span>
+<span class="fc" id="L337">    final int len = a.length;</span>
+<span class="pc bpc" id="L338" title="1 of 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="fc" id="L339">      sbuf.append(Byte.toString(a[0]));</span>
+<span class="fc bfc" id="L340" title="All 2 branches covered.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="fc" id="L341">        sbuf.append(&quot;, &quot;);</span>
+<span class="fc" id="L342">        sbuf.append(Byte.toString(a[i]));</span>
       }
     }
-<span class="fc" id="L317">    sbuf.append(']');</span>
-<span class="fc" id="L318">  }</span>
+<span class="fc" id="L345">    sbuf.append(']');</span>
+<span class="fc" id="L346">  }</span>
 
   private static void charArrayAppend(final Appendable sbuf, final char[] a) throws IOException {
-<span class="nc" id="L321">    sbuf.append('[');</span>
-<span class="nc" id="L322">    final int len = a.length;</span>
-<span class="nc bnc" id="L323" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L324">      sbuf.append(a[0]);</span>
-<span class="nc bnc" id="L325" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="nc" id="L326">        sbuf.append(&quot;, &quot;);</span>
-<span class="nc" id="L327">        sbuf.append(a[i]);</span>
+<span class="nc" id="L349">    sbuf.append('[');</span>
+<span class="nc" id="L350">    final int len = a.length;</span>
+<span class="nc bnc" id="L351" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L352">      sbuf.append(a[0]);</span>
+<span class="nc bnc" id="L353" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="nc" id="L354">        sbuf.append(&quot;, &quot;);</span>
+<span class="nc" id="L355">        sbuf.append(a[i]);</span>
       }
     }
-<span class="nc" id="L330">    sbuf.append(']');</span>
-<span class="nc" id="L331">  }</span>
+<span class="nc" id="L358">    sbuf.append(']');</span>
+<span class="nc" id="L359">  }</span>
 
   private static void shortArrayAppend(final Appendable sbuf, final short[] a) throws IOException {
-<span class="nc" id="L334">    sbuf.append('[');</span>
-<span class="nc" id="L335">    final int len = a.length;</span>
-<span class="nc bnc" id="L336" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L337">      sbuf.append(Short.toString(a[0]));</span>
-<span class="nc bnc" id="L338" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="nc" id="L339">        sbuf.append(&quot;, &quot;);</span>
-<span class="nc" id="L340">        sbuf.append(Short.toString(a[i]));</span>
+<span class="nc" id="L362">    sbuf.append('[');</span>
+<span class="nc" id="L363">    final int len = a.length;</span>
+<span class="nc bnc" id="L364" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L365">      sbuf.append(Short.toString(a[0]));</span>
+<span class="nc bnc" id="L366" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="nc" id="L367">        sbuf.append(&quot;, &quot;);</span>
+<span class="nc" id="L368">        sbuf.append(Short.toString(a[i]));</span>
       }
     }
-<span class="nc" id="L343">    sbuf.append(']');</span>
-<span class="nc" id="L344">  }</span>
+<span class="nc" id="L371">    sbuf.append(']');</span>
+<span class="nc" id="L372">  }</span>
 
   private static void intArrayAppend(final Appendable sbuf, final int[] a) throws IOException {
-<span class="fc" id="L347">    sbuf.append('[');</span>
-<span class="fc" id="L348">    final int len = a.length;</span>
-<span class="pc bpc" id="L349" title="1 of 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="fc" id="L350">      sbuf.append(Integer.toString(a[0]));</span>
-<span class="fc bfc" id="L351" title="All 2 branches covered.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="fc" id="L352">        sbuf.append(&quot;, &quot;);</span>
-<span class="fc" id="L353">        sbuf.append(Integer.toString(a[i]));</span>
+<span class="fc" id="L375">    sbuf.append('[');</span>
+<span class="fc" id="L376">    final int len = a.length;</span>
+<span class="pc bpc" id="L377" title="1 of 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="fc" id="L378">      sbuf.append(Integer.toString(a[0]));</span>
+<span class="fc bfc" id="L379" title="All 2 branches covered.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="fc" id="L380">        sbuf.append(&quot;, &quot;);</span>
+<span class="fc" id="L381">        sbuf.append(Integer.toString(a[i]));</span>
       }
     }
-<span class="fc" id="L356">    sbuf.append(']');</span>
-<span class="fc" id="L357">  }</span>
+<span class="fc" id="L384">    sbuf.append(']');</span>
+<span class="fc" id="L385">  }</span>
 
   private static void longArrayAppend(final Appendable sbuf, final long[] a) throws IOException {
-<span class="fc" id="L360">    sbuf.append('[');</span>
-<span class="fc" id="L361">    final int len = a.length;</span>
-<span class="pc bpc" id="L362" title="1 of 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="fc" id="L363">      sbuf.append(Long.toString(a[0]));</span>
-<span class="fc bfc" id="L364" title="All 2 branches covered.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="fc" id="L365">        sbuf.append(&quot;, &quot;);</span>
-<span class="fc" id="L366">        sbuf.append(Long.toString(a[i]));</span>
+<span class="fc" id="L388">    sbuf.append('[');</span>
+<span class="fc" id="L389">    final int len = a.length;</span>
+<span class="pc bpc" id="L390" title="1 of 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="fc" id="L391">      sbuf.append(Long.toString(a[0]));</span>
+<span class="fc bfc" id="L392" title="All 2 branches covered.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="fc" id="L393">        sbuf.append(&quot;, &quot;);</span>
+<span class="fc" id="L394">        sbuf.append(Long.toString(a[i]));</span>
       }
     }
-<span class="fc" id="L369">    sbuf.append(']');</span>
-<span class="fc" id="L370">  }</span>
+<span class="fc" id="L397">    sbuf.append(']');</span>
+<span class="fc" id="L398">  }</span>
 
   private static void floatArrayAppend(final Appendable sbuf, final float[] a) throws IOException {
-<span class="nc" id="L373">    sbuf.append('[');</span>
-<span class="nc" id="L374">    final int len = a.length;</span>
-<span class="nc bnc" id="L375" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L376">      sbuf.append(Float.toString(a[0]));</span>
-<span class="nc bnc" id="L377" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="nc" id="L378">        sbuf.append(&quot;, &quot;);</span>
-<span class="nc" id="L379">        sbuf.append(Float.toString(a[i]));</span>
+<span class="nc" id="L401">    sbuf.append('[');</span>
+<span class="nc" id="L402">    final int len = a.length;</span>
+<span class="nc bnc" id="L403" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L404">      sbuf.append(Float.toString(a[0]));</span>
+<span class="nc bnc" id="L405" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="nc" id="L406">        sbuf.append(&quot;, &quot;);</span>
+<span class="nc" id="L407">        sbuf.append(Float.toString(a[i]));</span>
       }
     }
-<span class="nc" id="L382">    sbuf.append(']');</span>
-<span class="nc" id="L383">  }</span>
+<span class="nc" id="L410">    sbuf.append(']');</span>
+<span class="nc" id="L411">  }</span>
 
   private static void doubleArrayAppend(final Appendable sbuf, final double[] a) throws IOException {
-<span class="nc" id="L386">    sbuf.append('[');</span>
-<span class="nc" id="L387">    final int len = a.length;</span>
-<span class="nc bnc" id="L388" title="All 2 branches missed.">    if (len &gt; 0) {</span>
-<span class="nc" id="L389">      sbuf.append(Double.toString(a[0]));</span>
-<span class="nc bnc" id="L390" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
-<span class="nc" id="L391">        sbuf.append(&quot;, &quot;);</span>
-<span class="nc" id="L392">        sbuf.append(Double.toString(a[i]));</span>
+<span class="nc" id="L414">    sbuf.append('[');</span>
+<span class="nc" id="L415">    final int len = a.length;</span>
+<span class="nc bnc" id="L416" title="All 2 branches missed.">    if (len &gt; 0) {</span>
+<span class="nc" id="L417">      sbuf.append(Double.toString(a[0]));</span>
+<span class="nc bnc" id="L418" title="All 2 branches missed.">      for (int i = 1; i &lt; len; i++) {</span>
+<span class="nc" id="L419">        sbuf.append(&quot;, &quot;);</span>
+<span class="nc" id="L420">        sbuf.append(Double.toString(a[i]));</span>
       }
     }
-<span class="nc" id="L395">    sbuf.append(']');</span>
-<span class="nc" id="L396">  }</span>
+<span class="nc" id="L423">    sbuf.append(']');</span>
+<span class="nc" id="L424">  }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

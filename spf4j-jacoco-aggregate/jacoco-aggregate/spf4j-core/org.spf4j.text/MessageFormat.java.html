@@ -491,10 +491,11 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if the pattern is invalid
    * @since 1.4
    */
-<span class="nc" id="L494">  public MessageFormat(String pattern, Locale locale) {</span>
-<span class="nc" id="L495">    this.locale = locale;</span>
-<span class="nc" id="L496">    applyPattern(pattern);</span>
-<span class="nc" id="L497">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="nc" id="L495">  public MessageFormat(String pattern, Locale locale) {</span>
+<span class="nc" id="L496">    this.locale = locale;</span>
+<span class="nc" id="L497">    applyPattern(pattern);</span>
+<span class="nc" id="L498">  }</span>
 
   /**
    * Sets the locale to be used when creating or comparing subformats. This affects subsequent calls
@@ -508,17 +509,19 @@ public final class MessageFormat extends Format {
    *
    * @param locale the locale to be used when creating or comparing subformats
    */
-  public void setLocale(Locale locale) {
-<span class="nc" id="L512">    this.locale = locale;</span>
-<span class="nc" id="L513">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+  public void setLocale(final Locale locale) {
+<span class="nc" id="L514">    this.locale = locale;</span>
+<span class="nc" id="L515">  }</span>
 
   /**
    * Gets the locale that's used when creating or comparing subformats.
    *
    * @return the locale used when creating or comparing subformats
    */
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public Locale getLocale() {
-<span class="nc" id="L521">    return locale;</span>
+<span class="nc" id="L524">    return locale;</span>
   }
 
   /**
@@ -531,93 +534,93 @@ public final class MessageFormat extends Format {
    */
   @SuppressWarnings(&quot;fallthrough&quot;) // fallthrough in switch is expected, suppress it
   @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;)
-  public void applyPattern(String pattern) {
-<span class="fc" id="L535">    StringBuilder[] segments = new StringBuilder[4];</span>
+  public void applyPattern(final String pattern) {
+<span class="fc" id="L538">    StringBuilder[] segments = new StringBuilder[4];</span>
     // Allocate only segments[SEG_RAW] here. The rest are
     // allocated on demand.
-<span class="fc" id="L538">    final int length = pattern.length();</span>
-<span class="fc" id="L539">    segments[SEG_RAW] = new StringBuilder(length);</span>
+<span class="fc" id="L541">    final int length = pattern.length();</span>
+<span class="fc" id="L542">    segments[SEG_RAW] = new StringBuilder(length);</span>
 
-<span class="fc" id="L541">    int part = SEG_RAW;</span>
-<span class="fc" id="L542">    int formatNumber = 0;</span>
-<span class="fc" id="L543">    boolean inQuote = false;</span>
-<span class="fc" id="L544">    int braceStack = 0;</span>
-<span class="fc" id="L545">    maxOffset = -1;</span>
-<span class="fc bfc" id="L546" title="All 2 branches covered.">    for (int i = 0; i &lt; length; ++i) {</span>
-<span class="fc" id="L547">      char ch = pattern.charAt(i);</span>
-<span class="fc bfc" id="L548" title="All 2 branches covered.">      if (part == SEG_RAW) {</span>
-<span class="pc bpc" id="L549" title="1 of 2 branches missed.">        if (ch == '\'') {</span>
-<span class="nc" id="L550">          int next = i + 1;</span>
-<span class="nc bnc" id="L551" title="All 2 branches missed.">          if (next &lt; length</span>
-<span class="nc bnc" id="L552" title="All 2 branches missed.">                  &amp;&amp; pattern.charAt(next) == '\'') {</span>
-<span class="nc" id="L553">            segments[part].append(ch);  // handle doubles</span>
-<span class="nc" id="L554">            i = next;</span>
+<span class="fc" id="L544">    int part = SEG_RAW;</span>
+<span class="fc" id="L545">    int formatNumber = 0;</span>
+<span class="fc" id="L546">    boolean inQuote = false;</span>
+<span class="fc" id="L547">    int braceStack = 0;</span>
+<span class="fc" id="L548">    maxOffset = -1;</span>
+<span class="fc bfc" id="L549" title="All 2 branches covered.">    for (int i = 0; i &lt; length; ++i) {</span>
+<span class="fc" id="L550">      char ch = pattern.charAt(i);</span>
+<span class="fc bfc" id="L551" title="All 2 branches covered.">      if (part == SEG_RAW) {</span>
+<span class="pc bpc" id="L552" title="1 of 2 branches missed.">        if (ch == '\'') {</span>
+<span class="nc" id="L553">          int next = i + 1;</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">          if (next &lt; length</span>
+<span class="nc bnc" id="L555" title="All 2 branches missed.">                  &amp;&amp; pattern.charAt(next) == '\'') {</span>
+<span class="nc" id="L556">            segments[part].append(ch);  // handle doubles</span>
+<span class="nc" id="L557">            i = next;</span>
           } else {
-<span class="nc bnc" id="L556" title="All 2 branches missed.">            inQuote = !inQuote;</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">            inQuote = !inQuote;</span>
           }
-<span class="pc bpc" id="L558" title="1 of 4 branches missed.">        } else if (ch == '{' &amp;&amp; !inQuote) {</span>
-<span class="fc" id="L559">          part = SEG_INDEX;</span>
-<span class="pc bpc" id="L560" title="1 of 2 branches missed.">          if (segments[part] == null) {</span>
-<span class="fc" id="L561">            segments[part] = new StringBuilder();</span>
+<span class="pc bpc" id="L561" title="1 of 4 branches missed.">        } else if (ch == '{' &amp;&amp; !inQuote) {</span>
+<span class="fc" id="L562">          part = SEG_INDEX;</span>
+<span class="pc bpc" id="L563" title="1 of 2 branches missed.">          if (segments[part] == null) {</span>
+<span class="fc" id="L564">            segments[part] = new StringBuilder();</span>
           }
         } else {
-<span class="fc" id="L564">          segments[part].append(ch);</span>
+<span class="fc" id="L567">          segments[part].append(ch);</span>
         }
-<span class="fc bfc" id="L566" title="All 2 branches covered.">      } else if (inQuote) {              // just copy quotes in parts</span>
-<span class="fc" id="L567">        segments[part].append(ch);</span>
-<span class="fc bfc" id="L568" title="All 2 branches covered.">        if (ch == '\'') {</span>
-<span class="fc" id="L569">          inQuote = false;</span>
+<span class="fc bfc" id="L569" title="All 2 branches covered.">      } else if (inQuote) {              // just copy quotes in parts</span>
+<span class="fc" id="L570">        segments[part].append(ch);</span>
+<span class="fc bfc" id="L571" title="All 2 branches covered.">        if (ch == '\'') {</span>
+<span class="fc" id="L572">          inQuote = false;</span>
         }
       } else {
-<span class="pc bpc" id="L572" title="2 of 6 branches missed.">        switch (ch) {</span>
+<span class="pc bpc" id="L575" title="2 of 6 branches missed.">        switch (ch) {</span>
           case ',':
-<span class="fc bfc" id="L574" title="All 2 branches covered.">            if (part &lt; SEG_MODIFIER) {</span>
-<span class="pc bpc" id="L575" title="1 of 2 branches missed.">              if (segments[++part] == null) {</span>
-<span class="fc" id="L576">                segments[part] = new StringBuilder();</span>
+<span class="fc bfc" id="L577" title="All 2 branches covered.">            if (part &lt; SEG_MODIFIER) {</span>
+<span class="pc bpc" id="L578" title="1 of 2 branches missed.">              if (segments[++part] == null) {</span>
+<span class="fc" id="L579">                segments[part] = new StringBuilder();</span>
               }
             } else {
-<span class="fc" id="L579">              segments[part].append(ch);</span>
+<span class="fc" id="L582">              segments[part].append(ch);</span>
             }
-<span class="fc" id="L581">            break;</span>
+<span class="fc" id="L584">            break;</span>
           case '{':
-<span class="nc" id="L583">            ++braceStack;</span>
-<span class="nc" id="L584">            segments[part].append(ch);</span>
-<span class="nc" id="L585">            break;</span>
+<span class="nc" id="L586">            ++braceStack;</span>
+<span class="nc" id="L587">            segments[part].append(ch);</span>
+<span class="nc" id="L588">            break;</span>
           case '}':
-<span class="pc bpc" id="L587" title="1 of 2 branches missed.">            if (braceStack == 0) {</span>
-<span class="fc" id="L588">              part = SEG_RAW;</span>
-<span class="fc" id="L589">              makeFormat(formatNumber, segments);</span>
-<span class="fc" id="L590">              formatNumber++;</span>
+<span class="pc bpc" id="L590" title="1 of 2 branches missed.">            if (braceStack == 0) {</span>
+<span class="fc" id="L591">              part = SEG_RAW;</span>
+<span class="fc" id="L592">              makeFormat(formatNumber, segments);</span>
+<span class="fc" id="L593">              formatNumber++;</span>
               // throw away other segments
-<span class="fc" id="L592">              segments[SEG_INDEX] = null;</span>
-<span class="fc" id="L593">              segments[SEG_TYPE] = null;</span>
-<span class="fc" id="L594">              segments[SEG_MODIFIER] = null;</span>
+<span class="fc" id="L595">              segments[SEG_INDEX] = null;</span>
+<span class="fc" id="L596">              segments[SEG_TYPE] = null;</span>
+<span class="fc" id="L597">              segments[SEG_MODIFIER] = null;</span>
             } else {
-<span class="nc" id="L596">              --braceStack;</span>
-<span class="nc" id="L597">              segments[part].append(ch);</span>
+<span class="nc" id="L599">              --braceStack;</span>
+<span class="nc" id="L600">              segments[part].append(ch);</span>
             }
-<span class="nc" id="L599">            break;</span>
+<span class="nc" id="L602">            break;</span>
           case ' ':
             // Skip any leading space chars for SEG_TYPE.
-<span class="nc bnc" id="L602" title="All 4 branches missed.">            if (part != SEG_TYPE || segments[SEG_TYPE].length() &gt; 0) {</span>
-<span class="nc" id="L603">              segments[part].append(ch);</span>
+<span class="nc bnc" id="L605" title="All 4 branches missed.">            if (part != SEG_TYPE || segments[SEG_TYPE].length() &gt; 0) {</span>
+<span class="nc" id="L606">              segments[part].append(ch);</span>
             }
             break;
           case '\'':
-<span class="fc" id="L607">            inQuote = true;</span>
+<span class="fc" id="L610">            inQuote = true;</span>
           // fall through, so we keep quotes in other parts
           default:
-<span class="fc" id="L610">            segments[part].append(ch);</span>
+<span class="fc" id="L613">            segments[part].append(ch);</span>
             break;
         }
       }
     }
-<span class="pc bpc" id="L615" title="2 of 4 branches missed.">    if (braceStack == 0 &amp;&amp; part != 0) {</span>
-<span class="nc" id="L616">      maxOffset = -1;</span>
-<span class="nc" id="L617">      throw new IllegalArgumentException(&quot;Unmatched braces in the pattern: &quot; + pattern);</span>
+<span class="pc bpc" id="L618" title="2 of 4 branches missed.">    if (braceStack == 0 &amp;&amp; part != 0) {</span>
+<span class="nc" id="L619">      maxOffset = -1;</span>
+<span class="nc" id="L620">      throw new IllegalArgumentException(&quot;Unmatched braces in the pattern: &quot; + pattern);</span>
     }
-<span class="fc" id="L619">    this.pattern = segments[0];</span>
-<span class="fc" id="L620">  }</span>
+<span class="fc" id="L622">    this.pattern = segments[0];</span>
+<span class="fc" id="L623">  }</span>
 
   /**
    * Returns a pattern representing the current state of the message format. The string is constructed from internal
@@ -628,63 +631,63 @@ public final class MessageFormat extends Format {
   @SuppressFBWarnings({&quot;CLI_CONSTANT_LIST_INDEX&quot;, &quot;ITC_INHERITANCE_TYPE_CHECKING&quot;})
   public String toPattern() {
     // later, make this more extensible
-<span class="nc" id="L631">    int lastOffset = 0;</span>
-<span class="nc" id="L632">    StringBuilder result = new StringBuilder();</span>
-<span class="nc bnc" id="L633" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; ++i) {</span>
-<span class="nc" id="L634">      FormatInfo finfo = formats[i];</span>
-<span class="nc" id="L635">      int offset = finfo.getOffset();</span>
-<span class="nc" id="L636">      copyAndFixQuotes(pattern, lastOffset, offset, result);</span>
-<span class="nc" id="L637">      lastOffset = offset;</span>
-<span class="nc" id="L638">      result.append('{').append(finfo.getArgumentNumber());</span>
-<span class="nc" id="L639">      Format fmt = finfo.getFormat();</span>
-<span class="nc bnc" id="L640" title="All 2 branches missed.">      if (fmt instanceof NumberFormat) {</span>
-<span class="nc bnc" id="L641" title="All 2 branches missed.">        if (fmt.equals(NumberFormat.getInstance(locale))) {</span>
-<span class="nc" id="L642">          result.append(&quot;,number&quot;);</span>
-<span class="nc bnc" id="L643" title="All 2 branches missed.">        } else if (fmt.equals(NumberFormat.getCurrencyInstance(locale))) {</span>
-<span class="nc" id="L644">          result.append(&quot;,number,currency&quot;);</span>
-<span class="nc bnc" id="L645" title="All 2 branches missed.">        } else if (fmt.equals(NumberFormat.getPercentInstance(locale))) {</span>
-<span class="nc" id="L646">          result.append(&quot;,number,percent&quot;);</span>
-<span class="nc bnc" id="L647" title="All 2 branches missed.">        } else if (fmt.equals(NumberFormat.getIntegerInstance(locale))) {</span>
-<span class="nc" id="L648">          result.append(&quot;,number,integer&quot;);</span>
-<span class="nc bnc" id="L649" title="All 2 branches missed.">        } else if (fmt instanceof DecimalFormat) {</span>
-<span class="nc" id="L650">          result.append(&quot;,number,&quot;).append(((DecimalFormat) fmt).toPattern());</span>
-<span class="nc bnc" id="L651" title="All 2 branches missed.">        } else if (fmt instanceof ChoiceFormat) {</span>
-<span class="nc" id="L652">          result.append(&quot;,choice,&quot;).append(((ChoiceFormat) fmt).toPattern());</span>
+<span class="nc" id="L634">    int lastOffset = 0;</span>
+<span class="nc" id="L635">    StringBuilder result = new StringBuilder();</span>
+<span class="nc bnc" id="L636" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; ++i) {</span>
+<span class="nc" id="L637">      FormatInfo finfo = formats[i];</span>
+<span class="nc" id="L638">      int offset = finfo.getOffset();</span>
+<span class="nc" id="L639">      copyAndFixQuotes(pattern, lastOffset, offset, result);</span>
+<span class="nc" id="L640">      lastOffset = offset;</span>
+<span class="nc" id="L641">      result.append('{').append(finfo.getArgumentNumber());</span>
+<span class="nc" id="L642">      Format fmt = finfo.getFormat();</span>
+<span class="nc bnc" id="L643" title="All 2 branches missed.">      if (fmt instanceof NumberFormat) {</span>
+<span class="nc bnc" id="L644" title="All 2 branches missed.">        if (fmt.equals(NumberFormat.getInstance(locale))) {</span>
+<span class="nc" id="L645">          result.append(&quot;,number&quot;);</span>
+<span class="nc bnc" id="L646" title="All 2 branches missed.">        } else if (fmt.equals(NumberFormat.getCurrencyInstance(locale))) {</span>
+<span class="nc" id="L647">          result.append(&quot;,number,currency&quot;);</span>
+<span class="nc bnc" id="L648" title="All 2 branches missed.">        } else if (fmt.equals(NumberFormat.getPercentInstance(locale))) {</span>
+<span class="nc" id="L649">          result.append(&quot;,number,percent&quot;);</span>
+<span class="nc bnc" id="L650" title="All 2 branches missed.">        } else if (fmt.equals(NumberFormat.getIntegerInstance(locale))) {</span>
+<span class="nc" id="L651">          result.append(&quot;,number,integer&quot;);</span>
+<span class="nc bnc" id="L652" title="All 2 branches missed.">        } else if (fmt instanceof DecimalFormat) {</span>
+<span class="nc" id="L653">          result.append(&quot;,number,&quot;).append(((DecimalFormat) fmt).toPattern());</span>
+<span class="nc bnc" id="L654" title="All 2 branches missed.">        } else if (fmt instanceof ChoiceFormat) {</span>
+<span class="nc" id="L655">          result.append(&quot;,choice,&quot;).append(((ChoiceFormat) fmt).toPattern());</span>
         } else {
-<span class="nc" id="L654">          throw new UnsupportedOperationException(&quot;Unsupported format &quot; + fmt);</span>
+<span class="nc" id="L657">          throw new UnsupportedOperationException(&quot;Unsupported format &quot; + fmt);</span>
         }
-<span class="nc bnc" id="L656" title="All 2 branches missed.">      } else if (fmt instanceof DateFormat) {</span>
+<span class="nc bnc" id="L659" title="All 2 branches missed.">      } else if (fmt instanceof DateFormat) {</span>
         int index;
-<span class="nc bnc" id="L658" title="All 2 branches missed.">        for (index = MODIFIER_DEFAULT; index &lt; DATE_TIME_MODIFIERS.length; index++) {</span>
-<span class="nc" id="L659">          DateFormat df = DateFormat.getDateInstance(DATE_TIME_MODIFIERS[index],</span>
+<span class="nc bnc" id="L661" title="All 2 branches missed.">        for (index = MODIFIER_DEFAULT; index &lt; DATE_TIME_MODIFIERS.length; index++) {</span>
+<span class="nc" id="L662">          DateFormat df = DateFormat.getDateInstance(DATE_TIME_MODIFIERS[index],</span>
                   locale);
-<span class="nc bnc" id="L661" title="All 2 branches missed.">          if (fmt.equals(df)) {</span>
-<span class="nc" id="L662">            result.append(&quot;,date&quot;);</span>
-<span class="nc" id="L663">            break;</span>
+<span class="nc bnc" id="L664" title="All 2 branches missed.">          if (fmt.equals(df)) {</span>
+<span class="nc" id="L665">            result.append(&quot;,date&quot;);</span>
+<span class="nc" id="L666">            break;</span>
           }
-<span class="nc" id="L665">          df = DateFormat.getTimeInstance(DATE_TIME_MODIFIERS[index],</span>
+<span class="nc" id="L668">          df = DateFormat.getTimeInstance(DATE_TIME_MODIFIERS[index],</span>
                   locale);
-<span class="nc bnc" id="L667" title="All 2 branches missed.">          if (fmt.equals(df)) {</span>
-<span class="nc" id="L668">            result.append(&quot;,time&quot;);</span>
-<span class="nc" id="L669">            break;</span>
+<span class="nc bnc" id="L670" title="All 2 branches missed.">          if (fmt.equals(df)) {</span>
+<span class="nc" id="L671">            result.append(&quot;,time&quot;);</span>
+<span class="nc" id="L672">            break;</span>
           }
         }
-<span class="nc bnc" id="L672" title="All 2 branches missed.">        if (index &gt;= DATE_TIME_MODIFIERS.length) {</span>
-<span class="nc bnc" id="L673" title="All 2 branches missed.">          if (fmt instanceof SimpleDateFormat) {</span>
-<span class="nc" id="L674">            result.append(&quot;,date,&quot;).append(((SimpleDateFormat) fmt).toPattern());</span>
+<span class="nc bnc" id="L675" title="All 2 branches missed.">        if (index &gt;= DATE_TIME_MODIFIERS.length) {</span>
+<span class="nc bnc" id="L676" title="All 2 branches missed.">          if (fmt instanceof SimpleDateFormat) {</span>
+<span class="nc" id="L677">            result.append(&quot;,date,&quot;).append(((SimpleDateFormat) fmt).toPattern());</span>
           } else {
-<span class="nc" id="L676">            throw new UnsupportedOperationException(&quot;Unsupported format &quot; + fmt);</span>
+<span class="nc" id="L679">            throw new UnsupportedOperationException(&quot;Unsupported format &quot; + fmt);</span>
           }
-<span class="nc bnc" id="L678" title="All 2 branches missed.">        } else if (index != MODIFIER_DEFAULT) {</span>
-<span class="nc" id="L679">          result.append(',').append(DATE_TIME_MODIFIER_KEYWORDS[index]);</span>
+<span class="nc bnc" id="L681" title="All 2 branches missed.">        } else if (index != MODIFIER_DEFAULT) {</span>
+<span class="nc" id="L682">          result.append(',').append(DATE_TIME_MODIFIER_KEYWORDS[index]);</span>
         }
-<span class="nc bnc" id="L681" title="All 2 branches missed.">      } else if (fmt != null) {</span>
-<span class="nc" id="L682">        throw new UnsupportedOperationException(&quot;Unsupported format &quot; + fmt);</span>
+<span class="nc bnc" id="L684" title="All 2 branches missed.">      } else if (fmt != null) {</span>
+<span class="nc" id="L685">        throw new UnsupportedOperationException(&quot;Unsupported format &quot; + fmt);</span>
       }
-<span class="nc" id="L684">      result.append('}');</span>
+<span class="nc" id="L687">      result.append('}');</span>
     }
-<span class="nc" id="L686">    copyAndFixQuotes(pattern, lastOffset, pattern.length(), result);</span>
-<span class="nc" id="L687">    return result.toString();</span>
+<span class="nc" id="L689">    copyAndFixQuotes(pattern, lastOffset, pattern.length(), result);</span>
+<span class="nc" id="L690">    return result.toString();</span>
   }
 
   /**
@@ -703,15 +706,15 @@ public final class MessageFormat extends Format {
    * @exception NullPointerException if &lt;code&gt;newFormats&lt;/code&gt; is null
    * @since 1.4
    */
-  public void setFormatsByArgumentIndex(Format[] newFormats) {
-<span class="nc bnc" id="L707" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; i++) {</span>
-<span class="nc" id="L708">      final FormatInfo finfo = formats[i];</span>
-<span class="nc" id="L709">      int j = finfo.getArgumentNumber();</span>
-<span class="nc bnc" id="L710" title="All 2 branches missed.">      if (j &lt; newFormats.length) {</span>
-<span class="nc" id="L711">        formats[i] = new FormatInfo(newFormats[j], finfo.getOffset(), j);</span>
+  public void setFormatsByArgumentIndex(final Format[] newFormats) {
+<span class="nc bnc" id="L710" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; i++) {</span>
+<span class="nc" id="L711">      final FormatInfo finfo = formats[i];</span>
+<span class="nc" id="L712">      int j = finfo.getArgumentNumber();</span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">      if (j &lt; newFormats.length) {</span>
+<span class="nc" id="L714">        formats[i] = new FormatInfo(newFormats[j], finfo.getOffset(), j);</span>
       }
     }
-<span class="nc" id="L714">  }</span>
+<span class="nc" id="L717">  }</span>
 
   /**
    * Sets the formats to use for the format elements in the previously set pattern string. The order of formats in
@@ -728,16 +731,16 @@ public final class MessageFormat extends Format {
    * @param newFormats the new formats to use
    * @exception NullPointerException if &lt;code&gt;newFormats&lt;/code&gt; is null
    */
-  public void setFormats(Format[] newFormats) {
-<span class="nc" id="L732">    int runsToCopy = newFormats.length;</span>
-<span class="nc bnc" id="L733" title="All 2 branches missed.">    if (runsToCopy &gt; maxOffset + 1) {</span>
-<span class="nc" id="L734">      runsToCopy = maxOffset + 1;</span>
+  public void setFormats(final Format[] newFormats) {
+<span class="nc" id="L735">    int runsToCopy = newFormats.length;</span>
+<span class="nc bnc" id="L736" title="All 2 branches missed.">    if (runsToCopy &gt; maxOffset + 1) {</span>
+<span class="nc" id="L737">      runsToCopy = maxOffset + 1;</span>
     }
-<span class="nc bnc" id="L736" title="All 2 branches missed.">    for (int i = 0; i &lt; runsToCopy; i++) {</span>
-<span class="nc" id="L737">      FormatInfo finfo = formats[i];</span>
-<span class="nc" id="L738">      formats[i] = new FormatInfo(newFormats[i], finfo.getOffset(), finfo.getArgumentNumber());</span>
+<span class="nc bnc" id="L739" title="All 2 branches missed.">    for (int i = 0; i &lt; runsToCopy; i++) {</span>
+<span class="nc" id="L740">      FormatInfo finfo = formats[i];</span>
+<span class="nc" id="L741">      formats[i] = new FormatInfo(newFormats[i], finfo.getOffset(), finfo.getArgumentNumber());</span>
     }
-<span class="nc" id="L740">  }</span>
+<span class="nc" id="L743">  }</span>
 
   /**
    * Sets the format to use for the format elements within the previously set pattern string that use the given argument
@@ -754,14 +757,14 @@ public final class MessageFormat extends Format {
    * @since 1.4
    */
   public void setFormatByArgumentIndex(int argumentIndex, Format newFormat) {
-<span class="nc bnc" id="L757" title="All 2 branches missed.">    for (int j = 0; j &lt;= maxOffset; j++) {</span>
-<span class="nc" id="L758">      FormatInfo finfo = formats[j];</span>
-<span class="nc" id="L759">      int argNr = finfo.getArgumentNumber();</span>
-<span class="nc bnc" id="L760" title="All 2 branches missed.">      if (argNr == argumentIndex) {</span>
-<span class="nc" id="L761">        formats[j] = new FormatInfo(newFormat, finfo.getOffset(), argNr);</span>
+<span class="nc bnc" id="L760" title="All 2 branches missed.">    for (int j = 0; j &lt;= maxOffset; j++) {</span>
+<span class="nc" id="L761">      FormatInfo finfo = formats[j];</span>
+<span class="nc" id="L762">      int argNr = finfo.getArgumentNumber();</span>
+<span class="nc bnc" id="L763" title="All 2 branches missed.">      if (argNr == argumentIndex) {</span>
+<span class="nc" id="L764">        formats[j] = new FormatInfo(newFormat, finfo.getOffset(), argNr);</span>
       }
     }
-<span class="nc" id="L764">  }</span>
+<span class="nc" id="L767">  }</span>
 
   /**
    * Sets the format to use for the format element with the given format element index within the previously set pattern
@@ -777,10 +780,10 @@ public final class MessageFormat extends Format {
    * @exception ArrayIndexOutOfBoundsException if {@code formatElementIndex} is equal to or larger than the number of
    * format elements in the pattern string
    */
-  public void setFormat(int formatElementIndex, Format newFormat) {
-<span class="nc" id="L781">    FormatInfo finfo = formats[formatElementIndex];</span>
-<span class="nc" id="L782">    formats[formatElementIndex] = new FormatInfo(newFormat, finfo.getOffset(), finfo.getArgumentNumber());</span>
-<span class="nc" id="L783">  }</span>
+  public void setFormat(final int formatElementIndex, final Format newFormat) {
+<span class="nc" id="L784">    FormatInfo finfo = formats[formatElementIndex];</span>
+<span class="nc" id="L785">    formats[formatElementIndex] = new FormatInfo(newFormat, finfo.getOffset(), finfo.getArgumentNumber());</span>
+<span class="nc" id="L786">  }</span>
 
   /**
    * Gets the formats used for the values passed into &lt;code&gt;format&lt;/code&gt; methods or returned from &lt;code&gt;parse&lt;/code&gt;
@@ -821,9 +824,9 @@ public final class MessageFormat extends Format {
    * @return the formats used for the format elements in the pattern
    */
   public Format[] getFormats() {
-<span class="nc" id="L824">    Format[] resultArray = new Format[maxOffset + 1];</span>
-<span class="nc" id="L825">    System.arraycopy(formats, 0, resultArray, 0, maxOffset + 1);</span>
-<span class="nc" id="L826">    return resultArray;</span>
+<span class="nc" id="L827">    Format[] resultArray = new Format[maxOffset + 1];</span>
+<span class="nc" id="L828">    System.arraycopy(formats, 0, resultArray, 0, maxOffset + 1);</span>
+<span class="nc" id="L829">    return resultArray;</span>
   }
 
   /**
@@ -887,11 +890,11 @@ public final class MessageFormat extends Format {
    */
   public final &lt;T extends CharSequence &amp; Appendable&gt; boolean[] format(Object[] arguments, T result,
           @Nullable FieldPosition pos) throws IOException {
-<span class="fc" id="L890">    return subformat(arguments, result, pos, null);</span>
+<span class="fc" id="L893">    return subformat(arguments, result, pos, null);</span>
   }
 
   public final &lt;T extends CharSequence &amp; Appendable&gt; boolean[] format(Object[] arguments, T result) throws IOException {
-<span class="fc" id="L894">    return format(arguments, result, null);</span>
+<span class="fc" id="L897">    return format(arguments, result, null);</span>
   }
 
   /**
@@ -908,9 +911,9 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if the pattern is invalid, or if an argument in the &lt;code&gt;arguments&lt;/code&gt;
    * array is not of the type expected by the format element(s) that use it.
    */
-  public static String format(String pattern, Object... arguments) {
-<span class="nc" id="L912">    MessageFormat temp = new MessageFormat(pattern);</span>
-<span class="nc" id="L913">    return temp.format(arguments);</span>
+  public static String format(final String pattern, final Object... arguments) {
+<span class="nc" id="L915">    MessageFormat temp = new MessageFormat(pattern);</span>
+<span class="nc" id="L916">    return temp.format(arguments);</span>
   }
 
   // Overrides
@@ -928,12 +931,12 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the &lt;code&gt;arguments&lt;/code&gt; array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final &lt;T extends CharSequence &amp; Appendable&gt; boolean[] format(Object arguments, T result,
-          FieldPosition pos) throws IOException {
-<span class="nc bnc" id="L933" title="All 2 branches missed.">    if (arguments instanceof Object[]) {</span>
-<span class="nc" id="L934">      return subformat((Object[]) arguments, result, pos, null);</span>
+  public final &lt;T extends CharSequence &amp; Appendable&gt; boolean[] format(final Object arguments, final T result,
+          final FieldPosition pos) throws IOException {
+<span class="nc bnc" id="L936" title="All 2 branches missed.">    if (arguments instanceof Object[]) {</span>
+<span class="nc" id="L937">      return subformat((Object[]) arguments, result, pos, null);</span>
     } else {
-<span class="nc" id="L936">      return subformat(new Object [] {arguments}, result, pos, null);</span>
+<span class="nc" id="L939">      return subformat(new Object [] {arguments}, result, pos, null);</span>
     }
   }
 
@@ -965,19 +968,19 @@ public final class MessageFormat extends Format {
    * @since 1.4
    */
   public AttributedCharacterIterator formatToCharacterIterator(@Nonnull Object arguments) {
-<span class="nc" id="L968">    StringBuilder result = new StringBuilder();</span>
-<span class="nc" id="L969">    ArrayList&lt;AttributedCharacterIterator&gt; iterators = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L971">    StringBuilder result = new StringBuilder();</span>
+<span class="nc" id="L972">    ArrayList&lt;AttributedCharacterIterator&gt; iterators = new ArrayList&lt;&gt;();</span>
     try {
-<span class="nc" id="L971">      subformat((Object[]) arguments, result, null, iterators);</span>
-<span class="nc" id="L972">    } catch (IOException ex) {</span>
-<span class="nc" id="L973">      throw new UncheckedIOException(ex);</span>
-<span class="nc" id="L974">    }</span>
-<span class="nc bnc" id="L975" title="All 2 branches missed.">    if (iterators.isEmpty()) {</span>
-<span class="nc" id="L976">      return createAttributedCharacterIterator(&quot;&quot;);</span>
+<span class="nc" id="L974">      subformat((Object[]) arguments, result, null, iterators);</span>
+<span class="nc" id="L975">    } catch (IOException ex) {</span>
+<span class="nc" id="L976">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L977">    }</span>
+<span class="nc bnc" id="L978" title="All 2 branches missed.">    if (iterators.isEmpty()) {</span>
+<span class="nc" id="L979">      return createAttributedCharacterIterator(&quot;&quot;);</span>
     }
-<span class="nc" id="L978">    return new AttributedString(</span>
-<span class="nc" id="L979">            iterators.toArray(</span>
-<span class="nc" id="L980">                    new AttributedCharacterIterator[iterators.size()])).getIterator();</span>
+<span class="nc" id="L981">    return new AttributedString(</span>
+<span class="nc" id="L982">            iterators.toArray(</span>
+<span class="nc" id="L983">                    new AttributedCharacterIterator[iterators.size()])).getIterator();</span>
   }
 
   /**
@@ -1010,78 +1013,78 @@ public final class MessageFormat extends Format {
   @SuppressFBWarnings({&quot;PZLA_PREFER_ZERO_LENGTH_ARRAYS&quot;, &quot;STT_STRING_PARSING_A_FIELD&quot;}) // maintaining JDK behavior
   public Object[] parse(@Nullable String source, @Nonnull ParsePosition pos) {
 
-<span class="nc bnc" id="L1013" title="All 2 branches missed.">    if (source == null) {</span>
-<span class="nc" id="L1014">      return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+<span class="nc bnc" id="L1016" title="All 2 branches missed.">    if (source == null) {</span>
+<span class="nc" id="L1017">      return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
     }
 
-<span class="nc" id="L1017">    int maximumArgumentNumber = -1;</span>
-<span class="nc bnc" id="L1018" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; i++) {</span>
-<span class="nc" id="L1019">      FormatInfo finfo = formats[i];</span>
-<span class="nc" id="L1020">      final int argumentNumber = finfo.getArgumentNumber();</span>
-<span class="nc bnc" id="L1021" title="All 2 branches missed.">      if (argumentNumber &gt; maximumArgumentNumber) {</span>
-<span class="nc" id="L1022">        maximumArgumentNumber = argumentNumber;</span>
+<span class="nc" id="L1020">    int maximumArgumentNumber = -1;</span>
+<span class="nc bnc" id="L1021" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; i++) {</span>
+<span class="nc" id="L1022">      FormatInfo finfo = formats[i];</span>
+<span class="nc" id="L1023">      final int argumentNumber = finfo.getArgumentNumber();</span>
+<span class="nc bnc" id="L1024" title="All 2 branches missed.">      if (argumentNumber &gt; maximumArgumentNumber) {</span>
+<span class="nc" id="L1025">        maximumArgumentNumber = argumentNumber;</span>
       }
     }
-<span class="nc" id="L1025">    Object[] resultArray = new Object[maximumArgumentNumber + 1];</span>
+<span class="nc" id="L1028">    Object[] resultArray = new Object[maximumArgumentNumber + 1];</span>
 
-<span class="nc" id="L1027">    int patternOffset = 0;</span>
-<span class="nc" id="L1028">    int sourceOffset = pos.getIndex();</span>
-<span class="nc" id="L1029">    ParsePosition tempStatus = new ParsePosition(0);</span>
-<span class="nc bnc" id="L1030" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; ++i) {</span>
+<span class="nc" id="L1030">    int patternOffset = 0;</span>
+<span class="nc" id="L1031">    int sourceOffset = pos.getIndex();</span>
+<span class="nc" id="L1032">    ParsePosition tempStatus = new ParsePosition(0);</span>
+<span class="nc bnc" id="L1033" title="All 2 branches missed.">    for (int i = 0; i &lt;= maxOffset; ++i) {</span>
       // match up to format
-<span class="nc" id="L1032">      FormatInfo finfo = formats[i];</span>
-<span class="nc" id="L1033">      int len = finfo.getOffset() - patternOffset;</span>
-<span class="nc bnc" id="L1034" title="All 4 branches missed.">      if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
-<span class="nc" id="L1035">        sourceOffset += len;</span>
-<span class="nc" id="L1036">        patternOffset += len;</span>
+<span class="nc" id="L1035">      FormatInfo finfo = formats[i];</span>
+<span class="nc" id="L1036">      int len = finfo.getOffset() - patternOffset;</span>
+<span class="nc bnc" id="L1037" title="All 4 branches missed.">      if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
+<span class="nc" id="L1038">        sourceOffset += len;</span>
+<span class="nc" id="L1039">        patternOffset += len;</span>
       } else {
-<span class="nc" id="L1038">        pos.setErrorIndex(sourceOffset);</span>
-<span class="nc" id="L1039">        return null;</span>
+<span class="nc" id="L1041">        pos.setErrorIndex(sourceOffset);</span>
+<span class="nc" id="L1042">        return null;</span>
       }
 
       // now use format
-<span class="nc bnc" id="L1043" title="All 2 branches missed.">      if (finfo.getFormat() == null) {   // string format</span>
+<span class="nc bnc" id="L1046" title="All 2 branches missed.">      if (finfo.getFormat() == null) {   // string format</span>
         // if at end, use longest possible match
         // otherwise uses first match to intervening string
         // does NOT recursively try all possibilities
-<span class="nc bnc" id="L1047" title="All 2 branches missed.">        int tempLength = (i != maxOffset) ? formats[i + 1].getOffset() : pattern.length();</span>
+<span class="nc bnc" id="L1050" title="All 2 branches missed.">        int tempLength = (i != maxOffset) ? formats[i + 1].getOffset() : pattern.length();</span>
 
         int next;
-<span class="nc bnc" id="L1050" title="All 2 branches missed.">        if (patternOffset &gt;= tempLength) {</span>
-<span class="nc" id="L1051">          next = source.length();</span>
+<span class="nc bnc" id="L1053" title="All 2 branches missed.">        if (patternOffset &gt;= tempLength) {</span>
+<span class="nc" id="L1054">          next = source.length();</span>
         } else {
-<span class="nc" id="L1053">          next = source.indexOf(pattern.subSequence(patternOffset, tempLength).toString(), sourceOffset);</span>
+<span class="nc" id="L1056">          next = source.indexOf(pattern.subSequence(patternOffset, tempLength).toString(), sourceOffset);</span>
         }
 
-<span class="nc bnc" id="L1056" title="All 2 branches missed.">        if (next &lt; 0) {</span>
-<span class="nc" id="L1057">          pos.setErrorIndex(sourceOffset);</span>
-<span class="nc" id="L1058">          return null;</span>
+<span class="nc bnc" id="L1059" title="All 2 branches missed.">        if (next &lt; 0) {</span>
+<span class="nc" id="L1060">          pos.setErrorIndex(sourceOffset);</span>
+<span class="nc" id="L1061">          return null;</span>
         } else {
-<span class="nc" id="L1060">          String strValue = source.substring(sourceOffset, next);</span>
-<span class="nc" id="L1061">          int argNr = finfo.getArgumentNumber();</span>
-<span class="nc bnc" id="L1062" title="All 2 branches missed.">          if (!strValue.equals(&quot;{&quot; + argNr + &quot;}&quot;)) {</span>
-<span class="nc" id="L1063">            resultArray[argNr] = source.substring(sourceOffset, next);</span>
+<span class="nc" id="L1063">          String strValue = source.substring(sourceOffset, next);</span>
+<span class="nc" id="L1064">          int argNr = finfo.getArgumentNumber();</span>
+<span class="nc bnc" id="L1065" title="All 2 branches missed.">          if (!strValue.equals(&quot;{&quot; + argNr + &quot;}&quot;)) {</span>
+<span class="nc" id="L1066">            resultArray[argNr] = source.substring(sourceOffset, next);</span>
           }
-<span class="nc" id="L1065">          sourceOffset = next;</span>
+<span class="nc" id="L1068">          sourceOffset = next;</span>
         }
-<span class="nc" id="L1067">      } else {</span>
-<span class="nc" id="L1068">        tempStatus.setIndex(sourceOffset);</span>
-<span class="nc" id="L1069">        resultArray[finfo.getArgumentNumber()] = finfo.getFormat().parseObject(source, tempStatus);</span>
-<span class="nc bnc" id="L1070" title="All 2 branches missed.">        if (tempStatus.getIndex() == sourceOffset) {</span>
-<span class="nc" id="L1071">          pos.setErrorIndex(sourceOffset);</span>
-<span class="nc" id="L1072">          return null; // leave index as is to signal error</span>
+<span class="nc" id="L1070">      } else {</span>
+<span class="nc" id="L1071">        tempStatus.setIndex(sourceOffset);</span>
+<span class="nc" id="L1072">        resultArray[finfo.getArgumentNumber()] = finfo.getFormat().parseObject(source, tempStatus);</span>
+<span class="nc bnc" id="L1073" title="All 2 branches missed.">        if (tempStatus.getIndex() == sourceOffset) {</span>
+<span class="nc" id="L1074">          pos.setErrorIndex(sourceOffset);</span>
+<span class="nc" id="L1075">          return null; // leave index as is to signal error</span>
         }
-<span class="nc" id="L1074">        sourceOffset = tempStatus.getIndex(); // update</span>
+<span class="nc" id="L1077">        sourceOffset = tempStatus.getIndex(); // update</span>
       }
     }
-<span class="nc" id="L1077">    int len = pattern.length() - patternOffset;</span>
-<span class="nc bnc" id="L1078" title="All 4 branches missed.">    if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
-<span class="nc" id="L1079">      pos.setIndex(sourceOffset + len);</span>
+<span class="nc" id="L1080">    int len = pattern.length() - patternOffset;</span>
+<span class="nc bnc" id="L1081" title="All 4 branches missed.">    if (len == 0 || CharSequences.regionMatches(pattern, patternOffset, source, sourceOffset, len)) {</span>
+<span class="nc" id="L1082">      pos.setIndex(sourceOffset + len);</span>
     } else {
-<span class="nc" id="L1081">      pos.setErrorIndex(sourceOffset);</span>
-<span class="nc" id="L1082">      return null;</span>
+<span class="nc" id="L1084">      pos.setErrorIndex(sourceOffset);</span>
+<span class="nc" id="L1085">      return null;</span>
     }
-<span class="nc" id="L1084">    return resultArray;</span>
+<span class="nc" id="L1087">    return resultArray;</span>
   }
 
   /**
@@ -1096,14 +1099,14 @@ public final class MessageFormat extends Format {
    */
   @Nullable
   public Object[] parse(String source) throws ParseException {
-<span class="nc" id="L1099">    ParsePosition pos = new ParsePosition(0);</span>
-<span class="nc" id="L1100">    Object[] result = parse(source, pos);</span>
-<span class="nc bnc" id="L1101" title="All 2 branches missed.">    if (pos.getIndex() == 0) // unchanged, returned object is null</span>
+<span class="nc" id="L1102">    ParsePosition pos = new ParsePosition(0);</span>
+<span class="nc" id="L1103">    Object[] result = parse(source, pos);</span>
+<span class="nc bnc" id="L1104" title="All 2 branches missed.">    if (pos.getIndex() == 0) // unchanged, returned object is null</span>
     {
-<span class="nc" id="L1103">      throw new ParseException(&quot;MessageFormat source = &quot; + source + &quot; parse error!&quot;, pos.getErrorIndex());</span>
+<span class="nc" id="L1106">      throw new ParseException(&quot;MessageFormat source = &quot; + source + &quot; parse error!&quot;, pos.getErrorIndex());</span>
     }
 
-<span class="nc" id="L1106">    return result;</span>
+<span class="nc" id="L1109">    return result;</span>
   }
 
   /**
@@ -1125,7 +1128,7 @@ public final class MessageFormat extends Format {
    */
   @Nullable
   public Object parseObject(String source, ParsePosition pos) {
-<span class="nc" id="L1128">    return parse(source, pos);</span>
+<span class="nc" id="L1131">    return parse(source, pos);</span>
   }
 
   /**
@@ -1134,63 +1137,63 @@ public final class MessageFormat extends Format {
    * @return a clone of this instance.
    */
   public MessageFormat clone() {
-<span class="nc" id="L1137">    MessageFormat other = (MessageFormat) super.clone();</span>
+<span class="nc" id="L1140">    MessageFormat other = (MessageFormat) super.clone();</span>
 
     // clone arrays. Can't do with utility because of bug in Cloneable
-<span class="nc" id="L1140">    other.formats = formats.clone(); // shallow clone</span>
-<span class="nc bnc" id="L1141" title="All 2 branches missed.">    for (int i = 0; i &lt; formats.length; ++i) {</span>
-<span class="nc" id="L1142">      FormatInfo finfo = formats[i];</span>
-<span class="nc bnc" id="L1143" title="All 2 branches missed.">      if (finfo != null) {</span>
-<span class="nc" id="L1144">        other.formats[i] = finfo.clone();</span>
+<span class="nc" id="L1143">    other.formats = formats.clone(); // shallow clone</span>
+<span class="nc bnc" id="L1144" title="All 2 branches missed.">    for (int i = 0; i &lt; formats.length; ++i) {</span>
+<span class="nc" id="L1145">      FormatInfo finfo = formats[i];</span>
+<span class="nc bnc" id="L1146" title="All 2 branches missed.">      if (finfo != null) {</span>
+<span class="nc" id="L1147">        other.formats[i] = finfo.clone();</span>
       }
     }
-<span class="nc" id="L1147">    return other;</span>
+<span class="nc" id="L1150">    return other;</span>
   }
 
   /**
    * Equality comparison between two message format objects
    */
   public boolean equals(Object obj) {
-<span class="nc bnc" id="L1154" title="All 2 branches missed.">    if (this == obj) // quick check</span>
+<span class="nc bnc" id="L1157" title="All 2 branches missed.">    if (this == obj) // quick check</span>
     {
-<span class="nc" id="L1156">      return true;</span>
+<span class="nc" id="L1159">      return true;</span>
     }
-<span class="nc bnc" id="L1158" title="All 4 branches missed.">    if (obj == null || getClass() != obj.getClass()) {</span>
-<span class="nc" id="L1159">      return false;</span>
+<span class="nc bnc" id="L1161" title="All 4 branches missed.">    if (obj == null || getClass() != obj.getClass()) {</span>
+<span class="nc" id="L1162">      return false;</span>
     }
-<span class="nc" id="L1161">    MessageFormat other = (MessageFormat) obj;</span>
-<span class="nc bnc" id="L1162" title="All 2 branches missed.">    return (maxOffset == other.maxOffset</span>
-<span class="nc bnc" id="L1163" title="All 4 branches missed.">            &amp;&amp; CharSequences.equals(pattern, other.pattern)</span>
-<span class="nc bnc" id="L1164" title="All 6 branches missed.">            &amp;&amp; ((locale != null &amp;&amp; locale.equals(other.locale))</span>
+<span class="nc" id="L1164">    MessageFormat other = (MessageFormat) obj;</span>
+<span class="nc bnc" id="L1165" title="All 2 branches missed.">    return (maxOffset == other.maxOffset</span>
+<span class="nc bnc" id="L1166" title="All 4 branches missed.">            &amp;&amp; CharSequences.equals(pattern, other.pattern)</span>
+<span class="nc bnc" id="L1167" title="All 6 branches missed.">            &amp;&amp; ((locale != null &amp;&amp; locale.equals(other.locale))</span>
             || (locale == null &amp;&amp; other.locale == null))
-<span class="nc bnc" id="L1166" title="All 2 branches missed.">            &amp;&amp; Arrays.equals(formats, other.formats));</span>
+<span class="nc bnc" id="L1169" title="All 2 branches missed.">            &amp;&amp; Arrays.equals(formats, other.formats));</span>
   }
 
   /**
    * Generates a hash code for the message format object.
    */
   public int hashCode() {
-<span class="nc" id="L1173">    int h = hash;</span>
-<span class="nc bnc" id="L1174" title="All 2 branches missed.">    if (h == 0) {</span>
-<span class="nc" id="L1175">      h = CharSequences.hashcode(pattern);</span>
-<span class="nc" id="L1176">      hash = h;</span>
+<span class="nc" id="L1176">    int h = hash;</span>
+<span class="nc bnc" id="L1177" title="All 2 branches missed.">    if (h == 0) {</span>
+<span class="nc" id="L1178">      h = CharSequences.hashcode(pattern);</span>
+<span class="nc" id="L1179">      hash = h;</span>
     }
-<span class="nc" id="L1178">    return h;</span>
+<span class="nc" id="L1181">    return h;</span>
   }
 
   @Override
   public StringBuffer format(Object obj, StringBuffer toAppendTo, FieldPosition pos) {
     try {
-<span class="nc" id="L1184">      syntethicFormat(obj, toAppendTo, pos);</span>
-<span class="nc" id="L1185">      return toAppendTo;</span>
-<span class="nc" id="L1186">    } catch (IOException ex) {</span>
-<span class="nc" id="L1187">      throw new UncheckedIOException(ex);</span>
+<span class="nc" id="L1187">      syntethicFormat(obj, toAppendTo, pos);</span>
+<span class="nc" id="L1188">      return toAppendTo;</span>
+<span class="nc" id="L1189">    } catch (IOException ex) {</span>
+<span class="nc" id="L1190">      throw new UncheckedIOException(ex);</span>
     }
   }
 
   private &lt;T extends CharSequence &amp; Appendable&gt; boolean[] syntethicFormat(Object obj, T toAppendTo, FieldPosition pos)
           throws IOException {
-<span class="nc" id="L1193">    return format(obj, toAppendTo, pos);</span>
+<span class="nc" id="L1196">    return format(obj, toAppendTo, pos);</span>
   }
 
 
@@ -1209,286 +1212,288 @@ public final class MessageFormat extends Format {
           @Nullable FieldPosition fp,
           @Nullable List&lt;AttributedCharacterIterator&gt; characterIterators)
           throws IOException {
-<span class="fc" id="L1212">    int lastOffset = 0;</span>
-<span class="fc" id="L1213">    int last = result.length();</span>
+<span class="fc" id="L1215">    int lastOffset = 0;</span>
+<span class="fc" id="L1216">    int last = result.length();</span>
     boolean[] used;
-<span class="fc bfc" id="L1215" title="All 2 branches covered.">    if (arguments == null)  {</span>
-<span class="fc" id="L1216">      used = org.spf4j.base.Arrays.EMPTY_BOOLEAN_ARRAY;</span>
+<span class="fc bfc" id="L1218" title="All 2 branches covered.">    if (arguments == null)  {</span>
+<span class="fc" id="L1219">      used = org.spf4j.base.Arrays.EMPTY_BOOLEAN_ARRAY;</span>
     } else {
-<span class="fc" id="L1218">      used = new boolean[arguments.length];</span>
+<span class="fc" id="L1221">      used = new boolean[arguments.length];</span>
     }
-<span class="fc bfc" id="L1220" title="All 2 branches covered.">    for (int i = 0; i &lt;= maxOffset; ++i) {</span>
-<span class="fc" id="L1221">      FormatInfo finfo = formats[i];</span>
-<span class="fc" id="L1222">      int offset = finfo.getOffset();</span>
-<span class="fc" id="L1223">      result.append(pattern, lastOffset, offset);</span>
-<span class="fc" id="L1224">      lastOffset = offset;</span>
-<span class="fc" id="L1225">      int argumentNumber = finfo.getArgumentNumber();</span>
-<span class="pc bpc" id="L1226" title="2 of 4 branches missed.">      if (arguments == null || argumentNumber &gt;= arguments.length) {</span>
-<span class="nc" id="L1227">        result.append('{').append(Integer.toString(argumentNumber)).append('}');</span>
-<span class="nc" id="L1228">        continue;</span>
+<span class="fc bfc" id="L1223" title="All 2 branches covered.">    for (int i = 0; i &lt;= maxOffset; ++i) {</span>
+<span class="fc" id="L1224">      FormatInfo finfo = formats[i];</span>
+<span class="fc" id="L1225">      int offset = finfo.getOffset();</span>
+<span class="fc" id="L1226">      result.append(pattern, lastOffset, offset);</span>
+<span class="fc" id="L1227">      lastOffset = offset;</span>
+<span class="fc" id="L1228">      int argumentNumber = finfo.getArgumentNumber();</span>
+<span class="pc bpc" id="L1229" title="2 of 4 branches missed.">      if (arguments == null || argumentNumber &gt;= arguments.length) {</span>
+<span class="nc" id="L1230">        result.append('{').append(Integer.toString(argumentNumber)).append('}');</span>
+<span class="nc" id="L1231">        continue;</span>
       }
-<span class="fc" id="L1230">      used[argumentNumber] = true;</span>
-<span class="fc" id="L1231">      Object obj = arguments[argumentNumber];</span>
-<span class="fc" id="L1232">      String arg = null;</span>
-<span class="fc" id="L1233">      Format subFormatter = null;</span>
-<span class="fc" id="L1234">      Format fmt = finfo.getFormat();</span>
-<span class="fc bfc" id="L1235" title="All 2 branches covered.">      if (obj == null) {</span>
-<span class="fc" id="L1236">        arg = &quot;null&quot;;</span>
-<span class="fc bfc" id="L1237" title="All 2 branches covered.">      } else if (fmt != null) {</span>
-<span class="fc" id="L1238">        subFormatter = fmt;</span>
-<span class="pc bpc" id="L1239" title="1 of 2 branches missed.">        if (subFormatter instanceof ChoiceFormat) {</span>
-<span class="nc" id="L1240">          arg = subFormatter.format(obj);</span>
-<span class="nc bnc" id="L1241" title="All 2 branches missed.">          if (arg.indexOf('{') &gt;= 0) {</span>
-<span class="nc" id="L1242">            subFormatter = new MessageFormat(arg, locale);</span>
-<span class="nc" id="L1243">            obj = arguments;</span>
-<span class="nc" id="L1244">            arg = null;</span>
+<span class="fc" id="L1233">      used[argumentNumber] = true;</span>
+<span class="fc" id="L1234">      Object obj = arguments[argumentNumber];</span>
+<span class="fc" id="L1235">      String arg = null;</span>
+<span class="fc" id="L1236">      Format subFormatter = null;</span>
+<span class="fc" id="L1237">      Format fmt = finfo.getFormat();</span>
+<span class="fc bfc" id="L1238" title="All 2 branches covered.">      if (obj == null) {</span>
+<span class="fc" id="L1239">        arg = &quot;null&quot;;</span>
+<span class="fc bfc" id="L1240" title="All 2 branches covered.">      } else if (fmt != null) {</span>
+<span class="fc" id="L1241">        subFormatter = fmt;</span>
+<span class="pc bpc" id="L1242" title="1 of 2 branches missed.">        if (subFormatter instanceof ChoiceFormat) {</span>
+<span class="nc" id="L1243">          arg = subFormatter.format(obj);</span>
+<span class="nc bnc" id="L1244" title="All 2 branches missed.">          if (arg.indexOf('{') &gt;= 0) {</span>
+<span class="nc" id="L1245">            subFormatter = new MessageFormat(arg, locale);</span>
+<span class="nc" id="L1246">            obj = arguments;</span>
+<span class="nc" id="L1247">            arg = null;</span>
           }
         }
-<span class="fc bfc" id="L1247" title="All 2 branches covered.">      } else if (obj instanceof Number) {</span>
+<span class="fc bfc" id="L1250" title="All 2 branches covered.">      } else if (obj instanceof Number) {</span>
         // format number if can
-<span class="fc" id="L1249">        subFormatter = NumberFormat.getInstance(locale);</span>
-<span class="pc bpc" id="L1250" title="1 of 2 branches missed.">      } else if (obj instanceof Date) {</span>
+<span class="fc" id="L1252">        subFormatter = NumberFormat.getInstance(locale);</span>
+<span class="pc bpc" id="L1253" title="1 of 2 branches missed.">      } else if (obj instanceof Date) {</span>
         // format a Date if can
-<span class="nc" id="L1252">        subFormatter = DateFormat.getDateTimeInstance(</span>
+<span class="nc" id="L1255">        subFormatter = DateFormat.getDateTimeInstance(</span>
                 DateFormat.SHORT, DateFormat.SHORT, locale);//fix
-<span class="fc bfc" id="L1254" title="All 2 branches covered.">      } else if (obj instanceof String) {</span>
-<span class="fc" id="L1255">        arg = (String) obj;</span>
+<span class="fc bfc" id="L1257" title="All 2 branches covered.">      } else if (obj instanceof String) {</span>
+<span class="fc" id="L1258">        arg = (String) obj;</span>
 
       } else {
-<span class="fc" id="L1258">        arg = obj.toString();</span>
+<span class="fc" id="L1261">        arg = obj.toString();</span>
       }
 
       // At this point we are in two states, either subFormatter
       // is non-null indicating we should format obj using it,
       // or arg is non-null and we should use it as the value.
-<span class="pc bpc" id="L1264" title="1 of 2 branches missed.">      if (characterIterators != null) {</span>
+<span class="pc bpc" id="L1267" title="1 of 2 branches missed.">      if (characterIterators != null) {</span>
         // If characterIterators is non-null, it indicates we need
         // to get the CharacterIterator from the child formatter.
-<span class="nc" id="L1267">        int cl = result.length();</span>
-<span class="nc bnc" id="L1268" title="All 2 branches missed.">        if (last != cl) {</span>
-<span class="nc" id="L1269">          characterIterators.add(</span>
-<span class="nc" id="L1270">                  createAttributedCharacterIterator(result.subSequence(last, cl).toString()));</span>
-<span class="nc" id="L1271">          last = cl;</span>
+<span class="nc" id="L1270">        int cl = result.length();</span>
+<span class="nc bnc" id="L1271" title="All 2 branches missed.">        if (last != cl) {</span>
+<span class="nc" id="L1272">          characterIterators.add(</span>
+<span class="nc" id="L1273">                  createAttributedCharacterIterator(result.subSequence(last, cl).toString()));</span>
+<span class="nc" id="L1274">          last = cl;</span>
         }
-<span class="nc bnc" id="L1273" title="All 2 branches missed.">        if (subFormatter != null) {</span>
-<span class="nc" id="L1274">          AttributedCharacterIterator subIterator</span>
-<span class="nc" id="L1275">                  = subFormatter.formatToCharacterIterator(obj);</span>
+<span class="nc bnc" id="L1276" title="All 2 branches missed.">        if (subFormatter != null) {</span>
+<span class="nc" id="L1277">          AttributedCharacterIterator subIterator</span>
+<span class="nc" id="L1278">                  = subFormatter.formatToCharacterIterator(obj);</span>
 
-<span class="nc" id="L1277">          append(result, subIterator);</span>
-<span class="nc" id="L1278">          int cl2 = result.length();</span>
-<span class="nc bnc" id="L1279" title="All 2 branches missed.">          if (last != cl2) {</span>
-<span class="nc" id="L1280">            characterIterators.add(</span>
-<span class="nc" id="L1281">                    createAttributedCharacterIterator(</span>
+<span class="nc" id="L1280">          append(result, subIterator);</span>
+<span class="nc" id="L1281">          int cl2 = result.length();</span>
+<span class="nc bnc" id="L1282" title="All 2 branches missed.">          if (last != cl2) {</span>
+<span class="nc" id="L1283">            characterIterators.add(</span>
+<span class="nc" id="L1284">                    createAttributedCharacterIterator(</span>
                             subIterator, java.text.MessageFormat.Field.ARGUMENT,
-<span class="nc" id="L1283">                            Integer.valueOf(argumentNumber)));</span>
-<span class="nc" id="L1284">            last = cl2;</span>
+<span class="nc" id="L1286">                            Integer.valueOf(argumentNumber)));</span>
+<span class="nc" id="L1287">            last = cl2;</span>
           }
-<span class="nc" id="L1286">          arg = null;</span>
+<span class="nc" id="L1289">          arg = null;</span>
         }
-<span class="nc bnc" id="L1288" title="All 4 branches missed.">        if (arg != null &amp;&amp; arg.length() &gt; 0) {</span>
-<span class="nc" id="L1289">          result.append(arg);</span>
-<span class="nc" id="L1290">          characterIterators.add(</span>
-<span class="nc" id="L1291">                  createAttributedCharacterIterator(</span>
+<span class="nc bnc" id="L1291" title="All 4 branches missed.">        if (arg != null &amp;&amp; arg.length() &gt; 0) {</span>
+<span class="nc" id="L1292">          result.append(arg);</span>
+<span class="nc" id="L1293">          characterIterators.add(</span>
+<span class="nc" id="L1294">                  createAttributedCharacterIterator(</span>
                           arg, java.text.MessageFormat.Field.ARGUMENT,
-<span class="nc" id="L1293">                          Integer.valueOf(argumentNumber)));</span>
-<span class="nc" id="L1294">          last = result.length();</span>
+<span class="nc" id="L1296">                          Integer.valueOf(argumentNumber)));</span>
+<span class="nc" id="L1297">          last = result.length();</span>
         }
-<span class="nc" id="L1296">      } else {</span>
-<span class="fc bfc" id="L1297" title="All 2 branches covered.">        if (subFormatter != null) {</span>
-<span class="fc" id="L1298">          arg = subFormatter.format(obj);</span>
+<span class="nc" id="L1299">      } else {</span>
+<span class="fc bfc" id="L1300" title="All 2 branches covered.">        if (subFormatter != null) {</span>
+<span class="fc" id="L1301">          arg = subFormatter.format(obj);</span>
         }
-<span class="fc" id="L1300">        last = result.length();</span>
-<span class="fc" id="L1301">        result.append(arg);</span>
-<span class="pc bpc" id="L1302" title="3 of 6 branches missed.">        if (i == 0 &amp;&amp; fp != null &amp;&amp; java.text.MessageFormat.Field.ARGUMENT.equals(</span>
-<span class="nc" id="L1303">                fp.getFieldAttribute())) {</span>
-<span class="nc" id="L1304">          fp.setBeginIndex(last);</span>
-<span class="nc" id="L1305">          fp.setEndIndex(result.length());</span>
+<span class="fc" id="L1303">        last = result.length();</span>
+<span class="fc" id="L1304">        result.append(arg);</span>
+<span class="pc bpc" id="L1305" title="3 of 6 branches missed.">        if (i == 0 &amp;&amp; fp != null &amp;&amp; java.text.MessageFormat.Field.ARGUMENT.equals(</span>
+<span class="nc" id="L1306">                fp.getFieldAttribute())) {</span>
+<span class="nc" id="L1307">          fp.setBeginIndex(last);</span>
+<span class="nc" id="L1308">          fp.setEndIndex(result.length());</span>
         }
-<span class="fc" id="L1307">        last = result.length();</span>
+<span class="fc" id="L1310">        last = result.length();</span>
       }
 
     }
-<span class="fc" id="L1311">    result.append(pattern, lastOffset, pattern.length());</span>
-<span class="pc bpc" id="L1312" title="3 of 4 branches missed.">    if (characterIterators != null &amp;&amp; last != result.length()) {</span>
-<span class="nc" id="L1313">      characterIterators.add(createAttributedCharacterIterator(result.subSequence(last, result.length()).toString()));</span>
+<span class="fc" id="L1314">    result.append(pattern, lastOffset, pattern.length());</span>
+<span class="pc bpc" id="L1315" title="3 of 4 branches missed.">    if (characterIterators != null &amp;&amp; last != result.length()) {</span>
+<span class="nc" id="L1316">      characterIterators.add(createAttributedCharacterIterator(result.subSequence(last, result.length()).toString()));</span>
     }
-<span class="fc" id="L1315">    return used;</span>
+<span class="fc" id="L1318">    return used;</span>
   }
 
   /**
    * Convenience method to append all the characters in &lt;code&gt;iterator&lt;/code&gt; to the StringBuffer &lt;code&gt;result&lt;/code&gt;.
    */
   private static void append(Appendable result, CharacterIterator iterator) throws IOException {
-<span class="nc" id="L1322">    final char first = iterator.first();</span>
-<span class="nc bnc" id="L1323" title="All 2 branches missed.">    if (first != CharacterIterator.DONE) {</span>
-<span class="nc" id="L1324">      result.append(first);</span>
+<span class="nc" id="L1325">    final char first = iterator.first();</span>
+<span class="nc bnc" id="L1326" title="All 2 branches missed.">    if (first != CharacterIterator.DONE) {</span>
+<span class="nc" id="L1327">      result.append(first);</span>
       char aChar;
-<span class="nc bnc" id="L1326" title="All 2 branches missed.">      while ((aChar = iterator.next()) != CharacterIterator.DONE) {</span>
-<span class="nc" id="L1327">        result.append(aChar);</span>
+<span class="nc bnc" id="L1329" title="All 2 branches missed.">      while ((aChar = iterator.next()) != CharacterIterator.DONE) {</span>
+<span class="nc" id="L1330">        result.append(aChar);</span>
       }
     }
-<span class="nc" id="L1330">  }</span>
+<span class="nc" id="L1333">  }</span>
 
 
   @SuppressFBWarnings(&quot;CLI_CONSTANT_LIST_INDEX&quot;) //jdk inherited
   private void makeFormat(int offsetNumber, StringBuilder[] textSegments) {
-<span class="fc" id="L1335">    String[] segments = new String[textSegments.length];</span>
-<span class="fc bfc" id="L1336" title="All 2 branches covered.">    for (int i = 0; i &lt; textSegments.length; i++) {</span>
-<span class="fc" id="L1337">      StringBuilder oneseg = textSegments[i];</span>
-<span class="fc bfc" id="L1338" title="All 2 branches covered.">      segments[i] = (oneseg != null) ? oneseg.toString() : &quot;&quot;;</span>
+<span class="fc" id="L1338">    String[] segments = new String[textSegments.length];</span>
+<span class="fc bfc" id="L1339" title="All 2 branches covered.">    for (int i = 0; i &lt; textSegments.length; i++) {</span>
+<span class="fc" id="L1340">      StringBuilder oneseg = textSegments[i];</span>
+<span class="fc bfc" id="L1341" title="All 2 branches covered.">      segments[i] = (oneseg != null) ? oneseg.toString() : &quot;&quot;;</span>
     }
 
     // get the argument number
     int argumentNumber;
     try {
-<span class="fc" id="L1344">      argumentNumber = Integer.parseInt(segments[SEG_INDEX]);</span>
-<span class="nc" id="L1345">    } catch (NumberFormatException e) {</span>
-<span class="nc" id="L1346">      throw new IllegalArgumentException(&quot;can't parse argument number: &quot; + segments[SEG_INDEX], e);</span>
-<span class="fc" id="L1347">    }</span>
-<span class="pc bpc" id="L1348" title="1 of 2 branches missed.">    if (argumentNumber &lt; 0) {</span>
-<span class="nc" id="L1349">      throw new IllegalArgumentException(&quot;negative argument number: &quot; + argumentNumber);</span>
+<span class="fc" id="L1347">      argumentNumber = Integer.parseInt(segments[SEG_INDEX]);</span>
+<span class="nc" id="L1348">    } catch (NumberFormatException e) {</span>
+<span class="nc" id="L1349">      throw new IllegalArgumentException(&quot;can't parse argument number: &quot; + segments[SEG_INDEX], e);</span>
+<span class="fc" id="L1350">    }</span>
+<span class="pc bpc" id="L1351" title="1 of 2 branches missed.">    if (argumentNumber &lt; 0) {</span>
+<span class="nc" id="L1352">      throw new IllegalArgumentException(&quot;negative argument number: &quot; + argumentNumber);</span>
     }
 
     // resize format information arrays if necessary
-<span class="fc bfc" id="L1353" title="All 2 branches covered.">    if (offsetNumber &gt;= formats.length) {</span>
-<span class="fc" id="L1354">      int newLength = Math.max(4, formats.length &lt;&lt; 2);</span>
-<span class="fc" id="L1355">      FormatInfo[] newFormats = new FormatInfo[newLength];</span>
-<span class="fc" id="L1356">      System.arraycopy(formats, 0, newFormats, 0, maxOffset + 1);</span>
-<span class="fc" id="L1357">      formats = newFormats;</span>
+<span class="fc bfc" id="L1356" title="All 2 branches covered.">    if (offsetNumber &gt;= formats.length) {</span>
+<span class="fc" id="L1357">      int newLength = Math.max(4, formats.length &lt;&lt; 2);</span>
+<span class="fc" id="L1358">      FormatInfo[] newFormats = new FormatInfo[newLength];</span>
+<span class="fc" id="L1359">      System.arraycopy(formats, 0, newFormats, 0, maxOffset + 1);</span>
+<span class="fc" id="L1360">      formats = newFormats;</span>
     }
-<span class="fc" id="L1359">    int oldMaxOffset = maxOffset;</span>
-<span class="fc" id="L1360">    maxOffset = offsetNumber;</span>
+<span class="fc" id="L1362">    int oldMaxOffset = maxOffset;</span>
+<span class="fc" id="L1363">    maxOffset = offsetNumber;</span>
 
     // now get the format
-<span class="fc" id="L1363">    Format newFormat = null;</span>
-<span class="fc bfc" id="L1364" title="All 2 branches covered.">    if (segments[SEG_TYPE].length() != 0) {</span>
-<span class="fc" id="L1365">      int type = findKeyword(segments[SEG_TYPE], TYPE_KEYWORDS);</span>
-<span class="pc bpc" id="L1366" title="4 of 5 branches missed.">      switch (type) {</span>
+<span class="fc" id="L1366">    Format newFormat = null;</span>
+<span class="fc bfc" id="L1367" title="All 2 branches covered.">    if (segments[SEG_TYPE].length() != 0) {</span>
+<span class="fc" id="L1368">      int type = findKeyword(segments[SEG_TYPE], TYPE_KEYWORDS);</span>
+<span class="pc bpc" id="L1369" title="4 of 5 branches missed.">      switch (type) {</span>
         case TYPE_NULL:
           // Type &quot;&quot; is allowed. e.g., &quot;{0,}&quot;, &quot;{0,,}&quot;, and &quot;{0,,#}&quot;
           // are treated as &quot;{0}&quot;.
-<span class="nc" id="L1370">          break;</span>
+<span class="nc" id="L1373">          break;</span>
 
         case TYPE_NUMBER:
-<span class="pc bpc" id="L1373" title="4 of 5 branches missed.">          switch (findKeyword(segments[SEG_MODIFIER], NUMBER_MODIFIER_KEYWORDS)) {</span>
+<span class="pc bpc" id="L1376" title="4 of 5 branches missed.">          switch (findKeyword(segments[SEG_MODIFIER], NUMBER_MODIFIER_KEYWORDS)) {</span>
             case MODIFIER_DEFAULT:
-<span class="nc" id="L1375">              newFormat = NumberFormat.getInstance(locale);</span>
-<span class="nc" id="L1376">              break;</span>
-            case MODIFIER_CURRENCY:
-<span class="nc" id="L1378">              newFormat = NumberFormat.getCurrencyInstance(locale);</span>
+<span class="nc" id="L1378">              newFormat = NumberFormat.getInstance(locale);</span>
 <span class="nc" id="L1379">              break;</span>
-            case MODIFIER_PERCENT:
-<span class="nc" id="L1381">              newFormat = NumberFormat.getPercentInstance(locale);</span>
+            case MODIFIER_CURRENCY:
+<span class="nc" id="L1381">              newFormat = NumberFormat.getCurrencyInstance(locale);</span>
 <span class="nc" id="L1382">              break;</span>
-            case MODIFIER_INTEGER:
-<span class="nc" id="L1384">              newFormat = NumberFormat.getIntegerInstance(locale);</span>
+            case MODIFIER_PERCENT:
+<span class="nc" id="L1384">              newFormat = NumberFormat.getPercentInstance(locale);</span>
 <span class="nc" id="L1385">              break;</span>
+            case MODIFIER_INTEGER:
+<span class="nc" id="L1387">              newFormat = NumberFormat.getIntegerInstance(locale);</span>
+<span class="nc" id="L1388">              break;</span>
             default: // DecimalFormat pattern
               try {
-<span class="fc" id="L1388">                newFormat = new DecimalFormat(segments[SEG_MODIFIER],</span>
-<span class="fc" id="L1389">                        DecimalFormatSymbols.getInstance(locale));</span>
-<span class="nc" id="L1390">              } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L1391">                maxOffset = oldMaxOffset;</span>
-<span class="nc" id="L1392">                throw e;</span>
-<span class="fc" id="L1393">              }</span>
+<span class="fc" id="L1391">                newFormat = new DecimalFormat(segments[SEG_MODIFIER],</span>
+<span class="fc" id="L1392">                        DecimalFormatSymbols.getInstance(locale));</span>
+<span class="nc" id="L1393">              } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L1394">                maxOffset = oldMaxOffset;</span>
+<span class="nc" id="L1395">                throw e;</span>
+<span class="fc" id="L1396">              }</span>
               break;
           }
           break;
 
         case TYPE_DATE:
         case TYPE_TIME:
-<span class="nc" id="L1400">          int mod = findKeyword(segments[SEG_MODIFIER], DATE_TIME_MODIFIER_KEYWORDS);</span>
-<span class="nc bnc" id="L1401" title="All 4 branches missed.">          if (mod &gt;= 0 &amp;&amp; mod &lt; DATE_TIME_MODIFIER_KEYWORDS.length) {</span>
-<span class="nc bnc" id="L1402" title="All 2 branches missed.">            if (type == TYPE_DATE) {</span>
-<span class="nc" id="L1403">              newFormat = DateFormat.getDateInstance(DATE_TIME_MODIFIERS[mod],</span>
+<span class="nc" id="L1403">          int mod = findKeyword(segments[SEG_MODIFIER], DATE_TIME_MODIFIER_KEYWORDS);</span>
+<span class="nc bnc" id="L1404" title="All 4 branches missed.">          if (mod &gt;= 0 &amp;&amp; mod &lt; DATE_TIME_MODIFIER_KEYWORDS.length) {</span>
+<span class="nc bnc" id="L1405" title="All 2 branches missed.">            if (type == TYPE_DATE) {</span>
+<span class="nc" id="L1406">              newFormat = DateFormat.getDateInstance(DATE_TIME_MODIFIERS[mod],</span>
                       locale);
             } else {
-<span class="nc" id="L1406">              newFormat = DateFormat.getTimeInstance(DATE_TIME_MODIFIERS[mod],</span>
+<span class="nc" id="L1409">              newFormat = DateFormat.getTimeInstance(DATE_TIME_MODIFIERS[mod],</span>
                       locale);
             }
           } else {
             // SimpleDateFormat pattern
             try {
-<span class="nc" id="L1412">              newFormat = new SimpleDateFormat(segments[SEG_MODIFIER], locale);</span>
-<span class="nc" id="L1413">            } catch (IllegalArgumentException e) {</span>
-<span class="nc" id="L1414">              maxOffset = oldMaxOffset;</span>
-<span class="nc" id="L1415">              throw e;</span>
-<span class="nc" id="L1416">            }</span>
+<span class="nc" id="L1415">              newFormat = new SimpleDateFormat(segments[SEG_MODIFIER], locale);</span>
+<span class="nc" id="L1416">            } catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L1417">              maxOffset = oldMaxOffset;</span>
+<span class="nc" id="L1418">              throw e;</span>
+<span class="nc" id="L1419">            }</span>
           }
           break;
 
         case TYPE_CHOICE:
           try {
             // ChoiceFormat pattern
-<span class="nc" id="L1423">            newFormat = new ChoiceFormat(segments[SEG_MODIFIER]);</span>
-<span class="nc" id="L1424">          } catch (Exception e) {</span>
-<span class="nc" id="L1425">            maxOffset = oldMaxOffset;</span>
-<span class="nc" id="L1426">            throw new IllegalArgumentException(&quot;Choice Pattern incorrect: &quot;</span>
+<span class="nc" id="L1426">            newFormat = new ChoiceFormat(segments[SEG_MODIFIER]);</span>
+<span class="nc" id="L1427">          } catch (Exception e) {</span>
+<span class="nc" id="L1428">            maxOffset = oldMaxOffset;</span>
+<span class="nc" id="L1429">            throw new IllegalArgumentException(&quot;Choice Pattern incorrect: &quot;</span>
                     + segments[SEG_MODIFIER], e);
-<span class="nc" id="L1428">          }</span>
+<span class="nc" id="L1431">          }</span>
           break;
 
         default:
-<span class="nc" id="L1432">          maxOffset = oldMaxOffset;</span>
-<span class="nc" id="L1433">          throw new IllegalArgumentException(&quot;unknown format type: &quot; + segments[SEG_TYPE]);</span>
+<span class="nc" id="L1435">          maxOffset = oldMaxOffset;</span>
+<span class="nc" id="L1436">          throw new IllegalArgumentException(&quot;unknown format type: &quot; + segments[SEG_TYPE]);</span>
       }
     }
-<span class="fc" id="L1436">    formats[offsetNumber] = new FormatInfo(newFormat, segments[SEG_RAW].length(), argumentNumber);</span>
-<span class="fc" id="L1437">  }</span>
+<span class="fc" id="L1439">    formats[offsetNumber] = new FormatInfo(newFormat, segments[SEG_RAW].length(), argumentNumber);</span>
+<span class="fc" id="L1440">  }</span>
 
-  @SuppressFBWarnings(value = {&quot;ES_COMPARING_STRINGS_WITH_EQ&quot;}, justification = &quot;optimization&quot;)
+  @SuppressFBWarnings(value = {&quot;ES_COMPARING_STRINGS_WITH_EQ&quot;, &quot;IMPROPER_UNICODE&quot;},
+          justification = &quot;optimization&quot;)
   private static final int findKeyword(String s, String[] list) {
-<span class="fc bfc" id="L1441" title="All 2 branches covered.">    for (int i = 0; i &lt; list.length; ++i) {</span>
-<span class="fc bfc" id="L1442" title="All 2 branches covered.">      if (s.equals(list[i])) {</span>
-<span class="fc" id="L1443">        return i;</span>
+<span class="fc" id="L1445">    int l = list.length;</span>
+<span class="fc bfc" id="L1446" title="All 2 branches covered.">    for (int i = 0; i &lt; l; ++i) {</span>
+<span class="fc bfc" id="L1447" title="All 2 branches covered.">      if (s.equals(list[i])) {</span>
+<span class="fc" id="L1448">        return i;</span>
       }
     }
 
     // Try trimmed lowercase.
-<span class="fc" id="L1448">    String ls = s.trim();</span>
-<span class="pc bpc" id="L1449" title="1 of 2 branches missed.">    if (ls != s) {</span>
-<span class="nc bnc" id="L1450" title="All 2 branches missed.">      for (int i = 0; i &lt; list.length; ++i) {</span>
-<span class="nc bnc" id="L1451" title="All 2 branches missed.">        if (ls.equalsIgnoreCase(list[i])) {</span>
-<span class="nc" id="L1452">          return i;</span>
+<span class="fc" id="L1453">    String ls = s.trim();</span>
+<span class="pc bpc" id="L1454" title="1 of 2 branches missed.">    if (ls != s) {</span>
+<span class="nc bnc" id="L1455" title="All 2 branches missed.">      for (int i = 0; i &lt; l; ++i) {</span>
+<span class="nc bnc" id="L1456" title="All 2 branches missed.">        if (ls.equalsIgnoreCase(list[i])) {</span>
+<span class="nc" id="L1457">          return i;</span>
         }
       }
     }
-<span class="fc" id="L1456">    return -1;</span>
+<span class="fc" id="L1461">    return -1;</span>
   }
 
   private static final void copyAndFixQuotes(CharSequence source, int start, int end,
           StringBuilder target) {
-<span class="nc" id="L1461">    boolean quoted = false;</span>
+<span class="nc" id="L1466">    boolean quoted = false;</span>
 
-<span class="nc bnc" id="L1463" title="All 2 branches missed.">    for (int i = start; i &lt; end; ++i) {</span>
-<span class="nc" id="L1464">      char ch = source.charAt(i);</span>
-<span class="nc bnc" id="L1465" title="All 2 branches missed.">      if (ch == '{') {</span>
-<span class="nc bnc" id="L1466" title="All 2 branches missed.">        if (!quoted) {</span>
-<span class="nc" id="L1467">          target.append('\'');</span>
-<span class="nc" id="L1468">          quoted = true;</span>
+<span class="nc bnc" id="L1468" title="All 2 branches missed.">    for (int i = start; i &lt; end; ++i) {</span>
+<span class="nc" id="L1469">      char ch = source.charAt(i);</span>
+<span class="nc bnc" id="L1470" title="All 2 branches missed.">      if (ch == '{') {</span>
+<span class="nc bnc" id="L1471" title="All 2 branches missed.">        if (!quoted) {</span>
+<span class="nc" id="L1472">          target.append('\'');</span>
+<span class="nc" id="L1473">          quoted = true;</span>
         }
-<span class="nc" id="L1470">        target.append(ch);</span>
-<span class="nc bnc" id="L1471" title="All 2 branches missed.">      } else if (ch == '\'') {</span>
-<span class="nc" id="L1472">        target.append(&quot;''&quot;);</span>
+<span class="nc" id="L1475">        target.append(ch);</span>
+<span class="nc bnc" id="L1476" title="All 2 branches missed.">      } else if (ch == '\'') {</span>
+<span class="nc" id="L1477">        target.append(&quot;''&quot;);</span>
       } else {
-<span class="nc bnc" id="L1474" title="All 2 branches missed.">        if (quoted) {</span>
-<span class="nc" id="L1475">          target.append('\'');</span>
-<span class="nc" id="L1476">          quoted = false;</span>
+<span class="nc bnc" id="L1479" title="All 2 branches missed.">        if (quoted) {</span>
+<span class="nc" id="L1480">          target.append('\'');</span>
+<span class="nc" id="L1481">          quoted = false;</span>
         }
-<span class="nc" id="L1478">        target.append(ch);</span>
+<span class="nc" id="L1483">        target.append(ch);</span>
       }
     }
-<span class="nc bnc" id="L1481" title="All 2 branches missed.">    if (quoted) {</span>
-<span class="nc" id="L1482">      target.append('\'');</span>
+<span class="nc bnc" id="L1486" title="All 2 branches missed.">    if (quoted) {</span>
+<span class="nc" id="L1487">      target.append('\'');</span>
     }
-<span class="nc" id="L1484">  }</span>
+<span class="nc" id="L1489">  }</span>
 
     private void writeObject(final java.io.ObjectOutputStream s)
         throws IOException {
         // Write out element count, and any hidden stuff
-<span class="nc" id="L1489">        s.defaultWriteObject();</span>
-<span class="nc" id="L1490">        s.writeUTF(pattern.toString());</span>
-<span class="nc" id="L1491">    }</span>
+<span class="nc" id="L1494">        s.defaultWriteObject();</span>
+<span class="nc" id="L1495">        s.writeUTF(pattern.toString());</span>
+<span class="nc" id="L1496">    }</span>
 
 
   /**
@@ -1498,27 +1503,27 @@ public final class MessageFormat extends Format {
    */
   @SuppressFBWarnings({&quot;WEM_WEAK_EXCEPTION_MESSAGING&quot;, &quot;DESERIALIZATION_GADGET&quot;})
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-<span class="nc" id="L1501">    in.defaultReadObject();</span>
-<span class="nc" id="L1502">    pattern = in.readUTF();</span>
-<span class="nc bnc" id="L1503" title="All 4 branches missed.">    boolean isValid = maxOffset &gt;= -1</span>
+<span class="nc" id="L1506">    in.defaultReadObject();</span>
+<span class="nc" id="L1507">    pattern = in.readUTF();</span>
+<span class="nc bnc" id="L1508" title="All 4 branches missed.">    boolean isValid = maxOffset &gt;= -1</span>
             &amp;&amp; formats.length &gt; maxOffset;
-<span class="nc bnc" id="L1505" title="All 2 branches missed.">    if (isValid) {</span>
-<span class="nc" id="L1506">      int lastOffset = pattern.length() + 1;</span>
-<span class="nc bnc" id="L1507" title="All 2 branches missed.">      for (int i = maxOffset; i &gt;= 0; --i) {</span>
-<span class="nc" id="L1508">        FormatInfo finfo = formats[i];</span>
-<span class="nc" id="L1509">        int offset = finfo.getOffset();</span>
-<span class="nc bnc" id="L1510" title="All 4 branches missed.">        if ((offset &lt; 0) || (offset &gt; lastOffset)) {</span>
-<span class="nc" id="L1511">          isValid = false;</span>
-<span class="nc" id="L1512">          break;</span>
+<span class="nc bnc" id="L1510" title="All 2 branches missed.">    if (isValid) {</span>
+<span class="nc" id="L1511">      int lastOffset = pattern.length() + 1;</span>
+<span class="nc bnc" id="L1512" title="All 2 branches missed.">      for (int i = maxOffset; i &gt;= 0; --i) {</span>
+<span class="nc" id="L1513">        FormatInfo finfo = formats[i];</span>
+<span class="nc" id="L1514">        int offset = finfo.getOffset();</span>
+<span class="nc bnc" id="L1515" title="All 4 branches missed.">        if ((offset &lt; 0) || (offset &gt; lastOffset)) {</span>
+<span class="nc" id="L1516">          isValid = false;</span>
+<span class="nc" id="L1517">          break;</span>
         } else {
-<span class="nc" id="L1514">          lastOffset = offset;</span>
+<span class="nc" id="L1519">          lastOffset = offset;</span>
         }
       }
     }
-<span class="nc bnc" id="L1518" title="All 2 branches missed.">    if (!isValid) {</span>
-<span class="nc" id="L1519">      throw new InvalidObjectException(&quot;Could not reconstruct MessageFormat from corrupt stream&quot;);</span>
+<span class="nc bnc" id="L1523" title="All 2 branches missed.">    if (!isValid) {</span>
+<span class="nc" id="L1524">      throw new InvalidObjectException(&quot;Could not reconstruct MessageFormat from corrupt stream&quot;);</span>
     }
-<span class="nc" id="L1521">  }</span>
+<span class="nc" id="L1526">  }</span>
 
   /**
    * Creates an &lt;code&gt;AttributedCharacterIterator&lt;/code&gt; for the String &lt;code&gt;s&lt;/code&gt;.
@@ -1527,7 +1532,7 @@ public final class MessageFormat extends Format {
    * @return AttributedCharacterIterator wrapping s
    */
   static AttributedCharacterIterator createAttributedCharacterIterator(String s) {
-<span class="nc" id="L1530">    return new java.text.AttributedString(s).getIterator();</span>
+<span class="nc" id="L1535">    return new java.text.AttributedString(s).getIterator();</span>
   }
 
 
@@ -1543,10 +1548,10 @@ public final class MessageFormat extends Format {
   static AttributedCharacterIterator createAttributedCharacterIterator(
           String string, AttributedCharacterIterator.Attribute key,
           Object value) {
-<span class="nc" id="L1546">    java.text.AttributedString as = new java.text.AttributedString(string);</span>
+<span class="nc" id="L1551">    java.text.AttributedString as = new java.text.AttributedString(string);</span>
 
-<span class="nc" id="L1548">    as.addAttribute(key, value);</span>
-<span class="nc" id="L1549">    return as.getIterator();</span>
+<span class="nc" id="L1553">    as.addAttribute(key, value);</span>
+<span class="nc" id="L1554">    return as.getIterator();</span>
   }
 
   /**
@@ -1561,16 +1566,16 @@ public final class MessageFormat extends Format {
   AttributedCharacterIterator createAttributedCharacterIterator(
           AttributedCharacterIterator iterator,
           AttributedCharacterIterator.Attribute key, Object value) {
-<span class="nc" id="L1564">    java.text.AttributedString as = new java.text.AttributedString(iterator);</span>
+<span class="nc" id="L1569">    java.text.AttributedString as = new java.text.AttributedString(iterator);</span>
 
-<span class="nc" id="L1566">    as.addAttribute(key, value);</span>
-<span class="nc" id="L1567">    return as.getIterator();</span>
+<span class="nc" id="L1571">    as.addAttribute(key, value);</span>
+<span class="nc" id="L1572">    return as.getIterator();</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L1572">    return &quot;MessageFormat{&quot; + &quot;locale=&quot; + locale + &quot;, pattern=&quot; + pattern + '}';</span>
+<span class="nc" id="L1577">    return &quot;MessageFormat{&quot; + &quot;locale=&quot; + locale + &quot;, pattern=&quot; + pattern + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

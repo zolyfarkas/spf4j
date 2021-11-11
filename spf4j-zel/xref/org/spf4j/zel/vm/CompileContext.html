@@ -53,7 +53,7 @@
 <a class="jxr_linenumber" name="L45" href="#L45">45</a>  
 <a class="jxr_linenumber" name="L46" href="#L46">46</a>      <strong class="jxr_keyword">private</strong> <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> last;
 <a class="jxr_linenumber" name="L47" href="#L47">47</a>  
-<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/vm/CompileContext.html">CompileContext</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/MemoryBuilder.html">MemoryBuilder</a> staticMemBuilder) {
+<a class="jxr_linenumber" name="L48" href="#L48">48</a>      <a href="../../../../org/spf4j/zel/vm/CompileContext.html">CompileContext</a>(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/MemoryBuilder.html">MemoryBuilder</a> staticMemBuilder) {
 <a class="jxr_linenumber" name="L49" href="#L49">49</a>          <strong class="jxr_keyword">this</strong>.prog = <strong class="jxr_keyword">new</strong> <a href="../../../../org/spf4j/zel/vm/ProgramBuilder.html">ProgramBuilder</a>(staticMemBuilder);
 <a class="jxr_linenumber" name="L50" href="#L50">50</a>          <strong class="jxr_keyword">this</strong>.staticMemBuilder = staticMemBuilder;
 <a class="jxr_linenumber" name="L51" href="#L51">51</a>      }
@@ -92,24 +92,29 @@
 <a class="jxr_linenumber" name="L84" href="#L84">84</a>      }
 <a class="jxr_linenumber" name="L85" href="#L85">85</a>  
 <a class="jxr_linenumber" name="L86" href="#L86">86</a>      @Override
-<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> getLast() {
-<a class="jxr_linenumber" name="L88" href="#L88">88</a>         <strong class="jxr_keyword">return</strong> last;
+<a class="jxr_linenumber" name="L87" href="#L87">87</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> staticSymbol(<strong class="jxr_keyword">final</strong> String name) {
+<a class="jxr_linenumber" name="L88" href="#L88">88</a>          staticMemBuilder.addSymbol(name);
 <a class="jxr_linenumber" name="L89" href="#L89">89</a>      }
 <a class="jxr_linenumber" name="L90" href="#L90">90</a>  
 <a class="jxr_linenumber" name="L91" href="#L91">91</a>      @Override
-<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> generateCode(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ParsingContext.html">Location</a> loc, <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> instr) {
-<a class="jxr_linenumber" name="L93" href="#L93">93</a>          prog.add(instr, loc);
-<a class="jxr_linenumber" name="L94" href="#L94">94</a>          last = instr;
-<a class="jxr_linenumber" name="L95" href="#L95">95</a>      }
-<a class="jxr_linenumber" name="L96" href="#L96">96</a>  
-<a class="jxr_linenumber" name="L97" href="#L97">97</a>      @Override
-<a class="jxr_linenumber" name="L98" href="#L98">98</a>      <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L99" href="#L99">99</a>          <strong class="jxr_keyword">return</strong> <span class="jxr_string">"CompileContext{"</span> + <span class="jxr_string">"prog="</span> + prog + <span class="jxr_string">", staticMemBuilder="</span> + staticMemBuilder + <span class="jxr_string">", last="</span> + last + '}';
+<a class="jxr_linenumber" name="L92" href="#L92">92</a>      <strong class="jxr_keyword">public</strong> <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> getLast() {
+<a class="jxr_linenumber" name="L93" href="#L93">93</a>         <strong class="jxr_keyword">return</strong> last;
+<a class="jxr_linenumber" name="L94" href="#L94">94</a>      }
+<a class="jxr_linenumber" name="L95" href="#L95">95</a>  
+<a class="jxr_linenumber" name="L96" href="#L96">96</a>      @Override
+<a class="jxr_linenumber" name="L97" href="#L97">97</a>      <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> generateCode(<strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/vm/ParsingContext.html">Location</a> loc, <strong class="jxr_keyword">final</strong> <a href="../../../../org/spf4j/zel/instr/Instruction.html">Instruction</a> instr) {
+<a class="jxr_linenumber" name="L98" href="#L98">98</a>          prog.add(instr, loc);
+<a class="jxr_linenumber" name="L99" href="#L99">99</a>          last = instr;
 <a class="jxr_linenumber" name="L100" href="#L100">100</a>     }
 <a class="jxr_linenumber" name="L101" href="#L101">101</a> 
-<a class="jxr_linenumber" name="L102" href="#L102">102</a> }
+<a class="jxr_linenumber" name="L102" href="#L102">102</a>     @Override
+<a class="jxr_linenumber" name="L103" href="#L103">103</a>     <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L104" href="#L104">104</a>         <strong class="jxr_keyword">return</strong> <span class="jxr_string">"CompileContext{"</span> + <span class="jxr_string">"prog="</span> + prog + <span class="jxr_string">", staticMemBuilder="</span> + staticMemBuilder + <span class="jxr_string">", last="</span> + last + '}';
+<a class="jxr_linenumber" name="L105" href="#L105">105</a>     }
+<a class="jxr_linenumber" name="L106" href="#L106">106</a> 
+<a class="jxr_linenumber" name="L107" href="#L107">107</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2021 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>LegacyProfilePersister.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-jacoco-aggregate</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.stackmonitor</a> &gt; <span class="el_source">LegacyProfilePersister.java</span></div><h1>LegacyProfilePersister.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.stackmonitor;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.File;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Map;
+import javax.annotation.Nullable;
+import org.spf4j.base.CharSequences;
+import org.spf4j.base.DateTimeFormats;
+import org.spf4j.ssdump2.Converter;
+
+/**
+ * @author Zoltan Farkas
+ */
+@SuppressFBWarnings(&quot;PATH_TRAVERSAL_IN&quot;)
+public final class LegacyProfilePersister implements ProfilePersister {
+
+  private static final String GZIP_SUFFIX = &quot;.gz&quot;;
+
+  private final String baseFileName;
+
+  private final File targetFolder;
+
+  private final boolean compress;
+
+  private final ProfileFileFormat format;
+
+  private final boolean explicitFileName;
+
+  public LegacyProfilePersister(final Path targetFolder, final String baseFileName, final boolean compress) {
+<span class="fc" id="L66">    this(targetFolder.toFile(), baseFileName, compress);</span>
+<span class="fc" id="L67">  }</span>
+
+<span class="fc" id="L69">  private LegacyProfilePersister(final File targetFolder, final String baseFileName, final boolean compress) {</span>
+<span class="fc" id="L70">    CharSequences.validatedFileName(baseFileName);</span>
+<span class="fc" id="L71">    this.targetFolder = targetFolder;</span>
+<span class="fc" id="L72">    this.baseFileName = baseFileName;</span>
+<span class="fc" id="L73">    DumpType dt = getRequestedFileType(baseFileName);</span>
+<span class="fc bfc" id="L74" title="All 2 branches covered.">    if (dt == null) {</span>
+<span class="fc" id="L75">      this.compress = compress;</span>
+<span class="fc" id="L76">      this.format = null;</span>
+<span class="fc" id="L77">      this.explicitFileName = false;</span>
+    } else {
+<span class="fc" id="L79">      this.compress = dt.isIsGzipped();</span>
+<span class="fc" id="L80">      this.format = dt.getFormat();</span>
+<span class="fc" id="L81">      this.explicitFileName = true;</span>
+    }
+<span class="fc" id="L83">  }</span>
+
+
+  @Override
+  public Path persist(final Map&lt;String, SampleNode&gt; profile,
+          @Nullable final String tag,
+          final Instant profileFrom, final Instant profileTo) throws IOException {
+<span class="fc bfc" id="L90" title="All 2 branches covered.">    if (this.explicitFileName) {</span>
+<span class="fc" id="L91">       return save(profile, baseFileName);</span>
+    }
+<span class="fc bfc" id="L93" title="All 2 branches covered.">    if (tag != null) {</span>
+<span class="fc" id="L94">      CharSequences.validatedFileName(tag);</span>
+    }
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    String timestampedFileName = this.baseFileName + ((tag == null) ? &quot;&quot; : '_' + tag) + '_'</span>
+<span class="fc" id="L97">            + DateTimeFormats.COMPACT_TS_FORMAT.format(profileFrom)</span>
+<span class="fc" id="L98">            + '_' + DateTimeFormats.COMPACT_TS_FORMAT.format(profileTo);</span>
+<span class="fc" id="L99">    timestampedFileName = URLEncoder.encode(timestampedFileName, StandardCharsets.UTF_8.name());</span>
+<span class="fc" id="L100">    return save(profile, timestampedFileName);</span>
+  }
+
+  @Override
+  public Path getTargetPath() {
+<span class="nc" id="L105">    return this.targetFolder.toPath();</span>
+  }
+
+  @Override
+  public String getBaseFileName() {
+<span class="nc" id="L110">    return this.baseFileName;</span>
+  }
+
+  @Override
+  public void close() {
+    // Nothing to close.
+<span class="fc" id="L116">  }</span>
+
+  @Override
+  public void flush() {
+    // Nothing to flush
+<span class="nc" id="L121">  }</span>
+
+
+  private static class DumpType {
+
+    private final ProfileFileFormat format;
+
+    private final boolean isGzipped;
+
+<span class="fc" id="L130">    DumpType(final ProfileFileFormat format, final boolean isGzipped) {</span>
+<span class="fc" id="L131">      this.format = format;</span>
+<span class="fc" id="L132">      this.isGzipped = isGzipped;</span>
+<span class="fc" id="L133">    }</span>
+
+    public ProfileFileFormat getFormat() {
+<span class="fc" id="L136">      return format;</span>
+    }
+
+    public boolean isIsGzipped() {
+<span class="fc" id="L140">      return isGzipped;</span>
+    }
+
+  }
+
+  @Nullable
+  private static DumpType getRequestedFileType(final String pFileName) {
+<span class="fc" id="L147">    String fileName = pFileName;</span>
+<span class="fc" id="L148">    boolean isGZipped = false;</span>
+<span class="fc bfc" id="L149" title="All 2 branches covered.">    if (fileName.endsWith(GZIP_SUFFIX)) {</span>
+<span class="fc" id="L150">      fileName = fileName.substring(0, fileName.length() - GZIP_SUFFIX.length());</span>
+<span class="fc" id="L151">      isGZipped = true;</span>
+    }
+<span class="fc bfc" id="L153" title="All 2 branches covered.">    if (fileName.endsWith(ProfileFileFormat.SSDUMP_2.getSuffix())) {</span>
+<span class="fc" id="L154">      return new DumpType(ProfileFileFormat.SSDUMP_2, isGZipped);</span>
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">    } else if (fileName.endsWith(ProfileFileFormat.SSDUMP_3.getSuffix())) {</span>
+<span class="nc" id="L156">      return new DumpType(ProfileFileFormat.SSDUMP_3, isGZipped);</span>
+    } else {
+<span class="fc" id="L158">      return null;</span>
+    }
+  }
+
+  @Nullable
+  private Path save(final Map&lt;String, SampleNode&gt; profile, final String fileName) throws IOException {
+<span class="fc" id="L164">    int size = profile.size();</span>
+<span class="pc bpc" id="L165" title="1 of 2 branches missed.">    if (size &lt; 1) {</span>
+<span class="nc" id="L166">      return null;</span>
+    }
+    String newFileName;
+    ProfileFileFormat aFormat;
+<span class="fc bfc" id="L170" title="All 2 branches covered.">    if (this.explicitFileName) {</span>
+<span class="fc" id="L171">      newFileName = fileName;</span>
+<span class="fc" id="L172">      aFormat = this.format;</span>
+    } else {
+<span class="pc bpc" id="L174" title="1 of 2 branches missed.">      if (size == 1) {</span>
+<span class="fc" id="L175">        aFormat = ProfileFileFormat.SSDUMP_2;</span>
+<span class="fc" id="L176">        newFileName = Converter.createLabeledSsdump2FileName(fileName,</span>
+<span class="fc" id="L177">                  profile.entrySet().iterator().next().getKey());</span>
+      } else {
+<span class="nc" id="L179">        aFormat = ProfileFileFormat.SSDUMP_3;</span>
+<span class="nc" id="L180">        newFileName = fileName + ProfileFileFormat.SSDUMP_3.getSuffix();</span>
+      }
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">      if (this.compress) {</span>
+<span class="fc" id="L183">        newFileName += GZIP_SUFFIX;</span>
+      }
+    }
+<span class="fc" id="L186">    return save(newFileName, aFormat, profile);</span>
+  }
+
+  @SuppressFBWarnings(&quot;UAC_UNNECESSARY_API_CONVERSION_FILE_TO_PATH&quot;)
+  private Path save(final String fileName, final ProfileFileFormat pFormat, final Map&lt;String, SampleNode&gt; profile)
+          throws IOException {
+<span class="fc" id="L192">    File file = new File(targetFolder, fileName);</span>
+<span class="pc bpc" id="L193" title="2 of 3 branches missed.">    switch (pFormat) {</span>
+      case SSDUMP_2:
+<span class="fc" id="L195">        Converter.save(file, profile.entrySet().iterator().next().getValue());</span>
+<span class="fc" id="L196">        break;</span>
+      case SSDUMP_3:
+<span class="nc" id="L198">        Converter.saveLabeledDumps(file, profile);</span>
+<span class="nc" id="L199">        break;</span>
+      default:
+<span class="nc" id="L201">        throw new UnsupportedOperationException(&quot;Unsupported file format: &quot; + pFormat);</span>
+    }
+<span class="fc" id="L203">    return file.toPath();</span>
+  }
+
+  @Override
+  public ProfilePersister withBaseFileName(final Path ptargetPath, final String pbaseFileName) {
+<span class="fc" id="L208">    return new LegacyProfilePersister(ptargetPath, pbaseFileName, this.compress);</span>
+  }
+
+
+  @Override
+  public boolean isCompressing() {
+<span class="nc" id="L214">    return compress;</span>
+  }
+
+  @Override
+  public ProfilePersister witCompression(final boolean pcompress) {
+<span class="nc" id="L219">    return new LegacyProfilePersister(this.targetFolder, this.baseFileName, pcompress);</span>
+  }
+
+  @Override
+  public String toString() {
+<span class="nc" id="L224">    return &quot;LegacyProfilePersister{&quot; + &quot;baseFileName=&quot; + baseFileName</span>
+            + &quot;, targetFolder=&quot; + targetFolder + &quot;, compress=&quot; + compress + '}';
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -37,29 +37,30 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericDatumWriter;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Encoder;
+import org.spf4j.avro.AvroCompatUtils;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.io.ObjectAppender;
 /**
  * @author zoly
  */
-<span class="fc" id="L45">public class GenericRecordJsonAppender implements ObjectAppender&lt;GenericRecord&gt; {</span>
+<span class="fc" id="L46">public class GenericRecordJsonAppender implements ObjectAppender&lt;GenericRecord&gt; {</span>
 
   /**
    * extends if needed for another type
    */
   @Override
   public CoreTextMediaType getAppendedType() {
-<span class="fc" id="L52">    return CoreTextMediaType.APPLICATION_JSON;</span>
+<span class="fc" id="L53">    return CoreTextMediaType.APPLICATION_JSON;</span>
   }
 
   @Override
   public final void append(final GenericRecord object, final Appendable appendTo) throws IOException {
-<span class="fc" id="L57">      final Schema schema = object.getSchema();</span>
-<span class="fc" id="L58">      GenericDatumWriter&lt;GenericRecord&gt; writer = new GenericDatumWriter&lt;&gt;(schema);</span>
-<span class="fc" id="L59">      Encoder jsonEncoder = JsonEncoderFactory.getEncoder(schema, appendTo);</span>
-<span class="fc" id="L60">      writer.write(object, jsonEncoder);</span>
-<span class="fc" id="L61">      jsonEncoder.flush();</span>
-<span class="fc" id="L62">  }</span>
+<span class="fc" id="L58">      final Schema schema = object.getSchema();</span>
+<span class="fc" id="L59">      GenericDatumWriter&lt;GenericRecord&gt; writer = new GenericDatumWriter&lt;&gt;(schema);</span>
+<span class="fc" id="L60">      Encoder jsonEncoder = AvroCompatUtils.getJsonEncoder(schema, appendTo);</span>
+<span class="fc" id="L61">      writer.write(object, jsonEncoder);</span>
+<span class="fc" id="L62">      jsonEncoder.flush();</span>
+<span class="fc" id="L63">  }</span>
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

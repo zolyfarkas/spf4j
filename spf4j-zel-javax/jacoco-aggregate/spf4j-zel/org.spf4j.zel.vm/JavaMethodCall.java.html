@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>JavaMethodCall.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel-javax</a> &gt; <a href="../index.html" class="el_bundle">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.vm</a> &gt; <span class="el_source">JavaMethodCall.java</span></div><h1>JavaMethodCall.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.zel.vm;
+
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
+import org.spf4j.base.Reflections;
+
+/**
+ *
+ * @author zoly
+ */
+// Will have to see if the exception handling can be improved here later
+@SuppressFBWarnings(&quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot;)
+public final class JavaMethodCall implements Method {
+
+<span class="fc" id="L49">    private static final Class&lt;?&gt;[] EMPTY_CL_ARR = new Class&lt;?&gt;[0];</span>
+
+    private final String name;
+    private final Class&lt;?&gt; objectClass;
+    private final Object object;
+
+    @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L56">    public JavaMethodCall(final Class&lt;?&gt; clasz, final String methodName) {</span>
+<span class="fc" id="L57">        this.name = methodName;</span>
+<span class="fc" id="L58">        this.objectClass = clasz;</span>
+<span class="fc" id="L59">        this.object = null;</span>
+<span class="fc" id="L60">    }</span>
+
+
+<span class="fc" id="L63">    public JavaMethodCall(final Object object, final String methodName) {</span>
+<span class="fc" id="L64">        this.name = methodName;</span>
+<span class="fc" id="L65">        this.objectClass = object.getClass();</span>
+<span class="fc" id="L66">        this.object = object;</span>
+<span class="fc" id="L67">    }</span>
+
+    @Override
+    public Object invoke(final ExecutionContext context, final Object[] parameters) {
+        try {
+<span class="fc" id="L72">            int np = parameters.length;</span>
+<span class="fc bfc" id="L73" title="All 2 branches covered.">            if (np &gt; 0) {</span>
+<span class="fc" id="L74">                Class&lt;?&gt;[] classes = new Class&lt;?&gt;[np];</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">                for (int i = 0; i &lt; np; i++) {</span>
+<span class="fc" id="L76">                    classes[i] = parameters[i].getClass();</span>
+                }
+<span class="fc" id="L78">                java.lang.reflect.Method m = Reflections.getCompatibleMethodCached(objectClass, name, classes);</span>
+<span class="pc bpc" id="L79" title="1 of 2 branches missed.">                if (m == null) {</span>
+<span class="nc" id="L80">                  throw new NoSuchMethodException(objectClass.getName() + '.' + name +  Arrays.toString(classes));</span>
+                }
+<span class="fc" id="L82">                Class&lt;?&gt;[] actTypes = Reflections.getParameterTypes(m);</span>
+<span class="fc" id="L83">                Class&lt;?&gt; lastParamClass = actTypes[actTypes.length - 1];</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">                if (Reflections.canAssign(lastParamClass, classes[classes.length - 1])) {</span>
+<span class="fc" id="L85">                    return m.invoke(object, parameters);</span>
+<span class="pc bpc" id="L86" title="1 of 2 branches missed.">                } else if (lastParamClass.isArray()) {</span>
+<span class="fc" id="L87">                    int lidx = actTypes.length - 1;</span>
+<span class="fc" id="L88">                    int l = np - lidx;</span>
+<span class="fc" id="L89">                    Object array = Array.newInstance(lastParamClass.getComponentType(), l);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">                    for (int k = 0; k &lt; l; k++) {</span>
+<span class="fc" id="L91">                        Array.set(array, k, parameters[lidx + k]);</span>
+                    }
+<span class="fc" id="L93">                    Object[] newParams = new Object[actTypes.length];</span>
+<span class="fc" id="L94">                    System.arraycopy(parameters, 0, newParams, 0, lidx);</span>
+<span class="fc" id="L95">                    newParams[lidx] = array;</span>
+<span class="fc" id="L96">                    return m.invoke(object, newParams);</span>
+                } else {
+<span class="nc" id="L98">                    throw new IllegalStateException();</span>
+                }
+            } else {
+<span class="fc" id="L101">                return Reflections.getCompatibleMethodCached(objectClass, name, EMPTY_CL_ARR)</span>
+<span class="fc" id="L102">                        .invoke(object);</span>
+            }
+<span class="nc" id="L104">        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {</span>
+<span class="nc" id="L105">            throw new UncheckedExecutionException(ex);</span>
+        }
+    }
+
+    @Override
+    public String toString() {
+<span class="nc" id="L111">        return &quot;JavaMethodCall{&quot; + &quot;name=&quot; + name + &quot;, objectClass=&quot; + objectClass + &quot;, object=&quot; + object + '}';</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

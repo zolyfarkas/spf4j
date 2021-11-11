@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>DEREF.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel-javax</a> &gt; <a href="../index.html" class="el_bundle">spf4j-zel</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.zel.instr</a> &gt; <span class="el_source">DEREF.java</span></div><h1>DEREF.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2001-2017, Zoltan Farkas All Rights Reserved.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Additionally licensed with:
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.zel.instr;
+
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import org.apache.avro.generic.GenericRecord;
+import org.spf4j.reflect.CachingTypeMapWrapper;
+import org.spf4j.reflect.GraphTypeMap;
+import org.spf4j.zel.vm.ExecutionContext;
+import org.spf4j.zel.vm.SuspendedException;
+
+public final class DEREF extends Instruction {
+
+  private static final long serialVersionUID = 1L;
+
+<span class="fc" id="L48">  public static final Instruction INSTANCE = new DEREF();</span>
+
+<span class="fc" id="L50">  private static final CachingTypeMapWrapper&lt;ReferenceHandler&gt; TYPE_HANDLER</span>
+          = new CachingTypeMapWrapper&lt;&gt;(new GraphTypeMap());
+
+  static {
+<span class="fc" id="L54">    TYPE_HANDLER.safePut(Map.class,</span>
+            (Object relativeTo, Object ref, ExecutionContext context)
+<span class="fc" id="L56">            -&gt; context.push(((Map) relativeTo).get(ref)))</span>
+<span class="fc" id="L57">            .safePut(GenericRecord.class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+<span class="fc" id="L59">                    -&gt; context.push(((GenericRecord) relativeTo).get(ref.toString())))</span>
+<span class="fc" id="L60">            .safePut(Object.class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+<span class="fc" id="L62">                    -&gt; context.push(context.newJavaCall(relativeTo, (String) ref)))</span>
+<span class="fc" id="L63">            .safePut(Object[].class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="fc bfc" id="L66" title="All 2 branches covered.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="fc" id="L67">                context.push(((Object[]) relativeTo).length);</span>
+              } else {
+<span class="fc" id="L69">                context.push(((Object[]) relativeTo)[((Number) ref).intValue()]);</span>
+              }
+<span class="fc" id="L71">            })</span>
+<span class="fc" id="L72">            .safePut(int[].class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L76">                context.push(((int[]) relativeTo).length);</span>
+              } else {
+<span class="nc" id="L78">                context.push(((int[]) relativeTo)[((Number) ref).intValue()]);</span>
+              }
+<span class="nc" id="L80">            })</span>
+<span class="fc" id="L81">            .safePut(byte[].class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L85">                context.push(((byte[]) relativeTo).length);</span>
+              } else {
+<span class="nc" id="L87">                context.push(((byte[]) relativeTo)[((Number) ref).intValue()]);</span>
+              }
+<span class="nc" id="L89">            })</span>
+<span class="fc" id="L90">            .safePut(char[].class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L93" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L94">                context.push(((char[]) relativeTo).length);</span>
+              } else {
+<span class="nc" id="L96">                context.push(((char[]) relativeTo)[((Number) ref).intValue()]);</span>
+              }
+<span class="nc" id="L98">            })</span>
+<span class="fc" id="L99">            .safePut(long[].class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L102" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L103">                context.push(((long[]) relativeTo).length);</span>
+              } else {
+<span class="nc" id="L105">                context.push(((long[]) relativeTo)[((Number) ref).intValue()]);</span>
+              }
+<span class="nc" id="L107">            })</span>
+<span class="fc" id="L108">            .safePut(short[].class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L112">                context.push(((short[]) relativeTo).length);</span>
+              } else {
+<span class="nc" id="L114">                context.push(((short[]) relativeTo)[((Number) ref).intValue()]);</span>
+              }
+<span class="nc" id="L116">            })</span>
+<span class="fc" id="L117">            .safePut(List.class,</span>
+                    (Object relativeTo, Object ref, ExecutionContext context)
+                    -&gt; {
+<span class="nc bnc" id="L120" title="All 2 branches missed.">              if (&quot;length&quot;.equals(ref)) {</span>
+<span class="nc" id="L121">                context.push(((List) relativeTo).size());</span>
+              } else {
+<span class="nc" id="L123">                context.push(((List) relativeTo).get(((Number) ref).intValue()));</span>
+              }
+<span class="nc" id="L125">            });</span>
+<span class="fc" id="L126">  }</span>
+
+  interface ReferenceHandler {
+
+    void pushDeref(Object relativeTo, Object ref, ExecutionContext context);
+  }
+
+  private DEREF() {
+  }
+
+  public static void registerTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
+<span class="nc" id="L137">    TYPE_HANDLER.safePut(type, refHandler);</span>
+<span class="nc" id="L138">  }</span>
+
+  public static synchronized void replaceTypeDerefHandler(final Type type, final ReferenceHandler refHandler) {
+<span class="nc" id="L141">    TYPE_HANDLER.replace(type, (x) -&gt; refHandler);</span>
+<span class="nc" id="L142">  }</span>
+
+  @Override
+  public int execute(final ExecutionContext context)
+          throws ExecutionException, SuspendedException {
+<span class="fc" id="L147">    final Object[] vals = context.tuple();</span>
+<span class="fc" id="L148">    context.popSyncStackVals(vals);</span>
+<span class="fc" id="L149">    pushDeref(vals[0], vals[1], context);</span>
+<span class="fc" id="L150">    return 1;</span>
+  }
+
+  static void pushDeref(final Object relativeTo, final Object ref, final ExecutionContext context) {
+<span class="fc" id="L154">    ReferenceHandler rh = TYPE_HANDLER.get(relativeTo.getClass());</span>
+<span class="fc" id="L155">    rh.pushDeref(relativeTo, ref, context);</span>
+<span class="fc" id="L156">  }</span>
+
+  @Override
+  public Object[] getParameters() {
+<span class="fc" id="L160">    return org.spf4j.base.Arrays.EMPTY_OBJ_ARRAY;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

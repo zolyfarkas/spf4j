@@ -31,6 +31,7 @@
  */
 package org.spf4j.avro.schema;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -46,7 +47,7 @@ import static org.apache.avro.Schema.Type.RECORD;
  */
 public final class CloningVisitor implements SchemaVisitor&lt;Schema&gt; {
 
-<span class="fc" id="L49">  private final IdentityHashMap&lt;Schema, Schema&gt; replace = new IdentityHashMap&lt;&gt;();</span>
+<span class="fc" id="L50">  private final IdentityHashMap&lt;Schema, Schema&gt; replace = new IdentityHashMap&lt;&gt;();</span>
 
   private final Schema root;
 
@@ -56,39 +57,40 @@ public final class CloningVisitor implements SchemaVisitor&lt;Schema&gt; {
   private final boolean copyDefaults;
 
   public CloningVisitor(final Schema root) {
-<span class="fc" id="L59">    this(SchemaUtils.FIELD_ESENTIALS,</span>
+<span class="fc" id="L60">    this(SchemaUtils.FIELD_ESENTIALS,</span>
             SchemaUtils.SCHEMA_ESENTIALS, false, root);
-<span class="fc" id="L61">  }</span>
+<span class="fc" id="L62">  }</span>
 
   public CloningVisitor(final BiConsumer&lt;Field, Field&gt; copyField,
           final BiConsumer&lt;Schema, Schema&gt; copySchema,
           final boolean copyDocs, final Schema root) {
-<span class="fc" id="L66">    this(copyField, copySchema, copyDocs, true, root);</span>
-<span class="fc" id="L67">  }</span>
+<span class="fc" id="L67">    this(copyField, copySchema, copyDocs, true, root);</span>
+<span class="fc" id="L68">  }</span>
 
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
   public CloningVisitor(final BiConsumer&lt;Field, Field&gt; copyField,
           final BiConsumer&lt;Schema, Schema&gt; copySchema,
-<span class="fc" id="L71">          final boolean copyDocs, final boolean copyDefaults, final Schema root) {</span>
-<span class="fc" id="L72">    this.copyField = copyField;</span>
-<span class="fc" id="L73">    this.copySchema = copySchema;</span>
-<span class="fc" id="L74">    this.copyDocs = copyDocs;</span>
-<span class="fc" id="L75">    this.root = root;</span>
-<span class="fc" id="L76">    this.copyDefaults = copyDefaults;</span>
-<span class="fc" id="L77">  }</span>
+<span class="fc" id="L73">          final boolean copyDocs, final boolean copyDefaults, final Schema root) {</span>
+<span class="fc" id="L74">    this.copyField = copyField;</span>
+<span class="fc" id="L75">    this.copySchema = copySchema;</span>
+<span class="fc" id="L76">    this.copyDocs = copyDocs;</span>
+<span class="fc" id="L77">    this.root = root;</span>
+<span class="fc" id="L78">    this.copyDefaults = copyDefaults;</span>
+<span class="fc" id="L79">  }</span>
 
   @Override
   public SchemaVisitorAction visitTerminal(final Schema terminal) {
-<span class="fc" id="L81">    Schema.Type type = terminal.getType();</span>
+<span class="fc" id="L83">    Schema.Type type = terminal.getType();</span>
     Schema newSchema;
-<span class="pc bpc" id="L83" title="3 of 5 branches missed.">    switch (type) {</span>
+<span class="pc bpc" id="L85" title="3 of 5 branches missed.">    switch (type) {</span>
       case RECORD: // recursion.
       case ARRAY:
       case MAP:
       case UNION:
-<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (!replace.containsKey(terminal)) {</span>
-<span class="nc" id="L89">          throw new IllegalStateException(&quot;Schema &quot; + terminal + &quot; must be already processed&quot;);</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">        if (!replace.containsKey(terminal)) {</span>
+<span class="nc" id="L91">          throw new IllegalStateException(&quot;Schema &quot; + terminal + &quot; must be already processed&quot;);</span>
         }
-<span class="fc" id="L91">        return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L93">        return SchemaVisitorAction.CONTINUE;</span>
       case BOOLEAN:
       case BYTES:
       case DOUBLE:
@@ -97,89 +99,89 @@ public final class CloningVisitor implements SchemaVisitor&lt;Schema&gt; {
       case LONG:
       case NULL:
       case STRING:
-<span class="fc" id="L100">        newSchema = Schema.create(type);</span>
-<span class="fc" id="L101">      break;</span>
+<span class="fc" id="L102">        newSchema = Schema.create(type);</span>
+<span class="fc" id="L103">      break;</span>
       case ENUM:
-<span class="nc bnc" id="L103" title="All 2 branches missed.">        newSchema = Schema.createEnum(terminal.getName(), copyDocs ? terminal.getDoc() : null,</span>
-<span class="nc" id="L104">                terminal.getNamespace(), terminal.getEnumSymbols(), terminal.getEnumDefault());</span>
-<span class="nc" id="L105">        break;</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">        newSchema = Schema.createEnum(terminal.getName(), copyDocs ? terminal.getDoc() : null,</span>
+<span class="nc" id="L106">                terminal.getNamespace(), terminal.getEnumSymbols(), terminal.getEnumDefault());</span>
+<span class="nc" id="L107">        break;</span>
       case FIXED:
-<span class="nc bnc" id="L107" title="All 2 branches missed.">        newSchema = Schema.createFixed(terminal.getName(), copyDocs ? terminal.getDoc() : null,</span>
-<span class="nc" id="L108">                terminal.getNamespace(), terminal.getFixedSize());</span>
-<span class="nc" id="L109">        break;</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        newSchema = Schema.createFixed(terminal.getName(), copyDocs ? terminal.getDoc() : null,</span>
+<span class="nc" id="L110">                terminal.getNamespace(), terminal.getFixedSize());</span>
+<span class="nc" id="L111">        break;</span>
       default:
-<span class="nc" id="L111">        throw new IllegalStateException(&quot;Unsupported schema &quot; + terminal);</span>
+<span class="nc" id="L113">        throw new IllegalStateException(&quot;Unsupported schema &quot; + terminal);</span>
     }
-<span class="fc" id="L113">    copySchema.accept(terminal, newSchema);</span>
-<span class="fc" id="L114">    replace.put(terminal, newSchema);</span>
-<span class="fc" id="L115">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L115">    copySchema.accept(terminal, newSchema);</span>
+<span class="fc" id="L116">    replace.put(terminal, newSchema);</span>
+<span class="fc" id="L117">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public SchemaVisitorAction visitNonTerminal(final Schema nt) {
-<span class="fc" id="L120">    Schema.Type type = nt.getType();</span>
-<span class="fc bfc" id="L121" title="All 2 branches covered.">    if  (type == RECORD) {</span>
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        Schema newSchema = Schema.createRecord(nt.getName(), copyDocs ? nt.getDoc() : null,</span>
-<span class="fc" id="L123">                nt.getNamespace(), nt.isError());</span>
-<span class="fc" id="L124">        copySchema.accept(nt, newSchema);</span>
-<span class="fc" id="L125">        replace.put(nt, newSchema);</span>
+<span class="fc" id="L122">    Schema.Type type = nt.getType();</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">    if  (type == RECORD) {</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">        Schema newSchema = Schema.createRecord(nt.getName(), copyDocs ? nt.getDoc() : null,</span>
+<span class="fc" id="L125">                nt.getNamespace(), nt.isError());</span>
+<span class="fc" id="L126">        copySchema.accept(nt, newSchema);</span>
+<span class="fc" id="L127">        replace.put(nt, newSchema);</span>
     }
-<span class="fc" id="L127">    return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L129">    return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public SchemaVisitorAction afterVisitNonTerminal(final Schema nt) {
-<span class="fc" id="L132">     Schema.Type type = nt.getType();</span>
+<span class="fc" id="L134">     Schema.Type type = nt.getType();</span>
      Schema newSchema;
-<span class="pc bpc" id="L134" title="3 of 5 branches missed.">     switch (type) {</span>
+<span class="pc bpc" id="L136" title="3 of 5 branches missed.">     switch (type) {</span>
        case RECORD:
-<span class="fc" id="L136">         newSchema = replace.get(nt);</span>
-<span class="fc" id="L137">         List&lt;Schema.Field&gt; fields = nt.getFields();</span>
-<span class="fc" id="L138">         List&lt;Schema.Field&gt; newFields = new ArrayList&lt;&gt;(fields.size());</span>
-<span class="fc bfc" id="L139" title="All 2 branches covered.">         for (Schema.Field field : fields) {</span>
-<span class="pc bpc" id="L140" title="1 of 2 branches missed.">          Schema.Field newField = new Schema.Field(field.name(), replace.get(field.schema()),</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">                  copyDocs ? field.doc() : null, copyDefaults ? field.defaultVal() : null, field.order());</span>
-<span class="fc" id="L142">          copyField.accept(field, newField);</span>
-<span class="fc" id="L143">          newFields.add(newField);</span>
-<span class="fc" id="L144">         }</span>
-<span class="fc" id="L145">         newSchema.setFields(newFields);</span>
-<span class="fc" id="L146">         return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L138">         newSchema = replace.get(nt);</span>
+<span class="fc" id="L139">         List&lt;Schema.Field&gt; fields = nt.getFields();</span>
+<span class="fc" id="L140">         List&lt;Schema.Field&gt; newFields = new ArrayList&lt;&gt;(fields.size());</span>
+<span class="fc bfc" id="L141" title="All 2 branches covered.">         for (Schema.Field field : fields) {</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">          Schema.Field newField = new Schema.Field(field.name(), replace.get(field.schema()),</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">                  copyDocs ? field.doc() : null, copyDefaults ? field.defaultVal() : null, field.order());</span>
+<span class="fc" id="L144">          copyField.accept(field, newField);</span>
+<span class="fc" id="L145">          newFields.add(newField);</span>
+<span class="fc" id="L146">         }</span>
+<span class="fc" id="L147">         newSchema.setFields(newFields);</span>
+<span class="fc" id="L148">         return SchemaVisitorAction.CONTINUE;</span>
        case UNION:
-<span class="nc" id="L148">          List&lt;Schema&gt; types = nt.getTypes();</span>
-<span class="nc" id="L149">          List&lt;Schema&gt; newTypes = new ArrayList&lt;&gt;(types.size());</span>
-<span class="nc bnc" id="L150" title="All 2 branches missed.">          for (Schema sch : types) {</span>
-<span class="nc" id="L151">            newTypes.add(replace.get(sch));</span>
-<span class="nc" id="L152">          }</span>
-<span class="nc" id="L153">          newSchema = Schema.createUnion(newTypes);</span>
+<span class="nc" id="L150">          List&lt;Schema&gt; types = nt.getTypes();</span>
+<span class="nc" id="L151">          List&lt;Schema&gt; newTypes = new ArrayList&lt;&gt;(types.size());</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">          for (Schema sch : types) {</span>
+<span class="nc" id="L153">            newTypes.add(replace.get(sch));</span>
+<span class="nc" id="L154">          }</span>
+<span class="nc" id="L155">          newSchema = Schema.createUnion(newTypes);</span>
 
-<span class="nc" id="L155">          break;</span>
+<span class="nc" id="L157">          break;</span>
        case ARRAY:
-<span class="fc" id="L157">         newSchema = Schema.createArray(replace.get(nt.getElementType()));</span>
-<span class="fc" id="L158">         break;</span>
+<span class="fc" id="L159">         newSchema = Schema.createArray(replace.get(nt.getElementType()));</span>
+<span class="fc" id="L160">         break;</span>
        case MAP:
-<span class="nc" id="L160">         newSchema = Schema.createMap(replace.get(nt.getValueType()));</span>
-<span class="nc" id="L161">         break;</span>
+<span class="nc" id="L162">         newSchema = Schema.createMap(replace.get(nt.getValueType()));</span>
+<span class="nc" id="L163">         break;</span>
        default:
-<span class="nc" id="L163">         throw new IllegalStateException(&quot;Illegal type &quot; + type + &quot;, schema &quot; + nt);</span>
+<span class="nc" id="L165">         throw new IllegalStateException(&quot;Illegal type &quot; + type + &quot;, schema &quot; + nt);</span>
      }
-<span class="fc" id="L165">     copySchema.accept(nt, newSchema);</span>
-<span class="fc" id="L166">     replace.put(nt, newSchema);</span>
-<span class="fc" id="L167">     return SchemaVisitorAction.CONTINUE;</span>
+<span class="fc" id="L167">     copySchema.accept(nt, newSchema);</span>
+<span class="fc" id="L168">     replace.put(nt, newSchema);</span>
+<span class="fc" id="L169">     return SchemaVisitorAction.CONTINUE;</span>
   }
 
   @Override
   public Schema get() {
-<span class="fc" id="L172">    Schema result = replace.get(root);</span>
-<span class="pc bpc" id="L173" title="1 of 2 branches missed.">    if (result == null) {</span>
-<span class="nc" id="L174">      throw new IllegalStateException(&quot;Replacement map does not contain &quot; + root + &quot;, map &quot; + replace);</span>
+<span class="fc" id="L174">    Schema result = replace.get(root);</span>
+<span class="pc bpc" id="L175" title="1 of 2 branches missed.">    if (result == null) {</span>
+<span class="nc" id="L176">      throw new IllegalStateException(&quot;Replacement map does not contain &quot; + root + &quot;, map &quot; + replace);</span>
     }
-<span class="fc" id="L176">    return result;</span>
+<span class="fc" id="L178">    return result;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L181">    return &quot;CloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
+<span class="nc" id="L183">    return &quot;CloningVisitor{&quot; + &quot;replace=&quot; + replace + &quot;, root=&quot; + root + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

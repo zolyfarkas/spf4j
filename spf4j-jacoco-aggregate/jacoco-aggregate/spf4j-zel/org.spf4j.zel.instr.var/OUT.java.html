@@ -32,29 +32,37 @@
 package org.spf4j.zel.instr.var;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.PrintStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
+
 import javax.annotation.Nullable;
 import org.spf4j.zel.vm.ExecutionContext;
 import org.spf4j.zel.vm.Method;
 
 public final class OUT implements Method {
 
-<span class="fc" id="L42">    public static final Method INSTANCE = new OUT();</span>
+<span class="fc" id="L46">    public static final Method INSTANCE = new OUT();</span>
 
     private OUT() {
     }
 
     @Override
-    @SuppressFBWarnings(&quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;)
+    @SuppressFBWarnings({ &quot;NOS_NON_OWNED_SYNCHRONIZATION&quot;, &quot;EXS_EXCEPTION_SOFTENING_NO_CHECKED&quot; })
     @Nullable
     public Object invoke(final ExecutionContext context, final Object[] parameters) {
-<span class="fc" id="L51">        final PrintStream out = context.getIo().getOut();</span>
-<span class="fc" id="L52">        synchronized (out) {</span>
-<span class="fc bfc" id="L53" title="All 2 branches covered.">            for (Object obj : parameters) {</span>
-<span class="fc" id="L54">               out.print(obj);</span>
+<span class="fc" id="L55">        final OutputStream out = context.getIo().getOut();</span>
+<span class="fc" id="L56">        synchronized (out) {</span>
+<span class="fc bfc" id="L57" title="All 2 branches covered.">            for (Object obj : parameters) {</span>
+              try {
+<span class="fc" id="L59">                out.write(obj.toString().getBytes(Charset.defaultCharset()));</span>
+<span class="nc" id="L60">              } catch (IOException ex) {</span>
+<span class="nc" id="L61">                throw new UncheckedIOException(ex);</span>
+<span class="fc" id="L62">              }</span>
             }
-<span class="fc" id="L56">        }</span>
-<span class="fc" id="L57">        return ExecutionContext.VOID;</span>
+<span class="fc" id="L64">        }</span>
+<span class="fc" id="L65">        return ExecutionContext.VOID;</span>
     }
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

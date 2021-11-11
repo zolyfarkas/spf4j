@@ -257,49 +257,49 @@
 <a class="jxr_linenumber" name="L249" href="#L249">249</a>     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
 <a class="jxr_linenumber" name="L250" href="#L250">250</a>     <strong class="jxr_keyword">try</strong> {
 <a class="jxr_linenumber" name="L251" href="#L251">251</a>       List&lt;URL&gt; runtimeUrls = createPathUrls(sourceDir);
-<a class="jxr_linenumber" name="L252" href="#L252">252</a>       URLClassLoader projPathLoader = AccessController.doPrivileged(
-<a class="jxr_linenumber" name="L253" href="#L253">253</a>               (PrivilegedAction&lt;URLClassLoader&gt;) ()
-<a class="jxr_linenumber" name="L254" href="#L254">254</a>               -&gt; <strong class="jxr_keyword">new</strong> URLClassLoader(runtimeUrls.toArray(<strong class="jxr_keyword">new</strong> URL[runtimeUrls.size()]), contextClassLoader));
-<a class="jxr_linenumber" name="L255" href="#L255">255</a>       currentThread.setContextClassLoader(projPathLoader);
-<a class="jxr_linenumber" name="L256" href="#L256">256</a>       File file = <strong class="jxr_keyword">new</strong> File(sourceDir, filename);
-<a class="jxr_linenumber" name="L257" href="#L257">257</a>       String sourceAbsolutePath = sourceDir.getAbsolutePath();
-<a class="jxr_linenumber" name="L258" href="#L258">258</a>       <em class="jxr_comment">// set the current dir do that sourceIdl will be computed relative to it.</em>
-<a class="jxr_linenumber" name="L259" href="#L259">259</a>       <em class="jxr_comment">// This makes this plugin not thread safe.</em>
-<a class="jxr_linenumber" name="L260" href="#L260">260</a>       Idl parser;
-<a class="jxr_linenumber" name="L261" href="#L261">261</a>       String origCurrentDir = org.spf4j.base.Runtime.getCurrentDir();
-<a class="jxr_linenumber" name="L262" href="#L262">262</a>       org.spf4j.base.Runtime.setCurrentDir(sourceAbsolutePath);
-<a class="jxr_linenumber" name="L263" href="#L263">263</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L264" href="#L264">264</a>         parser = <strong class="jxr_keyword">new</strong> Idl(file, projPathLoader);
-<a class="jxr_linenumber" name="L265" href="#L265">265</a>       } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L266" href="#L266">266</a>         org.spf4j.base.Runtime.setCurrentDir(origCurrentDir);
-<a class="jxr_linenumber" name="L267" href="#L267">267</a>       }
-<a class="jxr_linenumber" name="L268" href="#L268">268</a>       Protocol protocol = parser.CompilationUnit();
-<a class="jxr_linenumber" name="L269" href="#L269">269</a>       publishSchemasAndAttachMvnIdToProtocol(protocol, false, useSchemaReferencesForAvsc);
-<a class="jxr_linenumber" name="L270" href="#L270">270</a>       SpecificCompiler compiler = <strong class="jxr_keyword">new</strong> SpecificCompiler(protocol);
-<a class="jxr_linenumber" name="L271" href="#L271">271</a>       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>));
-<a class="jxr_linenumber" name="L272" href="#L272">272</a>       compiler.setStringType(GenericData.StringType.valueOf(stringType));
-<a class="jxr_linenumber" name="L273" href="#L273">273</a>       compiler.setTemplateDir(templateDirectory);
-<a class="jxr_linenumber" name="L274" href="#L274">274</a>       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
-<a class="jxr_linenumber" name="L275" href="#L275">275</a>       compiler.setCreateSetters(createSetters);
-<a class="jxr_linenumber" name="L276" href="#L276">276</a>       compiler.compileToDestination(<strong class="jxr_keyword">null</strong>, generatedJavaTarget);
-<a class="jxr_linenumber" name="L277" href="#L277">277</a>     } <strong class="jxr_keyword">catch</strong> (ParseException e) {
-<a class="jxr_linenumber" name="L278" href="#L278">278</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(e);
-<a class="jxr_linenumber" name="L279" href="#L279">279</a>     } <strong class="jxr_keyword">catch</strong> (DependencyResolutionRequiredException drre) {
-<a class="jxr_linenumber" name="L280" href="#L280">280</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(drre);
-<a class="jxr_linenumber" name="L281" href="#L281">281</a>     } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L282" href="#L282">282</a>       currentThread.setContextClassLoader(contextClassLoader);
-<a class="jxr_linenumber" name="L283" href="#L283">283</a>     }
-<a class="jxr_linenumber" name="L284" href="#L284">284</a>   }
-<a class="jxr_linenumber" name="L285" href="#L285">285</a> 
-<a class="jxr_linenumber" name="L286" href="#L286">286</a>   <strong class="jxr_keyword">public</strong> List&lt;URL&gt; createPathUrls(<strong class="jxr_keyword">final</strong> File sourceFolder)
-<a class="jxr_linenumber" name="L287" href="#L287">287</a>           <strong class="jxr_keyword">throws</strong> MalformedURLException, DependencyResolutionRequiredException {
-<a class="jxr_linenumber" name="L288" href="#L288">288</a>     List&lt;String&gt; cpElements = mavenProject.getRuntimeClasspathElements();
-<a class="jxr_linenumber" name="L289" href="#L289">289</a>     List&lt;URL&gt; runtimeUrls = <strong class="jxr_keyword">new</strong> ArrayList&lt;URL&gt;();
-<a class="jxr_linenumber" name="L290" href="#L290">290</a>     runtimeUrls.add(sourceFolder.toURI().toURL());
-<a class="jxr_linenumber" name="L291" href="#L291">291</a>     <em class="jxr_comment">// If runtimeClasspathElements is not empty values add its values to Idl path.</em>
-<a class="jxr_linenumber" name="L292" href="#L292">292</a>     <strong class="jxr_keyword">if</strong> (cpElements != <strong class="jxr_keyword">null</strong> &amp;&amp; !cpElements.isEmpty()) {
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>       <strong class="jxr_keyword">for</strong> (Object runtimeClasspathElement : cpElements) {
-<a class="jxr_linenumber" name="L294" href="#L294">294</a>         String element = (String) runtimeClasspathElement;
+<a class="jxr_linenumber" name="L252" href="#L252">252</a>       getLog().info(<span class="jxr_string">"IDL Compile classpath: "</span> + runtimeUrls);
+<a class="jxr_linenumber" name="L253" href="#L253">253</a>       URLClassLoader projPathLoader = AccessController.doPrivileged(
+<a class="jxr_linenumber" name="L254" href="#L254">254</a>               (PrivilegedAction&lt;URLClassLoader&gt;) ()
+<a class="jxr_linenumber" name="L255" href="#L255">255</a>               -&gt; <strong class="jxr_keyword">new</strong> URLClassLoader(runtimeUrls.toArray(<strong class="jxr_keyword">new</strong> URL[runtimeUrls.size()]), contextClassLoader));
+<a class="jxr_linenumber" name="L256" href="#L256">256</a>       currentThread.setContextClassLoader(projPathLoader);
+<a class="jxr_linenumber" name="L257" href="#L257">257</a>       File file = <strong class="jxr_keyword">new</strong> File(sourceDir, filename);
+<a class="jxr_linenumber" name="L258" href="#L258">258</a>       String sourceAbsolutePath = sourceDir.getAbsolutePath();
+<a class="jxr_linenumber" name="L259" href="#L259">259</a>       <em class="jxr_comment">// set the current dir do that sourceIdl will be computed relative to it.</em>
+<a class="jxr_linenumber" name="L260" href="#L260">260</a>       <em class="jxr_comment">// This makes this plugin not thread safe.</em>
+<a class="jxr_linenumber" name="L261" href="#L261">261</a>       Idl parser;
+<a class="jxr_linenumber" name="L262" href="#L262">262</a>       String origCurrentDir = org.spf4j.base.Runtime.getCurrentDir();
+<a class="jxr_linenumber" name="L263" href="#L263">263</a>       org.spf4j.base.Runtime.setCurrentDir(sourceAbsolutePath);
+<a class="jxr_linenumber" name="L264" href="#L264">264</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L265" href="#L265">265</a>         parser = <strong class="jxr_keyword">new</strong> Idl(file, projPathLoader);
+<a class="jxr_linenumber" name="L266" href="#L266">266</a>       } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L267" href="#L267">267</a>         org.spf4j.base.Runtime.setCurrentDir(origCurrentDir);
+<a class="jxr_linenumber" name="L268" href="#L268">268</a>       }
+<a class="jxr_linenumber" name="L269" href="#L269">269</a>       Protocol protocol = parser.CompilationUnit();
+<a class="jxr_linenumber" name="L270" href="#L270">270</a>       publishSchemasAndAttachMvnIdToProtocol(protocol, false, useSchemaReferencesForAvsc);
+<a class="jxr_linenumber" name="L271" href="#L271">271</a>       SpecificCompiler compiler = <strong class="jxr_keyword">new</strong> SpecificCompiler(protocol);
+<a class="jxr_linenumber" name="L272" href="#L272">272</a>       compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>));
+<a class="jxr_linenumber" name="L273" href="#L273">273</a>       compiler.setStringType(GenericData.StringType.valueOf(stringType));
+<a class="jxr_linenumber" name="L274" href="#L274">274</a>       compiler.setTemplateDir(templateDirectory);
+<a class="jxr_linenumber" name="L275" href="#L275">275</a>       compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
+<a class="jxr_linenumber" name="L276" href="#L276">276</a>       compiler.setCreateSetters(createSetters);
+<a class="jxr_linenumber" name="L277" href="#L277">277</a>       compiler.compileToDestination(<strong class="jxr_keyword">null</strong>, generatedJavaTarget);
+<a class="jxr_linenumber" name="L278" href="#L278">278</a>     } <strong class="jxr_keyword">catch</strong> (ParseException e) {
+<a class="jxr_linenumber" name="L279" href="#L279">279</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(e);
+<a class="jxr_linenumber" name="L280" href="#L280">280</a>     } <strong class="jxr_keyword">catch</strong> (DependencyResolutionRequiredException drre) {
+<a class="jxr_linenumber" name="L281" href="#L281">281</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> IOException(drre);
+<a class="jxr_linenumber" name="L282" href="#L282">282</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L283" href="#L283">283</a>       currentThread.setContextClassLoader(contextClassLoader);
+<a class="jxr_linenumber" name="L284" href="#L284">284</a>     }
+<a class="jxr_linenumber" name="L285" href="#L285">285</a>   }
+<a class="jxr_linenumber" name="L286" href="#L286">286</a> 
+<a class="jxr_linenumber" name="L287" href="#L287">287</a>   <strong class="jxr_keyword">public</strong> List&lt;URL&gt; createPathUrls(<strong class="jxr_keyword">final</strong> File sourceFolder)
+<a class="jxr_linenumber" name="L288" href="#L288">288</a>           <strong class="jxr_keyword">throws</strong> MalformedURLException, DependencyResolutionRequiredException {
+<a class="jxr_linenumber" name="L289" href="#L289">289</a>     List&lt;String&gt; cpElements = mavenProject.getRuntimeClasspathElements();
+<a class="jxr_linenumber" name="L290" href="#L290">290</a>     List&lt;URL&gt; runtimeUrls = <strong class="jxr_keyword">new</strong> ArrayList&lt;&gt;();
+<a class="jxr_linenumber" name="L291" href="#L291">291</a>     runtimeUrls.add(sourceFolder.toURI().toURL());
+<a class="jxr_linenumber" name="L292" href="#L292">292</a>     <em class="jxr_comment">// If runtimeClasspathElements is not empty values add its values to Idl path.</em>
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>     <strong class="jxr_keyword">if</strong> (cpElements != <strong class="jxr_keyword">null</strong> &amp;&amp; !cpElements.isEmpty()) {
+<a class="jxr_linenumber" name="L294" href="#L294">294</a>       <strong class="jxr_keyword">for</strong> (String element : cpElements) {
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>         runtimeUrls.add(<strong class="jxr_keyword">new</strong> File(element).toURI().toURL());
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>       }
 <a class="jxr_linenumber" name="L297" href="#L297">297</a>     }
@@ -318,371 +318,373 @@
 <a class="jxr_linenumber" name="L310" href="#L310">310</a>     Protocol protocol = parser.CompilationUnit();
 <a class="jxr_linenumber" name="L311" href="#L311">311</a>     <em class="jxr_comment">// hack uses the same logic and Idl...</em>
 <a class="jxr_linenumber" name="L312" href="#L312">312</a>     String idlSource = <strong class="jxr_keyword">new</strong> File(<span class="jxr_string">"."</span>).toURI().relativize(idl.toURI()).toString();
-<a class="jxr_linenumber" name="L313" href="#L313">313</a>     getLog().debug(<span class="jxr_string">"Injecting mvnIds to "</span> + idlSource);
-<a class="jxr_linenumber" name="L314" href="#L314">314</a>     <strong class="jxr_keyword">for</strong> (Schema s : protocol.getTypes()) {
-<a class="jxr_linenumber" name="L315" href="#L315">315</a>       <strong class="jxr_keyword">if</strong> (s.getProp(<span class="jxr_string">"mvnId"</span>) != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L316" href="#L316">316</a>         <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L317" href="#L317">317</a>       }
-<a class="jxr_linenumber" name="L318" href="#L318">318</a>       String sourceIdl = s.getProp(<span class="jxr_string">"sourceIdl"</span>);
-<a class="jxr_linenumber" name="L319" href="#L319">319</a>       <strong class="jxr_keyword">if</strong> (sourceIdl == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L320" href="#L320">320</a>         getLog().warn(<span class="jxr_string">"sourceIdl not available, will not attach mvnId for IDLs"</span>);
-<a class="jxr_linenumber" name="L321" href="#L321">321</a>         <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L322" href="#L322">322</a>       }
-<a class="jxr_linenumber" name="L323" href="#L323">323</a>       <a href="../../../../../../org/spf4j/maven/plugin/avro/avscp/SourceLocation.html">SourceLocation</a> sl = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/spf4j/maven/plugin/avro/avscp/SourceLocation.html">SourceLocation</a>(sourceIdl);
-<a class="jxr_linenumber" name="L324" href="#L324">324</a>       <strong class="jxr_keyword">if</strong> (!idlSource.equals(sl.getFilePath())) {
-<a class="jxr_linenumber" name="L325" href="#L325">325</a>         <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L326" href="#L326">326</a>       }
-<a class="jxr_linenumber" name="L327" href="#L327">327</a>       <strong class="jxr_keyword">int</strong> zbLineNr = sl.getLineNr() - 1;
-<a class="jxr_linenumber" name="L328" href="#L328">328</a>       String line = readAllLines.get(zbLineNr);
-<a class="jxr_linenumber" name="L329" href="#L329">329</a>       String sMvnId = genMnvId(s);
-<a class="jxr_linenumber" name="L330" href="#L330">330</a>       getLog().debug(<span class="jxr_string">"inserting mvnId: "</span> + sMvnId + <span class="jxr_string">" at "</span>
-<a class="jxr_linenumber" name="L331" href="#L331">331</a>               + sl + <span class="jxr_string">" for line \&quot;"</span> + line + <span class="jxr_string">"\&quot; schema: "</span> + s.getFullName());
-<a class="jxr_linenumber" name="L332" href="#L332">332</a>       <strong class="jxr_keyword">int</strong> zbColNr = sl.getColNr() - 1;
-<a class="jxr_linenumber" name="L333" href="#L333">333</a>       readAllLines.set(zbLineNr, line.substring(0, zbColNr)
-<a class="jxr_linenumber" name="L334" href="#L334">334</a>               + <span class="jxr_string">" @mvnId(\&quot;"</span> + sMvnId + <span class="jxr_string">"\&quot;) "</span>
-<a class="jxr_linenumber" name="L335" href="#L335">335</a>               + line.substring(zbColNr, line.length()));
-<a class="jxr_linenumber" name="L336" href="#L336">336</a>     }
-<a class="jxr_linenumber" name="L337" href="#L337">337</a>     Path tempIdl = Files.createTempFile(<strong class="jxr_keyword">this</strong>.target.toPath(), idl.getName(), <span class="jxr_string">".tmp"</span>);
-<a class="jxr_linenumber" name="L338" href="#L338">338</a>     Files.write(tempIdl, readAllLines, charset);
-<a class="jxr_linenumber" name="L339" href="#L339">339</a>     <strong class="jxr_keyword">return</strong> tempIdl.toFile();
-<a class="jxr_linenumber" name="L340" href="#L340">340</a>   }
-<a class="jxr_linenumber" name="L341" href="#L341">341</a> 
+<a class="jxr_linenumber" name="L313" href="#L313">313</a>     Log log = getLog();
+<a class="jxr_linenumber" name="L314" href="#L314">314</a>     log.debug(<span class="jxr_string">"Injecting mvnIds to "</span> + idlSource);
+<a class="jxr_linenumber" name="L315" href="#L315">315</a>     <strong class="jxr_keyword">for</strong> (Schema s : protocol.getTypes()) {
+<a class="jxr_linenumber" name="L316" href="#L316">316</a>       <strong class="jxr_keyword">if</strong> (s.getProp(<span class="jxr_string">"mvnId"</span>) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L317" href="#L317">317</a>         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L318" href="#L318">318</a>       }
+<a class="jxr_linenumber" name="L319" href="#L319">319</a>       String sourceIdl = s.getProp(<span class="jxr_string">"sourceIdl"</span>);
+<a class="jxr_linenumber" name="L320" href="#L320">320</a>       <strong class="jxr_keyword">if</strong> (sourceIdl == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L321" href="#L321">321</a>         log.warn(<span class="jxr_string">"sourceIdl not available, will not attach mvnId for IDLs"</span>);
+<a class="jxr_linenumber" name="L322" href="#L322">322</a>         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L323" href="#L323">323</a>       }
+<a class="jxr_linenumber" name="L324" href="#L324">324</a>       <a href="../../../../../../org/spf4j/maven/plugin/avro/avscp/SourceLocation.html">SourceLocation</a> sl = <strong class="jxr_keyword">new</strong> <a href="../../../../../../org/spf4j/maven/plugin/avro/avscp/SourceLocation.html">SourceLocation</a>(sourceIdl);
+<a class="jxr_linenumber" name="L325" href="#L325">325</a>       <strong class="jxr_keyword">if</strong> (!idlSource.equals(sl.getFilePath())) {
+<a class="jxr_linenumber" name="L326" href="#L326">326</a>         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L327" href="#L327">327</a>       }
+<a class="jxr_linenumber" name="L328" href="#L328">328</a>       <strong class="jxr_keyword">int</strong> zbLineNr = sl.getLineNr() - 1;
+<a class="jxr_linenumber" name="L329" href="#L329">329</a>       String line = readAllLines.get(zbLineNr);
+<a class="jxr_linenumber" name="L330" href="#L330">330</a>       String sMvnId = genMnvId(s);
+<a class="jxr_linenumber" name="L331" href="#L331">331</a>       log.debug(<span class="jxr_string">"inserting mvnId: "</span> + sMvnId + <span class="jxr_string">" at "</span>
+<a class="jxr_linenumber" name="L332" href="#L332">332</a>               + sl + <span class="jxr_string">" for line \&quot;"</span> + line + <span class="jxr_string">"\&quot; schema: "</span> + s.getFullName());
+<a class="jxr_linenumber" name="L333" href="#L333">333</a>       <strong class="jxr_keyword">int</strong> zbColNr = sl.getColNr() - 1;
+<a class="jxr_linenumber" name="L334" href="#L334">334</a>       readAllLines.set(zbLineNr, line.substring(0, zbColNr)
+<a class="jxr_linenumber" name="L335" href="#L335">335</a>               + <span class="jxr_string">" @mvnId(\&quot;"</span> + sMvnId + <span class="jxr_string">"\&quot;) "</span>
+<a class="jxr_linenumber" name="L336" href="#L336">336</a>               + line.substring(zbColNr, line.length()));
+<a class="jxr_linenumber" name="L337" href="#L337">337</a>     }
+<a class="jxr_linenumber" name="L338" href="#L338">338</a>     Path tempIdl = Files.createTempFile(<strong class="jxr_keyword">this</strong>.target.toPath(), idl.getName(), <span class="jxr_string">".tmp"</span>);
+<a class="jxr_linenumber" name="L339" href="#L339">339</a>     Files.write(tempIdl, readAllLines, charset);
+<a class="jxr_linenumber" name="L340" href="#L340">340</a>     <strong class="jxr_keyword">return</strong> tempIdl.toFile();
+<a class="jxr_linenumber" name="L341" href="#L341">341</a>   }
 <a class="jxr_linenumber" name="L342" href="#L342">342</a> 
-<a class="jxr_linenumber" name="L343" href="#L343">343</a>   <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doCompileSchemas(<strong class="jxr_keyword">final</strong> String[] filenames)
-<a class="jxr_linenumber" name="L344" href="#L344">344</a>           <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L345" href="#L345">345</a>     ClassLoader avroLibClassLoader = org.apache.avro.Schema.<strong class="jxr_keyword">class</strong>.getClassLoader();
-<a class="jxr_linenumber" name="L346" href="#L346">346</a>     Thread currentThread = Thread.currentThread();
-<a class="jxr_linenumber" name="L347" href="#L347">347</a>     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
-<a class="jxr_linenumber" name="L348" href="#L348">348</a>     currentThread.setContextClassLoader(avroLibClassLoader);
-<a class="jxr_linenumber" name="L349" href="#L349">349</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L350" href="#L350">350</a>     ExtendedParser parser = <strong class="jxr_keyword">new</strong> UnresolvedExtendedParser();
-<a class="jxr_linenumber" name="L351" href="#L351">351</a>     Map&lt;String, Schema&gt; schemas = Maps.newHashMapWithExpectedSize(filenames.length);
-<a class="jxr_linenumber" name="L352" href="#L352">352</a>     Map&lt;String, File&gt; srcFiles = Maps.newHashMapWithExpectedSize(filenames.length);
-<a class="jxr_linenumber" name="L353" href="#L353">353</a>     <strong class="jxr_keyword">for</strong> (String fileName : filenames) {
-<a class="jxr_linenumber" name="L354" href="#L354">354</a>       File src = <strong class="jxr_keyword">new</strong> File(sourceDirectory, fileName);
-<a class="jxr_linenumber" name="L355" href="#L355">355</a>       Schema schema = parser.parse(src);
-<a class="jxr_linenumber" name="L356" href="#L356">356</a>       <strong class="jxr_keyword">if</strong> (addMavenId) {
-<a class="jxr_linenumber" name="L357" href="#L357">357</a>         attachMavenId(schema);
-<a class="jxr_linenumber" name="L358" href="#L358">358</a>       }
-<a class="jxr_linenumber" name="L359" href="#L359">359</a>       String fullName = schema.getFullName();
-<a class="jxr_linenumber" name="L360" href="#L360">360</a>       schemas.put(fullName, schema);
-<a class="jxr_linenumber" name="L361" href="#L361">361</a>       srcFiles.put(fullName, src);
-<a class="jxr_linenumber" name="L362" href="#L362">362</a>     }
-<a class="jxr_linenumber" name="L363" href="#L363">363</a>     List&lt;Schema&gt; schemaList = org.apache.avro.avsc.SchemaResolver.resolve(schemas,
-<a class="jxr_linenumber" name="L364" href="#L364">364</a>             Boolean.getBoolean(<span class="jxr_string">"allowUndefinedLogicalTypes"</span>));
-<a class="jxr_linenumber" name="L365" href="#L365">365</a>     <strong class="jxr_keyword">for</strong> (Schema schema : schemaList) {
-<a class="jxr_linenumber" name="L366" href="#L366">366</a>       writeSchemaToTarget(schema, srcFiles.get(schema.getFullName()));
-<a class="jxr_linenumber" name="L367" href="#L367">367</a>     }
-<a class="jxr_linenumber" name="L368" href="#L368">368</a>     } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L369" href="#L369">369</a>       currentThread.setContextClassLoader(contextClassLoader);
-<a class="jxr_linenumber" name="L370" href="#L370">370</a>     }
-<a class="jxr_linenumber" name="L371" href="#L371">371</a>   }
-<a class="jxr_linenumber" name="L372" href="#L372">372</a> 
-<a class="jxr_linenumber" name="L373" href="#L373">373</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeSchemaToTarget(<strong class="jxr_keyword">final</strong> Schema schema, <strong class="jxr_keyword">final</strong> File src) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L374" href="#L374">374</a>     String targetName = schema.getFullName().replace('.', File.separatorChar) + <span class="jxr_string">".avsc"</span>;
-<a class="jxr_linenumber" name="L375" href="#L375">375</a>     Path destination = generatedAvscTarget.toPath().resolve(targetName);
-<a class="jxr_linenumber" name="L376" href="#L376">376</a>     Path parent = destination.getParent();
-<a class="jxr_linenumber" name="L377" href="#L377">377</a>     <strong class="jxr_keyword">if</strong> (parent != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L378" href="#L378">378</a>       Files.createDirectories(parent);
-<a class="jxr_linenumber" name="L379" href="#L379">379</a>     }
-<a class="jxr_linenumber" name="L380" href="#L380">380</a>     Files.write(destination,
-<a class="jxr_linenumber" name="L381" href="#L381">381</a>             schema.toString().getBytes(StandardCharsets.UTF_8),
-<a class="jxr_linenumber" name="L382" href="#L382">382</a>             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-<a class="jxr_linenumber" name="L383" href="#L383">383</a>     SpecificCompiler compiler = <strong class="jxr_keyword">new</strong> SpecificCompiler(schema);
-<a class="jxr_linenumber" name="L384" href="#L384">384</a>     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>));
-<a class="jxr_linenumber" name="L385" href="#L385">385</a>     compiler.setTemplateDir(templateDirectory);
-<a class="jxr_linenumber" name="L386" href="#L386">386</a>     compiler.setStringType(GenericData.StringType.valueOf(stringType));
-<a class="jxr_linenumber" name="L387" href="#L387">387</a>     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
-<a class="jxr_linenumber" name="L388" href="#L388">388</a>     compiler.setCreateSetters(createSetters);
-<a class="jxr_linenumber" name="L389" href="#L389">389</a>     compiler.compileToDestination(src, generatedJavaTarget);
-<a class="jxr_linenumber" name="L390" href="#L390">390</a>   }
-<a class="jxr_linenumber" name="L391" href="#L391">391</a> 
-<a class="jxr_linenumber" name="L392" href="#L392">392</a>   <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doCompileProtocol(<strong class="jxr_keyword">final</strong> String filename, <strong class="jxr_keyword">final</strong> Path destination) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L393" href="#L393">393</a>     File src = <strong class="jxr_keyword">new</strong> File(sourceDirectory, filename);
-<a class="jxr_linenumber" name="L394" href="#L394">394</a>     Protocol protocol = Protocol.parse(src);
-<a class="jxr_linenumber" name="L395" href="#L395">395</a>     publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId, useSchemaReferencesForAvsc);
-<a class="jxr_linenumber" name="L396" href="#L396">396</a>     SpecificCompiler compiler = <strong class="jxr_keyword">new</strong> SpecificCompiler(protocol);
-<a class="jxr_linenumber" name="L397" href="#L397">397</a>     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>));
-<a class="jxr_linenumber" name="L398" href="#L398">398</a>     compiler.setTemplateDir(templateDirectory);
-<a class="jxr_linenumber" name="L399" href="#L399">399</a>     compiler.setStringType(GenericData.StringType.valueOf(stringType));
-<a class="jxr_linenumber" name="L400" href="#L400">400</a>     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
-<a class="jxr_linenumber" name="L401" href="#L401">401</a>     compiler.setCreateSetters(createSetters);
-<a class="jxr_linenumber" name="L402" href="#L402">402</a>     compiler.compileToDestination(src, generatedJavaTarget);
-<a class="jxr_linenumber" name="L403" href="#L403">403</a>     Files.write(destination,
-<a class="jxr_linenumber" name="L404" href="#L404">404</a>             protocol.toString(<strong class="jxr_keyword">true</strong>).getBytes(StandardCharsets.UTF_8));
-<a class="jxr_linenumber" name="L405" href="#L405">405</a>   }
-<a class="jxr_linenumber" name="L406" href="#L406">406</a> 
-<a class="jxr_linenumber" name="L407" href="#L407">407</a> 
+<a class="jxr_linenumber" name="L343" href="#L343">343</a> 
+<a class="jxr_linenumber" name="L344" href="#L344">344</a>   <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doCompileSchemas(<strong class="jxr_keyword">final</strong> String[] filenames)
+<a class="jxr_linenumber" name="L345" href="#L345">345</a>           <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L346" href="#L346">346</a>     getLog().debug(<span class="jxr_string">"Compiling: "</span> + Arrays.toString(filenames) + <span class="jxr_string">", from "</span> + sourceDirectory);
+<a class="jxr_linenumber" name="L347" href="#L347">347</a>     ClassLoader avroLibClassLoader = org.apache.avro.Schema.<strong class="jxr_keyword">class</strong>.getClassLoader();
+<a class="jxr_linenumber" name="L348" href="#L348">348</a>     Thread currentThread = Thread.currentThread();
+<a class="jxr_linenumber" name="L349" href="#L349">349</a>     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+<a class="jxr_linenumber" name="L350" href="#L350">350</a>     currentThread.setContextClassLoader(avroLibClassLoader);
+<a class="jxr_linenumber" name="L351" href="#L351">351</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L352" href="#L352">352</a>     ExtendedParser parser = <strong class="jxr_keyword">new</strong> UnresolvedExtendedParser();
+<a class="jxr_linenumber" name="L353" href="#L353">353</a>     Map&lt;String, Schema&gt; schemas = Maps.newHashMapWithExpectedSize(filenames.length);
+<a class="jxr_linenumber" name="L354" href="#L354">354</a>     Map&lt;String, File&gt; srcFiles = Maps.newHashMapWithExpectedSize(filenames.length);
+<a class="jxr_linenumber" name="L355" href="#L355">355</a>     <strong class="jxr_keyword">for</strong> (String fileName : filenames) {
+<a class="jxr_linenumber" name="L356" href="#L356">356</a>       File src = <strong class="jxr_keyword">new</strong> File(sourceDirectory, fileName);
+<a class="jxr_linenumber" name="L357" href="#L357">357</a>       Schema schema = parser.parse(src);
+<a class="jxr_linenumber" name="L358" href="#L358">358</a>       <strong class="jxr_keyword">if</strong> (addMavenId) {
+<a class="jxr_linenumber" name="L359" href="#L359">359</a>         attachMavenId(schema);
+<a class="jxr_linenumber" name="L360" href="#L360">360</a>       }
+<a class="jxr_linenumber" name="L361" href="#L361">361</a>       String fullName = schema.getFullName();
+<a class="jxr_linenumber" name="L362" href="#L362">362</a>       schemas.put(fullName, schema);
+<a class="jxr_linenumber" name="L363" href="#L363">363</a>       srcFiles.put(fullName, src);
+<a class="jxr_linenumber" name="L364" href="#L364">364</a>     }
+<a class="jxr_linenumber" name="L365" href="#L365">365</a>     List&lt;Schema&gt; schemaList = org.apache.avro.avsc.SchemaResolver.resolve(schemas,
+<a class="jxr_linenumber" name="L366" href="#L366">366</a>             Boolean.getBoolean(<span class="jxr_string">"allowUndefinedLogicalTypes"</span>));
+<a class="jxr_linenumber" name="L367" href="#L367">367</a>     <strong class="jxr_keyword">for</strong> (Schema schema : schemaList) {
+<a class="jxr_linenumber" name="L368" href="#L368">368</a>       writeSchemaToTarget(schema, srcFiles.get(schema.getFullName()));
+<a class="jxr_linenumber" name="L369" href="#L369">369</a>     }
+<a class="jxr_linenumber" name="L370" href="#L370">370</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L371" href="#L371">371</a>       currentThread.setContextClassLoader(contextClassLoader);
+<a class="jxr_linenumber" name="L372" href="#L372">372</a>     }
+<a class="jxr_linenumber" name="L373" href="#L373">373</a>   }
+<a class="jxr_linenumber" name="L374" href="#L374">374</a> 
+<a class="jxr_linenumber" name="L375" href="#L375">375</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> writeSchemaToTarget(<strong class="jxr_keyword">final</strong> Schema schema, <strong class="jxr_keyword">final</strong> File src) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L376" href="#L376">376</a>     String targetName = schema.getFullName().replace('.', File.separatorChar) + <span class="jxr_string">".avsc"</span>;
+<a class="jxr_linenumber" name="L377" href="#L377">377</a>     Path destination = generatedAvscTarget.toPath().resolve(targetName);
+<a class="jxr_linenumber" name="L378" href="#L378">378</a>     Path parent = destination.getParent();
+<a class="jxr_linenumber" name="L379" href="#L379">379</a>     <strong class="jxr_keyword">if</strong> (parent != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L380" href="#L380">380</a>       Files.createDirectories(parent);
+<a class="jxr_linenumber" name="L381" href="#L381">381</a>     }
+<a class="jxr_linenumber" name="L382" href="#L382">382</a>     Files.write(destination,
+<a class="jxr_linenumber" name="L383" href="#L383">383</a>             schema.toString().getBytes(StandardCharsets.UTF_8),
+<a class="jxr_linenumber" name="L384" href="#L384">384</a>             StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+<a class="jxr_linenumber" name="L385" href="#L385">385</a>     SpecificCompiler compiler = <strong class="jxr_keyword">new</strong> SpecificCompiler(schema);
+<a class="jxr_linenumber" name="L386" href="#L386">386</a>     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>));
+<a class="jxr_linenumber" name="L387" href="#L387">387</a>     compiler.setTemplateDir(templateDirectory);
+<a class="jxr_linenumber" name="L388" href="#L388">388</a>     compiler.setStringType(GenericData.StringType.valueOf(stringType));
+<a class="jxr_linenumber" name="L389" href="#L389">389</a>     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
+<a class="jxr_linenumber" name="L390" href="#L390">390</a>     compiler.setCreateSetters(createSetters);
+<a class="jxr_linenumber" name="L391" href="#L391">391</a>     compiler.compileToDestination(src, generatedJavaTarget);
+<a class="jxr_linenumber" name="L392" href="#L392">392</a>   }
+<a class="jxr_linenumber" name="L393" href="#L393">393</a> 
+<a class="jxr_linenumber" name="L394" href="#L394">394</a>   <strong class="jxr_keyword">protected</strong> <strong class="jxr_keyword">void</strong> doCompileProtocol(<strong class="jxr_keyword">final</strong> String filename, <strong class="jxr_keyword">final</strong> Path destination) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L395" href="#L395">395</a>     File src = <strong class="jxr_keyword">new</strong> File(sourceDirectory, filename);
+<a class="jxr_linenumber" name="L396" href="#L396">396</a>     Protocol protocol = Protocol.parse(src);
+<a class="jxr_linenumber" name="L397" href="#L397">397</a>     publishSchemasAndAttachMvnIdToProtocol(protocol, addMavenId, useSchemaReferencesForAvsc);
+<a class="jxr_linenumber" name="L398" href="#L398">398</a>     SpecificCompiler compiler = <strong class="jxr_keyword">new</strong> SpecificCompiler(protocol);
+<a class="jxr_linenumber" name="L399" href="#L399">399</a>     compiler.setOutputCharacterEncoding(mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>));
+<a class="jxr_linenumber" name="L400" href="#L400">400</a>     compiler.setTemplateDir(templateDirectory);
+<a class="jxr_linenumber" name="L401" href="#L401">401</a>     compiler.setStringType(GenericData.StringType.valueOf(stringType));
+<a class="jxr_linenumber" name="L402" href="#L402">402</a>     compiler.setFieldVisibility(SpecificCompiler.FieldVisibility.valueOf(fieldVisibility));
+<a class="jxr_linenumber" name="L403" href="#L403">403</a>     compiler.setCreateSetters(createSetters);
+<a class="jxr_linenumber" name="L404" href="#L404">404</a>     compiler.compileToDestination(src, generatedJavaTarget);
+<a class="jxr_linenumber" name="L405" href="#L405">405</a>     Files.write(destination,
+<a class="jxr_linenumber" name="L406" href="#L406">406</a>             protocol.toString(<strong class="jxr_keyword">true</strong>).getBytes(StandardCharsets.UTF_8));
+<a class="jxr_linenumber" name="L407" href="#L407">407</a>   }
 <a class="jxr_linenumber" name="L408" href="#L408">408</a> 
-<a class="jxr_linenumber" name="L409" href="#L409">409</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> publishSchemasAndAttachMvnIdToProtocol(<strong class="jxr_keyword">final</strong> Protocol protocol,
-<a class="jxr_linenumber" name="L410" href="#L410">410</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> addMvnId, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> useSchemaReferences) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L411" href="#L411">411</a>     Collection&lt;Schema&gt; types = protocol.getTypes();
-<a class="jxr_linenumber" name="L412" href="#L412">412</a>     Set&lt;String&gt; typeNames = Sets.newHashSetWithExpectedSize(types.size());
-<a class="jxr_linenumber" name="L413" href="#L413">413</a>     <strong class="jxr_keyword">for</strong> (Schema schema : types) {
-<a class="jxr_linenumber" name="L414" href="#L414">414</a>       String fullName = schema.getFullName();
-<a class="jxr_linenumber" name="L415" href="#L415">415</a>       <strong class="jxr_keyword">if</strong> (!typeNames.add(fullName)) {
-<a class="jxr_linenumber" name="L416" href="#L416">416</a>         <strong class="jxr_keyword">continue</strong>;
-<a class="jxr_linenumber" name="L417" href="#L417">417</a>       }
-<a class="jxr_linenumber" name="L418" href="#L418">418</a>       String targetName = fullName.replace('.', File.separatorChar) + <span class="jxr_string">".avsc"</span>;
-<a class="jxr_linenumber" name="L419" href="#L419">419</a>       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
-<a class="jxr_linenumber" name="L420" href="#L420">420</a>       Path parent = destinationFile.getParent();
-<a class="jxr_linenumber" name="L421" href="#L421">421</a>       <strong class="jxr_keyword">if</strong> (parent != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L422" href="#L422">422</a>         Files.createDirectories(parent);
-<a class="jxr_linenumber" name="L423" href="#L423">423</a>       }
-<a class="jxr_linenumber" name="L424" href="#L424">424</a>       <strong class="jxr_keyword">if</strong> (addMvnId) {
-<a class="jxr_linenumber" name="L425" href="#L425">425</a>         attachMavenId(schema);
-<a class="jxr_linenumber" name="L426" href="#L426">426</a>       }
-<a class="jxr_linenumber" name="L427" href="#L427">427</a>       <strong class="jxr_keyword">if</strong> (useSchemaReferences) {
-<a class="jxr_linenumber" name="L428" href="#L428">428</a>         <strong class="jxr_keyword">try</strong> (OutputStream fos =
-<a class="jxr_linenumber" name="L429" href="#L429">429</a>                 <strong class="jxr_keyword">new</strong> BufferedOutputStream(Files.newOutputStream(destinationFile,
-<a class="jxr_linenumber" name="L430" href="#L430">430</a>                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
-<a class="jxr_linenumber" name="L431" href="#L431">431</a>           SchemaRefWriter.write(schema, fos);
-<a class="jxr_linenumber" name="L432" href="#L432">432</a>         }
-<a class="jxr_linenumber" name="L433" href="#L433">433</a>       } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L434" href="#L434">434</a>         Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
-<a class="jxr_linenumber" name="L435" href="#L435">435</a>                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-<a class="jxr_linenumber" name="L436" href="#L436">436</a>       }
-<a class="jxr_linenumber" name="L437" href="#L437">437</a>     }
-<a class="jxr_linenumber" name="L438" href="#L438">438</a>   }
-<a class="jxr_linenumber" name="L439" href="#L439">439</a> 
-<a class="jxr_linenumber" name="L440" href="#L440">440</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> deleteGeneratedAvailableInDependencies() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L441" href="#L441">441</a>     Path classesInfo = dependenciesDirectory.toPath().resolve(<span class="jxr_string">"classes.txt"</span>);
-<a class="jxr_linenumber" name="L442" href="#L442">442</a>     Set&lt;String&gt; classes = <strong class="jxr_keyword">new</strong> HashSet(Files.readAllLines(classesInfo, StandardCharsets.UTF_8));
-<a class="jxr_linenumber" name="L443" href="#L443">443</a>     Path javaPath = generatedJavaTarget.toPath();
-<a class="jxr_linenumber" name="L444" href="#L444">444</a>     <strong class="jxr_keyword">try</strong> (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {
-<a class="jxr_linenumber" name="L445" href="#L445">445</a>       List&lt;Path&gt; dupes = fsStream
-<a class="jxr_linenumber" name="L446" href="#L446">446</a>               .filter((p) -&gt; {
-<a class="jxr_linenumber" name="L447" href="#L447">447</a>                 Path relativize = javaPath.relativize(p);
-<a class="jxr_linenumber" name="L448" href="#L448">448</a>                 <strong class="jxr_keyword">return</strong> classes.contains(relativize.toString().replace(<span class="jxr_string">".java"</span>, <span class="jxr_string">".class"</span>));
-<a class="jxr_linenumber" name="L449" href="#L449">449</a>               }).collect(Collectors.toList());
-<a class="jxr_linenumber" name="L450" href="#L450">450</a>       <strong class="jxr_keyword">for</strong> (Path p : dupes) {
-<a class="jxr_linenumber" name="L451" href="#L451">451</a>         Files.delete(p);
-<a class="jxr_linenumber" name="L452" href="#L452">452</a>         getLog().info(<span class="jxr_string">"Deleted dupes: "</span> + dupes);
-<a class="jxr_linenumber" name="L453" href="#L453">453</a>       }
-<a class="jxr_linenumber" name="L454" href="#L454">454</a>     }
-<a class="jxr_linenumber" name="L455" href="#L455">455</a>   }
-<a class="jxr_linenumber" name="L456" href="#L456">456</a> 
-<a class="jxr_linenumber" name="L457" href="#L457">457</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> deleteProtocolClasses() <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L458" href="#L458">458</a>     String detectionString = <span class="jxr_string">"org.apache.avro.Protocol PROTOCOL"</span>;
-<a class="jxr_linenumber" name="L459" href="#L459">459</a>     Path javaPath = generatedJavaTarget.toPath();
-<a class="jxr_linenumber" name="L460" href="#L460">460</a>     String mSourceEncoding = mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>);
-<a class="jxr_linenumber" name="L461" href="#L461">461</a>     String sourceEncoding;
-<a class="jxr_linenumber" name="L462" href="#L462">462</a>     <strong class="jxr_keyword">if</strong> (mSourceEncoding == <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L463" href="#L463">463</a>       sourceEncoding = Charset.defaultCharset().name();
-<a class="jxr_linenumber" name="L464" href="#L464">464</a>     } <strong class="jxr_keyword">else</strong> {
-<a class="jxr_linenumber" name="L465" href="#L465">465</a>       sourceEncoding = mSourceEncoding;
-<a class="jxr_linenumber" name="L466" href="#L466">466</a>     }
-<a class="jxr_linenumber" name="L467" href="#L467">467</a>     <strong class="jxr_keyword">try</strong> (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {
-<a class="jxr_linenumber" name="L468" href="#L468">468</a>       List&lt;Path&gt; protocolFiles = fsStream
-<a class="jxr_linenumber" name="L469" href="#L469">469</a>               .filter((p) -&gt; {
-<a class="jxr_linenumber" name="L470" href="#L470">470</a>                 Path fileName = p.getFileName();
-<a class="jxr_linenumber" name="L471" href="#L471">471</a>                 <strong class="jxr_keyword">if</strong> (fileName == <strong class="jxr_keyword">null</strong> || !fileName.toString().endsWith(<span class="jxr_string">".java"</span>)) {
-<a class="jxr_linenumber" name="L472" href="#L472">472</a>                   <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L473" href="#L473">473</a>                 }
-<a class="jxr_linenumber" name="L474" href="#L474">474</a>                 <strong class="jxr_keyword">try</strong> (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {
-<a class="jxr_linenumber" name="L475" href="#L475">475</a>                   String line;
-<a class="jxr_linenumber" name="L476" href="#L476">476</a>                   <strong class="jxr_keyword">while</strong> ((line = br.readLine()) != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L477" href="#L477">477</a>                     <strong class="jxr_keyword">if</strong> (line.contains(detectionString)) {
-<a class="jxr_linenumber" name="L478" href="#L478">478</a>                       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
-<a class="jxr_linenumber" name="L479" href="#L479">479</a>                     }
-<a class="jxr_linenumber" name="L480" href="#L480">480</a>                   }
-<a class="jxr_linenumber" name="L481" href="#L481">481</a>                 } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L482" href="#L482">482</a>                   getLog().info(<span class="jxr_string">"cannot read file "</span> + p + <span class="jxr_string">", ignoring for cleanup"</span>, ex);
-<a class="jxr_linenumber" name="L483" href="#L483">483</a>                 }
-<a class="jxr_linenumber" name="L484" href="#L484">484</a>                 <strong class="jxr_keyword">return</strong> false;
-<a class="jxr_linenumber" name="L485" href="#L485">485</a>               }).collect(Collectors.toList());
-<a class="jxr_linenumber" name="L486" href="#L486">486</a>       <strong class="jxr_keyword">for</strong> (Path p : protocolFiles) {
-<a class="jxr_linenumber" name="L487" href="#L487">487</a>         Files.delete(p);
-<a class="jxr_linenumber" name="L488" href="#L488">488</a>       }
-<a class="jxr_linenumber" name="L489" href="#L489">489</a>     }
-<a class="jxr_linenumber" name="L490" href="#L490">490</a>   }
-<a class="jxr_linenumber" name="L491" href="#L491">491</a> 
-<a class="jxr_linenumber" name="L492" href="#L492">492</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> deleteSchemasAvailableInDependencies(<strong class="jxr_keyword">final</strong> Path schTargetPath) <strong class="jxr_keyword">throws</strong> IOException {
-<a class="jxr_linenumber" name="L493" href="#L493">493</a>     Path classesInfo = dependenciesDirectory.toPath();
-<a class="jxr_linenumber" name="L494" href="#L494">494</a>     Set&lt;Path&gt; schemas = Files.walk(classesInfo).filter(
-<a class="jxr_linenumber" name="L495" href="#L495">495</a>             (p) -&gt; {
-<a class="jxr_linenumber" name="L496" href="#L496">496</a>               Path fileName = p.getFileName();
-<a class="jxr_linenumber" name="L497" href="#L497">497</a>               <strong class="jxr_keyword">return</strong> fileName == <strong class="jxr_keyword">null</strong> ? false : fileName.toString().endsWith(<span class="jxr_string">"avsc"</span>);
-<a class="jxr_linenumber" name="L498" href="#L498">498</a>             })
-<a class="jxr_linenumber" name="L499" href="#L499">499</a>             .map((p) -&gt; classesInfo.relativize(p)).collect(Collectors.toSet());
-<a class="jxr_linenumber" name="L500" href="#L500">500</a>     List&lt;Path&gt; dupes = Files.walk(schTargetPath).filter((p) -&gt; schemas.contains(schTargetPath.relativize(p)))
-<a class="jxr_linenumber" name="L501" href="#L501">501</a>             .collect(Collectors.toList());
-<a class="jxr_linenumber" name="L502" href="#L502">502</a>     <strong class="jxr_keyword">for</strong> (Path p : dupes) {
-<a class="jxr_linenumber" name="L503" href="#L503">503</a>       Files.delete(p);
-<a class="jxr_linenumber" name="L504" href="#L504">504</a>     }
-<a class="jxr_linenumber" name="L505" href="#L505">505</a>     getLog().info(<span class="jxr_string">"Deleted dupes: "</span> + dupes);
-<a class="jxr_linenumber" name="L506" href="#L506">506</a>   }
-<a class="jxr_linenumber" name="L507" href="#L507">507</a> 
-<a class="jxr_linenumber" name="L508" href="#L508">508</a>   @Override
-<a class="jxr_linenumber" name="L509" href="#L509">509</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> execute() <strong class="jxr_keyword">throws</strong> MojoExecutionException, MojoFailureException {
-<a class="jxr_linenumber" name="L510" href="#L510">510</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L511" href="#L511">511</a>       loadPrevReleaseId2Map();
-<a class="jxr_linenumber" name="L512" href="#L512">512</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L513" href="#L513">513</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Unable to proces previous release of "</span>
-<a class="jxr_linenumber" name="L514" href="#L514">514</a>               + getMavenProject().getVersion(), ex);
-<a class="jxr_linenumber" name="L515" href="#L515">515</a>     }
-<a class="jxr_linenumber" name="L516" href="#L516">516</a>     <strong class="jxr_keyword">super</strong>.execute();
-<a class="jxr_linenumber" name="L517" href="#L517">517</a>     Log logger = <strong class="jxr_keyword">this</strong>.getLog();
-<a class="jxr_linenumber" name="L518" href="#L518">518</a>     logger.info(<span class="jxr_string">"Generating java code + schemas, using avro "</span>
-<a class="jxr_linenumber" name="L519" href="#L519">519</a>             + PackageInfo.getPackageInfo(org.apache.avro.Schema.<strong class="jxr_keyword">class</strong>.getName()));
-<a class="jxr_linenumber" name="L520" href="#L520">520</a>     <strong class="jxr_keyword">synchronized</strong> (String.<strong class="jxr_keyword">class</strong>) {
-<a class="jxr_linenumber" name="L521" href="#L521">521</a>       Properties properties = <strong class="jxr_keyword">new</strong> Properties(System.getProperties());
-<a class="jxr_linenumber" name="L522" href="#L522">522</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L523" href="#L523">523</a>         <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, String&gt; entry : ((Set&lt;Map.Entry&lt;String, String&gt;&gt;) ((Set) systemProperties.entrySet()))) {
-<a class="jxr_linenumber" name="L524" href="#L524">524</a>           System.setProperty(entry.getKey(), entry.getValue());
-<a class="jxr_linenumber" name="L525" href="#L525">525</a>         }
-<a class="jxr_linenumber" name="L526" href="#L526">526</a>         Path generatedAvscTargetPath = generatedAvscTarget.toPath();
-<a class="jxr_linenumber" name="L527" href="#L527">527</a>         Files.createDirectories(generatedAvscTargetPath);
-<a class="jxr_linenumber" name="L528" href="#L528">528</a>         Files.createDirectories(generatedJavaTarget.toPath());
-<a class="jxr_linenumber" name="L529" href="#L529">529</a>         String[] sourceFiles = getSourceFiles(<span class="jxr_string">"**/*.avsc"</span>);
-<a class="jxr_linenumber" name="L530" href="#L530">530</a>         Arrays.sort(sourceFiles); <em class="jxr_comment">// make this predictable, (mostly easier to test)</em>
-<a class="jxr_linenumber" name="L531" href="#L531">531</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L532" href="#L532">532</a>           doCompileSchemas(sourceFiles);
-<a class="jxr_linenumber" name="L533" href="#L533">533</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L534" href="#L534">534</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile schemas "</span> + Arrays.toString(sourceFiles), ex);
-<a class="jxr_linenumber" name="L535" href="#L535">535</a>         }
-<a class="jxr_linenumber" name="L536" href="#L536">536</a>         Path tmpSourceTarget = <strong class="jxr_keyword">this</strong>.target.toPath().resolve(<span class="jxr_string">"avro-sources"</span>);
-<a class="jxr_linenumber" name="L537" href="#L537">537</a>         compileAvpr(tmpSourceTarget);
-<a class="jxr_linenumber" name="L538" href="#L538">538</a>         addMvnIdToIdlsAndMoveToDestination(tmpSourceTarget);
-<a class="jxr_linenumber" name="L539" href="#L539">539</a>         compileIdl(tmpSourceTarget);
-<a class="jxr_linenumber" name="L540" href="#L540">540</a> 
-<a class="jxr_linenumber" name="L541" href="#L541">541</a>         Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);
-<a class="jxr_linenumber" name="L542" href="#L542">542</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L543" href="#L543">543</a>           Files.write(codegenManifest,
-<a class="jxr_linenumber" name="L544" href="#L544">544</a>                   Collections.singletonList(<span class="jxr_string">"Build-Time="</span> + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),
-<a class="jxr_linenumber" name="L545" href="#L545">545</a>                   StandardCharsets.UTF_8);
-<a class="jxr_linenumber" name="L546" href="#L546">546</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L547" href="#L547">547</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot create codegen manifest file "</span> + codegenManifest, ex);
-<a class="jxr_linenumber" name="L548" href="#L548">548</a>         }
-<a class="jxr_linenumber" name="L549" href="#L549">549</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L550" href="#L550">550</a>           deleteGeneratedAvailableInDependencies();
-<a class="jxr_linenumber" name="L551" href="#L551">551</a>           deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());
-<a class="jxr_linenumber" name="L552" href="#L552">552</a>           <strong class="jxr_keyword">if</strong> (deleteProtocolInterface) {
-<a class="jxr_linenumber" name="L553" href="#L553">553</a>             deleteProtocolClasses();
-<a class="jxr_linenumber" name="L554" href="#L554">554</a>           }
-<a class="jxr_linenumber" name="L555" href="#L555">555</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L556" href="#L556">556</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot delete dependency dupes "</span> + <strong class="jxr_keyword">this</strong>, ex);
-<a class="jxr_linenumber" name="L557" href="#L557">557</a>         }
-<a class="jxr_linenumber" name="L558" href="#L558">558</a>         Path indexFile = generatedAvscTargetPath.resolve(SCHEMA_INDEX_FILENAME);
-<a class="jxr_linenumber" name="L559" href="#L559">559</a>         <strong class="jxr_keyword">try</strong> (BufferedWriter bw = Files.newBufferedWriter(indexFile,
-<a class="jxr_linenumber" name="L560" href="#L560">560</a>                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
-<a class="jxr_linenumber" name="L561" href="#L561">561</a>           bw.append(SCHEMA_INDEX_PGK_KEY);
-<a class="jxr_linenumber" name="L562" href="#L562">562</a>           bw.append('=');
-<a class="jxr_linenumber" name="L563" href="#L563">563</a>           bw.append(getPackageMvnIdPrefix());
-<a class="jxr_linenumber" name="L564" href="#L564">564</a>           bw.append('\n');
-<a class="jxr_linenumber" name="L565" href="#L565">565</a>           <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, Schema&gt; entry : index.entrySet()) {
-<a class="jxr_linenumber" name="L566" href="#L566">566</a>             bw.append(entry.getKey());
-<a class="jxr_linenumber" name="L567" href="#L567">567</a>             bw.append('=');
-<a class="jxr_linenumber" name="L568" href="#L568">568</a>             bw.append(entry.getValue().getFullName());
-<a class="jxr_linenumber" name="L569" href="#L569">569</a>             bw.append('\n');
-<a class="jxr_linenumber" name="L570" href="#L570">570</a>           }
-<a class="jxr_linenumber" name="L571" href="#L571">571</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L572" href="#L572">572</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot generate schema index "</span> + <strong class="jxr_keyword">this</strong>, ex);
-<a class="jxr_linenumber" name="L573" href="#L573">573</a>         }
-<a class="jxr_linenumber" name="L574" href="#L574">574</a>         mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
-<a class="jxr_linenumber" name="L575" href="#L575">575</a>         Resource resource = <strong class="jxr_keyword">new</strong> Resource();
-<a class="jxr_linenumber" name="L576" href="#L576">576</a>         resource.setDirectory(<strong class="jxr_keyword">this</strong>.generatedAvscTarget.getAbsolutePath());
-<a class="jxr_linenumber" name="L577" href="#L577">577</a>         resource.addInclude(<span class="jxr_string">"**/*.avsc"</span>);
-<a class="jxr_linenumber" name="L578" href="#L578">578</a>         resource.addInclude(<span class="jxr_string">"*.properties"</span>);
-<a class="jxr_linenumber" name="L579" href="#L579">579</a>         mavenProject.addResource(resource);
-<a class="jxr_linenumber" name="L580" href="#L580">580</a>         Resource resource2 = <strong class="jxr_keyword">new</strong> Resource();
-<a class="jxr_linenumber" name="L581" href="#L581">581</a>         resource2.setDirectory(tmpSourceTarget.toString());
-<a class="jxr_linenumber" name="L582" href="#L582">582</a>         resource2.addInclude(<span class="jxr_string">"**/*.avpr"</span>);
-<a class="jxr_linenumber" name="L583" href="#L583">583</a>         resource2.addInclude(<span class="jxr_string">"**/*.avdl"</span>);
-<a class="jxr_linenumber" name="L584" href="#L584">584</a>         mavenProject.addResource(resource2);
-<a class="jxr_linenumber" name="L585" href="#L585">585</a>       } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L586" href="#L586">586</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile schemas, cfg = "</span> + <strong class="jxr_keyword">this</strong>, ex);
-<a class="jxr_linenumber" name="L587" href="#L587">587</a>       } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L588" href="#L588">588</a>         System.setProperties(properties);
-<a class="jxr_linenumber" name="L589" href="#L589">589</a>       }
-<a class="jxr_linenumber" name="L590" href="#L590">590</a>     }
-<a class="jxr_linenumber" name="L591" href="#L591">591</a>   }
-<a class="jxr_linenumber" name="L592" href="#L592">592</a> 
-<a class="jxr_linenumber" name="L593" href="#L593">593</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> compileIdl(<strong class="jxr_keyword">final</strong> Path pSources) <strong class="jxr_keyword">throws</strong> MojoExecutionException {
-<a class="jxr_linenumber" name="L594" href="#L594">594</a>     File pSourcesFile = pSources.toFile();
-<a class="jxr_linenumber" name="L595" href="#L595">595</a>     <strong class="jxr_keyword">for</strong> (String file : getFiles(pSourcesFile, <span class="jxr_string">"**/*.avdl"</span>)) {
-<a class="jxr_linenumber" name="L596" href="#L596">596</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L597" href="#L597">597</a>         doCompileIDL(pSourcesFile, file);
-<a class="jxr_linenumber" name="L598" href="#L598">598</a>       } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L599" href="#L599">599</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile "</span> + file, ex);
-<a class="jxr_linenumber" name="L600" href="#L600">600</a>       }
-<a class="jxr_linenumber" name="L601" href="#L601">601</a>     }
-<a class="jxr_linenumber" name="L602" href="#L602">602</a>   }
-<a class="jxr_linenumber" name="L603" href="#L603">603</a> 
-<a class="jxr_linenumber" name="L604" href="#L604">604</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addMvnIdToIdlsAndMoveToDestination(<strong class="jxr_keyword">final</strong> Path destPath) <strong class="jxr_keyword">throws</strong> MojoExecutionException {
-<a class="jxr_linenumber" name="L605" href="#L605">605</a>     Thread currentThread = Thread.currentThread();
-<a class="jxr_linenumber" name="L606" href="#L606">606</a>     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
-<a class="jxr_linenumber" name="L607" href="#L607">607</a>     <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L608" href="#L608">608</a>       List&lt;URL&gt; runtimeUrls = createPathUrls(<strong class="jxr_keyword">this</strong>.sourceDirectory);
-<a class="jxr_linenumber" name="L609" href="#L609">609</a>       getLog().info(<span class="jxr_string">"Compile classpath: "</span> + runtimeUrls);
-<a class="jxr_linenumber" name="L610" href="#L610">610</a>       URLClassLoader projPathLoader = AccessController.doPrivileged(
-<a class="jxr_linenumber" name="L611" href="#L611">611</a>               (PrivilegedAction&lt;URLClassLoader&gt;) ()
-<a class="jxr_linenumber" name="L612" href="#L612">612</a>                       -&gt; <strong class="jxr_keyword">new</strong> URLClassLoader(runtimeUrls.toArray(<strong class="jxr_keyword">new</strong> URL[runtimeUrls.size()]), contextClassLoader));
-<a class="jxr_linenumber" name="L613" href="#L613">613</a>       currentThread.setContextClassLoader(projPathLoader);
-<a class="jxr_linenumber" name="L614" href="#L614">614</a>       <strong class="jxr_keyword">for</strong> (String file : getSourceFiles(<span class="jxr_string">"**/*.avdl"</span>)) {
-<a class="jxr_linenumber" name="L615" href="#L615">615</a>         Path destination = destPath.resolve(file);
-<a class="jxr_linenumber" name="L616" href="#L616">616</a>         Path parent = destination.getParent();
-<a class="jxr_linenumber" name="L617" href="#L617">617</a>         <strong class="jxr_keyword">if</strong> (parent != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L618" href="#L618">618</a>           Files.createDirectories(parent);
-<a class="jxr_linenumber" name="L619" href="#L619">619</a>         }
-<a class="jxr_linenumber" name="L620" href="#L620">620</a>         File idlFile = <strong class="jxr_keyword">new</strong> File(sourceDirectory, file);
-<a class="jxr_linenumber" name="L621" href="#L621">621</a>         <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L622" href="#L622">622</a>           idlFile = addMvnIdsToIdl(idlFile, projPathLoader);
-<a class="jxr_linenumber" name="L623" href="#L623">623</a>         } <strong class="jxr_keyword">catch</strong> (ParseException | IOException | RuntimeException ex) {
-<a class="jxr_linenumber" name="L624" href="#L624">624</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot add mvnId to  IDL "</span> + idlFile + <span class="jxr_string">", "</span> + ex.getMessage(), ex);
-<a class="jxr_linenumber" name="L625" href="#L625">625</a>         }
-<a class="jxr_linenumber" name="L626" href="#L626">626</a>         Files.copy(idlFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
-<a class="jxr_linenumber" name="L627" href="#L627">627</a>       }
-<a class="jxr_linenumber" name="L628" href="#L628">628</a>     } <strong class="jxr_keyword">catch</strong> (IOException | DependencyResolutionRequiredException ex) {
-<a class="jxr_linenumber" name="L629" href="#L629">629</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot add mvnId to  IDL "</span> + <strong class="jxr_keyword">this</strong>, ex);
-<a class="jxr_linenumber" name="L630" href="#L630">630</a>     } <strong class="jxr_keyword">finally</strong> {
-<a class="jxr_linenumber" name="L631" href="#L631">631</a>       currentThread.setContextClassLoader(contextClassLoader);
-<a class="jxr_linenumber" name="L632" href="#L632">632</a>     }
-<a class="jxr_linenumber" name="L633" href="#L633">633</a>   }
-<a class="jxr_linenumber" name="L634" href="#L634">634</a> 
-<a class="jxr_linenumber" name="L635" href="#L635">635</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> compileAvpr(<strong class="jxr_keyword">final</strong> Path pSources) <strong class="jxr_keyword">throws</strong> MojoExecutionException {
-<a class="jxr_linenumber" name="L636" href="#L636">636</a>     <strong class="jxr_keyword">for</strong> (String file : getSourceFiles(<span class="jxr_string">"**/*.avpr"</span>)) {
-<a class="jxr_linenumber" name="L637" href="#L637">637</a>       <strong class="jxr_keyword">try</strong> {
-<a class="jxr_linenumber" name="L638" href="#L638">638</a>         Path destination = pSources.resolve(file);
-<a class="jxr_linenumber" name="L639" href="#L639">639</a>         Path folder = destination.getParent();
-<a class="jxr_linenumber" name="L640" href="#L640">640</a>         <strong class="jxr_keyword">if</strong> (folder != <strong class="jxr_keyword">null</strong>) {
-<a class="jxr_linenumber" name="L641" href="#L641">641</a>           Files.createDirectories(folder);
-<a class="jxr_linenumber" name="L642" href="#L642">642</a>         }
-<a class="jxr_linenumber" name="L643" href="#L643">643</a>         doCompileProtocol(file, destination);
-<a class="jxr_linenumber" name="L644" href="#L644">644</a>       } <strong class="jxr_keyword">catch</strong> (IOException ex) {
-<a class="jxr_linenumber" name="L645" href="#L645">645</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile protocol "</span> + file, ex);
-<a class="jxr_linenumber" name="L646" href="#L646">646</a>       }
-<a class="jxr_linenumber" name="L647" href="#L647">647</a>     }
-<a class="jxr_linenumber" name="L648" href="#L648">648</a>   }
-<a class="jxr_linenumber" name="L649" href="#L649">649</a> 
-<a class="jxr_linenumber" name="L650" href="#L650">650</a>   <strong class="jxr_keyword">public</strong> String[] getSourceFiles(<strong class="jxr_keyword">final</strong> String pattern) {
-<a class="jxr_linenumber" name="L651" href="#L651">651</a>     FileSetManager fsm = <strong class="jxr_keyword">new</strong> FileSetManager();
-<a class="jxr_linenumber" name="L652" href="#L652">652</a>     FileSet fs = <strong class="jxr_keyword">new</strong> FileSet();
-<a class="jxr_linenumber" name="L653" href="#L653">653</a>     fs.setDirectory(sourceDirectory.getAbsolutePath());
-<a class="jxr_linenumber" name="L654" href="#L654">654</a>     fs.addInclude(pattern);
-<a class="jxr_linenumber" name="L655" href="#L655">655</a>     fs.setFollowSymlinks(false);
-<a class="jxr_linenumber" name="L656" href="#L656">656</a>     <strong class="jxr_keyword">return</strong> fsm.getIncludedFiles(fs);
-<a class="jxr_linenumber" name="L657" href="#L657">657</a>   }
-<a class="jxr_linenumber" name="L658" href="#L658">658</a> 
-<a class="jxr_linenumber" name="L659" href="#L659">659</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getFiles(<strong class="jxr_keyword">final</strong> File directory, <strong class="jxr_keyword">final</strong> String pattern) {
-<a class="jxr_linenumber" name="L660" href="#L660">660</a>     FileSetManager fsm = <strong class="jxr_keyword">new</strong> FileSetManager();
-<a class="jxr_linenumber" name="L661" href="#L661">661</a>     FileSet fs = <strong class="jxr_keyword">new</strong> FileSet();
-<a class="jxr_linenumber" name="L662" href="#L662">662</a>     fs.setDirectory(directory.getAbsolutePath());
-<a class="jxr_linenumber" name="L663" href="#L663">663</a>     fs.addInclude(pattern);
-<a class="jxr_linenumber" name="L664" href="#L664">664</a>     fs.setFollowSymlinks(false);
-<a class="jxr_linenumber" name="L665" href="#L665">665</a>     <strong class="jxr_keyword">return</strong> fsm.getIncludedFiles(fs);
-<a class="jxr_linenumber" name="L666" href="#L666">666</a>   }
-<a class="jxr_linenumber" name="L667" href="#L667">667</a> 
-<a class="jxr_linenumber" name="L668" href="#L668">668</a>   @Override
-<a class="jxr_linenumber" name="L669" href="#L669">669</a>   <strong class="jxr_keyword">public</strong> String toString() {
-<a class="jxr_linenumber" name="L670" href="#L670">670</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"SchemaCompileMojo{"</span> + <span class="jxr_string">"fieldVisibility="</span> + fieldVisibility
-<a class="jxr_linenumber" name="L671" href="#L671">671</a>             + <span class="jxr_string">", templateDirectory="</span> + templateDirectory + <span class="jxr_string">", createSetters="</span> + createSetters
-<a class="jxr_linenumber" name="L672" href="#L672">672</a>             + <span class="jxr_string">", addMavenId="</span> + addMavenId + <span class="jxr_string">", "</span> + <strong class="jxr_keyword">super</strong>.toString() + '}';
-<a class="jxr_linenumber" name="L673" href="#L673">673</a>   }
-<a class="jxr_linenumber" name="L674" href="#L674">674</a> 
-<a class="jxr_linenumber" name="L675" href="#L675">675</a> }
+<a class="jxr_linenumber" name="L409" href="#L409">409</a> 
+<a class="jxr_linenumber" name="L410" href="#L410">410</a> 
+<a class="jxr_linenumber" name="L411" href="#L411">411</a>   <strong class="jxr_keyword">private</strong> <strong class="jxr_keyword">void</strong> publishSchemasAndAttachMvnIdToProtocol(<strong class="jxr_keyword">final</strong> Protocol protocol,
+<a class="jxr_linenumber" name="L412" href="#L412">412</a>           <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> addMvnId, <strong class="jxr_keyword">final</strong> <strong class="jxr_keyword">boolean</strong> useSchemaReferences) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L413" href="#L413">413</a>     Collection&lt;Schema&gt; types = protocol.getTypes();
+<a class="jxr_linenumber" name="L414" href="#L414">414</a>     Set&lt;String&gt; typeNames = Sets.newHashSetWithExpectedSize(types.size());
+<a class="jxr_linenumber" name="L415" href="#L415">415</a>     <strong class="jxr_keyword">for</strong> (Schema schema : types) {
+<a class="jxr_linenumber" name="L416" href="#L416">416</a>       String fullName = schema.getFullName();
+<a class="jxr_linenumber" name="L417" href="#L417">417</a>       <strong class="jxr_keyword">if</strong> (!typeNames.add(fullName)) {
+<a class="jxr_linenumber" name="L418" href="#L418">418</a>         <strong class="jxr_keyword">continue</strong>;
+<a class="jxr_linenumber" name="L419" href="#L419">419</a>       }
+<a class="jxr_linenumber" name="L420" href="#L420">420</a>       String targetName = fullName.replace('.', File.separatorChar) + <span class="jxr_string">".avsc"</span>;
+<a class="jxr_linenumber" name="L421" href="#L421">421</a>       Path destinationFile = generatedAvscTarget.toPath().resolve(targetName);
+<a class="jxr_linenumber" name="L422" href="#L422">422</a>       Path parent = destinationFile.getParent();
+<a class="jxr_linenumber" name="L423" href="#L423">423</a>       <strong class="jxr_keyword">if</strong> (parent != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L424" href="#L424">424</a>         Files.createDirectories(parent);
+<a class="jxr_linenumber" name="L425" href="#L425">425</a>       }
+<a class="jxr_linenumber" name="L426" href="#L426">426</a>       <strong class="jxr_keyword">if</strong> (addMvnId) {
+<a class="jxr_linenumber" name="L427" href="#L427">427</a>         attachMavenId(schema);
+<a class="jxr_linenumber" name="L428" href="#L428">428</a>       }
+<a class="jxr_linenumber" name="L429" href="#L429">429</a>       <strong class="jxr_keyword">if</strong> (useSchemaReferences) {
+<a class="jxr_linenumber" name="L430" href="#L430">430</a>         <strong class="jxr_keyword">try</strong> (OutputStream fos =
+<a class="jxr_linenumber" name="L431" href="#L431">431</a>                 <strong class="jxr_keyword">new</strong> BufferedOutputStream(Files.newOutputStream(destinationFile,
+<a class="jxr_linenumber" name="L432" href="#L432">432</a>                         StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+<a class="jxr_linenumber" name="L433" href="#L433">433</a>           SchemaRefWriter.write(schema, fos);
+<a class="jxr_linenumber" name="L434" href="#L434">434</a>         }
+<a class="jxr_linenumber" name="L435" href="#L435">435</a>       } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L436" href="#L436">436</a>         Files.write(destinationFile, schema.toString().getBytes(StandardCharsets.UTF_8),
+<a class="jxr_linenumber" name="L437" href="#L437">437</a>                 StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+<a class="jxr_linenumber" name="L438" href="#L438">438</a>       }
+<a class="jxr_linenumber" name="L439" href="#L439">439</a>     }
+<a class="jxr_linenumber" name="L440" href="#L440">440</a>   }
+<a class="jxr_linenumber" name="L441" href="#L441">441</a> 
+<a class="jxr_linenumber" name="L442" href="#L442">442</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> deleteGeneratedAvailableInDependencies() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L443" href="#L443">443</a>     Path classesInfo = dependenciesDirectory.toPath().resolve(<span class="jxr_string">"classes.txt"</span>);
+<a class="jxr_linenumber" name="L444" href="#L444">444</a>     Set&lt;String&gt; classes = <strong class="jxr_keyword">new</strong> HashSet(Files.readAllLines(classesInfo, StandardCharsets.UTF_8));
+<a class="jxr_linenumber" name="L445" href="#L445">445</a>     Path javaPath = generatedJavaTarget.toPath();
+<a class="jxr_linenumber" name="L446" href="#L446">446</a>     <strong class="jxr_keyword">try</strong> (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {
+<a class="jxr_linenumber" name="L447" href="#L447">447</a>       List&lt;Path&gt; dupes = fsStream
+<a class="jxr_linenumber" name="L448" href="#L448">448</a>               .filter((p) -&gt; {
+<a class="jxr_linenumber" name="L449" href="#L449">449</a>                 Path relativize = javaPath.relativize(p);
+<a class="jxr_linenumber" name="L450" href="#L450">450</a>                 <strong class="jxr_keyword">return</strong> classes.contains(relativize.toString().replace(<span class="jxr_string">".java"</span>, <span class="jxr_string">".class"</span>));
+<a class="jxr_linenumber" name="L451" href="#L451">451</a>               }).collect(Collectors.toList());
+<a class="jxr_linenumber" name="L452" href="#L452">452</a>       <strong class="jxr_keyword">for</strong> (Path p : dupes) {
+<a class="jxr_linenumber" name="L453" href="#L453">453</a>         Files.delete(p);
+<a class="jxr_linenumber" name="L454" href="#L454">454</a>         getLog().info(<span class="jxr_string">"Deleted dupes: "</span> + dupes);
+<a class="jxr_linenumber" name="L455" href="#L455">455</a>       }
+<a class="jxr_linenumber" name="L456" href="#L456">456</a>     }
+<a class="jxr_linenumber" name="L457" href="#L457">457</a>   }
+<a class="jxr_linenumber" name="L458" href="#L458">458</a> 
+<a class="jxr_linenumber" name="L459" href="#L459">459</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> deleteProtocolClasses() <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L460" href="#L460">460</a>     String detectionString = <span class="jxr_string">"org.apache.avro.Protocol PROTOCOL"</span>;
+<a class="jxr_linenumber" name="L461" href="#L461">461</a>     Path javaPath = generatedJavaTarget.toPath();
+<a class="jxr_linenumber" name="L462" href="#L462">462</a>     String mSourceEncoding = mavenProject.getProperties().getProperty(<span class="jxr_string">"project.build.sourceEncoding"</span>);
+<a class="jxr_linenumber" name="L463" href="#L463">463</a>     String sourceEncoding;
+<a class="jxr_linenumber" name="L464" href="#L464">464</a>     <strong class="jxr_keyword">if</strong> (mSourceEncoding == <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L465" href="#L465">465</a>       sourceEncoding = Charset.defaultCharset().name();
+<a class="jxr_linenumber" name="L466" href="#L466">466</a>     } <strong class="jxr_keyword">else</strong> {
+<a class="jxr_linenumber" name="L467" href="#L467">467</a>       sourceEncoding = mSourceEncoding;
+<a class="jxr_linenumber" name="L468" href="#L468">468</a>     }
+<a class="jxr_linenumber" name="L469" href="#L469">469</a>     <strong class="jxr_keyword">try</strong> (Stream&lt;Path&gt; fsStream = Files.walk(javaPath)) {
+<a class="jxr_linenumber" name="L470" href="#L470">470</a>       List&lt;Path&gt; protocolFiles = fsStream
+<a class="jxr_linenumber" name="L471" href="#L471">471</a>               .filter((p) -&gt; {
+<a class="jxr_linenumber" name="L472" href="#L472">472</a>                 Path fileName = p.getFileName();
+<a class="jxr_linenumber" name="L473" href="#L473">473</a>                 <strong class="jxr_keyword">if</strong> (fileName == <strong class="jxr_keyword">null</strong> || !fileName.toString().endsWith(<span class="jxr_string">".java"</span>)) {
+<a class="jxr_linenumber" name="L474" href="#L474">474</a>                   <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L475" href="#L475">475</a>                 }
+<a class="jxr_linenumber" name="L476" href="#L476">476</a>                 <strong class="jxr_keyword">try</strong> (BufferedReader br = Files.newBufferedReader(p, Charset.forName(sourceEncoding))) {
+<a class="jxr_linenumber" name="L477" href="#L477">477</a>                   String line;
+<a class="jxr_linenumber" name="L478" href="#L478">478</a>                   <strong class="jxr_keyword">while</strong> ((line = br.readLine()) != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L479" href="#L479">479</a>                     <strong class="jxr_keyword">if</strong> (line.contains(detectionString)) {
+<a class="jxr_linenumber" name="L480" href="#L480">480</a>                       <strong class="jxr_keyword">return</strong> <strong class="jxr_keyword">true</strong>;
+<a class="jxr_linenumber" name="L481" href="#L481">481</a>                     }
+<a class="jxr_linenumber" name="L482" href="#L482">482</a>                   }
+<a class="jxr_linenumber" name="L483" href="#L483">483</a>                 } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L484" href="#L484">484</a>                   getLog().info(<span class="jxr_string">"cannot read file "</span> + p + <span class="jxr_string">", ignoring for cleanup"</span>, ex);
+<a class="jxr_linenumber" name="L485" href="#L485">485</a>                 }
+<a class="jxr_linenumber" name="L486" href="#L486">486</a>                 <strong class="jxr_keyword">return</strong> false;
+<a class="jxr_linenumber" name="L487" href="#L487">487</a>               }).collect(Collectors.toList());
+<a class="jxr_linenumber" name="L488" href="#L488">488</a>       <strong class="jxr_keyword">for</strong> (Path p : protocolFiles) {
+<a class="jxr_linenumber" name="L489" href="#L489">489</a>         Files.delete(p);
+<a class="jxr_linenumber" name="L490" href="#L490">490</a>       }
+<a class="jxr_linenumber" name="L491" href="#L491">491</a>     }
+<a class="jxr_linenumber" name="L492" href="#L492">492</a>   }
+<a class="jxr_linenumber" name="L493" href="#L493">493</a> 
+<a class="jxr_linenumber" name="L494" href="#L494">494</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> deleteSchemasAvailableInDependencies(<strong class="jxr_keyword">final</strong> Path schTargetPath) <strong class="jxr_keyword">throws</strong> IOException {
+<a class="jxr_linenumber" name="L495" href="#L495">495</a>     Path classesInfo = dependenciesDirectory.toPath();
+<a class="jxr_linenumber" name="L496" href="#L496">496</a>     Set&lt;Path&gt; schemas = Files.walk(classesInfo).filter(
+<a class="jxr_linenumber" name="L497" href="#L497">497</a>             (p) -&gt; {
+<a class="jxr_linenumber" name="L498" href="#L498">498</a>               Path fileName = p.getFileName();
+<a class="jxr_linenumber" name="L499" href="#L499">499</a>               <strong class="jxr_keyword">return</strong> fileName == <strong class="jxr_keyword">null</strong> ? false : fileName.toString().endsWith(<span class="jxr_string">"avsc"</span>);
+<a class="jxr_linenumber" name="L500" href="#L500">500</a>             })
+<a class="jxr_linenumber" name="L501" href="#L501">501</a>             .map((p) -&gt; classesInfo.relativize(p)).collect(Collectors.toSet());
+<a class="jxr_linenumber" name="L502" href="#L502">502</a>     List&lt;Path&gt; dupes = Files.walk(schTargetPath).filter((p) -&gt; schemas.contains(schTargetPath.relativize(p)))
+<a class="jxr_linenumber" name="L503" href="#L503">503</a>             .collect(Collectors.toList());
+<a class="jxr_linenumber" name="L504" href="#L504">504</a>     <strong class="jxr_keyword">for</strong> (Path p : dupes) {
+<a class="jxr_linenumber" name="L505" href="#L505">505</a>       Files.delete(p);
+<a class="jxr_linenumber" name="L506" href="#L506">506</a>     }
+<a class="jxr_linenumber" name="L507" href="#L507">507</a>     getLog().info(<span class="jxr_string">"Deleted dupes: "</span> + dupes);
+<a class="jxr_linenumber" name="L508" href="#L508">508</a>   }
+<a class="jxr_linenumber" name="L509" href="#L509">509</a> 
+<a class="jxr_linenumber" name="L510" href="#L510">510</a>   @Override
+<a class="jxr_linenumber" name="L511" href="#L511">511</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> execute() <strong class="jxr_keyword">throws</strong> MojoExecutionException, MojoFailureException {
+<a class="jxr_linenumber" name="L512" href="#L512">512</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L513" href="#L513">513</a>       loadPrevReleaseId2Map();
+<a class="jxr_linenumber" name="L514" href="#L514">514</a>     } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L515" href="#L515">515</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Unable to proces previous release of "</span>
+<a class="jxr_linenumber" name="L516" href="#L516">516</a>               + getMavenProject().getVersion(), ex);
+<a class="jxr_linenumber" name="L517" href="#L517">517</a>     }
+<a class="jxr_linenumber" name="L518" href="#L518">518</a>     <strong class="jxr_keyword">super</strong>.execute();
+<a class="jxr_linenumber" name="L519" href="#L519">519</a>     Log logger = <strong class="jxr_keyword">this</strong>.getLog();
+<a class="jxr_linenumber" name="L520" href="#L520">520</a>     logger.info(<span class="jxr_string">"Generating java code + schemas, using avro "</span>
+<a class="jxr_linenumber" name="L521" href="#L521">521</a>             + PackageInfo.getPackageInfo(org.apache.avro.Schema.<strong class="jxr_keyword">class</strong>.getName()));
+<a class="jxr_linenumber" name="L522" href="#L522">522</a>     <strong class="jxr_keyword">synchronized</strong> (String.<strong class="jxr_keyword">class</strong>) {
+<a class="jxr_linenumber" name="L523" href="#L523">523</a>       Properties properties = <strong class="jxr_keyword">new</strong> Properties(System.getProperties());
+<a class="jxr_linenumber" name="L524" href="#L524">524</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L525" href="#L525">525</a>         <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, String&gt; entry : ((Set&lt;Map.Entry&lt;String, String&gt;&gt;) ((Set) systemProperties.entrySet()))) {
+<a class="jxr_linenumber" name="L526" href="#L526">526</a>           System.setProperty(entry.getKey(), entry.getValue());
+<a class="jxr_linenumber" name="L527" href="#L527">527</a>         }
+<a class="jxr_linenumber" name="L528" href="#L528">528</a>         Path generatedAvscTargetPath = generatedAvscTarget.toPath();
+<a class="jxr_linenumber" name="L529" href="#L529">529</a>         Files.createDirectories(generatedAvscTargetPath);
+<a class="jxr_linenumber" name="L530" href="#L530">530</a>         Files.createDirectories(generatedJavaTarget.toPath());
+<a class="jxr_linenumber" name="L531" href="#L531">531</a>         String[] sourceFiles = getSourceFiles(<span class="jxr_string">"**/*.avsc"</span>);
+<a class="jxr_linenumber" name="L532" href="#L532">532</a>         Arrays.sort(sourceFiles); <em class="jxr_comment">// make this predictable, (mostly easier to test)</em>
+<a class="jxr_linenumber" name="L533" href="#L533">533</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L534" href="#L534">534</a>           doCompileSchemas(sourceFiles);
+<a class="jxr_linenumber" name="L535" href="#L535">535</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L536" href="#L536">536</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile schemas "</span> + Arrays.toString(sourceFiles), ex);
+<a class="jxr_linenumber" name="L537" href="#L537">537</a>         }
+<a class="jxr_linenumber" name="L538" href="#L538">538</a>         Path tmpSourceTarget = <strong class="jxr_keyword">this</strong>.target.toPath().resolve(<span class="jxr_string">"avro-sources"</span>);
+<a class="jxr_linenumber" name="L539" href="#L539">539</a>         compileAvpr(tmpSourceTarget);
+<a class="jxr_linenumber" name="L540" href="#L540">540</a>         addMvnIdToIdlsAndMoveToDestination(tmpSourceTarget);
+<a class="jxr_linenumber" name="L541" href="#L541">541</a>         compileIdl(tmpSourceTarget);
+<a class="jxr_linenumber" name="L542" href="#L542">542</a> 
+<a class="jxr_linenumber" name="L543" href="#L543">543</a>         Path codegenManifest = generatedAvscTargetPath.resolve(SCHEMA_MANIFEST);
+<a class="jxr_linenumber" name="L544" href="#L544">544</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L545" href="#L545">545</a>           Files.write(codegenManifest,
+<a class="jxr_linenumber" name="L546" href="#L546">546</a>                   Collections.singletonList(<span class="jxr_string">"Build-Time="</span> + DateTimeFormatter.ISO_INSTANT.format(Instant.now()) + '\n'),
+<a class="jxr_linenumber" name="L547" href="#L547">547</a>                   StandardCharsets.UTF_8);
+<a class="jxr_linenumber" name="L548" href="#L548">548</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L549" href="#L549">549</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot create codegen manifest file "</span> + codegenManifest, ex);
+<a class="jxr_linenumber" name="L550" href="#L550">550</a>         }
+<a class="jxr_linenumber" name="L551" href="#L551">551</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L552" href="#L552">552</a>           deleteGeneratedAvailableInDependencies();
+<a class="jxr_linenumber" name="L553" href="#L553">553</a>           deleteSchemasAvailableInDependencies(getGeneratedAvscTarget().toPath());
+<a class="jxr_linenumber" name="L554" href="#L554">554</a>           <strong class="jxr_keyword">if</strong> (deleteProtocolInterface) {
+<a class="jxr_linenumber" name="L555" href="#L555">555</a>             deleteProtocolClasses();
+<a class="jxr_linenumber" name="L556" href="#L556">556</a>           }
+<a class="jxr_linenumber" name="L557" href="#L557">557</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L558" href="#L558">558</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot delete dependency dupes "</span> + <strong class="jxr_keyword">this</strong>, ex);
+<a class="jxr_linenumber" name="L559" href="#L559">559</a>         }
+<a class="jxr_linenumber" name="L560" href="#L560">560</a>         Path indexFile = generatedAvscTargetPath.resolve(SCHEMA_INDEX_FILENAME);
+<a class="jxr_linenumber" name="L561" href="#L561">561</a>         <strong class="jxr_keyword">try</strong> (BufferedWriter bw = Files.newBufferedWriter(indexFile,
+<a class="jxr_linenumber" name="L562" href="#L562">562</a>                 StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+<a class="jxr_linenumber" name="L563" href="#L563">563</a>           bw.append(SCHEMA_INDEX_PGK_KEY);
+<a class="jxr_linenumber" name="L564" href="#L564">564</a>           bw.append('=');
+<a class="jxr_linenumber" name="L565" href="#L565">565</a>           bw.append(getPackageMvnIdPrefix());
+<a class="jxr_linenumber" name="L566" href="#L566">566</a>           bw.append('\n');
+<a class="jxr_linenumber" name="L567" href="#L567">567</a>           <strong class="jxr_keyword">for</strong> (Map.Entry&lt;String, Schema&gt; entry : index.entrySet()) {
+<a class="jxr_linenumber" name="L568" href="#L568">568</a>             bw.append(entry.getKey());
+<a class="jxr_linenumber" name="L569" href="#L569">569</a>             bw.append('=');
+<a class="jxr_linenumber" name="L570" href="#L570">570</a>             bw.append(entry.getValue().getFullName());
+<a class="jxr_linenumber" name="L571" href="#L571">571</a>             bw.append('\n');
+<a class="jxr_linenumber" name="L572" href="#L572">572</a>           }
+<a class="jxr_linenumber" name="L573" href="#L573">573</a>         } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L574" href="#L574">574</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"Cannot generate schema index "</span> + <strong class="jxr_keyword">this</strong>, ex);
+<a class="jxr_linenumber" name="L575" href="#L575">575</a>         }
+<a class="jxr_linenumber" name="L576" href="#L576">576</a>         mavenProject.addCompileSourceRoot(generatedJavaTarget.getAbsolutePath());
+<a class="jxr_linenumber" name="L577" href="#L577">577</a>         Resource resource = <strong class="jxr_keyword">new</strong> Resource();
+<a class="jxr_linenumber" name="L578" href="#L578">578</a>         resource.setDirectory(<strong class="jxr_keyword">this</strong>.generatedAvscTarget.getAbsolutePath());
+<a class="jxr_linenumber" name="L579" href="#L579">579</a>         resource.addInclude(<span class="jxr_string">"**/*.avsc"</span>);
+<a class="jxr_linenumber" name="L580" href="#L580">580</a>         resource.addInclude(<span class="jxr_string">"*.properties"</span>);
+<a class="jxr_linenumber" name="L581" href="#L581">581</a>         mavenProject.addResource(resource);
+<a class="jxr_linenumber" name="L582" href="#L582">582</a>         Resource resource2 = <strong class="jxr_keyword">new</strong> Resource();
+<a class="jxr_linenumber" name="L583" href="#L583">583</a>         resource2.setDirectory(tmpSourceTarget.toString());
+<a class="jxr_linenumber" name="L584" href="#L584">584</a>         resource2.addInclude(<span class="jxr_string">"**/*.avpr"</span>);
+<a class="jxr_linenumber" name="L585" href="#L585">585</a>         resource2.addInclude(<span class="jxr_string">"**/*.avdl"</span>);
+<a class="jxr_linenumber" name="L586" href="#L586">586</a>         mavenProject.addResource(resource2);
+<a class="jxr_linenumber" name="L587" href="#L587">587</a>       } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L588" href="#L588">588</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile schemas, cfg = "</span> + <strong class="jxr_keyword">this</strong>, ex);
+<a class="jxr_linenumber" name="L589" href="#L589">589</a>       } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L590" href="#L590">590</a>         System.setProperties(properties);
+<a class="jxr_linenumber" name="L591" href="#L591">591</a>       }
+<a class="jxr_linenumber" name="L592" href="#L592">592</a>     }
+<a class="jxr_linenumber" name="L593" href="#L593">593</a>   }
+<a class="jxr_linenumber" name="L594" href="#L594">594</a> 
+<a class="jxr_linenumber" name="L595" href="#L595">595</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> compileIdl(<strong class="jxr_keyword">final</strong> Path pSources) <strong class="jxr_keyword">throws</strong> MojoExecutionException {
+<a class="jxr_linenumber" name="L596" href="#L596">596</a>     File pSourcesFile = pSources.toFile();
+<a class="jxr_linenumber" name="L597" href="#L597">597</a>     <strong class="jxr_keyword">for</strong> (String file : getFiles(pSourcesFile, <span class="jxr_string">"**/*.avdl"</span>)) {
+<a class="jxr_linenumber" name="L598" href="#L598">598</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L599" href="#L599">599</a>         doCompileIDL(pSourcesFile, file);
+<a class="jxr_linenumber" name="L600" href="#L600">600</a>       } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L601" href="#L601">601</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile "</span> + file, ex);
+<a class="jxr_linenumber" name="L602" href="#L602">602</a>       }
+<a class="jxr_linenumber" name="L603" href="#L603">603</a>     }
+<a class="jxr_linenumber" name="L604" href="#L604">604</a>   }
+<a class="jxr_linenumber" name="L605" href="#L605">605</a> 
+<a class="jxr_linenumber" name="L606" href="#L606">606</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> addMvnIdToIdlsAndMoveToDestination(<strong class="jxr_keyword">final</strong> Path destPath) <strong class="jxr_keyword">throws</strong> MojoExecutionException {
+<a class="jxr_linenumber" name="L607" href="#L607">607</a>     Thread currentThread = Thread.currentThread();
+<a class="jxr_linenumber" name="L608" href="#L608">608</a>     ClassLoader contextClassLoader = currentThread.getContextClassLoader();
+<a class="jxr_linenumber" name="L609" href="#L609">609</a>     <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L610" href="#L610">610</a>       List&lt;URL&gt; runtimeUrls = createPathUrls(<strong class="jxr_keyword">this</strong>.sourceDirectory);
+<a class="jxr_linenumber" name="L611" href="#L611">611</a>       getLog().info(<span class="jxr_string">"Compile classpath: "</span> + runtimeUrls);
+<a class="jxr_linenumber" name="L612" href="#L612">612</a>       URLClassLoader projPathLoader = AccessController.doPrivileged(
+<a class="jxr_linenumber" name="L613" href="#L613">613</a>               (PrivilegedAction&lt;URLClassLoader&gt;) ()
+<a class="jxr_linenumber" name="L614" href="#L614">614</a>                       -&gt; <strong class="jxr_keyword">new</strong> URLClassLoader(runtimeUrls.toArray(<strong class="jxr_keyword">new</strong> URL[runtimeUrls.size()]), contextClassLoader));
+<a class="jxr_linenumber" name="L615" href="#L615">615</a>       currentThread.setContextClassLoader(projPathLoader);
+<a class="jxr_linenumber" name="L616" href="#L616">616</a>       <strong class="jxr_keyword">for</strong> (String file : getSourceFiles(<span class="jxr_string">"**/*.avdl"</span>)) {
+<a class="jxr_linenumber" name="L617" href="#L617">617</a>         Path destination = destPath.resolve(file);
+<a class="jxr_linenumber" name="L618" href="#L618">618</a>         Path parent = destination.getParent();
+<a class="jxr_linenumber" name="L619" href="#L619">619</a>         <strong class="jxr_keyword">if</strong> (parent != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L620" href="#L620">620</a>           Files.createDirectories(parent);
+<a class="jxr_linenumber" name="L621" href="#L621">621</a>         }
+<a class="jxr_linenumber" name="L622" href="#L622">622</a>         File idlFile = <strong class="jxr_keyword">new</strong> File(sourceDirectory, file);
+<a class="jxr_linenumber" name="L623" href="#L623">623</a>         <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L624" href="#L624">624</a>           idlFile = addMvnIdsToIdl(idlFile, projPathLoader);
+<a class="jxr_linenumber" name="L625" href="#L625">625</a>         } <strong class="jxr_keyword">catch</strong> (ParseException | IOException | RuntimeException ex) {
+<a class="jxr_linenumber" name="L626" href="#L626">626</a>           <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot add mvnId to  IDL "</span> + idlFile + <span class="jxr_string">", "</span> + ex.getMessage(), ex);
+<a class="jxr_linenumber" name="L627" href="#L627">627</a>         }
+<a class="jxr_linenumber" name="L628" href="#L628">628</a>         Files.copy(idlFile.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+<a class="jxr_linenumber" name="L629" href="#L629">629</a>       }
+<a class="jxr_linenumber" name="L630" href="#L630">630</a>     } <strong class="jxr_keyword">catch</strong> (IOException | DependencyResolutionRequiredException ex) {
+<a class="jxr_linenumber" name="L631" href="#L631">631</a>       <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot add mvnId to  IDL "</span> + <strong class="jxr_keyword">this</strong>, ex);
+<a class="jxr_linenumber" name="L632" href="#L632">632</a>     } <strong class="jxr_keyword">finally</strong> {
+<a class="jxr_linenumber" name="L633" href="#L633">633</a>       currentThread.setContextClassLoader(contextClassLoader);
+<a class="jxr_linenumber" name="L634" href="#L634">634</a>     }
+<a class="jxr_linenumber" name="L635" href="#L635">635</a>   }
+<a class="jxr_linenumber" name="L636" href="#L636">636</a> 
+<a class="jxr_linenumber" name="L637" href="#L637">637</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">void</strong> compileAvpr(<strong class="jxr_keyword">final</strong> Path pSources) <strong class="jxr_keyword">throws</strong> MojoExecutionException {
+<a class="jxr_linenumber" name="L638" href="#L638">638</a>     <strong class="jxr_keyword">for</strong> (String file : getSourceFiles(<span class="jxr_string">"**/*.avpr"</span>)) {
+<a class="jxr_linenumber" name="L639" href="#L639">639</a>       <strong class="jxr_keyword">try</strong> {
+<a class="jxr_linenumber" name="L640" href="#L640">640</a>         Path destination = pSources.resolve(file);
+<a class="jxr_linenumber" name="L641" href="#L641">641</a>         Path folder = destination.getParent();
+<a class="jxr_linenumber" name="L642" href="#L642">642</a>         <strong class="jxr_keyword">if</strong> (folder != <strong class="jxr_keyword">null</strong>) {
+<a class="jxr_linenumber" name="L643" href="#L643">643</a>           Files.createDirectories(folder);
+<a class="jxr_linenumber" name="L644" href="#L644">644</a>         }
+<a class="jxr_linenumber" name="L645" href="#L645">645</a>         doCompileProtocol(file, destination);
+<a class="jxr_linenumber" name="L646" href="#L646">646</a>       } <strong class="jxr_keyword">catch</strong> (IOException ex) {
+<a class="jxr_linenumber" name="L647" href="#L647">647</a>         <strong class="jxr_keyword">throw</strong> <strong class="jxr_keyword">new</strong> MojoExecutionException(<span class="jxr_string">"cannot compile protocol "</span> + file, ex);
+<a class="jxr_linenumber" name="L648" href="#L648">648</a>       }
+<a class="jxr_linenumber" name="L649" href="#L649">649</a>     }
+<a class="jxr_linenumber" name="L650" href="#L650">650</a>   }
+<a class="jxr_linenumber" name="L651" href="#L651">651</a> 
+<a class="jxr_linenumber" name="L652" href="#L652">652</a>   <strong class="jxr_keyword">public</strong> String[] getSourceFiles(<strong class="jxr_keyword">final</strong> String pattern) {
+<a class="jxr_linenumber" name="L653" href="#L653">653</a>     FileSetManager fsm = <strong class="jxr_keyword">new</strong> FileSetManager();
+<a class="jxr_linenumber" name="L654" href="#L654">654</a>     FileSet fs = <strong class="jxr_keyword">new</strong> FileSet();
+<a class="jxr_linenumber" name="L655" href="#L655">655</a>     fs.setDirectory(sourceDirectory.getAbsolutePath());
+<a class="jxr_linenumber" name="L656" href="#L656">656</a>     fs.addInclude(pattern);
+<a class="jxr_linenumber" name="L657" href="#L657">657</a>     fs.setFollowSymlinks(false);
+<a class="jxr_linenumber" name="L658" href="#L658">658</a>     <strong class="jxr_keyword">return</strong> fsm.getIncludedFiles(fs);
+<a class="jxr_linenumber" name="L659" href="#L659">659</a>   }
+<a class="jxr_linenumber" name="L660" href="#L660">660</a> 
+<a class="jxr_linenumber" name="L661" href="#L661">661</a>   <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">static</strong> String[] getFiles(<strong class="jxr_keyword">final</strong> File directory, <strong class="jxr_keyword">final</strong> String pattern) {
+<a class="jxr_linenumber" name="L662" href="#L662">662</a>     FileSetManager fsm = <strong class="jxr_keyword">new</strong> FileSetManager();
+<a class="jxr_linenumber" name="L663" href="#L663">663</a>     FileSet fs = <strong class="jxr_keyword">new</strong> FileSet();
+<a class="jxr_linenumber" name="L664" href="#L664">664</a>     fs.setDirectory(directory.getAbsolutePath());
+<a class="jxr_linenumber" name="L665" href="#L665">665</a>     fs.addInclude(pattern);
+<a class="jxr_linenumber" name="L666" href="#L666">666</a>     fs.setFollowSymlinks(false);
+<a class="jxr_linenumber" name="L667" href="#L667">667</a>     <strong class="jxr_keyword">return</strong> fsm.getIncludedFiles(fs);
+<a class="jxr_linenumber" name="L668" href="#L668">668</a>   }
+<a class="jxr_linenumber" name="L669" href="#L669">669</a> 
+<a class="jxr_linenumber" name="L670" href="#L670">670</a>   @Override
+<a class="jxr_linenumber" name="L671" href="#L671">671</a>   <strong class="jxr_keyword">public</strong> String toString() {
+<a class="jxr_linenumber" name="L672" href="#L672">672</a>     <strong class="jxr_keyword">return</strong> <span class="jxr_string">"SchemaCompileMojo{"</span> + <span class="jxr_string">"fieldVisibility="</span> + fieldVisibility
+<a class="jxr_linenumber" name="L673" href="#L673">673</a>             + <span class="jxr_string">", templateDirectory="</span> + templateDirectory + <span class="jxr_string">", createSetters="</span> + createSetters
+<a class="jxr_linenumber" name="L674" href="#L674">674</a>             + <span class="jxr_string">", addMavenId="</span> + addMavenId + <span class="jxr_string">", "</span> + <strong class="jxr_keyword">super</strong>.toString() + '}';
+<a class="jxr_linenumber" name="L675" href="#L675">675</a>   }
+<a class="jxr_linenumber" name="L676" href="#L676">676</a> 
+<a class="jxr_linenumber" name="L677" href="#L677">677</a> }
 </pre>
 <hr/>
-<div id="footer">Copyright &#169; 2018&#x2013;2020 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
+<div id="footer">Copyright &#169; 2018&#x2013;2021 <a href="http://www.spf4j.org">SPF4J</a>. All rights reserved.</div>
 </body>
 </html>

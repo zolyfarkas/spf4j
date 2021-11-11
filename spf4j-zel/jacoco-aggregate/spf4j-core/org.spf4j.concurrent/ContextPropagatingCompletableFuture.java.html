@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ContextPropagatingCompletableFuture.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-zel</a> &gt; <a href="../index.html" class="el_bundle">spf4j-core</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.concurrent</a> &gt; <span class="el_source">ContextPropagatingCompletableFuture.java</span></div><h1>ContextPropagatingCompletableFuture.java</h1><pre class="source lang-java linenums">package org.spf4j.concurrent;
 
 import com.google.common.annotations.Beta;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -39,273 +40,274 @@ public class ContextPropagatingCompletableFuture&lt;T&gt;
 
   private final long deadlinenanos;
 
-<span class="fc" id="L42">  public ContextPropagatingCompletableFuture(final ExecutionContext parentContext, final long deadlinenanos) {</span>
-<span class="fc" id="L43">    this.parentContext = parentContext;</span>
-<span class="fc" id="L44">    this.deadlinenanos = deadlinenanos;</span>
-<span class="fc" id="L45">  }</span>
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP2&quot;)
+<span class="fc" id="L44">  public ContextPropagatingCompletableFuture(final ExecutionContext parentContext, final long deadlinenanos) {</span>
+<span class="fc" id="L45">    this.parentContext = parentContext;</span>
+<span class="fc" id="L46">    this.deadlinenanos = deadlinenanos;</span>
+<span class="fc" id="L47">  }</span>
 
 
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; thenApply(final Function&lt;? super T, ? extends U&gt; fn) {
-<span class="nc" id="L51">    return super.thenApply(ExecutionContexts.propagatingFunction(fn, parentContext,</span>
+<span class="nc" id="L53">    return super.thenApply(ExecutionContexts.propagatingFunction(fn, parentContext,</span>
             null, deadlinenanos));
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; thenApplyAsync(final Function&lt;? super T, ? extends U&gt; fn) {
-<span class="nc" id="L57">    return super.thenApplyAsync(ExecutionContexts.propagatingFunction(fn, parentContext,</span>
+<span class="nc" id="L59">    return super.thenApplyAsync(ExecutionContexts.propagatingFunction(fn, parentContext,</span>
             null, deadlinenanos));
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; thenApplyAsync(final Function&lt;? super T, ? extends U&gt; fn, final Executor executor) {
-<span class="nc" id="L63">    return super.thenApplyAsync(ExecutionContexts.propagatingFunction(fn, parentContext,</span>
+<span class="nc" id="L65">    return super.thenApplyAsync(ExecutionContexts.propagatingFunction(fn, parentContext,</span>
             null, deadlinenanos), executor);
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; thenAccept(final Consumer&lt;? super T&gt; action) {
-<span class="nc" id="L69">    return super.thenAccept(ExecutionContexts.propagatingConsumer(action,</span>
+<span class="nc" id="L71">    return super.thenAccept(ExecutionContexts.propagatingConsumer(action,</span>
             parentContext, null, deadlinenanos));
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; thenAcceptAsync(final Consumer&lt;? super T&gt; action) {
-<span class="nc" id="L75">    return super.thenAcceptAsync(ExecutionContexts.propagatingConsumer(action,</span>
+<span class="nc" id="L77">    return super.thenAcceptAsync(ExecutionContexts.propagatingConsumer(action,</span>
             parentContext, null, deadlinenanos));
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; thenAcceptAsync(final Consumer&lt;? super T&gt; action, final Executor executor) {
-<span class="nc" id="L81">    return super.thenAcceptAsync(ExecutionContexts.propagatingConsumer(action,</span>
+<span class="nc" id="L83">    return super.thenAcceptAsync(ExecutionContexts.propagatingConsumer(action,</span>
             parentContext, null, deadlinenanos), executor);
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; thenRun(final Runnable action) {
-<span class="nc" id="L87">    return super.thenRun(ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L89">    return super.thenRun(ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; thenRunAsync(final Runnable action) {
-<span class="nc" id="L92">    return super.thenRunAsync(</span>
-<span class="nc" id="L93">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L94">    return super.thenRunAsync(</span>
+<span class="nc" id="L95">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; thenRunAsync(final Runnable action, final Executor executor) {
-<span class="nc" id="L98">    return super.thenRunAsync(</span>
-<span class="nc" id="L99">                    ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos), executor);</span>
+<span class="nc" id="L100">    return super.thenRunAsync(</span>
+<span class="nc" id="L101">                    ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos), executor);</span>
   }
 
   @Override
   public &lt;U, V&gt; CompletableFuture&lt;V&gt; thenCombine(final CompletionStage&lt;? extends U&gt; other,
           final BiFunction&lt;? super T, ? super U, ? extends V&gt; fn) {
-<span class="nc" id="L105">    return super.thenCombine(other,</span>
-<span class="nc" id="L106">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L107">    return super.thenCombine(other,</span>
+<span class="nc" id="L108">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U, V&gt; CompletableFuture&lt;V&gt; thenCombineAsync(final CompletionStage&lt;? extends U&gt; other,
           final BiFunction&lt;? super T, ? super U, ? extends V&gt; fn) {
-<span class="nc" id="L112">    return super.thenCombineAsync(other,</span>
-<span class="nc" id="L113">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L114">    return super.thenCombineAsync(other,</span>
+<span class="nc" id="L115">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U, V&gt; CompletableFuture&lt;V&gt; thenCombineAsync(final CompletionStage&lt;? extends U&gt; other,
           final BiFunction&lt;? super T, ? super U, ? extends V&gt; fn, final Executor executor) {
-<span class="nc" id="L119">    return super.thenCombineAsync(other,</span>
-<span class="nc" id="L120">                    ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos),</span>
+<span class="nc" id="L121">    return super.thenCombineAsync(other,</span>
+<span class="nc" id="L122">                    ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos),</span>
                     executor);
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;Void&gt; thenAcceptBoth(final CompletionStage&lt;? extends U&gt; other,
           final BiConsumer&lt;? super T, ? super U&gt; action) {
-<span class="nc" id="L127">    return super.thenAcceptBoth(other, ExecutionContexts.propagatingBiConsumer(action, parentContext,</span>
+<span class="nc" id="L129">    return super.thenAcceptBoth(other, ExecutionContexts.propagatingBiConsumer(action, parentContext,</span>
                     null, deadlinenanos));
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;Void&gt; thenAcceptBothAsync(final CompletionStage&lt;? extends U&gt; other,
           final BiConsumer&lt;? super T, ? super U&gt; action) {
-<span class="nc" id="L134">    return super.thenAcceptBothAsync(other,</span>
-<span class="nc" id="L135">            ExecutionContexts.propagatingBiConsumer(action, parentContext,</span>
+<span class="nc" id="L136">    return super.thenAcceptBothAsync(other,</span>
+<span class="nc" id="L137">            ExecutionContexts.propagatingBiConsumer(action, parentContext,</span>
                     null, deadlinenanos));
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;Void&gt; thenAcceptBothAsync(final CompletionStage&lt;? extends U&gt; other,
           final BiConsumer&lt;? super T, ? super U&gt; action, final Executor executor) {
-<span class="nc" id="L142">    return super.thenAcceptBothAsync(other,</span>
-<span class="nc" id="L143">            ExecutionContexts.propagatingBiConsumer(action, parentContext,</span>
+<span class="nc" id="L144">    return super.thenAcceptBothAsync(other,</span>
+<span class="nc" id="L145">            ExecutionContexts.propagatingBiConsumer(action, parentContext,</span>
                     null, deadlinenanos), executor);
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; runAfterBoth(final CompletionStage&lt;?&gt; other, final Runnable action) {
-<span class="nc" id="L149">    return super.runAfterBoth(other,</span>
-<span class="nc" id="L150">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L151">    return super.runAfterBoth(other,</span>
+<span class="nc" id="L152">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; runAfterBothAsync(final CompletionStage&lt;?&gt; other, final Runnable action) {
-<span class="nc" id="L155">    return super.runAfterBothAsync(other, ExecutionContexts.propagatingRunnable(action, parentContext,</span>
+<span class="nc" id="L157">    return super.runAfterBothAsync(other, ExecutionContexts.propagatingRunnable(action, parentContext,</span>
             null, deadlinenanos));
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; runAfterBothAsync(final CompletionStage&lt;?&gt; other,
           final Runnable action, final Executor executor) {
-<span class="nc" id="L162">    return super.runAfterBothAsync(other, ExecutionContexts.propagatingRunnable(action, parentContext,</span>
+<span class="nc" id="L164">    return super.runAfterBothAsync(other, ExecutionContexts.propagatingRunnable(action, parentContext,</span>
             null, deadlinenanos), executor);
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; applyToEither(final CompletionStage&lt;? extends T&gt; other,
           final Function&lt;? super T, U&gt; fn) {
-<span class="nc" id="L169">    return super.applyToEither(other,</span>
-<span class="nc" id="L170">                    ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L171">    return super.applyToEither(other,</span>
+<span class="nc" id="L172">                    ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; applyToEitherAsync(final CompletionStage&lt;? extends T&gt; other,
           final Function&lt;? super T, U&gt; fn) {
-<span class="nc" id="L176">    return super.applyToEitherAsync(other,</span>
-<span class="nc" id="L177">            ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L178">    return super.applyToEitherAsync(other,</span>
+<span class="nc" id="L179">            ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; applyToEitherAsync(final CompletionStage&lt;? extends T&gt; other,
           final Function&lt;? super T, U&gt; fn, final Executor executor) {
-<span class="nc" id="L183">    return super.applyToEitherAsync(other,</span>
-<span class="nc" id="L184">            ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos), executor);</span>
+<span class="nc" id="L185">    return super.applyToEitherAsync(other,</span>
+<span class="nc" id="L186">            ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos), executor);</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; acceptEither(final CompletionStage&lt;? extends T&gt; other,
           final Consumer&lt;? super T&gt; action) {
-<span class="nc" id="L190">    return super.acceptEither(other,</span>
-<span class="nc" id="L191">            ExecutionContexts.propagatingConsumer(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L192">    return super.acceptEither(other,</span>
+<span class="nc" id="L193">            ExecutionContexts.propagatingConsumer(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; acceptEitherAsync(final CompletionStage&lt;? extends T&gt; other,
           final Consumer&lt;? super T&gt; action) {
-<span class="nc" id="L197">    return super.acceptEitherAsync(other,</span>
-<span class="nc" id="L198">            ExecutionContexts.propagatingConsumer(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L199">    return super.acceptEitherAsync(other,</span>
+<span class="nc" id="L200">            ExecutionContexts.propagatingConsumer(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; acceptEitherAsync(final CompletionStage&lt;? extends T&gt; other,
           final Consumer&lt;? super T&gt; action, final Executor executor) {
-<span class="nc" id="L204">    return super.acceptEitherAsync(other,</span>
-<span class="nc" id="L205">            ExecutionContexts.propagatingConsumer(action, parentContext, null, deadlinenanos), executor);</span>
+<span class="nc" id="L206">    return super.acceptEitherAsync(other,</span>
+<span class="nc" id="L207">            ExecutionContexts.propagatingConsumer(action, parentContext, null, deadlinenanos), executor);</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; runAfterEither(final CompletionStage&lt;?&gt; other, final Runnable action) {
-<span class="nc" id="L210">    return super.runAfterEither(other,</span>
-<span class="nc" id="L211">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L212">    return super.runAfterEither(other,</span>
+<span class="nc" id="L213">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; runAfterEitherAsync(final CompletionStage&lt;?&gt; other, final Runnable action) {
-<span class="nc" id="L216">    return super.runAfterEitherAsync(other,</span>
-<span class="nc" id="L217">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L218">    return super.runAfterEitherAsync(other,</span>
+<span class="nc" id="L219">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;Void&gt; runAfterEitherAsync(final CompletionStage&lt;?&gt; other,
           final Runnable action, final Executor executor) {
-<span class="nc" id="L223">    return super.runAfterEitherAsync(other,</span>
-<span class="nc" id="L224">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos), executor);</span>
+<span class="nc" id="L225">    return super.runAfterEitherAsync(other,</span>
+<span class="nc" id="L226">            ExecutionContexts.propagatingRunnable(action, parentContext, null, deadlinenanos), executor);</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; thenCompose(final Function&lt;? super T, ? extends CompletionStage&lt;U&gt;&gt; fn) {
-<span class="nc" id="L229">    return super.thenCompose(ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L231">    return super.thenCompose(ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; thenComposeAsync(final Function&lt;? super T, ? extends CompletionStage&lt;U&gt;&gt; fn) {
-<span class="nc" id="L234">    return super.thenComposeAsync(ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L236">    return super.thenComposeAsync(ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; thenComposeAsync(final Function&lt;? super T, ? extends CompletionStage&lt;U&gt;&gt; fn,
           final Executor executor) {
-<span class="nc" id="L240">    return super.thenComposeAsync(</span>
-<span class="nc" id="L241">            ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos), executor);</span>
+<span class="nc" id="L242">    return super.thenComposeAsync(</span>
+<span class="nc" id="L243">            ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos), executor);</span>
   }
 
   @Override
   public CompletableFuture&lt;T&gt; exceptionally(final Function&lt;Throwable, ? extends T&gt; fn) {
-<span class="nc" id="L246">    return super.exceptionally(ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L248">    return super.exceptionally(ExecutionContexts.propagatingFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;T&gt; whenComplete(final BiConsumer&lt;? super T, ? super Throwable&gt; action) {
-<span class="fc" id="L251">    return super.whenComplete(ExecutionContexts.propagatingBiConsumer(action, parentContext, null, deadlinenanos));</span>
+<span class="fc" id="L253">    return super.whenComplete(ExecutionContexts.propagatingBiConsumer(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;T&gt; whenCompleteAsync(final BiConsumer&lt;? super T, ? super Throwable&gt; action) {
-<span class="nc" id="L256">    return super.whenCompleteAsync(</span>
-<span class="nc" id="L257">            ExecutionContexts.propagatingBiConsumer(action, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L258">    return super.whenCompleteAsync(</span>
+<span class="nc" id="L259">            ExecutionContexts.propagatingBiConsumer(action, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public CompletableFuture&lt;T&gt; whenCompleteAsync(final BiConsumer&lt;? super T, ? super Throwable&gt; action,
           final Executor executor) {
-<span class="nc" id="L263">    return super.whenCompleteAsync(</span>
-<span class="nc" id="L264">            ExecutionContexts.propagatingBiConsumer(action, parentContext, null, deadlinenanos),</span>
+<span class="nc" id="L265">    return super.whenCompleteAsync(</span>
+<span class="nc" id="L266">            ExecutionContexts.propagatingBiConsumer(action, parentContext, null, deadlinenanos),</span>
             executor);
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; handle(final BiFunction&lt;? super T, Throwable, ? extends U&gt; fn) {
-<span class="nc" id="L270">    return super.handle(ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L272">    return super.handle(ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; handleAsync(final BiFunction&lt;? super T, Throwable, ? extends U&gt; fn) {
-<span class="nc" id="L275">    return super.handleAsync(</span>
-<span class="nc" id="L276">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L277">    return super.handleAsync(</span>
+<span class="nc" id="L278">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos));</span>
   }
 
   @Override
   public &lt;U&gt; CompletableFuture&lt;U&gt; handleAsync(final BiFunction&lt;? super T, Throwable, ? extends U&gt; fn,
           final Executor executor) {
-<span class="nc" id="L282">    return super.handleAsync(</span>
-<span class="nc" id="L283">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos), executor);</span>
+<span class="nc" id="L284">    return super.handleAsync(</span>
+<span class="nc" id="L285">            ExecutionContexts.propagatingBiFunction(fn, parentContext, null, deadlinenanos), executor);</span>
   }
 
   @Override
   public CompletableFuture&lt;T&gt; toCompletableFuture() {
-<span class="nc" id="L288">    return this;</span>
+<span class="nc" id="L290">    return this;</span>
   }
 
   @Override
   public String toString() {
-<span class="nc" id="L293">    return &quot;ContextPropagatingCompletableFuture{&quot; + &quot;parentContext=&quot; + parentContext</span>
-<span class="nc" id="L294">            + &quot;, deadlinenanos=&quot; + deadlinenanos + &quot;, super=&quot; + super.toString() +  '}';</span>
+<span class="nc" id="L295">    return &quot;ContextPropagatingCompletableFuture{&quot; + &quot;parentContext=&quot; + parentContext</span>
+<span class="nc" id="L296">            + &quot;, deadlinenanos=&quot; + deadlinenanos + &quot;, super=&quot; + super.toString() +  '}';</span>
   }
 
   @Override
   @Nullable
   public T get() throws InterruptedException, ExecutionException {
     try {
-<span class="fc" id="L301">      long timeout = deadlinenanos - TimeSource.nanoTime();</span>
-<span class="pc bpc" id="L302" title="1 of 2 branches missed.">      if (timeout &lt; 0) {</span>
-<span class="nc" id="L303">        throw new UncheckedTimeoutException(&quot;deadline exceeded &quot; + Timing.getCurrentTiming()</span>
-<span class="nc" id="L304">                .fromNanoTimeToInstant(deadlinenanos));</span>
+<span class="fc" id="L303">      long timeout = deadlinenanos - TimeSource.nanoTime();</span>
+<span class="pc bpc" id="L304" title="1 of 2 branches missed.">      if (timeout &lt; 0) {</span>
+<span class="nc" id="L305">        throw new UncheckedTimeoutException(&quot;deadline exceeded &quot; + Timing.getCurrentTiming()</span>
+<span class="nc" id="L306">                .fromNanoTimeToInstant(deadlinenanos));</span>
       }
-<span class="fc" id="L306">      return super.get(timeout, TimeUnit.NANOSECONDS);</span>
-<span class="nc" id="L307">    } catch (TimeoutException ex) {</span>
-<span class="nc" id="L308">      throw new UncheckedTimeoutException(ex);</span>
+<span class="fc" id="L308">      return super.get(timeout, TimeUnit.NANOSECONDS);</span>
+<span class="nc" id="L309">    } catch (TimeoutException ex) {</span>
+<span class="nc" id="L310">      throw new UncheckedTimeoutException(ex);</span>
     }
   }
 
@@ -315,11 +317,11 @@ public class ContextPropagatingCompletableFuture&lt;T&gt;
    */
   public CompletableFuture&lt;T&gt; completeAsync(final Supplier&lt;? extends T&gt; supplier) {
     try {
-<span class="nc" id="L318">      return (CompletableFuture)</span>
-<span class="nc" id="L319">              this.getClass().getMethod(&quot;completeAsync&quot;, new Class[] {Supplier.class})</span>
-<span class="nc" id="L320">                .invoke(this, ExecutionContexts.propagatingSupplier(supplier, parentContext, null, deadlinenanos));</span>
-<span class="nc" id="L321">    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException ex) {</span>
-<span class="nc" id="L322">      throw new UnsupportedOperationException(&quot;Supported only on JDK 11&quot;, ex);</span>
+<span class="nc" id="L320">      return (CompletableFuture)</span>
+<span class="nc" id="L321">              this.getClass().getMethod(&quot;completeAsync&quot;, new Class[] {Supplier.class})</span>
+<span class="nc" id="L322">                .invoke(this, ExecutionContexts.propagatingSupplier(supplier, parentContext, null, deadlinenanos));</span>
+<span class="nc" id="L323">    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L324">      throw new UnsupportedOperationException(&quot;Supported only on JDK 11&quot;, ex);</span>
     }
   }
 
@@ -328,13 +330,13 @@ public class ContextPropagatingCompletableFuture&lt;T&gt;
    */
   public CompletableFuture&lt;T&gt; completeAsync(final Supplier&lt;? extends T&gt; supplier, final Executor executor) {
     try {
-<span class="nc" id="L331">      return (CompletableFuture)</span>
-<span class="nc" id="L332">              this.getClass().getMethod(&quot;completeAsync&quot;, new Class[] {Supplier.class, Executor.class})</span>
-<span class="nc" id="L333">                      .invoke(this,</span>
-<span class="nc" id="L334">                              ExecutionContexts.propagatingSupplier(supplier, parentContext, null, deadlinenanos),</span>
+<span class="nc" id="L333">      return (CompletableFuture)</span>
+<span class="nc" id="L334">              this.getClass().getMethod(&quot;completeAsync&quot;, new Class[] {Supplier.class, Executor.class})</span>
+<span class="nc" id="L335">                      .invoke(this,</span>
+<span class="nc" id="L336">                              ExecutionContexts.propagatingSupplier(supplier, parentContext, null, deadlinenanos),</span>
                               executor);
-<span class="nc" id="L336">    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException ex) {</span>
-<span class="nc" id="L337">      throw new UnsupportedOperationException(&quot;Supported only on JDK 11&quot;, ex);</span>
+<span class="nc" id="L338">    } catch (NoSuchMethodException | SecurityException | IllegalAccessException | InvocationTargetException ex) {</span>
+<span class="nc" id="L339">      throw new UnsupportedOperationException(&quot;Supported only on JDK 11&quot;, ex);</span>
     }
   }
 
@@ -342,76 +344,76 @@ public class ContextPropagatingCompletableFuture&lt;T&gt;
    * JDK 11!
    */
   public &lt;U&gt; CompletableFuture&lt;U&gt; newIncompleteFuture() {
-<span class="nc" id="L345">    return new ContextPropagatingCompletableFuture&lt;&gt;(parentContext, deadlinenanos);</span>
+<span class="nc" id="L347">    return new ContextPropagatingCompletableFuture&lt;&gt;(parentContext, deadlinenanos);</span>
   }
 
   public static &lt;U&gt; CompletableFuture&lt;U&gt; supplyAsync(final Supplier&lt;U&gt; f) {
-<span class="nc" id="L349">    return supplyAsync(f, DefaultExecutor.INSTANCE);</span>
+<span class="nc" id="L351">    return supplyAsync(f, DefaultExecutor.INSTANCE);</span>
   }
 
   public static &lt;U&gt; CompletableFuture&lt;U&gt; supplyAsync(final Supplier&lt;U&gt; f, final Executor e) {
-<span class="fc" id="L353">    ExecutionContext current = ExecutionContexts.current();</span>
-<span class="pc bpc" id="L354" title="1 of 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L355">      return CompletableFuture.supplyAsync(f, e);</span>
+<span class="fc" id="L355">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="pc bpc" id="L356" title="1 of 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L357">      return CompletableFuture.supplyAsync(f, e);</span>
     }
-<span class="fc" id="L357">    return supplyAsync(f, current, e, current.getDeadlineNanos());</span>
+<span class="fc" id="L359">    return supplyAsync(f, current, e, current.getDeadlineNanos());</span>
   }
 
   public static &lt;U&gt; CompletableFuture&lt;U&gt; supplyAsync(
           final Supplier&lt;U&gt; f, final Executor e, final long deadlineNanos) {
-<span class="nc" id="L362">    ExecutionContext current = ExecutionContexts.current();</span>
-<span class="nc bnc" id="L363" title="All 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L364">      return CompletableFuture.supplyAsync(f, e);</span>
+<span class="nc" id="L364">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L365" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L366">      return CompletableFuture.supplyAsync(f, e);</span>
     }
-<span class="nc" id="L366">    return supplyAsync(f, current, e, deadlineNanos);</span>
+<span class="nc" id="L368">    return supplyAsync(f, current, e, deadlineNanos);</span>
   }
 
   public static &lt;U&gt; CompletableFuture&lt;U&gt; supplyAsync(final Supplier&lt;U&gt; f,
           final ExecutionContext current,
           final Executor e, final long deadlineNanos) {
-<span class="fc" id="L372">    long ctxDeadlineNanos = current.getDeadlineNanos();</span>
-<span class="fc" id="L373">    long currentTime = TimeSource.nanoTime();</span>
+<span class="fc" id="L374">    long ctxDeadlineNanos = current.getDeadlineNanos();</span>
+<span class="fc" id="L375">    long currentTime = TimeSource.nanoTime();</span>
     long effectiveDeadlineNanos;
-<span class="pc bpc" id="L375" title="1 of 2 branches missed.">    if ((ctxDeadlineNanos - currentTime) &gt; (deadlineNanos - currentTime)) {</span>
-<span class="nc" id="L376">      effectiveDeadlineNanos = deadlineNanos;</span>
+<span class="pc bpc" id="L377" title="1 of 2 branches missed.">    if ((ctxDeadlineNanos - currentTime) &gt; (deadlineNanos - currentTime)) {</span>
+<span class="nc" id="L378">      effectiveDeadlineNanos = deadlineNanos;</span>
     } else {
-<span class="fc" id="L378">      effectiveDeadlineNanos = ctxDeadlineNanos;</span>
+<span class="fc" id="L380">      effectiveDeadlineNanos = ctxDeadlineNanos;</span>
     }
-<span class="fc" id="L380">    ContextPropagatingCompletableFuture&lt;U&gt; d</span>
+<span class="fc" id="L382">    ContextPropagatingCompletableFuture&lt;U&gt; d</span>
             = new ContextPropagatingCompletableFuture&lt;U&gt;(current, effectiveDeadlineNanos);
-<span class="fc" id="L382">    e.execute(() -&gt; {</span>
+<span class="fc" id="L384">    e.execute(() -&gt; {</span>
       try {
         U r;
-<span class="fc" id="L385">        try (ExecutionContext ec = ExecutionContexts.start(f.toString(), current,</span>
+<span class="fc" id="L387">        try (ExecutionContext ec = ExecutionContexts.start(f.toString(), current,</span>
                 currentTime, effectiveDeadlineNanos)) {
-<span class="fc" id="L387">          r = f.get();</span>
+<span class="fc" id="L389">          r = f.get();</span>
         }
-<span class="fc" id="L389">        d.complete(r);</span>
-<span class="nc" id="L390">      } catch (Throwable t) {</span>
-<span class="nc" id="L391">        d.completeExceptionally(t);</span>
-<span class="fc" id="L392">      }</span>
-<span class="fc" id="L393">    });</span>
-<span class="fc" id="L394">    return d;</span>
+<span class="fc" id="L391">        d.complete(r);</span>
+<span class="nc" id="L392">      } catch (Throwable t) {</span>
+<span class="nc" id="L393">        d.completeExceptionally(t);</span>
+<span class="fc" id="L394">      }</span>
+<span class="fc" id="L395">    });</span>
+<span class="fc" id="L396">    return d;</span>
   }
 
   public static &lt;U&gt; CompletableFuture&lt;U&gt; completedFuture(final U value) {
-<span class="nc" id="L398">    ExecutionContext current = ExecutionContexts.current();</span>
-<span class="nc bnc" id="L399" title="All 2 branches missed.">    if (current == null) {</span>
-<span class="nc" id="L400">      return CompletableFuture.completedFuture(value);</span>
+<span class="nc" id="L400">    ExecutionContext current = ExecutionContexts.current();</span>
+<span class="nc bnc" id="L401" title="All 2 branches missed.">    if (current == null) {</span>
+<span class="nc" id="L402">      return CompletableFuture.completedFuture(value);</span>
     } else {
-<span class="nc" id="L402">      return completedFuture(current, current.getDeadlineNanos(), value);</span>
+<span class="nc" id="L404">      return completedFuture(current, current.getDeadlineNanos(), value);</span>
     }
   }
 
   public static &lt;U&gt; CompletableFuture&lt;U&gt; completedFuture(
           final ExecutionContext parentContext, final long deadlinenanos, final U value) {
-<span class="nc" id="L408">    ContextPropagatingCompletableFuture&lt;U&gt; r = new ContextPropagatingCompletableFuture&lt;U&gt;(parentContext, deadlinenanos);</span>
-<span class="nc bnc" id="L409" title="All 2 branches missed.">    if (!r.complete(value)) {</span>
-<span class="nc" id="L410">      throw new IllegalStateException(&quot;Cannot be already completed &quot; + r);</span>
+<span class="nc" id="L410">    ContextPropagatingCompletableFuture&lt;U&gt; r = new ContextPropagatingCompletableFuture&lt;U&gt;(parentContext, deadlinenanos);</span>
+<span class="nc bnc" id="L411" title="All 2 branches missed.">    if (!r.complete(value)) {</span>
+<span class="nc" id="L412">      throw new IllegalStateException(&quot;Cannot be already completed &quot; + r);</span>
     }
-<span class="nc" id="L412">    return r;</span>
+<span class="nc" id="L414">    return r;</span>
   }
 
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

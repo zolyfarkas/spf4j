@@ -34,6 +34,7 @@ package org.spf4j.tsdb2;
 import com.google.common.io.ByteStreams;
 import com.google.common.primitives.Longs;
 import edu.umd.cs.findbugs.annotations.CreatesObligation;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
@@ -72,16 +73,16 @@ import org.spf4j.tsdb2.avro.TableDef;
  */
 public final class TSDBWriter implements Closeable, Flushable {
 
-<span class="fc" id="L75">  public static final Schema FILE_RECORD_SCHEMA</span>
-<span class="fc" id="L76">          = Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$));</span>
+<span class="fc" id="L76">  public static final Schema FILE_RECORD_SCHEMA</span>
+<span class="fc" id="L77">          = Schema.createUnion(Arrays.asList(TableDef.SCHEMA$, DataBlock.SCHEMA$));</span>
 
-<span class="fc" id="L78">  static final byte[] MAGIC = Strings.toUtf8(&quot;TSDB2&quot;);</span>
+<span class="fc" id="L79">  static final byte[] MAGIC = Strings.toUtf8(&quot;TSDB2&quot;);</span>
 
   private final File file;
   private final FileChannel channel;
   private final BinaryEncoder encoder;
   private final Header header;
-<span class="fc" id="L84">  private final SpecificDatumWriter&lt;Object&gt; recordWriter = new SpecificDatumWriter&lt;&gt;(FILE_RECORD_SCHEMA);</span>
+<span class="fc" id="L85">  private final SpecificDatumWriter&lt;Object&gt; recordWriter = new SpecificDatumWriter&lt;&gt;(FILE_RECORD_SCHEMA);</span>
   private final DataBlock writeBlock;
   private final int maxRowsPerBlock;
   private final RandomAccessFile raf;
@@ -90,107 +91,107 @@ public final class TSDBWriter implements Closeable, Flushable {
 
   @CreatesObligation
   public TSDBWriter(final File file, final int maxRowsPerBlock,
-<span class="fc" id="L93">          final String description, final boolean append) throws IOException {</span>
-<span class="fc" id="L94">    this.file = file;</span>
-<span class="fc" id="L95">    this.maxRowsPerBlock = maxRowsPerBlock;</span>
-<span class="fc" id="L96">    this.writeBlock = new DataBlock(System.currentTimeMillis(), new ArrayList&lt;DataRow&gt;(maxRowsPerBlock));</span>
-<span class="fc" id="L97">    raf = new RandomAccessFile(file, &quot;rw&quot;);</span>
-<span class="fc" id="L98">    bab = new ByteArrayBuilder(32768, ArraySuppliers.Bytes.JAVA_NEW);</span>
-<span class="fc" id="L99">    encoder = EncoderFactory.get().directBinaryEncoder(bab, null);</span>
-<span class="fc" id="L100">    channel = raf.getChannel();</span>
-<span class="fc" id="L101">    channel.lock();</span>
-<span class="fc bfc" id="L102" title="All 2 branches covered.">    if (!append) {</span>
-<span class="fc" id="L103">      raf.setLength(0);</span>
-<span class="fc" id="L104">      channel.force(true);</span>
+<span class="fc" id="L94">          final String description, final boolean append) throws IOException {</span>
+<span class="fc" id="L95">    this.file = file;</span>
+<span class="fc" id="L96">    this.maxRowsPerBlock = maxRowsPerBlock;</span>
+<span class="fc" id="L97">    this.writeBlock = new DataBlock(System.currentTimeMillis(), new ArrayList&lt;DataRow&gt;(maxRowsPerBlock));</span>
+<span class="fc" id="L98">    raf = new RandomAccessFile(file, &quot;rw&quot;);</span>
+<span class="fc" id="L99">    bab = new ByteArrayBuilder(32768, ArraySuppliers.Bytes.JAVA_NEW);</span>
+<span class="fc" id="L100">    encoder = EncoderFactory.get().directBinaryEncoder(bab, null);</span>
+<span class="fc" id="L101">    channel = raf.getChannel();</span>
+<span class="fc" id="L102">    channel.lock();</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">    if (!append) {</span>
+<span class="fc" id="L104">      raf.setLength(0);</span>
+<span class="fc" id="L105">      channel.force(true);</span>
     }
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">    if (raf.length() &lt;= 0) {</span>
+<span class="pc bpc" id="L107" title="1 of 2 branches missed.">    if (raf.length() &lt;= 0) {</span>
       // new file or overwite, will write header;
-<span class="fc" id="L108">      bab.write(MAGIC);</span>
-<span class="fc" id="L109">      toOutputStream(0, bab);</span>
-<span class="fc" id="L110">      header = Header.newBuilder()</span>
-<span class="fc" id="L111">              .setContentSchema(FILE_RECORD_SCHEMA.toString())</span>
-<span class="fc" id="L112">              .setDescription(description)</span>
-<span class="fc" id="L113">              .build();</span>
-<span class="fc" id="L114">      SpecificDatumWriter&lt;Header&gt; headerWriter = new SpecificDatumWriter&lt;&gt;(Header.SCHEMA$);</span>
-<span class="fc" id="L115">      headerWriter.write(header, encoder);</span>
-<span class="fc" id="L116">      encoder.flush();</span>
-<span class="fc" id="L117">      byte[] buffer = bab.getBuffer();</span>
-<span class="fc" id="L118">      final int size = bab.size();</span>
-<span class="fc" id="L119">      toByteArray(size, buffer, MAGIC.length);</span>
-<span class="fc" id="L120">      raf.write(buffer, 0, size);</span>
-<span class="fc" id="L121">      channel.force(true);</span>
-<span class="fc" id="L122">    } else {</span>
-<span class="nc bnc" id="L123" title="All 2 branches missed.">      if (description != null) {</span>
-<span class="nc" id="L124">        throw new IllegalArgumentException(&quot;Providing description when appending is not allowed for &quot; + file);</span>
+<span class="fc" id="L109">      bab.write(MAGIC);</span>
+<span class="fc" id="L110">      toOutputStream(0, bab);</span>
+<span class="fc" id="L111">      header = Header.newBuilder()</span>
+<span class="fc" id="L112">              .setContentSchema(FILE_RECORD_SCHEMA.toString())</span>
+<span class="fc" id="L113">              .setDescription(description)</span>
+<span class="fc" id="L114">              .build();</span>
+<span class="fc" id="L115">      SpecificDatumWriter&lt;Header&gt; headerWriter = new SpecificDatumWriter&lt;&gt;(Header.SCHEMA$);</span>
+<span class="fc" id="L116">      headerWriter.write(header, encoder);</span>
+<span class="fc" id="L117">      encoder.flush();</span>
+<span class="fc" id="L118">      byte[] buffer = bab.getBuffer();</span>
+<span class="fc" id="L119">      final int size = bab.size();</span>
+<span class="fc" id="L120">      toByteArray(size, buffer, MAGIC.length);</span>
+<span class="fc" id="L121">      raf.write(buffer, 0, size);</span>
+<span class="fc" id="L122">      channel.force(true);</span>
+<span class="fc" id="L123">    } else {</span>
+<span class="nc bnc" id="L124" title="All 2 branches missed.">      if (description != null) {</span>
+<span class="nc" id="L125">        throw new IllegalArgumentException(&quot;Providing description when appending is not allowed for &quot; + file);</span>
       }
 
-<span class="nc" id="L127">      try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file.toPath()));</span>
-<span class="nc" id="L128">              DataInputStream dis = new DataInputStream(bis)) {</span>
-<span class="nc" id="L129">        validateType(dis);</span>
-<span class="nc" id="L130">        long size = dis.readLong();</span>
-<span class="nc" id="L131">        SpecificDatumReader&lt;Header&gt; reader = new SpecificDatumReader&lt;&gt;(Header.getClassSchema());</span>
-<span class="nc" id="L132">        BinaryDecoder directBinaryDecoder = DecoderFactory.get().directBinaryDecoder(dis, null);</span>
-<span class="nc" id="L133">        header = reader.read(null, directBinaryDecoder);</span>
-<span class="nc" id="L134">        raf.seek(size);</span>
+<span class="nc" id="L128">      try (BufferedInputStream bis = new BufferedInputStream(Files.newInputStream(file.toPath()));</span>
+<span class="nc" id="L129">              DataInputStream dis = new DataInputStream(bis)) {</span>
+<span class="nc" id="L130">        validateType(dis);</span>
+<span class="nc" id="L131">        long size = dis.readLong();</span>
+<span class="nc" id="L132">        SpecificDatumReader&lt;Header&gt; reader = new SpecificDatumReader&lt;&gt;(Header.getClassSchema());</span>
+<span class="nc" id="L133">        BinaryDecoder directBinaryDecoder = DecoderFactory.get().directBinaryDecoder(dis, null);</span>
+<span class="nc" id="L134">        header = reader.read(null, directBinaryDecoder);</span>
+<span class="nc" id="L135">        raf.seek(size);</span>
       }
     }
-<span class="fc" id="L137">  }</span>
+<span class="fc" id="L138">  }</span>
 
   static void validateType(final InputStream dis) throws IOException {
-<span class="fc" id="L140">    byte[] readMagic = new byte[MAGIC.length];</span>
-<span class="fc" id="L141">    ByteStreams.readFully(dis, readMagic);</span>
-<span class="pc bpc" id="L142" title="1 of 2 branches missed.">    if (!Arrays.equals(MAGIC, readMagic)) {</span>
-<span class="nc" id="L143">      throw new IOException(&quot;wrong file type, magic is &quot; + Arrays.toString(readMagic));</span>
+<span class="fc" id="L141">    byte[] readMagic = new byte[MAGIC.length];</span>
+<span class="fc" id="L142">    ByteStreams.readFully(dis, readMagic);</span>
+<span class="pc bpc" id="L143" title="1 of 2 branches missed.">    if (!Arrays.equals(MAGIC, readMagic)) {</span>
+<span class="nc" id="L144">      throw new IOException(&quot;wrong file type, magic is &quot; + Arrays.toString(readMagic));</span>
     }
-<span class="fc" id="L145">  }</span>
+<span class="fc" id="L146">  }</span>
 
   public synchronized long writeTableDef(final TableDef tableDef) throws IOException {
-<span class="fc" id="L148">    final long position = raf.getFilePointer();</span>
-<span class="fc" id="L149">    bab.reset();</span>
-<span class="fc" id="L150">    tableDef.setId(position);</span>
-<span class="fc" id="L151">    recordWriter.write(tableDef, encoder);</span>
-<span class="fc" id="L152">    encoder.flush();</span>
-<span class="fc" id="L153">    raf.write(bab.getBuffer(), 0, bab.size());</span>
-<span class="fc" id="L154">    return position;</span>
+<span class="fc" id="L149">    final long position = raf.getFilePointer();</span>
+<span class="fc" id="L150">    bab.reset();</span>
+<span class="fc" id="L151">    tableDef.setId(position);</span>
+<span class="fc" id="L152">    recordWriter.write(tableDef, encoder);</span>
+<span class="fc" id="L153">    encoder.flush();</span>
+<span class="fc" id="L154">    raf.write(bab.getBuffer(), 0, bab.size());</span>
+<span class="fc" id="L155">    return position;</span>
   }
 
   public synchronized void writeDataRow(final long tableId, final long timestamp, final long... data)
           throws IOException {
-<span class="fc" id="L159">    List&lt;DataRow&gt; blockValues = this.writeBlock.getValues();</span>
-<span class="fc bfc" id="L160" title="All 2 branches covered.">    if (blockValues.size() &gt;= this.maxRowsPerBlock) {</span>
-<span class="fc" id="L161">      flush();</span>
+<span class="fc" id="L160">    List&lt;DataRow&gt; blockValues = this.writeBlock.getValues();</span>
+<span class="fc bfc" id="L161" title="All 2 branches covered.">    if (blockValues.size() &gt;= this.maxRowsPerBlock) {</span>
+<span class="fc" id="L162">      flush();</span>
     }
-<span class="fc" id="L163">    long baseTs = writeBlock.getBaseTimestamp();</span>
-<span class="fc" id="L164">    DataRow row = new DataRow((int) (timestamp - baseTs), tableId, Longs.asList(data));</span>
-<span class="fc" id="L165">    blockValues.add(row);</span>
-<span class="fc" id="L166">  }</span>
+<span class="fc" id="L164">    long baseTs = writeBlock.getBaseTimestamp();</span>
+<span class="fc" id="L165">    DataRow row = new DataRow((int) (timestamp - baseTs), tableId, Longs.asList(data));</span>
+<span class="fc" id="L166">    blockValues.add(row);</span>
+<span class="fc" id="L167">  }</span>
 
   @Override
   public synchronized void close() throws IOException {
-<span class="fc" id="L170">    try (RandomAccessFile f = raf) {</span>
-<span class="fc" id="L171">      flush();</span>
+<span class="fc" id="L171">    try (RandomAccessFile f = raf) {</span>
+<span class="fc" id="L172">      flush();</span>
     }
-<span class="fc" id="L173">  }</span>
+<span class="fc" id="L174">  }</span>
 
   public File getFile() {
-<span class="nc" id="L176">    return file;</span>
+<span class="nc" id="L177">    return file;</span>
   }
 
   public static void toByteArray(final long pvalue, final byte[] bytes, final int idx) {
-<span class="fc" id="L180">    long value = pvalue;</span>
-<span class="fc bfc" id="L181" title="All 2 branches covered.">    for (int i = idx + 7; i &gt;= idx; i--) {</span>
-<span class="fc" id="L182">      bytes[i] = (byte) (value &amp; 0xffL);</span>
-<span class="fc" id="L183">      value &gt;&gt;= 8;</span>
+<span class="fc" id="L181">    long value = pvalue;</span>
+<span class="fc bfc" id="L182" title="All 2 branches covered.">    for (int i = idx + 7; i &gt;= idx; i--) {</span>
+<span class="fc" id="L183">      bytes[i] = (byte) (value &amp; 0xffL);</span>
+<span class="fc" id="L184">      value &gt;&gt;= 8;</span>
     }
-<span class="fc" id="L185">  }</span>
+<span class="fc" id="L186">  }</span>
 
   public static void toOutputStream(final long pvalue, final OutputStream os) throws IOException {
-<span class="fc" id="L188">    long value = pvalue;</span>
-<span class="fc bfc" id="L189" title="All 2 branches covered.">    for (int i = 7; i &gt;= 0; i--) {</span>
-<span class="fc" id="L190">      os.write((byte) (value &amp; 0xffL));</span>
-<span class="fc" id="L191">      value &gt;&gt;= 8;</span>
+<span class="fc" id="L189">    long value = pvalue;</span>
+<span class="fc bfc" id="L190" title="All 2 branches covered.">    for (int i = 7; i &gt;= 0; i--) {</span>
+<span class="fc" id="L191">      os.write((byte) (value &amp; 0xffL));</span>
+<span class="fc" id="L192">      value &gt;&gt;= 8;</span>
     }
-<span class="fc" id="L193">  }</span>
+<span class="fc" id="L194">  }</span>
 
   /**
    * Commits the data to disk.
@@ -199,34 +200,35 @@ public final class TSDBWriter implements Closeable, Flushable {
    */
   @Override
   public synchronized void flush() throws IOException {
-<span class="fc" id="L202">    List&lt;DataRow&gt; blockValues = writeBlock.getValues();</span>
-<span class="fc bfc" id="L203" title="All 2 branches covered.">    if (!blockValues.isEmpty()) {</span>
-<span class="fc" id="L204">      bab.reset();</span>
-<span class="fc" id="L205">      this.recordWriter.write(writeBlock, this.encoder);</span>
-<span class="fc" id="L206">      encoder.flush();</span>
-<span class="fc" id="L207">      raf.write(bab.getBuffer(), 0, bab.size());</span>
-<span class="fc" id="L208">      channel.force(true);</span>
-<span class="fc" id="L209">      updateEOFPtrPointer();</span>
-<span class="fc" id="L210">      blockValues.clear();</span>
+<span class="fc" id="L203">    List&lt;DataRow&gt; blockValues = writeBlock.getValues();</span>
+<span class="fc bfc" id="L204" title="All 2 branches covered.">    if (!blockValues.isEmpty()) {</span>
+<span class="fc" id="L205">      bab.reset();</span>
+<span class="fc" id="L206">      this.recordWriter.write(writeBlock, this.encoder);</span>
+<span class="fc" id="L207">      encoder.flush();</span>
+<span class="fc" id="L208">      raf.write(bab.getBuffer(), 0, bab.size());</span>
+<span class="fc" id="L209">      channel.force(true);</span>
+<span class="fc" id="L210">      updateEOFPtrPointer();</span>
+<span class="fc" id="L211">      blockValues.clear();</span>
     }
-<span class="fc" id="L212">    channel.force(true);</span>
-<span class="fc" id="L213">  }</span>
+<span class="fc" id="L213">    channel.force(true);</span>
+<span class="fc" id="L214">  }</span>
 
   private void updateEOFPtrPointer() throws IOException {
-<span class="fc" id="L216">    long filePointer = raf.getFilePointer();</span>
-<span class="fc" id="L217">    raf.seek(MAGIC.length);</span>
-<span class="fc" id="L218">    raf.writeLong(filePointer);</span>
-<span class="fc" id="L219">    raf.seek(filePointer);</span>
-<span class="fc" id="L220">  }</span>
+<span class="fc" id="L217">    long filePointer = raf.getFilePointer();</span>
+<span class="fc" id="L218">    raf.seek(MAGIC.length);</span>
+<span class="fc" id="L219">    raf.writeLong(filePointer);</span>
+<span class="fc" id="L220">    raf.seek(filePointer);</span>
+<span class="fc" id="L221">  }</span>
 
+  @SuppressFBWarnings(&quot;EI_EXPOSE_REP&quot;)
   public Header getHeader() {
-<span class="nc" id="L223">    return header;</span>
+<span class="nc" id="L225">    return header;</span>
   }
 
   @Override
   public String toString() {
-<span class="fc" id="L228">    return &quot;TSDBWriter{&quot; + &quot;file=&quot; + file + &quot;, raf=&quot; + raf + '}';</span>
+<span class="fc" id="L230">    return &quot;TSDBWriter{&quot; + &quot;file=&quot; + file + &quot;, raf=&quot; + raf + '}';</span>
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

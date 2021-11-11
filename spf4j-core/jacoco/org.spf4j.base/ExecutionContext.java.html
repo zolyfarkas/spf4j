@@ -220,47 +220,57 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Beta
   void streamLogs(Consumer&lt;Slf4jLogRecord&gt; to, int nrLogs);
 
+  /**
+   * Detach this execution context from the current Thread.
+   */
   void detach();
 
+  /**
+   * Attach execution context to the current thread.
+   * A thread will typically have a stack of execution contexts attached to it.
+   */
   void attach();
 
+  /**
+   * @return true if execution context is attached to a thread or not.
+   */
   boolean isAttached();
 
   @Nonnegative
   default long getTimeToDeadline(final TimeUnit unit) throws TimeoutException {
-<span class="fc" id="L231">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L232" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L233">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="fc" id="L241">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L242" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L243">       throw new TimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L235">     return result;</span>
+<span class="fc" id="L245">     return result;</span>
   }
 
   @Nonnegative
   default long getUncheckedTimeToDeadline(final TimeUnit unit) {
-<span class="fc" id="L240">     long result = getTimeRelativeToDeadline(unit);</span>
-<span class="pc bpc" id="L241" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
-<span class="nc" id="L242">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
+<span class="fc" id="L250">     long result = getTimeRelativeToDeadline(unit);</span>
+<span class="pc bpc" id="L251" title="1 of 2 branches missed.">     if (result &lt;= 0) {</span>
+<span class="nc" id="L252">       throw new UncheckedTimeoutException(&quot;Deadline exceeded by &quot; + (-result) + ' ' + unit);</span>
      }
-<span class="fc" id="L244">     return result;</span>
+<span class="fc" id="L254">     return result;</span>
   }
 
   @Signed
   default long getTimeRelativeToDeadline(final TimeUnit unit)  {
-<span class="fc" id="L249">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
+<span class="fc" id="L259">     return unit.convert(getDeadlineNanos() - TimeSource.nanoTime(), TimeUnit.NANOSECONDS);</span>
   }
 
   @Nonnegative
   default long getMillisToDeadline() throws TimeoutException {
-<span class="nc" id="L254">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
+<span class="nc" id="L264">    return getTimeToDeadline(TimeUnit.MILLISECONDS);</span>
   }
 
   @Nonnegative
   default int getSecondsToDeadline() throws TimeoutException {
-<span class="fc" id="L259">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
-<span class="pc bpc" id="L260" title="1 of 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
-<span class="nc" id="L261">      return Integer.MAX_VALUE;</span>
+<span class="fc" id="L269">    long secondsToDeadline = getTimeToDeadline(TimeUnit.SECONDS);</span>
+<span class="pc bpc" id="L270" title="1 of 2 branches missed.">    if (secondsToDeadline &gt; Integer.MAX_VALUE) {</span>
+<span class="nc" id="L271">      return Integer.MAX_VALUE;</span>
     } else {
-<span class="fc" id="L263">      return (int) secondsToDeadline;</span>
+<span class="fc" id="L273">      return (int) secondsToDeadline;</span>
     }
   }
 
@@ -317,18 +327,18 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
    */
   @Deprecated
   default &lt;T&gt; void combine(Tag&lt;T, ?&gt; tag, T data) {
-<span class="fc" id="L320">    accumulate(tag, data);</span>
-<span class="fc" id="L321">  }</span>
+<span class="fc" id="L330">    accumulate(tag, data);</span>
+<span class="fc" id="L331">  }</span>
 
   @Beta
   default &lt;T&gt; void accumulate(Tag&lt;T, ?&gt; tag, T data) {
-<span class="fc" id="L325">    compute(tag, (t, v) -&gt; t.accumulate(v, data));</span>
-<span class="fc" id="L326">  }</span>
+<span class="fc" id="L335">    compute(tag, (t, v) -&gt; t.accumulate(v, data));</span>
+<span class="fc" id="L336">  }</span>
 
   @Beta
   default &lt;T, A&gt; void accumulateComponent(Tag&lt;T, A&gt; tag, A data) {
-<span class="nc" id="L330">    compute(tag, (t, v) -&gt; t.accumulateComponent(v, data));</span>
-<span class="nc" id="L331">  }</span>
+<span class="nc" id="L340">    compute(tag, (t, v) -&gt; t.accumulateComponent(v, data));</span>
+<span class="nc" id="L341">  }</span>
 
   /**
    * Method to put context associated data to the root context.
@@ -340,7 +350,7 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   @Beta
   default &lt;T&gt; T putToRootParent(final Tag&lt;T, ?&gt; key, final T data) {
-<span class="fc" id="L343">    return getRootParent().put(key, data);</span>
+<span class="fc" id="L353">    return getRootParent().put(key, data);</span>
   }
 
   /**
@@ -359,32 +369,32 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
   @Nullable
   @Beta
   default &lt;T&gt; List&lt;T&gt; addToRootParent(final Tag&lt;List&lt;T&gt;, T&gt; tag, final T data) {
-<span class="nc" id="L362">    ExecutionContext ctx = getRootParent();</span>
-<span class="nc" id="L363">    return ctx.compute(tag, (k, v) -&gt; {</span>
-<span class="nc bnc" id="L364" title="All 2 branches missed.">      if (v == null)  {</span>
-<span class="nc" id="L365">        v = new ArrayList&lt;&gt;(2);</span>
+<span class="nc" id="L372">    ExecutionContext ctx = getRootParent();</span>
+<span class="nc" id="L373">    return ctx.compute(tag, (k, v) -&gt; {</span>
+<span class="nc bnc" id="L374" title="All 2 branches missed.">      if (v == null)  {</span>
+<span class="nc" id="L375">        v = new ArrayList&lt;&gt;(2);</span>
       }
-<span class="nc" id="L367">      v.add(data);</span>
-<span class="nc" id="L368">      return v;</span>
+<span class="nc" id="L377">      v.add(data);</span>
+<span class="nc" id="L378">      return v;</span>
     });
   }
 
   default ExecutionContext startChild(final String operationName,
           final long timeout, final TimeUnit tu) {
-<span class="fc" id="L374">    return ExecutionContexts.start(operationName, this, timeout, tu);</span>
+<span class="fc" id="L384">    return ExecutionContexts.start(operationName, this, timeout, tu);</span>
   }
 
   default ExecutionContext startChild(final String operationName) {
-<span class="nc" id="L378">    return ExecutionContexts.start(operationName, this);</span>
+<span class="nc" id="L388">    return ExecutionContexts.start(operationName, this);</span>
   }
 
   default ExecutionContext detachedChild(final String operationName,
           final long timeout, final TimeUnit tu) {
-<span class="nc" id="L383">    return ExecutionContexts.createDetached(operationName, this, timeout, tu);</span>
+<span class="nc" id="L393">    return ExecutionContexts.createDetached(operationName, this, timeout, tu);</span>
   }
 
   default ExecutionContext detachedChild(final String operationName) {
-<span class="fc" id="L387">    return ExecutionContexts.createDetached(operationName, this, TimeSource.nanoTime(), this.getDeadlineNanos());</span>
+<span class="fc" id="L397">    return ExecutionContexts.createDetached(operationName, this, TimeSource.nanoTime(), this.getDeadlineNanos());</span>
   }
 
   long nextChildId();
@@ -406,40 +416,40 @@ public interface ExecutionContext extends AutoCloseable, JsonWriteable {
 
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable) {
-<span class="nc" id="L409">    return getDebugDetail(origin, throwable, true);</span>
+<span class="nc" id="L419">    return getDebugDetail(origin, throwable, true);</span>
   }
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
           boolean addStackSamples) {
-<span class="nc" id="L414">    return getDebugDetail(origin, throwable, addStackSamples, 100);</span>
+<span class="nc" id="L424">    return getDebugDetail(origin, throwable, addStackSamples, 100);</span>
   }
 
   default DebugDetail getDebugDetail(final String origin, @Nullable final Throwable throwable,
           boolean addStackSamples, final int maxNrLogs) {
-<span class="nc" id="L419">    List&lt;Slf4jLogRecord&gt; ctxLogs = new ArrayList&lt;&gt;();</span>
-<span class="nc" id="L420">    ExecutionContext curr = this;</span>
-<span class="nc bnc" id="L421" title="All 2 branches missed.">    while (curr != null) {</span>
-<span class="nc" id="L422">      curr.streamLogs((log) -&gt; {</span>
-<span class="nc" id="L423">        ctxLogs.add(log);</span>
-<span class="nc" id="L424">      }, maxNrLogs);</span>
-<span class="nc" id="L425">      curr = curr.getSource();</span>
+<span class="nc" id="L429">    List&lt;Slf4jLogRecord&gt; ctxLogs = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L430">    ExecutionContext curr = this;</span>
+<span class="nc bnc" id="L431" title="All 2 branches missed.">    while (curr != null) {</span>
+<span class="nc" id="L432">      curr.streamLogs((log) -&gt; {</span>
+<span class="nc" id="L433">        ctxLogs.add(log);</span>
+<span class="nc" id="L434">      }, maxNrLogs);</span>
+<span class="nc" id="L435">      curr = curr.getSource();</span>
     }
-<span class="nc" id="L427">    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);</span>
-<span class="nc bnc" id="L428" title="All 2 branches missed.">    if (addStackSamples) {</span>
-<span class="nc" id="L429">      StackSamples ss = this.getAndClearStackSamples();</span>
-<span class="nc" id="L430">      List&lt;StackSampleElement&gt; sses = Converters.convert(ss);</span>
-<span class="nc" id="L431">      return new DebugDetail(origin + '/' + this.getName(),</span>
-<span class="nc bnc" id="L432" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
-<span class="nc" id="L433">              throwable == null ? null : Converters.convert(throwable),</span>
+<span class="nc" id="L437">    Collections.sort(ctxLogs, Slf4jLogRecord::compareByTimestamp);</span>
+<span class="nc bnc" id="L438" title="All 2 branches missed.">    if (addStackSamples) {</span>
+<span class="nc" id="L439">      StackSamples ss = this.getAndClearStackSamples();</span>
+<span class="nc" id="L440">      List&lt;StackSampleElement&gt; sses = Converters.convert(ss);</span>
+<span class="nc" id="L441">      return new DebugDetail(origin + '/' + this.getName(),</span>
+<span class="nc bnc" id="L442" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
+<span class="nc" id="L443">              throwable == null ? null : Converters.convert(throwable),</span>
               sses);
     } else {
-<span class="nc" id="L436">            return new DebugDetail(origin + '/' + this.getName(),</span>
-<span class="nc bnc" id="L437" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
-<span class="nc" id="L438">              throwable == null ? null : Converters.convert(throwable),</span>
-<span class="nc" id="L439">              Collections.emptyList());</span>
+<span class="nc" id="L446">            return new DebugDetail(origin + '/' + this.getName(),</span>
+<span class="nc bnc" id="L447" title="All 2 branches missed.">              Converters.convert(&quot;&quot;, this.getId().toString(), ctxLogs),</span>
+<span class="nc" id="L448">              throwable == null ? null : Converters.convert(throwable),</span>
+<span class="nc" id="L449">              Collections.emptyList());</span>
     }
 
   }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

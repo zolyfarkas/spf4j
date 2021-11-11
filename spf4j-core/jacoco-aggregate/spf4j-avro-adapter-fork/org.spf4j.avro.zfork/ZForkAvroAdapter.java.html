@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../../jacoco-resources/report.gif" type="image/gif"/><title>ZForkAvroAdapter.java</title><link rel="stylesheet" href="../../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../../index.html" class="el_report">spf4j-core</a> &gt; <a href="../index.html" class="el_bundle">spf4j-avro-adapter-fork</a> &gt; <a href="index.source.html" class="el_package">org.spf4j.avro.zfork</a> &gt; <span class="el_source">ZForkAvroAdapter.java</span></div><h1>ZForkAvroAdapter.java</h1><pre class="source lang-java linenums">/*
+ * Copyright 2019 SPF4J.
+ *
+ * Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.spf4j.avro.zfork;
+
+import org.spf4j.avro.Yaml;
+import com.fasterxml.jackson.core.JsonParser;
+import com.google.common.io.CharStreams;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.util.List;
+import org.apache.avro.AvroNamesRefResolver;
+import org.apache.avro.Schema;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.Encoder;
+import org.apache.avro.io.ExtendedJsonDecoder;
+import org.apache.avro.io.ExtendedJsonEncoder;
+import org.spf4j.avro.Adapter;
+import org.spf4j.avro.SchemaResolver;
+
+/**
+ * Adapter for the zolyfarkas/avro fork.
+ * @author Zoltan Farkas
+ */
+<span class="fc" id="L39">public final class ZForkAvroAdapter implements Adapter {</span>
+
+  @Override
+  public Encoder getJsonEncoder(final Schema writerSchema, final OutputStream os) throws IOException {
+<span class="nc" id="L43">    return new ExtendedJsonEncoder(writerSchema, os);</span>
+  }
+
+  @Override
+  public Encoder getJsonEncoder(final Schema writerSchema, final Appendable os) throws IOException {
+<span class="fc" id="L48">    return new ExtendedJsonEncoder(writerSchema,</span>
+<span class="fc" id="L49">            Schema.FACTORY.createGenerator(CharStreams.asWriter(os)));</span>
+  }
+
+  @Override
+  public Schema.Field createField(final String name, final Schema schema, final String doc,
+          final Object defaultVal,
+          final boolean validateDefault, final boolean validateName, final Schema.Field.Order order) {
+<span class="fc" id="L56">    return new Schema.Field(name, schema, doc, defaultVal, validateDefault, validateName, order);</span>
+  }
+
+  @Override
+  public Schema createRecordSchema(final String name, final String doc,
+          final String namespace, final boolean isError, final List&lt;Schema.Field&gt; fields, final boolean validateName) {
+<span class="nc" id="L62">    return Schema.createRecord(name, doc, namespace, isError, fields, validateName);</span>
+  }
+
+  @Override
+  public Schema createRecordSchema(final String name, final String doc,
+          final String namespace, final boolean isError, final boolean validateName) {
+<span class="fc" id="L68">    return Schema.createRecord(name, doc, namespace, isError, validateName);</span>
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final InputStream is) throws IOException {
+<span class="nc" id="L73">    return new ExtendedJsonDecoder(writerSchema, is, true);</span>
+  }
+
+  @Override
+  public Schema parseSchema(final Reader reader,
+          final boolean allowUndefinedLogicalTypes, final  SchemaResolver resolver)
+          throws IOException {
+<span class="fc" id="L80">    return new Schema.Parser(new AvroNamesRefResolver(new SchemaResolverAdapter(resolver)))</span>
+<span class="fc" id="L81">            .setValidate(true).parse(Schema.FACTORY.createParser(reader), allowUndefinedLogicalTypes);</span>
+  }
+
+  @Override
+  public Schema parseSchema(final Reader reader) throws IOException {
+<span class="nc" id="L86">     return new Schema.Parser().parse(Schema.FACTORY.createParser(reader), true);</span>
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final Reader reader) throws IOException {
+<span class="fc" id="L91">    return new ExtendedJsonDecoder(writerSchema,</span>
+<span class="fc" id="L92">                Schema.FACTORY.createParser(reader), true);</span>
+  }
+
+  @Override
+  public Decoder getYamlDecoder(final Schema writerSchema, final Reader reader) throws IOException {
+<span class="fc" id="L97">     return new ExtendedJsonDecoder(writerSchema,</span>
+<span class="fc" id="L98">                Yaml.newParser(reader), true);</span>
+  }
+
+  @Override
+  public Decoder getJsonDecoder(final Schema writerSchema, final JsonParser parser) throws IOException {
+<span class="fc" id="L103">         return new ExtendedJsonDecoder(writerSchema, parser, true);</span>
+  }
+
+  @Override
+  public boolean isCompatible() {
+    try {
+<span class="fc" id="L109">      Schema.Field.class.getConstructor(String.class, Schema.class,</span>
+              String.class,  Object.class,
+              boolean.class, boolean.class, Schema.Field.Order.class);
+<span class="fc" id="L112">      return true;</span>
+<span class="nc" id="L113">    } catch (NoSuchMethodException | SecurityException ex) {</span>
+<span class="nc" id="L114">      return false;</span>
+    }
+  }
+
+  private static class SchemaResolverAdapter implements org.apache.avro.SchemaResolver {
+
+    private final SchemaResolver resolver;
+
+<span class="fc" id="L122">    SchemaResolverAdapter(final SchemaResolver resolver) {</span>
+<span class="fc" id="L123">      this.resolver = resolver;</span>
+<span class="fc" id="L124">    }</span>
+
+    @Override
+    public Schema resolveSchema(final String id) {
+<span class="nc" id="L128">      return resolver.resolveSchema(id);</span>
+    }
+
+    @Override
+    public String getId(final Schema schema) {
+<span class="nc" id="L133">      return resolver.getId(schema);</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

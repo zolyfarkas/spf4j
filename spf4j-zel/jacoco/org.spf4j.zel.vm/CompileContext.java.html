@@ -45,7 +45,7 @@ public final class CompileContext implements ParsingContext {
 
     private Instruction last;
 
-<span class="fc" id="L48">    public CompileContext(final MemoryBuilder staticMemBuilder) {</span>
+<span class="fc" id="L48">    CompileContext(final MemoryBuilder staticMemBuilder) {</span>
 <span class="fc" id="L49">        this.prog = new ProgramBuilder(staticMemBuilder);</span>
 <span class="fc" id="L50">        this.staticMemBuilder = staticMemBuilder;</span>
 <span class="fc" id="L51">    }</span>
@@ -84,20 +84,25 @@ public final class CompileContext implements ParsingContext {
 <span class="fc" id="L84">    }</span>
 
     @Override
+    public void staticSymbol(final String name) {
+<span class="nc" id="L88">        staticMemBuilder.addSymbol(name);</span>
+<span class="nc" id="L89">    }</span>
+
+    @Override
     public Instruction getLast() {
-<span class="fc" id="L88">       return last;</span>
+<span class="fc" id="L93">       return last;</span>
     }
 
     @Override
     public void generateCode(final Location loc, final Instruction instr) {
-<span class="fc" id="L93">        prog.add(instr, loc);</span>
-<span class="fc" id="L94">        last = instr;</span>
-<span class="fc" id="L95">    }</span>
+<span class="fc" id="L98">        prog.add(instr, loc);</span>
+<span class="fc" id="L99">        last = instr;</span>
+<span class="fc" id="L100">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L99">        return &quot;CompileContext{&quot; + &quot;prog=&quot; + prog + &quot;, staticMemBuilder=&quot; + staticMemBuilder + &quot;, last=&quot; + last + '}';</span>
+<span class="nc" id="L104">        return &quot;CompileContext{&quot; + &quot;prog=&quot; + prog + &quot;, staticMemBuilder=&quot; + staticMemBuilder + &quot;, last=&quot; + last + '}';</span>
     }
 
 }
-</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
