@@ -34,8 +34,10 @@ package org.spf4j.stackmonitor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,14 +47,16 @@ import org.spf4j.log.Level;
 import org.spf4j.ssdump2.Converter;
 import org.spf4j.test.log.annotations.ExpectLog;
 
+@NotThreadSafe
 public final class SsdumpTest {
 
-  static {
+  private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
+
+  @BeforeClass
+  public static void setContextAwareProfiling() {
     System.setProperty("spf4j.execContext.tlAttacherClass", ProfilingTLAttacher.class.getName());
     System.setProperty("spf4j.execContext.factoryClass", ProfiledExecutionContextFactory.class.getName());
   }
-
-  private static final Logger LOG = LoggerFactory.getLogger(SsdumpTest.class);
 
 
   @Test
