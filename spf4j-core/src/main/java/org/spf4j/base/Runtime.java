@@ -33,7 +33,6 @@ package org.spf4j.base;
 
 import org.spf4j.os.OperatingSystem;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.spf4j.concurrent.DefaultExecutor;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,15 +45,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.Attributes;
@@ -86,8 +78,6 @@ import org.spf4j.unix.UnixRuntime;
 public final class Runtime {
 
   public static final boolean IS_LITTLE_ENDIAN = "little".equals(System.getProperty("sun.cpu.endian"));
-  public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
-          Integer.getInteger("spf4j.waitForShutdownMillis", 30000));
   public static final String TMP_FOLDER = System.getProperty("java.io.tmpdir");
   public static final Path TMP_FOLDER_PATH = Paths.get(TMP_FOLDER);
   public static final String JAVA_VERSION = System.getProperty("java.version");
@@ -111,9 +101,8 @@ public final class Runtime {
   public static final int NR_PROCESSORS;
   public static final Version JAVA_PLATFORM;
 
-  private static final SortedMap<Integer, Set<Runnable>> SHUTDOWN_HOOKS = new TreeMap<>();
-  private static final List<Class<?>> PRELOADED = new ArrayList<>(2);
   private static final java.lang.Runtime JAVA_RUNTIME = java.lang.Runtime.getRuntime();
+
 
   static {
     // priming certain functionality to make sure it works when we need it (classes are already loaded).
@@ -127,7 +116,7 @@ public final class Runtime {
     RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
     final int availableProcessors = JAVA_RUNTIME.availableProcessors();
     if (availableProcessors <= 0) {
-      error("Invalid number of processors " + availableProcessors
+      ErrLog.error("Invalid number of processors " + availableProcessors
               + " defaulting to 1");
       NR_PROCESSORS = 1;
     } else {
@@ -138,12 +127,6 @@ public final class Runtime {
     boolean useUIDGeneratorForJvmId = Boolean.getBoolean("spf4j.useUIDForProcessId");
     PROCESS_ID = useUIDGeneratorForJvmId ? UIDGenerator.generateIdBase("J", '-').toString()
             : mxBeanName + ':' + Long.toHexString((System.currentTimeMillis() - 1509741164184L) / 1000);
-    final boolean dumpNonDaemonThreadInfoOnShutdown = Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown");
-    if (dumpNonDaemonThreadInfoOnShutdown) { // prime class...
-      PRELOADED.add(Threads.class);
-    }
-    JAVA_RUNTIME.addShutdownHook(new Thread(new ShutdownRunnable(false, dumpNonDaemonThreadInfoOnShutdown),
-            "spf4j queued shutdown"));
     JAVA_PLATFORM = Version.fromSpecVersion(JAVA_VERSION);
     if (Boolean.getBoolean("spf4j.runtime.jmx")) {
       Registry.export(Jmx.class);
@@ -294,23 +277,29 @@ public final class Runtime {
       return false;
   }
 
-  @SuppressWarnings("checkstyle:regexp")
+  /**
+   * @deprecated use equivalent from ErrLog
+   */
+  @Deprecated
   public static void error(final String message) {
-    System.err.println(message);
+    ErrLog.error(message);
   }
 
-  @SuppressWarnings("checkstyle:regexp")
+  /**
+   * @deprecated use equivalent from ErrLog
+   */
+  @Deprecated
   public static void error(final String message, final Throwable t) {
-    System.err.println(message);
-    Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
+    ErrLog.error(message, t);
   }
 
-  @SuppressWarnings("checkstyle:regexp")
+  /**
+   * @deprecated use equivalent from ErrLog
+   */
+  @Deprecated
   public static void errorNoPackageDetail(final String message, final Throwable t) {
-    System.err.println(message);
-    Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+    ErrLog.errorNoPackageDetail(message, t);
   }
-
 
   public static void goDownWithError(final SysExits exitCode) {
     goDownWithError(null, exitCode.exitCode());
@@ -326,13 +315,13 @@ public final class Runtime {
     try {
       if (t != null) {
         Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first
-        error("Error, going down with exit code " + exitCode, t);
+        ErrLog.error("Error, going down with exit code " + exitCode, t);
         //Now we are pushing it...
         Logger logger = Logger.getLogger(Runtime.class.getName());
         logger.log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
         logger.log(Level.SEVERE, "Exception detail", t);
       } else {
-        error("Error, going down with exit code " + exitCode);
+        ErrLog.error("Error, going down with exit code " + exitCode);
         Logger.getLogger(Runtime.class.getName())
                 .log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
       }
@@ -501,40 +490,33 @@ public final class Runtime {
     return resp.getResponseCode();
   }
 
+  /**
+   * @deprecated use ShutdownRunnable directly
+   */
+  @Deprecated
   public static void queueHookAtBeginning(final Runnable runnable) {
-    synchronized (SHUTDOWN_HOOKS) {
-      queueHook(Integer.MIN_VALUE, runnable);
-    }
+      ShutdownThread.getInstance().queueHook(Integer.MIN_VALUE, runnable);
   }
 
+  /**
+   * @deprecated use ShutdownRunnable directly
+   */
+  @Deprecated
   public static void queueHookAtEnd(final Runnable runnable) {
-    queueHook(Integer.MAX_VALUE, runnable);
+    ShutdownThread.getInstance().queueHook(Integer.MAX_VALUE, runnable);
   }
 
+  /**
+   * @deprecated use ShutdownRunnable directly
+   */
+  @Deprecated
   public static void queueHook(final int priority, final Runnable runnable) {
-    synchronized (SHUTDOWN_HOOKS) {
-      Integer pr = priority;
-      Set<Runnable> runnables = SHUTDOWN_HOOKS.get(pr);
-      if (runnables == null) {
-        runnables = new HashSet<>();
-        SHUTDOWN_HOOKS.put(pr, runnables);
-      }
-      runnables.add(runnable);
-    }
+    ShutdownThread.getInstance().queueHook(priority, runnable);
   }
 
+  @Deprecated
   public static boolean removeQueuedShutdownHook(final Runnable runnable) {
-    if ("spf4j queued shutdown".equals(Thread.currentThread().getName())) {
-      return false;
-    }
-    synchronized (SHUTDOWN_HOOKS) {
-      for (Set<Runnable> entry : SHUTDOWN_HOOKS.values()) {
-        if (entry.remove(runnable)) {
-          return true;
-        }
-      }
-    }
-    return false;
+    return ShutdownThread.getInstance().removeQueuedShutdownHook(runnable);
   }
 
   /**
@@ -706,110 +688,6 @@ public final class Runtime {
       UnixRuntime.restart();
     }
 
-  }
-
-  private static class ShutdownRunnable extends AbstractRunnable {
-
-    private final boolean dumpNonDaemonThreadInfoOnShutdown;
-
-    ShutdownRunnable(final boolean lenient, final boolean dumpNonDaemonThreadInfoOnShutdown) {
-      super(lenient);
-      this.dumpNonDaemonThreadInfoOnShutdown = dumpNonDaemonThreadInfoOnShutdown;
-    }
-
-    @Override
-    public void doRun() throws Exception {
-      Exception rex = null;
-      SortedMap<Integer, Set<Runnable>> hooks;
-      synchronized (SHUTDOWN_HOOKS) {
-        hooks = new TreeMap<>(SHUTDOWN_HOOKS);
-        for (Map.Entry<Integer, Set<Runnable>> entry : hooks.entrySet()) {
-          entry.setValue(new HashSet<>(entry.getValue()));
-        }
-      }
-      for (Map.Entry<Integer, Set<Runnable>> runnables : hooks.entrySet()) {
-        final Set<Runnable> values = runnables.getValue();
-        if (values.size() <= 1) {
-          for (Runnable runnable : values) {
-            try {
-              runnable.run();
-            } catch (RuntimeException ex) {
-              if (rex == null) {
-                rex = ex;
-              } else {
-                rex.addSuppressed(ex);
-              }
-            }
-          }
-        } else if (((int) runnables.getKey()) >= Integer.MAX_VALUE) {
-          Thread[] threads = new Thread[values.size()];
-          int i = 0;
-          for (Runnable runnable : values) {
-            Thread thread = new Thread(runnable);
-            thread.start();
-            threads[i++] = thread;
-          }
-          long deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
-          for (Thread thread : threads) {
-            try {
-              thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
-            } catch (InterruptedException ex) {
-              Thread.currentThread().interrupt();
-              if (rex == null) {
-                rex = ex;
-              } else {
-                rex.addSuppressed(ex);
-              }
-              break;
-            }
-          }
-        } else {
-          List<Future<?>> futures = new ArrayList<>(values.size());
-          for (Runnable runnable : values) {
-            futures.add(DefaultExecutor.INSTANCE.submit(runnable));
-          }
-          for (Future<?> future : futures) {
-            try {
-              future.get();
-            }  catch (InterruptedException ex) {
-              Thread.currentThread().interrupt();
-              if (rex == null) {
-                rex = ex;
-              } else {
-                rex.addSuppressed(ex);
-              }
-              break;
-            } catch (ExecutionException | RuntimeException ex) {
-              if (rex == null) {
-                rex = ex;
-              } else {
-                rex.addSuppressed(ex);
-              }
-            }
-          }
-        }
-      }
-      // print out info on all remaining non daemon threads.
-      if (dumpNonDaemonThreadInfoOnShutdown) {
-        Thread[] threads = Threads.getThreads();
-        Thread current = Thread.currentThread();
-        boolean first = true;
-        for (Thread thread : threads) {
-          if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
-                  && !thread.getName().contains("DestroyJavaVM")) {
-            if (first) {
-              error("Non daemon threads still running:");
-              first = false;
-            }
-            error("Non daemon thread " + thread + ", stackTrace = "
-                    + java.util.Arrays.toString(thread.getStackTrace()));
-          }
-        }
-      }
-      if (rex != null) {
-        throw rex;
-      }
-    }
   }
 
 }

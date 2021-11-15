@@ -39,6 +39,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ErrLog;
+import org.spf4j.base.ShutdownThread;
 
 /**
  *
@@ -61,15 +63,15 @@ public final class DefaultScheduler {
           = MoreExecutors.listeningDecorator(INSTANCE);
 
   static {
-    org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(true) {
+    ShutdownThread.getInstance().queueHookAtEnd(new AbstractRunnable(true) {
 
       @Override
       public void doRun() throws InterruptedException {
         INSTANCE.shutdown();
-        INSTANCE.awaitTermination(org.spf4j.base.Runtime.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
+        INSTANCE.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
         List<Runnable> remaining = INSTANCE.shutdownNow();
         if (remaining.size() > 0) {
-          org.spf4j.base.Runtime.error("Remaining tasks: " + remaining);
+          ErrLog.error("Remaining tasks: " + remaining);
         }
       }
     });
