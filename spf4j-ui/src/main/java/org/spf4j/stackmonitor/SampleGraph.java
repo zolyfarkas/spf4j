@@ -210,6 +210,7 @@ public final class SampleGraph {
 
   }
 
+  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   public SampleGraph(final Method m, final SampleNode node) {
     int nrNodes = node.getNrNodes();
     vertexMap = MultimapBuilder.hashKeys(nrNodes).hashSetValues(1).build();
