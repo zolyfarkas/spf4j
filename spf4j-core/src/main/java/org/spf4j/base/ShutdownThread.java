@@ -43,50 +43,66 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.spf4j.concurrent.DefaultExecutor;
-import org.spf4j.io.ByteArrayBuilder;
+import java.util.concurrent.TimeoutException;
+import org.spf4j.concurrent.CustomThreadFactory;
+import org.spf4j.io.NullOutputStream;
 
 /**
- *
+ * A shutdown thread that allows tiered shutdown.
+ * hooks in each tier will be executed sequentially, in tier level ascending order.
+ * hooks on the same tier will be executed in parallel.
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("WOC_WRITE_ONLY_COLLECTION_FIELD")
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class ShutdownThread extends Thread {
-
 
   public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
           Integer.getInteger("spf4j.waitForShutdownMillis", 30000));
 
+  static {
+    preloadClasses();
+  }
 
   private static final ShutdownThread SHUTDOWN_THREAD = new ShutdownThread(
-    Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown"));
-
-
-  private static final List<Class<?>> PRELOADED = new ArrayList<>(2);
+          Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown"));
 
   static {
-    try (PrintStream stream = new PrintStream(new ByteArrayBuilder(), false, "UTF-8")) {
+    java.lang.Runtime.getRuntime().addShutdownHook(SHUTDOWN_THREAD);
+  }
+
+  /**
+   * We dod this to make sure we have these classes loaded when shutdown happens.
+   * THis is to help us get some disagnostic info to the process output.
+   */
+  private static void preloadClasses() {
+    try (PrintStream stream = new PrintStream(NullOutputStream.get(), false, "UTF-8")) {
       RuntimeException rex = new RuntimeException("priming");
       Throwables.writeTo(rex, stream, Throwables.PackageDetail.NONE);
       Throwables.containsNonRecoverable(rex);
     } catch (UnsupportedEncodingException ex) {
       throw new ExceptionInInitializerError(ex);
     }
-    if (SHUTDOWN_THREAD.isDumpNonDaemonThreadInfoOnShutdown()) { // prime class...
-      PRELOADED.add(Threads.class);
+    try {
+      Class.forName(Threads.class.getName());
+    } catch (ClassNotFoundException ex) {
+      throw new ExceptionInInitializerError(ex);
     }
-    java.lang.Runtime.getRuntime().addShutdownHook(SHUTDOWN_THREAD);
   }
 
   private final SortedMap<Integer, Set<Runnable>> rhooks;
 
   private final boolean dumpNonDaemonThreadInfoOnShutdown;
 
+  private ThreadPoolExecutor shutdownExecutor;
+
   private ShutdownThread(final boolean dumpNonDaemonThreadInfoOnShutdown) {
     super("spf4j queued shutdown");
     this.rhooks = new TreeMap<>();
     this.dumpNonDaemonThreadInfoOnShutdown = dumpNonDaemonThreadInfoOnShutdown;
+    this.shutdownExecutor = null;
   }
 
   public boolean isDumpNonDaemonThreadInfoOnShutdown() {
@@ -94,20 +110,78 @@ public final class ShutdownThread extends Thread {
   }
 
   @SuppressFBWarnings("MS_EXPOSE_REP")
-  public static ShutdownThread getInstance() {
+  public static ShutdownThread get() {
     return SHUTDOWN_THREAD;
   }
 
   @Override
   public void run() {
+    long deadlineNanos = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
     try {
-      doRun();
+      doRun(deadlineNanos);
+      shutDownClean(deadlineNanos);
+    } catch (InterruptedException ex) {
+      shutDownClean(deadlineNanos);
+    } catch (TimeoutException ex) {
+      ErrLog.error("Timeout during shutdown executor cleanup", ex);
+      shutdownNowExecutor();
     } catch (Exception e) {
-      ErrLog.error("Failure during sutdown", e);
+      if (org.spf4j.base.Throwables.containsNonRecoverable(e)) {
+        XRuntime.get().goDownWithError(e, SysExits.EX_SOFTWARE);
+      }
+      ErrLog.error("Failure during shutdown", e);
+      shutDownClean(deadlineNanos);
+    } finally {
+      dumpInfoOnRemainingThreads();
     }
   }
 
-  public void doRun() throws Exception {
+  private void shutDownClean(final long deadlineNanos) {
+    try {
+      shutdownExecutor(deadlineNanos);
+    } catch (TimeoutException ex) {
+      ErrLog.error("Timeout during shutdown executor cleanup", ex);
+    } catch (RuntimeException ex) {
+      ErrLog.error("RuntimeException during shutdown executor cleanup", ex);
+    } catch (InterruptedException ex) {
+      // just terminate
+    }
+  }
+
+  private ThreadPoolExecutor getOrCreateExecutor() {
+    ThreadPoolExecutor tpe = this.shutdownExecutor;
+    if (tpe == null) {
+      tpe = new ThreadPoolExecutor(1, Integer.MAX_VALUE, 10, TimeUnit.MILLISECONDS,
+              new SynchronousQueue<Runnable>(), new CustomThreadFactory("shutdownExecutor", true));
+      this.shutdownExecutor = tpe;
+    }
+    return tpe;
+  }
+
+  private void shutdownExecutor(final long deadlineNanos) throws TimeoutException, InterruptedException {
+    ThreadPoolExecutor tpe = this.shutdownExecutor;
+    if (tpe != null) {
+      tpe.shutdown();
+      long timeoutNanos = TimeSource.getTimeToDeadlineStrict(deadlineNanos, TimeUnit.NANOSECONDS);
+      tpe.awaitTermination(timeoutNanos, TimeUnit.NANOSECONDS);
+      List<Runnable> remaining = tpe.shutdownNow();
+      if (remaining.size() > 0) {
+        ErrLog.error("Remaining tasks: " + remaining);
+      }
+    }
+  }
+
+  private void shutdownNowExecutor() {
+    ThreadPoolExecutor tpe = this.shutdownExecutor;
+    if (tpe != null) {
+      List<Runnable> remaining = tpe.shutdownNow();
+      if (remaining.size() > 0) {
+        ErrLog.error("Remaining tasks: " + remaining);
+      }
+    }
+  }
+
+  public void doRun(final long deadlineNanos) throws TimeoutException, InterruptedException, Exception {
     Exception rex = null;
     SortedMap<Integer, Set<Runnable>> hooks;
     synchronized (rhooks) {
@@ -118,66 +192,52 @@ public final class ShutdownThread extends Thread {
     }
     for (Map.Entry<Integer, Set<Runnable>> runnables : hooks.entrySet()) {
       final Set<Runnable> values = runnables.getValue();
-      if (values.size() <= 1) {
-        for (Runnable runnable : values) {
-          try {
-            runnable.run();
-          } catch (RuntimeException ex) {
-            if (rex == null) {
-              rex = ex;
-            } else {
-              rex.addSuppressed(ex);
-            }
+      List<Future<?>> futures = new ArrayList<>(values.size());
+      for (Runnable runnable : values) {
+        futures.add(getOrCreateExecutor().submit(runnable));
+      }
+      for (Future<?> future : futures) {
+        try {
+          long timeoutNanos = TimeSource.getTimeToDeadlineStrict(deadlineNanos, TimeUnit.NANOSECONDS);
+          future.get(timeoutNanos, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException ex) {
+          Thread.currentThread().interrupt();
+          if (rex != null) {
+            ex.addSuppressed(rex);
           }
-        }
-      } else if (((int) runnables.getKey()) >= Integer.MAX_VALUE) {
-        Thread[] threads = new Thread[values.size()];
-        int i = 0;
-        for (Runnable runnable : values) {
-          Thread thread = new Thread(runnable);
-          thread.start();
-          threads[i++] = thread;
-        }
-        long deadline = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
-        for (Thread thread : threads) {
-          try {
-            thread.join(TimeUnit.NANOSECONDS.toMillis(deadline - TimeSource.nanoTime()));
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            if (rex == null) {
-              rex = ex;
-            } else {
-              rex.addSuppressed(ex);
-            }
-            break;
+          throw ex;
+        } catch (ExecutionException | RuntimeException ex) {
+          if (rex == null) {
+            rex = ex;
+          } else {
+            rex.addSuppressed(ex);
           }
-        }
-      } else {
-        List<Future<?>> futures = new ArrayList<>(values.size());
-        for (Runnable runnable : values) {
-          futures.add(DefaultExecutor.INSTANCE.submit(runnable));
-        }
-        for (Future<?> future : futures) {
-          try {
-            future.get();
-          } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            if (rex == null) {
-              rex = ex;
-            } else {
-              rex.addSuppressed(ex);
-            }
-            break;
-          } catch (ExecutionException | RuntimeException ex) {
-            if (rex == null) {
-              rex = ex;
-            } else {
-              rex.addSuppressed(ex);
-            }
+        } catch (TimeoutException ex) {
+          if (rex != null) {
+            ex.addSuppressed(rex);
           }
+          throw ex;
         }
       }
     }
+    if (rex != null) {
+      throw rex;
+    }
+  }
+
+  /**
+   * java.lang.ApplicationShutdownHooks.runHooks, java.lang.Shutdown.runHooks
+   */
+  private static boolean isHookShutdownRunner(final Thread t) {
+    for (StackTraceElement ste : t.getStackTrace()) {
+      if ("runHooks".equals(ste.getMethodName()) && ste.getClassName().contains("Shutdown")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public void dumpInfoOnRemainingThreads() {
     // print out info on all remaining non daemon threads.
     if (dumpNonDaemonThreadInfoOnShutdown) {
       Thread[] threads = Threads.getThreads();
@@ -185,7 +245,8 @@ public final class ShutdownThread extends Thread {
       boolean first = true;
       for (Thread thread : threads) {
         if (thread.isAlive() && !thread.isDaemon() && !thread.equals(current)
-                && !thread.getName().contains("DestroyJavaVM")) {
+                && !thread.getName().contains("DestroyJavaVM")
+                && !isHookShutdownRunner(thread)) {
           if (first) {
             ErrLog.error("Non daemon threads still running:");
             first = false;
@@ -195,13 +256,10 @@ public final class ShutdownThread extends Thread {
         }
       }
     }
-    if (rex != null) {
-      throw rex;
-    }
   }
 
- public void queueHookAtBeginning(final Runnable runnable) {
-      queueHook(Integer.MIN_VALUE, runnable);
+  public void queueHookAtBeginning(final Runnable runnable) {
+    queueHook(Integer.MIN_VALUE, runnable);
   }
 
   public void queueHookAtEnd(final Runnable runnable) {
@@ -233,6 +291,5 @@ public final class ShutdownThread extends Thread {
     }
     return false;
   }
-
 
 }

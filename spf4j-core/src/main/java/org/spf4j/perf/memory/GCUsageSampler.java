@@ -43,6 +43,7 @@ import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.tsdb2.avro.MeasurementType;
@@ -60,7 +61,7 @@ public final class GCUsageSampler {
   private static ScheduledFuture<?> samplingFuture;
 
   static {
-    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();

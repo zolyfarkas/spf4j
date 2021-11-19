@@ -43,10 +43,6 @@ import javax.annotation.Nullable;
 @SuppressFBWarnings("ACEM_ABSTRACT_CLASS_EMPTY_METHODS")
 public abstract class AbstractRunnable implements Runnable {
 
-  @Deprecated
-  public static final int ERROR_EXIT_CODE = SysExits.EX_SOFTWARE.exitCode();
-
-
   public static final Runnable NOP = () -> { };
 
   private final boolean lenient;
@@ -84,6 +80,7 @@ public abstract class AbstractRunnable implements Runnable {
   }
 
   @Override
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS")
   public final void run() {
     Thread thread = null;
     String origName = null;
@@ -97,7 +94,7 @@ public abstract class AbstractRunnable implements Runnable {
       doRun();
     } catch (Exception ex) {
       if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
-        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
+        XRuntime.get().goDownWithError(ex, SysExits.EX_SOFTWARE);
       }
       if (lenient) {
         Logger.getLogger(AbstractRunnable.class.getName()).log(Level.SEVERE, "Exception in runnable: ", ex);
@@ -106,7 +103,7 @@ public abstract class AbstractRunnable implements Runnable {
       }
     } catch (Throwable ex) {
       if (org.spf4j.base.Throwables.containsNonRecoverable(ex)) {
-        Runtime.goDownWithError(ex, SysExits.EX_SOFTWARE);
+        XRuntime.get().goDownWithError(ex, SysExits.EX_SOFTWARE);
       }
       throw ex;
     } finally {

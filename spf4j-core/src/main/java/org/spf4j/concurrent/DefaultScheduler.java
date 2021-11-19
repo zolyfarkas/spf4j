@@ -52,36 +52,55 @@ public final class DefaultScheduler {
 
   private static final long DAY_MILLIS = HOUR_MILLIS * 24;
 
-  public static final ScheduledExecutorService INSTANCE
-          = new ScheduledThreadPoolExecutor(
+  public static final ScheduledExecutorService INSTANCE = create();
+
+
+  public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE
+          = MoreExecutors.listeningDecorator(INSTANCE);
+
+  private static ScheduledExecutorService create() {
+    final ScheduledExecutorService ses = new ScheduledThreadPoolExecutor(
                   Integer.getInteger("spf4j.executors.defaultScheduler.coreThreads", 2),
                   new CustomThreadFactory("DefaultScheduler",
                           Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
                           Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY)));
 
-  public static final ListeningScheduledExecutorService LISTENABLE_INSTANCE
-          = MoreExecutors.listeningDecorator(INSTANCE);
-
-  static {
-    ShutdownThread.getInstance().queueHookAtEnd(new AbstractRunnable(true) {
+    ShutdownThread.get().queueHookAtEnd(new AbstractRunnable(true) {
 
       @Override
       public void doRun() throws InterruptedException {
-        INSTANCE.shutdown();
-        INSTANCE.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
-        List<Runnable> remaining = INSTANCE.shutdownNow();
+        ses.shutdown();
+        ses.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
+        List<Runnable> remaining = ses.shutdownNow();
         if (remaining.size() > 0) {
           ErrLog.error("Remaining tasks: " + remaining);
         }
       }
     });
+    return ses;
   }
 
+  /**
+   * @deprecated use get.
+   */
+  @Deprecated
   public static ScheduledExecutorService instance() {
     return INSTANCE;
   }
 
+  /**
+   * @deprecated use getListenable.
+   */
+  @Deprecated
   public static ListeningScheduledExecutorService listenableInstance() {
+    return LISTENABLE_INSTANCE;
+  }
+
+  public static ScheduledExecutorService get() {
+    return INSTANCE;
+  }
+
+  public static ListeningScheduledExecutorService getListenable() {
     return LISTENABLE_INSTANCE;
   }
 

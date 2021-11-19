@@ -15,6 +15,7 @@
  */
 package org.spf4j.failsafe.concurrent;
 
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.concurrent.DefaultExecutor;
 
 /**
@@ -28,7 +29,7 @@ public final class DefaultFailSafeExecutor {
   private static final FailSafeExecutorImpl R_EXEC = new FailSafeExecutorImpl(DefaultExecutor.instance());
 
   static {
-    org.spf4j.base.Runtime.queueHook(0, () -> {
+    ShutdownThread.get().queueHook(0, () -> {
       R_EXEC.initiateClose();
     });
   }

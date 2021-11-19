@@ -495,7 +495,7 @@ public final class Runtime {
    */
   @Deprecated
   public static void queueHookAtBeginning(final Runnable runnable) {
-      ShutdownThread.getInstance().queueHook(Integer.MIN_VALUE, runnable);
+      ShutdownThread.get().queueHook(Integer.MIN_VALUE, runnable);
   }
 
   /**
@@ -503,7 +503,7 @@ public final class Runtime {
    */
   @Deprecated
   public static void queueHookAtEnd(final Runnable runnable) {
-    ShutdownThread.getInstance().queueHook(Integer.MAX_VALUE, runnable);
+    ShutdownThread.get().queueHook(Integer.MAX_VALUE, runnable);
   }
 
   /**
@@ -511,12 +511,12 @@ public final class Runtime {
    */
   @Deprecated
   public static void queueHook(final int priority, final Runnable runnable) {
-    ShutdownThread.getInstance().queueHook(priority, runnable);
+    ShutdownThread.get().queueHook(priority, runnable);
   }
 
   @Deprecated
   public static boolean removeQueuedShutdownHook(final Runnable runnable) {
-    return ShutdownThread.getInstance().removeQueuedShutdownHook(runnable);
+    return ShutdownThread.get().removeQueuedShutdownHook(runnable);
   }
 
   /**

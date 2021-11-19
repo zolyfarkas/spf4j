@@ -45,6 +45,7 @@ import java.lang.management.MemoryUsage;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import javax.management.MBeanServer;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
 import org.spf4j.perf.CloseableMeasurementRecorder;
@@ -69,7 +70,7 @@ public final class MemoryUsageSampler {
   private static AccumulatorRunnable accumulatorRunnable;
 
   static {
-    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();

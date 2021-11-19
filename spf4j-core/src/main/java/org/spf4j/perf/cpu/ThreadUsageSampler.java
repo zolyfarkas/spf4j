@@ -47,6 +47,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.base.Threads;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.io.ByteArrayBuilder;
@@ -71,7 +72,7 @@ public final class ThreadUsageSampler {
   private static Instant peakTime;
 
   static {
-    org.spf4j.base.Runtime.queueHook(2, new AbstractRunnable(true) {
+    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();

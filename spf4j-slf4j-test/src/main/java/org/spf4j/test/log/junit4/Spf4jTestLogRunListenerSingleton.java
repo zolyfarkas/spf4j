@@ -95,6 +95,7 @@ public final class Spf4jTestLogRunListenerSingleton extends RunListener {
 
   static {
     System.setProperty("spf4j.timeSource", TestTimeSource.class.getName());
+    System.setProperty("spf4j.dumpNonDaemonThreadInfoOnShutdown", "true");
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Spf4jTestLogRunListenerSingleton.class);

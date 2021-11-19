@@ -29,21 +29,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.spf4j.concurrent;
+package org.spf4j.io;
 
-import java.util.concurrent.ExecutorService;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.OutputStream;
 
 /**
  *
  * @author Zoltan Farkas
  */
-public final class DefaultContextAwareExecutor {
+public final class NullOutputStream extends OutputStream {
 
-  private static final ExecutorService INSTANCE = new ContextPropagatingExecutorService(DefaultExecutor.get());
+  private static final NullOutputStream INSTANCE = new NullOutputStream();
 
-  private DefaultContextAwareExecutor() { }
+  private NullOutputStream() { }
 
-  public static ExecutorService instance() {
+  @Override
+  public void write(final int arg) {
+    // do nothing
+  }
+
+  @Override
+  public void write(final byte[] arg0, final int arg1, final int arg2) {
+    // do nothing
+  }
+
+  @Override
+  public void write(final byte[] arg0) {
+    // do nothing
+  }
+
+  @SuppressFBWarnings("MS_EXPOSE_REP")
+  public static NullOutputStream get() {
     return INSTANCE;
   }
 

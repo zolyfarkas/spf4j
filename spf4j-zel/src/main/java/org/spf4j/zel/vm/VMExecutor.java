@@ -46,6 +46,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
 import org.spf4j.base.Pair;
+import org.spf4j.base.ShutdownThread;
 
 /**
  *
@@ -76,7 +77,7 @@ public final class VMExecutor {
             }, true);
 
     static {
-      org.spf4j.base.Runtime.queueHook(0, new Runnable() {
+      ShutdownThread.get().queueHook(0, new Runnable() {
         @Override
         public void run() {
           DEF_EXEC.shutdown();

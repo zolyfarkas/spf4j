@@ -50,6 +50,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import org.apache.avro.Schema;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.GenericExportedValue;
 import org.spf4j.jmx.JmxExport;
@@ -120,7 +121,7 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         close();
       }
     };
-    org.spf4j.base.Runtime.queueHook(0, runnable);
+    ShutdownThread.get().queueHook(0, runnable);
     return runnable;
   }
 

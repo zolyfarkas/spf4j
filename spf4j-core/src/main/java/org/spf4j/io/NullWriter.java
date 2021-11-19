@@ -51,6 +51,41 @@ public final class NullWriter extends Writer {
   }
 
   @Override
+  public Writer append(final char arg0) {
+    return this;
+  }
+
+  @Override
+  public Writer append(final CharSequence arg0, final int arg1, final int arg2) {
+    return this;
+  }
+
+  @Override
+  public Writer append(final CharSequence arg0) {
+    return this;
+  }
+
+  @Override
+  public void write(final String arg0, final int arg1, final int arg2) {
+    // Write nothing
+  }
+
+  @Override
+  public void write(final String arg0) {
+    // Write nothing
+  }
+
+  @Override
+  public void write(final char[] arg0) {
+    // Write nothing
+  }
+
+  @Override
+  public void write(final int arg0) {
+    // Write nothing
+  }
+
+  @Override
   public void flush() {
     // flush Nothing
   }

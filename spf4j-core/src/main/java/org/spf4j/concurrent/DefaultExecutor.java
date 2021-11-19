@@ -50,9 +50,11 @@ import org.spf4j.base.ShutdownThread;
 @SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN") // THere is a shutdownhook being registered which FB does not see
 public final class DefaultExecutor {
 
-  public static final ExecutorService INSTANCE;
+  public static final ExecutorService INSTANCE = create();
 
-  static {
+  @SuppressFBWarnings("HES_LOCAL_EXECUTOR_SERVICE")
+  private static ExecutorService create() {
+    final ExecutorService es;
     final int coreThreads = Integer.getInteger("spf4j.executors.defaultExecutor.coreThreads", 0);
     final int maxIdleMillis = Integer.getInteger("spf4j.executors.defaultExecutor.maxIdleMillis", 60000);
     final boolean isDaemon = Boolean.getBoolean("spf4j.executors.defaultExecutor.daemon");
@@ -63,36 +65,45 @@ public final class DefaultExecutor {
         LifoThreadPoolExecutorSQP lifoExec = new LifoThreadPoolExecutorSQP("defExec", coreThreads,
                 Integer.MAX_VALUE, maxIdleMillis, 0, isDaemon);
         lifoExec.exportJmx();
-        INSTANCE = lifoExec;
+        es = lifoExec;
         break;
-      case "fjp": // EXPERIMENTAL! canceling with interrupt a future of taks submited does not seem to work!
-        INSTANCE = new ForkJoinPool(32767);
+      case "fjp": // EXPERIMENTAL! canceling with interrupt a future of taks submited does not work!
+        es = new ForkJoinPool(32767);
         break;
       case "legacy":
-        INSTANCE = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
+        es = new ThreadPoolExecutor(coreThreads, Integer.MAX_VALUE, maxIdleMillis, TimeUnit.MILLISECONDS,
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("defExec", isDaemon));
         break;
       default:
         throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
     }
-    ShutdownThread.getInstance().queueHookAtEnd(new AbstractRunnable(true) {
+    ShutdownThread.get().queueHookAtEnd(new AbstractRunnable(true) {
 
       @Override
       public void doRun() throws InterruptedException {
-        INSTANCE.shutdown();
-        INSTANCE.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
-        List<Runnable> remaining = INSTANCE.shutdownNow();
+        es.shutdown();
+        es.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
+        List<Runnable> remaining = es.shutdownNow();
         if (remaining.size() > 0) {
           ErrLog.error("Remaining tasks: " + remaining);
         }
       }
     });
+    return es;
   }
 
   private DefaultExecutor() {
   }
 
+  /**
+   * @deprecated use get.
+   */
+  @Deprecated
   public static ExecutorService instance() {
+    return INSTANCE;
+  }
+
+  public static ExecutorService get() {
     return INSTANCE;
   }
 
