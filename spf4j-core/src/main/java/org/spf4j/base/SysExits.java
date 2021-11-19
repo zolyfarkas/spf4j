@@ -129,6 +129,10 @@ public enum SysExits {
    */
   EX_CONFIG(78),
 
+  /**
+   * timeout. exit code returned by timeout command when it times out.
+   */
+  EX_CMD_TIMEOUT(124),
 
   /**
    * cannot execute invoked command.
