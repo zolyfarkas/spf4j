@@ -34,6 +34,7 @@ package org.spf4j.text;
 import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
+import org.spf4j.base.Slf4jMessageFormatter;
 
 /**
  *
@@ -79,6 +80,46 @@ public class FastMessageFormatTest {
     MessageFormat format = new MessageFormat("pre {1}, {0}, {2,number,$'#',##} suf");
     format.format(new Object[]{"a", "b", 100}, sb, null);
     Assert.assertEquals("pre b, a, $#1,00 suf", sb.toString());
+  }
+
+  @Test
+  public void testSlf4jConversion() throws IOException {
+    MessageFormat format = new MessageFormat("pre {1}, {0}, {2,number,$'#',##} suf");
+    Slf4jFormat slf4jFormat = format.subformatSlf4j();
+    Object[] converted = slf4jFormat.convert("a", "b", 100, "extra");
+    StringBuilder sb = new StringBuilder();
+    int to = Slf4jMessageFormatter.format(sb, slf4jFormat.getFormat(), converted);
+    Assert.assertEquals(3, to);
+    Assert.assertEquals("pre b, a, $#1,00 suf", sb.toString());
+  }
+
+  @Test
+  public void testSlf4jConversion2() throws IOException {
+    MessageFormat format = new MessageFormat("pre {2}, {1}, {3,number,$'#',##} suf");
+    Slf4jFormat slf4jFormat = format.subformatSlf4j();
+    Object[] converted = slf4jFormat.convert("extra1", "a", "b", 100, "extra2");
+    StringBuilder sb = new StringBuilder();
+    int to = Slf4jMessageFormatter.format(sb, slf4jFormat.getFormat(), converted);
+    Assert.assertEquals(3, to);
+    Assert.assertEquals("extra1", converted[to]);
+    Assert.assertEquals("extra2", converted[to + 1]);
+    Assert.assertEquals("pre b, a, $#1,00 suf", sb.toString());
+  }
+
+  @Test
+  public void testChoiceFormat() throws IOException {
+    MessageFormat format = new MessageFormat(
+            "At last count, {0} server{0, choice, 0#s|1#|1<s} {0, choice, 0#were|1#was|1<were} booted.");
+    Slf4jFormat slf4jFormat = format.subformatSlf4j();
+    StringBuilder sb = new StringBuilder();
+    Object[] converted = slf4jFormat.convert(0, "extra");
+    int to = Slf4jMessageFormatter.format(sb, slf4jFormat.getFormat(), converted);
+    Assert.assertEquals("extra", converted[to]);
+    Assert.assertEquals("At last count, 0 servers were booted.", sb.toString());
+    sb.setLength(0);
+    converted = slf4jFormat.convert(1, "extra");
+    Slf4jMessageFormatter.format(sb, slf4jFormat.getFormat(), converted);
+    Assert.assertEquals("At last count, 1 server was booted.", sb.toString());
   }
 
 }

@@ -67,6 +67,7 @@ import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -888,13 +889,13 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final <T extends CharSequence & Appendable> boolean[] format(Object[] arguments, T result,
+  public final <T extends CharSequence & Appendable> void format(Object[] arguments, T result,
           @Nullable FieldPosition pos) throws IOException {
-    return subformat(arguments, result, pos, null);
+    subformat(arguments, result, pos, null);
   }
 
-  public final <T extends CharSequence & Appendable> boolean[] format(Object[] arguments, T result) throws IOException {
-    return format(arguments, result, null);
+  public final <T extends CharSequence & Appendable> void format(Object[] arguments, T result) throws IOException {
+    format(arguments, result, null);
   }
 
   /**
@@ -931,12 +932,12 @@ public final class MessageFormat extends Format {
    * @exception IllegalArgumentException if an argument in the <code>arguments</code> array is not of the type expected
    * by the format element(s) that use it.
    */
-  public final <T extends CharSequence & Appendable> boolean[] format(final Object arguments, final T result,
+  public final <T extends CharSequence & Appendable> void format(final Object arguments, final T result,
           final FieldPosition pos) throws IOException {
     if (arguments instanceof Object[]) {
-      return subformat((Object[]) arguments, result, pos, null);
+      subformat((Object[]) arguments, result, pos, null);
     } else {
-      return subformat(new Object [] {arguments}, result, pos, null);
+      subformat(new Object [] {arguments}, result, pos, null);
     }
   }
 
@@ -1191,9 +1192,9 @@ public final class MessageFormat extends Format {
     }
   }
 
-  private <T extends CharSequence & Appendable> boolean[] syntethicFormat(Object obj, T toAppendTo, FieldPosition pos)
+  private <T extends CharSequence & Appendable> void syntethicFormat(Object obj, T toAppendTo, FieldPosition pos)
           throws IOException {
-    return format(obj, toAppendTo, pos);
+    format(obj, toAppendTo, pos);
   }
 
 
@@ -1208,18 +1209,12 @@ public final class MessageFormat extends Format {
    */
   @SuppressFBWarnings({"PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS"}) // Unfortunately I have no other way to write this
   // without code duplication to work for StringBuilder and StringBuffer....
-  private <T extends Appendable & CharSequence> boolean[] subformat(@Nullable Object[] arguments, @Nonnull T result,
+  private <T extends Appendable & CharSequence> void subformat(@Nullable Object[] arguments, @Nonnull T result,
           @Nullable FieldPosition fp,
           @Nullable List<AttributedCharacterIterator> characterIterators)
           throws IOException {
     int lastOffset = 0;
     int last = result.length();
-    boolean[] used;
-    if (arguments == null)  {
-      used = org.spf4j.base.Arrays.EMPTY_BOOLEAN_ARRAY;
-    } else {
-      used = new boolean[arguments.length];
-    }
     for (int i = 0; i <= maxOffset; ++i) {
       FormatInfo finfo = formats[i];
       int offset = finfo.getOffset();
@@ -1230,7 +1225,6 @@ public final class MessageFormat extends Format {
         result.append('{').append(Integer.toString(argumentNumber)).append('}');
         continue;
       }
-      used[argumentNumber] = true;
       Object obj = arguments[argumentNumber];
       String arg = null;
       Format subFormatter = null;
@@ -1315,13 +1309,32 @@ public final class MessageFormat extends Format {
     if (characterIterators != null && last != result.length()) {
       characterIterators.add(createAttributedCharacterIterator(result.subSequence(last, result.length()).toString()));
     }
-    return used;
   }
+
+
+  public Slf4jFormat subformatSlf4j() {
+     StringBuilder result = new StringBuilder(32);
+    List<Slf4jFormatImpl.ParamConverter> parameters = new ArrayList<>(maxOffset + 1);
+    int lastOffset = 0;
+    for (int i = 0; i <= maxOffset; ++i) {
+      FormatInfo finfo = formats[i];
+      int offset = finfo.getOffset();
+      result.append(pattern, lastOffset, offset);
+      lastOffset = offset;
+      result.append("{}");
+      parameters.add(new Slf4jFormatImpl.FormatInfoParameterConverter(finfo, locale));
+    }
+    result.append(pattern, lastOffset, pattern.length());
+    return new Slf4jFormatImpl(result.toString(),
+            parameters.toArray(new Slf4jFormatImpl.ParamConverter[parameters.size()]));
+  }
+
+
 
   /**
    * Convenience method to append all the characters in <code>iterator</code> to the StringBuffer <code>result</code>.
    */
-  private static void append(Appendable result, CharacterIterator iterator) throws IOException {
+  private static void append(final Appendable result, final CharacterIterator iterator) throws IOException {
     final char first = iterator.first();
     if (first != CharacterIterator.DONE) {
       result.append(first);

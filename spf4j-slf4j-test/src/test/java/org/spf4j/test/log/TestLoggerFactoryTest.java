@@ -205,7 +205,7 @@ public class TestLoggerFactoryTest {
   public void testLoggingJul() {
     LogAssert expect = TestLoggers.sys().expect("my.test", Level.DEBUG,
             LogMatchers.hasFormat("Bla Bla"),
-            LogMatchers.hasFormat("Boo Boo param"),
+            LogMatchers.hasFormat("Boo Boo {}"),
             Matchers.allOf(LogMatchers.hasFormat("test source"),
                     LogMatchers.hasExtraArguments(new Method(TestLoggerFactoryTest.class.getName(),
                             "testLoggingJul"))));

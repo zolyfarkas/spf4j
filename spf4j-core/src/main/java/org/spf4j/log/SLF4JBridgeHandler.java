@@ -35,10 +35,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -59,14 +55,18 @@ import org.spf4j.base.Arrays;
 import org.spf4j.base.Pair;
 import org.spf4j.base.avro.Method;
 import org.spf4j.text.MessageFormat;
+import org.spf4j.text.Slf4jFormat;
 
 /**
  * <p>
  * Bridge/route all JUL log records to the SLF4J API.</p>
  * <p>
  * Implementation based on jul-to-slf4j bridge but at least 20% faster. Speed improvements come from using spf4j
- * improved MessageFormatter + code cleanup. Also unlike jul-to-slf4j the sorce class and source method information is
- * not being dropped. </p>
+ * improved MessageFormatter + code cleanup.
+ * Unlike jul-to-slf4j the source class and source method information is not being dropped.
+ * The MessageFormat is transformed into a parameterized Slf4jFormat.
+ *
+ * </p>
  * <p>
  * Implementation is interchangeable with the jul-to-slf4j implementation </p>
  *
@@ -80,31 +80,23 @@ public final class SLF4JBridgeHandler extends Handler {
   private static final int DEBUG_LEVEL_THRESHOLD = Level.FINE.intValue();
   private static final int INFO_LEVEL_THRESHOLD = Level.INFO.intValue();
   private static final int WARN_LEVEL_THRESHOLD = Level.WARNING.intValue();
+  private static final int MAX_FORMAT_CACHE_SIZE =  Integer.getInteger("spf4j.julBridge.MaxFormatCacheSize",
+                                      1024);
 
-  private static final ThreadLocal<Reference<StringBuilder>> SB = new
-          ThreadLocal<Reference<StringBuilder>>() {
-    @Override
-    protected Reference<StringBuilder> initialValue() {
-      return new SoftReference<>(new StringBuilder(64));
-    }
-
-  };
-
-  private static final MessageFormat INVALID_FORMAT = new MessageFormat("SPF4J Invalid Message Format");
+  private static final Slf4jFormat INVALID_FORMAT = new MessageFormat("SPF4J Invalid Message Format").subformatSlf4j();
 
   private static class Lazy {
-    private static final LoadingCache<Locale, LoadingCache<String, MessageFormat>> LOCALIZED_FORMAT_CACHE
+    private static final LoadingCache<Locale, LoadingCache<String, Slf4jFormat>> LOCALIZED_FORMAT_CACHE
           = CacheBuilder.newBuilder()
-                  .build(new CacheLoader<Locale, LoadingCache<String, MessageFormat>>() {
+                  .build(new CacheLoader<Locale, LoadingCache<String, Slf4jFormat>>() {
                     @Override
-                    public LoadingCache<String, MessageFormat> load(final Locale locale) throws Exception {
+                    public LoadingCache<String, Slf4jFormat> load(final Locale locale) throws Exception {
                       return CacheBuilder.newBuilder()
-                              .maximumSize(Integer.getInteger("spf4j.julBridge.MaxFormatCacheSize",
-                                      1024)).build(new CacheLoader<String, MessageFormat>() {
+                              .maximumSize(MAX_FORMAT_CACHE_SIZE).build(new CacheLoader<String, Slf4jFormat>() {
                                 @Override
-                                public MessageFormat load(final String key) {
+                                public Slf4jFormat load(final String key) {
                                   try {
-                                    return new MessageFormat(key, locale);
+                                    return new MessageFormat(key, locale).subformatSlf4j();
                                   } catch (IllegalArgumentException ex) {
                                     // certain loggers extend LogMessage with printf syntax...
                                     LoggerFactory.getLogger(Lazy.class).trace("Unable to forrmat {}", key, ex);
@@ -117,14 +109,13 @@ public final class SLF4JBridgeHandler extends Handler {
                   );
   }
 
-  private static final LoadingCache<String, MessageFormat> FORMAT_CACHE
+  private static final LoadingCache<String, Slf4jFormat> FORMAT_CACHE
           = CacheBuilder.newBuilder()
-                  .maximumSize(Integer.getInteger("spf4j.julBridge.MaxFormatCacheSize",
-                  1024)).build(new CacheLoader<String, MessageFormat>() {
+                  .maximumSize(MAX_FORMAT_CACHE_SIZE).build(new CacheLoader<String, Slf4jFormat>() {
             @Override
-            public MessageFormat load(final String key) {
+            public Slf4jFormat load(final String key) {
               try {
-                return new MessageFormat(key);
+                return new MessageFormat(key).subformatSlf4j();
               } catch (IllegalArgumentException ex) {
                 // certain loggers extend LogMessage with printf syntax...
                 LoggerFactory.getLogger(SLF4JBridgeHandler.class).trace("Unable to forrmat {}", key, ex);
@@ -244,14 +235,29 @@ public final class SLF4JBridgeHandler extends Handler {
     int julLevelValue = record.getLevel().intValue();
     int slf4jLevel;
     if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
+      if (!lal.isTraceEnabled()) {
+        return;
+      }
       slf4jLevel = LocationAwareLogger.TRACE_INT;
     } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
+      if (!lal.isDebugEnabled()) {
+        return;
+      }
       slf4jLevel = LocationAwareLogger.DEBUG_INT;
     } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
+      if (!lal.isInfoEnabled()) {
+        return;
+      }
       slf4jLevel = LocationAwareLogger.INFO_INT;
     } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
+      if (!lal.isWarnEnabled()) {
+        return;
+      }
       slf4jLevel = LocationAwareLogger.WARN_INT;
     } else {
+      if (!lal.isErrorEnabled()) {
+        return;
+      }
       slf4jLevel = LocationAwareLogger.ERROR_INT;
     }
     Pair<String, Object[]> messageArgs = getMessageI18N(record);
@@ -265,12 +271,33 @@ public final class SLF4JBridgeHandler extends Handler {
 
   @SuppressFBWarnings("UCC_UNRELATED_COLLECTION_CONTENTS") // nature of log args
   private static void callPlainSLF4JLogger(final Logger slf4jLogger, final LogRecord record) {
+    int julLevelValue = record.getLevel().intValue();
+    if (julLevelValue <= TRACE_LEVEL_THRESHOLD) {
+      if (!slf4jLogger.isTraceEnabled()) {
+        return;
+      }
+    } else if (julLevelValue <= DEBUG_LEVEL_THRESHOLD) {
+      if (!slf4jLogger.isDebugEnabled()) {
+        return;
+      }
+    } else if (julLevelValue <= INFO_LEVEL_THRESHOLD) {
+      if (!slf4jLogger.isInfoEnabled()) {
+        return;
+      }
+    } else if (julLevelValue <= WARN_LEVEL_THRESHOLD) {
+      if (!slf4jLogger.isWarnEnabled()) {
+        return;
+      }
+    } else {
+      if (!slf4jLogger.isErrorEnabled()) {
+        return;
+      }
+    }
     Pair<String, Object[]> message = getMessageI18N(record);
     Object[] args = message.getSecond();
     if (args == null || args.length == 0) {
       logEfficient(message.getFirst(), record, slf4jLogger);
     } else {
-      int julLevelValue = record.getLevel().intValue();
       Throwable thrown = record.getThrown();
       Method m = getSourceMethodInfo(record);
       Object[] pargs;
@@ -415,49 +442,20 @@ public final class SLF4JBridgeHandler extends Handler {
     }
     Object[] params = record.getParameters();
     if (params != null && params.length > 0) {
-      StringBuilder msg = SB.get().get();
-      if (msg == null) {
-        msg = new StringBuilder(64);
-        SB.set(new SoftReference<>(msg));
-      } else  {
-        msg.setLength(0);
-      }
       try {
-        boolean[] used;
-        try {
-          MessageFormat msgFormat;
+          Slf4jFormat msgFormat;
           if (bundle == null) {
             msgFormat = FORMAT_CACHE.getUnchecked(message);
           } else {
             msgFormat = Lazy.LOCALIZED_FORMAT_CACHE.getUnchecked(bundle.getLocale()).getUnchecked(message);
           }
           if (msgFormat != INVALID_FORMAT) {
-            used =  msgFormat.format(params, msg);
+            return Pair.of(msgFormat.getFormat(), msgFormat.convert(record.getParameters()));
           } else {
             // Some libraries like jboss log manager embeded do unkosher stuff,
             // like printf style formatting see ExtLogRecord...
             return Pair.of(record.getMessage(), record.getParameters());
           }
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
-        }
-        int nrLeft = 0;
-        for (boolean u : used) {
-          if (!u) {
-            nrLeft++;
-          }
-        }
-        if (nrLeft == 0) {
-          return Pair.of(msg.toString(), Arrays.EMPTY_OBJ_ARRAY);
-        } else {
-          Object[] left = new Object[nrLeft];
-          for (int i = 0, j = 0; i < used.length; i++) {
-            if (!used[i]) {
-              left[j++] = params[i];
-            }
-          }
-          return Pair.of(msg.toString(), left);
-        }
       } catch (IllegalArgumentException e) {
         LoggerFactory.getLogger(SLF4JBridgeHandler.class).warn("Unable to format {} with {}", message, params, e);
          return Pair.of(message, Arrays.EMPTY_OBJ_ARRAY);
