@@ -109,6 +109,7 @@ public final class Charts2 {
     return createHeatJFreeChart(data, table, aggTimeMillis);
   }
 
+  @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE") // false positive.
   public static TimeSeries readToTs(final MeasurementStoreQuery query, final Schema table,
           final long startTime, final long endTime, final int aggTimeMillis) throws IOException {
     TLongList ts = new TLongArrayList();

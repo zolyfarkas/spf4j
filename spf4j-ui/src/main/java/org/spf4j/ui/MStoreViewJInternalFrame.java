@@ -89,6 +89,7 @@ public class MStoreViewJInternalFrame extends javax.swing.JInternalFrame {
    * Creates new form TSDBViewJInternalFrame
    */
   @SuppressForbiden
+  @SuppressFBWarnings("RCN_REDUNDANT_NULLCHECK_WOULD_HAVE_BEEN_A_NPE") // false positive
   public MStoreViewJInternalFrame(final File tsDb) throws IOException {
     super(tsDb.getPath());
     String fileName = tsDb.getName();
