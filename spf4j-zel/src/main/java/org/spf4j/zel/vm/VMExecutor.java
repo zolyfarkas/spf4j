@@ -45,6 +45,7 @@ import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
+import org.spf4j.base.ErrLog;
 import org.spf4j.base.Pair;
 import org.spf4j.base.ShutdownThread;
 
@@ -72,7 +73,7 @@ public final class VMExecutor {
 
               @Override
               public void uncaughtException(final Thread t, final Throwable e) {
-                org.spf4j.base.Runtime.error("Uncaucht Exception zel default executor", e);
+                ErrLog.error("Uncaucht Exception zel default executor", e);
               }
             }, true);
 
