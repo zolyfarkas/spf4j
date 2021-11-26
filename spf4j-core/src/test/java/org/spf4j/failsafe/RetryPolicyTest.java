@@ -32,6 +32,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spf4j.base.Threads;
 import org.spf4j.concurrent.DefaultContextAwareExecutor;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.failsafe.concurrent.DefaultFailSafeExecutor;
@@ -327,8 +328,16 @@ public class RetryPolicyTest {
     }
     Future<?> submit = DefaultScheduler.INSTANCE.schedule(
             () -> server.breakException(null), 100, TimeUnit.MILLISECONDS);
-    rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
-            200, TimeUnit.MILLISECONDS).get(10, TimeUnit.SECONDS);
+    Future<Response> url1Future = null;
+    try {
+      url1Future = rp.submit(new ServerCall(server, new Request("url1", System.currentTimeMillis() + 1000)),
+              200, TimeUnit.MILLISECONDS);
+      url1Future.get(10, TimeUnit.SECONDS);
+    } catch (TimeoutException te) {
+      LOG.info("Unexpected timeout for {}, dumping thread state...", url1Future);
+      Threads.dumpTo(System.err);
+      throw te;
+    }
     submit.get(10, TimeUnit.SECONDS);
     // Test error response
     try (LogAssert retryExpect3 = TestLoggers.sys().expect(PREDICATE_CLASS, Level.DEBUG, 3,
