@@ -40,11 +40,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
-import static org.spf4j.base.Runtime.PID;
-import static org.spf4j.base.Runtime.run;
 import org.spf4j.base.SysExits;
 import org.spf4j.os.OperatingSystem;
 import org.spf4j.os.ProcessResponse;
+import org.spf4j.os.ProcessUtil;
 import org.spf4j.os.StdOutLineCountProcessHandler;
 
 /**
@@ -74,7 +73,7 @@ public final class Lsof {
   }
 
   private static final String[] LSOF_CMD = (LSOF == null) ? null
-          : new String[]{LSOF.getAbsolutePath(), "-p", Integer.toString(PID)};
+          : new String[]{LSOF.getAbsolutePath(), "-p", Integer.toString(ProcessUtil.getPid())};
 
 
   private Lsof() { }
@@ -99,7 +98,7 @@ public final class Lsof {
       return null;
     }
     try {
-      return run(Lsof.LSOF_CMD, 60000);
+      return OperatingSystem.forkExec(Lsof.LSOF_CMD, 60000);
     } catch (IOException | ExecutionException | TimeoutException ex) {
       Logger.getLogger(Lsof.class.getName()).log(Level.WARNING, "Unable to run lsof", ex);
       return null;

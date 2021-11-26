@@ -57,7 +57,6 @@ import static org.spf4j.concurrent.RejectedExecutionHandler.REJECT_EXCEPTION_EXE
 import org.spf4j.ds.SimpleStack;
 import org.spf4j.jmx.JmxExport;
 import org.spf4j.jmx.Registry;
-import org.spf4j.stackmonitor.StackTrace;
 
 /**
  *
@@ -172,7 +171,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
     this.rejectionHandler = rejectionHandler;
     this.poolName = poolName;
     this.maxIdleTimeMillis = maxIdleTimeMillis;
-    this.taskQueue = new ArrayDeque<Runnable>(Math.min(queueSizeLimit, LL_THRESHOLD));
+    this.taskQueue = new ArrayDeque<>(Math.min(queueSizeLimit, LL_THRESHOLD));
     this.queueSizeLimit = queueSizeLimit;
     this.threadQueue = new SimpleStack<>(Math.min(1024, maxSize));
     this.threadPriority = threadPriority;
@@ -637,7 +636,7 @@ public final class LifoThreadPoolExecutorSQP extends AbstractExecutorService imp
       try {
         stackTrace = this.getStackTrace();
       } catch (RuntimeException ex) {
-        stackTrace = StackTrace.EMPTY_STACK_TRACE;
+        stackTrace = new StackTraceElement[0];
       }
       return "QueuedThread{name = " + getName() + ", lastRunNanos="
               + Timing.getCurrentTiming().fromNanoTimeToInstant(lastRunNanos)

@@ -62,6 +62,10 @@ public final class StackTrace {
     return stackTrace;
   }
 
+  public int getRelevantFramesStart() {
+    return relevantFramesStart;
+  }
+
   @Override
   public int hashCode() {
     int hash = 7;
