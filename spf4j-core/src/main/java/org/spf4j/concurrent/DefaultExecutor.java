@@ -75,7 +75,7 @@ public final class DefaultExecutor {
                 new SynchronousQueue<Runnable>(), new CustomThreadFactory("defExec", isDaemon));
         break;
       default:
-        throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
+        throw new IllegalArgumentException("Invalid setting for " + impParam + " = " + value);
     }
     AbstractRunnable executorShutdownRunnable = new AbstractRunnable(true) {
 
