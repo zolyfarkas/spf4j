@@ -61,13 +61,16 @@ public final class GCUsageSampler {
   private static ScheduledFuture<?> samplingFuture;
 
   static {
-    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+    if (!ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();
       }
-    });
-    Registry.export(GCUsageSampler.class);
+    })) {
+      stop();
+    } else {
+      Registry.export(GCUsageSampler.class);
+    }
   }
 
   private GCUsageSampler() {

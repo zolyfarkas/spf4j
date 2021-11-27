@@ -26,15 +26,25 @@ public final class DefaultFailSafeExecutor {
 
   private DefaultFailSafeExecutor() { }
 
-  private static final FailSafeExecutorImpl R_EXEC = new FailSafeExecutorImpl(DefaultExecutor.instance());
+  private static final FailSafeExecutorImpl R_EXEC = new FailSafeExecutorImpl(DefaultExecutor.get());
 
   static {
-    ShutdownThread.get().queueHook(0, () -> {
+    if (!ShutdownThread.get().queueHook(DefaultExecutor.getShutDownOrder() - 1, () -> {
       R_EXEC.initiateClose();
-    });
+    })) {
+      R_EXEC.initiateClose();
+    }
   }
 
+  /**
+   * @deprecated use get.
+   */
+  @Deprecated
   public static FailSafeExecutorImpl instance() {
+    return R_EXEC;
+  }
+
+  public static FailSafeExecutorImpl get() {
     return R_EXEC;
   }
 

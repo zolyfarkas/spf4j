@@ -77,7 +77,7 @@ public final class DefaultExecutor {
       default:
         throw new IllegalArgumentException("Ivalid setting for " + impParam + " = " + value);
     }
-    ShutdownThread.get().queueHookAtEnd(new AbstractRunnable(true) {
+    AbstractRunnable executorShutdownRunnable = new AbstractRunnable(true) {
 
       @Override
       public void doRun() throws InterruptedException {
@@ -88,8 +88,17 @@ public final class DefaultExecutor {
           ErrLog.error("Remaining tasks: " + remaining);
         }
       }
-    });
+    };
+    if (!ShutdownThread.get().queueHookAtEnd(executorShutdownRunnable)) {
+      executorShutdownRunnable.run();
+      return new NonPoolingExecutorService(new CustomThreadFactory("defExecShutdown", isDaemon));
+    }
     return es;
+  }
+
+  @SuppressFBWarnings("MRC_METHOD_RETURNS_CONSTANT")
+  public static int getShutDownOrder() {
+    return Integer.MAX_VALUE;
   }
 
   private DefaultExecutor() {

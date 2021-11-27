@@ -44,10 +44,14 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ErrLog;
 import org.spf4j.base.Pair;
 import org.spf4j.base.ShutdownThread;
+import org.spf4j.concurrent.CustomThreadFactory;
+import org.spf4j.concurrent.NonPoolingExecutorService;
 
 /**
  *
@@ -64,26 +68,39 @@ public final class VMExecutor {
   private final ConcurrentMap<VMFuture<Object>, List<Pair<Suspendable<Object>, VMFuture<Object>>>> futToSuspMap
           = new ConcurrentHashMap<>();
 
-
   public static class Lazy {
 
-    private static final ExecutorService DEF_EXEC
-            = new ForkJoinPool(Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS),
-                    new DefaultForkJoinWorkerThreadFactory(), new Thread.UncaughtExceptionHandler() {
+    private static final ExecutorService DEF_EXEC = init();
 
-              @Override
-              public void uncaughtException(final Thread t, final Throwable e) {
-                ErrLog.error("Uncaucht Exception zel default executor", e);
-              }
-            }, true);
+    @SuppressFBWarnings("HES_EXECUTOR_NEVER_SHUTDOWN")
+    private static ExecutorService init() {
+      ExecutorService fjp = new ForkJoinPool(
+              Integer.getInteger("zel.pool.maxThreadNr", org.spf4j.base.Runtime.NR_PROCESSORS * 2),
+              new DefaultForkJoinWorkerThreadFactory(), new Thread.UncaughtExceptionHandler() {
 
-    static {
-      ShutdownThread.get().queueHook(0, new Runnable() {
         @Override
-        public void run() {
-          DEF_EXEC.shutdown();
+        public void uncaughtException(final Thread t, final Throwable e) {
+          ErrLog.error("Uncaucht Exception zel default executor", e);
         }
-      });
+      }, true);
+
+      if (!ShutdownThread.get().queueHook(0, new AbstractRunnable(true) {
+
+        @Override
+        public void doRun() throws InterruptedException {
+          fjp.shutdown();
+          fjp.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
+          List<Runnable> remaining = fjp.shutdownNow();
+          if (remaining.size() > 0) {
+            ErrLog.error("Remaining tasks: " + remaining);
+          }
+        }
+      })) {
+        fjp.shutdownNow();
+        return new NonPoolingExecutorService(new CustomThreadFactory("V<ShutdownExecutor", false));
+      }
+      return fjp;
+
     }
 
     public static final VMExecutor DEFAULT = new VMExecutor(DEF_EXEC);

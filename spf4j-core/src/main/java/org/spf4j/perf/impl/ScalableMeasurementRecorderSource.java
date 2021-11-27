@@ -126,7 +126,9 @@ public final class ScalableMeasurementRecorderSource implements
         close();
       }
     };
-    ShutdownThread.get().queueHook(0, runnable);
+    if (!ShutdownThread.get().queueHook(0, runnable)) {
+      close();
+    }
     return runnable;
   }
 

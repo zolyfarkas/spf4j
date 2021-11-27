@@ -70,13 +70,16 @@ public final class MemoryUsageSampler {
   private static AccumulatorRunnable accumulatorRunnable;
 
   static {
-    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+    if (!ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();
       }
-    });
-    Registry.export(MemoryUsageSampler.class);
+    })) {
+      stop();
+    } else {
+      Registry.export(MemoryUsageSampler.class);
+    }
   }
 
   private static HotSpotDiagnosticMXBean getHotspotMBean() {

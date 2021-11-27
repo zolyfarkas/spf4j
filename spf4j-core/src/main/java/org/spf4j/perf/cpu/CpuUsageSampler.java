@@ -54,14 +54,17 @@ public final class CpuUsageSampler {
   private static ScheduledFuture<?> samplingFuture;
 
   static {
-    Registry.export(CpuUsageSampler.class);
     if (OperatingSystem.getSunJdkOSMBean() != null) {
-      ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+      if (!ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
         @Override
         public void doRun() {
           stop();
         }
-      });
+      })) {
+        stop();
+      } else {
+        Registry.export(CpuUsageSampler.class);
+      }
     }
   }
 

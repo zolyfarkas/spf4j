@@ -69,13 +69,16 @@ public final class OpenFilesSampler {
   private static volatile Instant lastWarnLsofTime;
 
   static {
-    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+    if (!ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();
       }
-    });
-    Registry.export(OpenFilesSampler.class);
+    })) {
+      stop();
+    } else {
+      Registry.export(OpenFilesSampler.class);
+    }
   }
 
   private OpenFilesSampler() {

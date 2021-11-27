@@ -121,7 +121,9 @@ public final class ScalableMeasurementRecorder extends AbstractMeasurementAccumu
         close();
       }
     };
-    ShutdownThread.get().queueHook(0, runnable);
+    if (!ShutdownThread.get().queueHook(0, runnable)) {
+      close();
+    }
     return runnable;
   }
 

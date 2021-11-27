@@ -47,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.Attributes;
@@ -495,7 +496,9 @@ public final class Runtime {
    */
   @Deprecated
   public static void queueHookAtBeginning(final Runnable runnable) {
-      ShutdownThread.get().queueHook(Integer.MIN_VALUE, runnable);
+      if (!ShutdownThread.get().queueHook(Integer.MIN_VALUE, runnable)) {
+        throw new RejectedExecutionException("Rejected " + runnable);
+      }
   }
 
   /**
@@ -503,7 +506,9 @@ public final class Runtime {
    */
   @Deprecated
   public static void queueHookAtEnd(final Runnable runnable) {
-    ShutdownThread.get().queueHook(Integer.MAX_VALUE, runnable);
+    if (!ShutdownThread.get().queueHook(Integer.MAX_VALUE, runnable)) {
+      throw new RejectedExecutionException("Rejected " + runnable);
+    }
   }
 
   /**
@@ -511,7 +516,9 @@ public final class Runtime {
    */
   @Deprecated
   public static void queueHook(final int priority, final Runnable runnable) {
-    ShutdownThread.get().queueHook(priority, runnable);
+    if (!ShutdownThread.get().queueHook(priority, runnable)) {
+       throw new RejectedExecutionException("Rejected " + runnable);
+    }
   }
 
   @Deprecated

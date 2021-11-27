@@ -64,8 +64,7 @@ public final class DefaultScheduler {
                   new CustomThreadFactory("DefaultScheduler",
                           Boolean.getBoolean("spf4j.executors.defaultScheduler.daemon"),
                           Integer.getInteger("spf4j.executors.defaultScheduler.priority", Thread.NORM_PRIORITY)));
-
-    ShutdownThread.get().queueHookAtEnd(new AbstractRunnable(true) {
+    AbstractRunnable executorShutdownRunnable = new AbstractRunnable(true) {
 
       @Override
       public void doRun() throws InterruptedException {
@@ -76,7 +75,10 @@ public final class DefaultScheduler {
           ErrLog.error("Remaining tasks: " + remaining);
         }
       }
-    });
+    };
+    if (!ShutdownThread.get().queueHookAtEnd(executorShutdownRunnable)) {
+      executorShutdownRunnable.run();
+    }
     return ses;
   }
 

@@ -72,7 +72,7 @@ public final class ThreadUsageSampler {
   private static Instant peakTime;
 
   static {
-    ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+    AbstractRunnable shutdown = new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();
@@ -94,8 +94,12 @@ public final class ThreadUsageSampler {
         }
       }
 
-    });
-    Registry.export(ThreadUsageSampler.class);
+    };
+    if (!ShutdownThread.get().queueHook(2, shutdown)) {
+      shutdown.run();
+    } else {
+      Registry.export(ThreadUsageSampler.class);
+    }
   }
 
   private ThreadUsageSampler() {

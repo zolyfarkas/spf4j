@@ -47,6 +47,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.CheckReturnValue;
 import org.spf4j.concurrent.CustomThreadFactory;
 import org.spf4j.io.NullOutputStream;
 
@@ -98,11 +99,14 @@ public final class ShutdownThread extends Thread {
 
   private ThreadPoolExecutor shutdownExecutor;
 
+  private volatile boolean isShutdown;
+
   private ShutdownThread(final boolean dumpNonDaemonThreadInfoOnShutdown) {
     super("spf4j queued shutdown");
     this.rhooks = new TreeMap<>();
     this.dumpNonDaemonThreadInfoOnShutdown = dumpNonDaemonThreadInfoOnShutdown;
     this.shutdownExecutor = null;
+    this.isShutdown = false;
   }
 
   public boolean isDumpNonDaemonThreadInfoOnShutdown() {
@@ -116,6 +120,7 @@ public final class ShutdownThread extends Thread {
 
   @Override
   public void run() {
+    this.isShutdown = true;
     long deadlineNanos = TimeSource.nanoTime() + WAIT_FOR_SHUTDOWN_NANOS;
     try {
       doRun(deadlineNanos);
@@ -258,16 +263,25 @@ public final class ShutdownThread extends Thread {
     }
   }
 
-  public void queueHookAtBeginning(final Runnable runnable) {
-    queueHook(Integer.MIN_VALUE, runnable);
+  @CheckReturnValue
+  public boolean queueHookAtBeginning(final Runnable runnable) {
+    return queueHook(Integer.MIN_VALUE, runnable);
   }
 
-  public void queueHookAtEnd(final Runnable runnable) {
-    queueHook(Integer.MAX_VALUE, runnable);
+  @CheckReturnValue
+  public boolean queueHookAtEnd(final Runnable runnable) {
+    return queueHook(Integer.MAX_VALUE, runnable);
   }
 
-  public void queueHook(final int priority, final Runnable runnable) {
+  @CheckReturnValue
+  public boolean queueHook(final int priority, final Runnable runnable) {
+    if (this.isShutdown) {
+      return false;
+    }
     synchronized (this.rhooks) {
+      if (this.isShutdown) {
+        return false;
+      }
       Integer pr = priority;
       Set<Runnable> runnables = this.rhooks.get(pr);
       if (runnables == null) {
@@ -276,6 +290,7 @@ public final class ShutdownThread extends Thread {
       }
       runnables.add(runnable);
     }
+    return true;
   }
 
   public boolean removeQueuedShutdownHook(final Runnable runnable) {

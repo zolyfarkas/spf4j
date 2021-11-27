@@ -33,7 +33,6 @@ package org.spf4j.base;
 
 import com.google.common.annotations.Beta;
 import java.time.Instant;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -52,23 +51,22 @@ public final class Timing {
 
   private static volatile Timing latestTiming;
 
-  private static final ScheduledFuture UPDATER;
-
   static {
     updateTiming(); // run twice to reduce timing discrepancies introduced by class-loading
     updateTiming();
+  }
+
+  private static final ScheduledFuture UPDATER =  startScheduledUpdater();
+
+  public static ScheduledFuture startScheduledUpdater() {
     ScheduledFuture sf = null;
-    try {
-      final ScheduledFuture fut = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
-              TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
-      sf = fut;
-      Runtime.queueHookAtBeginning(() -> fut.cancel(true));
-    } catch (RejectedExecutionException ex) {
-      if (!Runtime.isShuttingDown()) {
-        throw ex;
-      }
+    final ScheduledFuture fut = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
+            TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
+    sf = fut;
+    if (!ShutdownThread.get().queueHookAtBeginning(() -> fut.cancel(true))) {
+      fut.cancel(true);
     }
-    UPDATER = sf;
+    return sf;
   }
 
   private final long nanoTimeRef;
