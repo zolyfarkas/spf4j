@@ -40,6 +40,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ErrLog;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 
 /**
@@ -89,16 +90,15 @@ public final class DefaultExecutor {
         }
       }
     };
-    if (!ShutdownThread.get().queueHookAtEnd(executorShutdownRunnable)) {
+    if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.JVM_SERVICES, executorShutdownRunnable)) {
       executorShutdownRunnable.run();
       return new NonPoolingExecutorService(new CustomThreadFactory("defExecShutdown", isDaemon));
     }
     return es;
   }
 
-  @SuppressFBWarnings("MRC_METHOD_RETURNS_CONSTANT")
   public static int getShutDownOrder() {
-    return Integer.MAX_VALUE;
+    return ShutdownHooks.ShutdownPhase.JVM_SERVICES.getPriority();
   }
 
   private DefaultExecutor() {

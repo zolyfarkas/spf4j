@@ -40,6 +40,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ErrLog;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 
 /**
@@ -76,7 +77,7 @@ public final class DefaultScheduler {
         }
       }
     };
-    if (!ShutdownThread.get().queueHookAtEnd(executorShutdownRunnable)) {
+    if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.JVM_SERVICES, executorShutdownRunnable)) {
       executorShutdownRunnable.run();
     }
     return ses;

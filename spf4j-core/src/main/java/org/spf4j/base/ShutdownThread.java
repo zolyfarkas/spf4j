@@ -83,16 +83,6 @@ public final class ShutdownThread extends Thread implements ShutdownHooks {
         }
 
         @Override
-        public boolean queueHookAtBeginning(final Runnable runnable) {
-          return false;
-        }
-
-        @Override
-        public boolean queueHookAtEnd(final Runnable runnable) {
-          return false;
-        }
-
-        @Override
         public boolean removeQueuedShutdownHook(final Runnable runnable) {
           return false;
         }
@@ -287,18 +277,6 @@ public final class ShutdownThread extends Thread implements ShutdownHooks {
         }
       }
     }
-  }
-
-  @CheckReturnValue
-  @Override
-  public boolean queueHookAtBeginning(final Runnable runnable) {
-    return queueHook(Integer.MIN_VALUE, runnable);
-  }
-
-  @CheckReturnValue
-  @Override
-  public boolean queueHookAtEnd(final Runnable runnable) {
-    return queueHook(Integer.MAX_VALUE, runnable);
   }
 
   @CheckReturnValue

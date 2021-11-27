@@ -43,6 +43,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.spf4j.os.OperatingSystem;
 import org.spf4j.base.Runtime;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 import org.spf4j.base.SysExits;
 import org.spf4j.jmx.JmxExport;
@@ -69,7 +70,8 @@ public final class OpenFilesSampler {
   private static volatile Instant lastWarnLsofTime;
 
   static {
-    if (!ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+    if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.OBSERVABILITY_SERVICES,
+            new AbstractRunnable(true) {
       @Override
       public void doRun() {
         stop();

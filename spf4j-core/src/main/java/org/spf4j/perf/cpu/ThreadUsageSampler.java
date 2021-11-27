@@ -47,6 +47,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 import org.spf4j.base.Threads;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -95,7 +96,7 @@ public final class ThreadUsageSampler {
       }
 
     };
-    if (!ShutdownThread.get().queueHook(2, shutdown)) {
+    if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.OBSERVABILITY_SERVICES, shutdown)) {
       shutdown.run();
     } else {
       Registry.export(ThreadUsageSampler.class);

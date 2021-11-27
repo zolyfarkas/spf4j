@@ -39,14 +39,41 @@ import javax.annotation.CheckReturnValue;
  */
 public interface ShutdownHooks {
 
+  enum ShutdownPhase {
+
+    NETWORK_SERVICES(1000), // http servers, etc...
+    OBSERVABILITY_SERVICES(10000), // logging, metrics, profiling
+    JVM_SERVICES(Integer.MAX_VALUE); // default executors, etc...
+
+    ShutdownPhase(final int priority) {
+      this.priority = priority;
+    }
+
+    private final int priority;
+
+    public int getPriority() {
+      return priority;
+    }
+
+  }
+
+  @CheckReturnValue
+  default boolean queueHook(ShutdownPhase phase, Runnable runnable) {
+    return this.queueHook(phase.getPriority(), runnable);
+  }
+
   @CheckReturnValue
   boolean queueHook(int priority, Runnable runnable);
 
   @CheckReturnValue
-  boolean queueHookAtBeginning(Runnable runnable);
+  default boolean queueHookAtBeginning(Runnable runnable) {
+    return this.queueHook(Integer.MIN_VALUE, runnable);
+  }
 
   @CheckReturnValue
-  boolean queueHookAtEnd(Runnable runnable);
+  default boolean queueHookAtEnd(Runnable runnable) {
+    return this.queueHook(Integer.MAX_VALUE, runnable);
+  }
 
   boolean removeQueuedShutdownHook(Runnable runnable);
 

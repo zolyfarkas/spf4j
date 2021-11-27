@@ -35,6 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 import org.spf4j.os.OperatingSystem;
 import org.spf4j.concurrent.DefaultScheduler;
@@ -55,7 +56,8 @@ public final class CpuUsageSampler {
 
   static {
     if (OperatingSystem.getSunJdkOSMBean() != null) {
-      if (!ShutdownThread.get().queueHook(2, new AbstractRunnable(true) {
+      if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.OBSERVABILITY_SERVICES,
+              new AbstractRunnable(true) {
         @Override
         public void doRun() {
           stop();

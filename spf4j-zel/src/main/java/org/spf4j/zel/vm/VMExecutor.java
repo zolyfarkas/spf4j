@@ -49,6 +49,7 @@ import javax.annotation.Nullable;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.ErrLog;
 import org.spf4j.base.Pair;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 import org.spf4j.concurrent.CustomThreadFactory;
 import org.spf4j.concurrent.NonPoolingExecutorService;
@@ -84,7 +85,7 @@ public final class VMExecutor {
         }
       }, true);
 
-      if (!ShutdownThread.get().queueHook(0, new AbstractRunnable(true) {
+      if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.JVM_SERVICES, new AbstractRunnable(true) {
 
         @Override
         public void doRun() throws InterruptedException {

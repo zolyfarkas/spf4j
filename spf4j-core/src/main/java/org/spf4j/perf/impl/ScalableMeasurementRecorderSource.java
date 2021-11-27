@@ -56,6 +56,7 @@ import javax.management.openmbean.TabularType;
 import org.spf4j.base.AbstractRunnable;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.base.Pair;
+import org.spf4j.base.ShutdownHooks;
 import org.spf4j.base.ShutdownThread;
 import org.spf4j.io.Csv;
 import org.spf4j.jmx.GenericExportedValue;
@@ -126,7 +127,7 @@ public final class ScalableMeasurementRecorderSource implements
         close();
       }
     };
-    if (!ShutdownThread.get().queueHook(0, runnable)) {
+    if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.OBSERVABILITY_SERVICES, runnable)) {
       close();
     }
     return runnable;
