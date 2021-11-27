@@ -58,7 +58,7 @@ import org.spf4j.io.NullOutputStream;
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class ShutdownThread extends Thread {
+public final class ShutdownThread extends Thread implements ShutdownHooks {
 
   public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
           Integer.getInteger("spf4j.waitForShutdownMillis", 30000));
@@ -67,11 +67,37 @@ public final class ShutdownThread extends Thread {
     preloadClasses();
   }
 
-  private static final ShutdownThread SHUTDOWN_THREAD = new ShutdownThread(
-          Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown"));
+  private static final ShutdownHooks SHUTDOWN_THREAD = init();
 
-  static {
-    java.lang.Runtime.getRuntime().addShutdownHook(SHUTDOWN_THREAD);
+  private static ShutdownHooks init() {
+    ShutdownThread st = new ShutdownThread(
+          Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown"));
+    try {
+      java.lang.Runtime.getRuntime().addShutdownHook(st);
+      return st;
+    } catch (IllegalStateException ex) {
+      return new ShutdownHooks() {
+        @Override
+        public boolean queueHook(final int priority, final Runnable runnable) {
+          return false;
+        }
+
+        @Override
+        public boolean queueHookAtBeginning(final Runnable runnable) {
+          return false;
+        }
+
+        @Override
+        public boolean queueHookAtEnd(final Runnable runnable) {
+          return false;
+        }
+
+        @Override
+        public boolean removeQueuedShutdownHook(final Runnable runnable) {
+          return false;
+        }
+      };
+    }
   }
 
   /**
@@ -114,7 +140,7 @@ public final class ShutdownThread extends Thread {
   }
 
   @SuppressFBWarnings("MS_EXPOSE_REP")
-  public static ShutdownThread get() {
+  public static ShutdownHooks get() {
     return SHUTDOWN_THREAD;
   }
 
@@ -264,16 +290,19 @@ public final class ShutdownThread extends Thread {
   }
 
   @CheckReturnValue
+  @Override
   public boolean queueHookAtBeginning(final Runnable runnable) {
     return queueHook(Integer.MIN_VALUE, runnable);
   }
 
   @CheckReturnValue
+  @Override
   public boolean queueHookAtEnd(final Runnable runnable) {
     return queueHook(Integer.MAX_VALUE, runnable);
   }
 
   @CheckReturnValue
+  @Override
   public boolean queueHook(final int priority, final Runnable runnable) {
     if (this.isShutdown) {
       return false;
@@ -293,6 +322,7 @@ public final class ShutdownThread extends Thread {
     return true;
   }
 
+  @Override
   public boolean removeQueuedShutdownHook(final Runnable runnable) {
     if (this.equals(Thread.currentThread())) {
       return false;
