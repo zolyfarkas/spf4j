@@ -259,9 +259,7 @@ public final class Slf4jMessageFormatter {
       sbuf.append("null");
       return;
     }
-    if (!o.getClass().isArray()) {
-      safeObjectAppend(exHandler, sbuf, o, appSupplier);
-    } else {
+    if (o.getClass().isArray()) {
       // check for primitive array types because they
       // unfortunately cannot be cast to Object[]
       if (o instanceof boolean[]) {
@@ -283,6 +281,8 @@ public final class Slf4jMessageFormatter {
       } else {
         objectArrayAppend(exHandler, sbuf, (Object[]) o, seen, appSupplier);
       }
+    } else {
+      safeObjectAppend(exHandler, sbuf, o, appSupplier);
     }
   }
 
