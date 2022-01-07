@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.sql.DataSource;
 import org.junit.Assert;
 import org.h2.jdbcx.JdbcDataSource;
@@ -61,11 +62,8 @@ import org.spf4j.recyclable.ObjectDisposeException;
 import org.spf4j.recyclable.RecyclingSupplier;
 import org.spf4j.stackmonitor.Sampler;
 
-/**
- *
- * @author zoly
- */
 @SuppressFBWarnings({"HARD_CODE_PASSWORD", "SQL_INJECTION_JDBC"})
+@NotThreadSafe
 public class JdbcSemaphoreTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphoreTest.class);
@@ -166,7 +164,7 @@ public class JdbcSemaphoreTest {
 
   }
 
-  @Test(expected = SQLException.class)
+  @Test(expected = IllegalStateException.class)
   public void testSingleMultipleInstance() throws SQLException, IOException, InterruptedException, TimeoutException {
 
     JdbcDataSource ds = new JdbcDataSource();
@@ -239,7 +237,7 @@ public class JdbcSemaphoreTest {
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public void testMultiProcess()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
 
     File tempDB = File.createTempFile("test", "h2db");
     String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
@@ -269,7 +267,7 @@ public class JdbcSemaphoreTest {
 
   public void testMultiProcess2()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
     try {
       File tempDB = File.createTempFile("test", "h2db");
       tempDB.deleteOnExit();
@@ -303,7 +301,7 @@ public class JdbcSemaphoreTest {
   @Ignore
   public void testPerformance()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
     try {
       File tempDB = File.createTempFile("test", "h2db");
       tempDB.deleteOnExit();
@@ -331,6 +329,5 @@ public class JdbcSemaphoreTest {
         server.stop();
       }
   }
-
 
 }
