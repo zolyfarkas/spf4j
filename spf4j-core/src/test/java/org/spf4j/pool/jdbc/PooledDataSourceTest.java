@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import javax.annotation.concurrent.NotThreadSafe;
 import org.h2.tools.Server;
 import org.junit.Assert;
 import org.junit.Test;
@@ -43,11 +44,12 @@ import org.spf4j.recyclable.ObjectCreationException;
 /**
  * @author Zoltan Farkas
  */
+@NotThreadSafe
 public class PooledDataSourceTest {
 
   @Test
   public void testConnectionPool() throws SQLException, ObjectCreationException, IOException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-tcpAllowOthers"}).start();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
     try {
       File tempDB = File.createTempFile("test", "h2db");
       String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
