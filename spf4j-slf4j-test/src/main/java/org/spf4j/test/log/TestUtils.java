@@ -35,11 +35,11 @@ public final class TestUtils {
   }
 
   public static boolean isExecutedInTravis() {
-    return Ascii.equalsIgnoreCase("true", Env.getValue("TRAVIS", "true"));
+    return Ascii.equalsIgnoreCase("true", Env.getValue("TRAVIS", "false"));
   }
 
   public static boolean isExecutedInGithubAction() {
-    return Ascii.equalsIgnoreCase("true", Env.getValue("GITHUB_ACTION", "true"));
+    return Ascii.equalsIgnoreCase("true", Env.getValue("GITHUB_ACTION", "false"));
   }
 
   public static boolean isExecutedFromNetbeans() {
