@@ -238,28 +238,30 @@ public class JdbcSemaphoreTest {
   public void testMultiProcess()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
     Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
-
-    File tempDB = File.createTempFile("test", "h2db");
-    String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
     try {
-      JdbcDataSource ds = new JdbcDataSource();
-      ds.setURL(connStr);
-      ds.setUser("sa");
-      ds.setPassword("sa");
+      File tempDB = File.createTempFile("test", "h2db");
+      String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+      try {
+        JdbcDataSource ds = new JdbcDataSource();
+        ds.setURL(connStr);
+        ds.setUser("sa");
+        ds.setPassword("sa");
 
-      createSchemaObjects(ds);
-      testReleaseAck(ds, "testSem", 2);
-      JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 3);
-      org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
-      org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
-      Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
-      Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
+        createSchemaObjects(ds);
+        testReleaseAck(ds, "testSem", 2);
+        JdbcSemaphore semaphore = new JdbcSemaphore(ds, "test_sem2", 3);
+        org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
+        org.spf4j.base.Runtime.jrun(BadSemaphoreHandler.class, 10000, connStr, "test_sem2");
+        Assert.assertTrue(semaphore.tryAcquire(1, TimeUnit.SECONDS));
+        Assert.assertTrue(semaphore.tryAcquire(10, TimeUnit.SECONDS));
+      } finally {
+        if (!tempDB.delete()) {
+          throw new IOException("Cannot delete " + tempDB);
+        }
+      }
+    } finally {
       JdbcHeartBeat.stopHeartBeats();
       server.stop();
-    } finally {
-      if (!tempDB.delete()) {
-        throw new IOException("Cannot delete " + tempDB);
-      }
     }
   }
 
