@@ -34,29 +34,29 @@ package org.spf4j.perf.impl.ms;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ShutdownHooks;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.concurrent.DefaultScheduler;
 import org.spf4j.perf.MeasurementStore;
 
 public final class Flusher {
-   
-    private Flusher() { }
-    
-    public static void flushEvery(final int intervalMillis, final MeasurementStore store) {
-        final ScheduledFuture<?> future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {
-            @Override
-            public void doRun() throws Exception {
-                store.flush();
-            }
-        }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
-        org.spf4j.base.Runtime.queueHookAtEnd(new AbstractRunnable(false) {
-            @Override
-            public void doRun() throws Exception {
-                try {
-                    future.cancel(false);
-                } finally {
-                    store.close();
-                }
-            }
-        });
-    }
+
+  private Flusher() {
+  }
+
+  public static boolean flushEvery(final int intervalMillis, final MeasurementStore store) {
+    final ScheduledFuture<?> future = DefaultScheduler.INSTANCE.scheduleAtFixedRate(new AbstractRunnable(false) {
+      @Override
+      public void doRun() throws Exception {
+        store.flush();
+      }
+    }, intervalMillis, intervalMillis, TimeUnit.MILLISECONDS);
+    AbstractRunnable flusherCancel = new AbstractRunnable(false) {
+      @Override
+      public void doRun() throws Exception {
+        future.cancel(false);
+      }
+    };
+    return ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.JVM_SERVICES, flusherCancel);
+  }
 }

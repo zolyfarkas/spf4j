@@ -41,7 +41,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.spf4j.base.AbstractRunnable;
 import org.spf4j.base.CharSequences;
+import org.spf4j.base.ShutdownHooks;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.io.Csv;
 import org.spf4j.io.csv.CsvParseException;
 import org.spf4j.perf.MeasurementStore;
@@ -70,6 +73,15 @@ public final class ProcessMeasurementStore {
     }
     if (!(mStore instanceof NopMeasurementStore) && Boolean.getBoolean("spf4j.perf.ms.periodicFlush")) {
       Flusher.flushEvery(Integer.getInteger("spf4j.perf.ms.flushIntervalMillis", 60000), mStore);
+    }
+    final MeasurementStore clStore = mStore;
+    if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.JVM_SERVICES, new AbstractRunnable(false) {
+      @Override
+      public void doRun() throws Exception {
+        clStore.close();
+      }
+    })) {
+      mStore = new NopMeasurementStore(); // when shutting shown, we drop things.
     }
     MEASUREMENT_STORE = mStore;
   }
