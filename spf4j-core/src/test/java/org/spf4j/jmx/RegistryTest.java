@@ -72,6 +72,8 @@ public final class RegistryTest {
 
   private static final int JMX_PORT = Integer.getInteger("com.sun.management.jmxremote.port", 9999);
 
+  private static final String JMX_URL = "service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi";
+
   public static final class JmxTest extends PropertySource {
 
     private volatile String stringVal;
@@ -280,41 +282,40 @@ public final class RegistryTest {
     map.put("isNonsense", "bla");
     map.put("", "bla");
     Registry.export("testMap", "map", map, testObj);
-    String jmxUrl = "service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi";
 
 //        Thread.sleep(300000);
-    Client.setAttribute(jmxUrl, "test", "Test", "booleanFlag", Boolean.TRUE);
+    Client.setAttribute(JMX_URL, "test", "Test", "booleanFlag", Boolean.TRUE);
 
-    Client.setAttribute(jmxUrl, "test", "Test", "propKey", "caca");
+    Client.setAttribute(JMX_URL, "test", "Test", "propKey", "caca");
 
-    Object ret = Client.getAttribute(jmxUrl, "test", "Test", "booleanFlag");
+    Object ret = Client.getAttribute(JMX_URL, "test", "Test", "booleanFlag");
     Assert.assertEquals(Boolean.TRUE, ret);
 
-    String prop = (String) Client.getAttribute(jmxUrl, "test", "Test", "propKey");
+    String prop = (String) Client.getAttribute(JMX_URL, "test", "Test", "propKey");
     Assert.assertEquals("caca", prop);
     Assert.assertEquals("caca", props.get("propKey"));
 
-    CompositeData cd = (CompositeData) Client.getAttribute(jmxUrl, "test", "Test", "columnDef");
+    CompositeData cd = (CompositeData) Client.getAttribute(JMX_URL, "test", "Test", "columnDef");
     LOG.debug("CD={}", cd);
     Assert.assertEquals("bla", cd.get("name"));
 
-    CompositeData cd2 = (CompositeData) Client.callOperation(jmxUrl, "test", "Test", "getColumnDef", "bubu");
+    CompositeData cd2 = (CompositeData) Client.callOperation(JMX_URL, "test", "Test", "getColumnDef", "bubu");
     LOG.debug("CD2={}", cd2);
     Assert.assertEquals("bubu", cd2.get("name"));
 
-    CompositeData cd3 = (CompositeData) Client.callOperation(jmxUrl, "test", "Test", "echo", cd2);
+    CompositeData cd3 = (CompositeData) Client.callOperation(JMX_URL, "test", "Test", "echo", cd2);
     LOG.debug("CD3={}", cd3);
     Assert.assertEquals("bubu", cd3.get("name"));
 
-    Client.callOperation(jmxUrl, "test", "Test", "print", 3, Boolean.TRUE, "caca", cd2);
+    Client.callOperation(JMX_URL, "test", "Test", "print", 3, Boolean.TRUE, "caca", cd2);
 
-    Client.setAttribute(jmxUrl, "test", "Test", "stringVal", "bla bla");
+    Client.setAttribute(JMX_URL, "test", "Test", "stringVal", "bla bla");
 
-    Object ret2 = Client.getAttribute(jmxUrl, "test", "Test", "stringVal");
+    Object ret2 = Client.getAttribute(JMX_URL, "test", "Test", "stringVal");
     Assert.assertEquals("bla bla", ret2);
 
     try {
-      Client.setAttribute(jmxUrl, "test", "Test", "doubleVal", 0.0);
+      Client.setAttribute(JMX_URL, "test", "Test", "doubleVal", 0.0);
       Assert.fail();
     } catch (RuntimeMBeanException e) {
       Throwables.writeTo(e, System.err, Throwables.PackageDetail.SHORT);
@@ -331,11 +332,10 @@ public final class RegistryTest {
     Registry.unregister("test", "Test");
     Registry.export("test", "Test", testObj, testObj2);
     Registry.export("test", "TestStatic", JmxTest2.class);
-    String jmxUrl = "service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi";
 
-    Client.setAttribute(jmxUrl, "test", "Test", "booleanFlag", Boolean.TRUE);
+    Client.setAttribute(JMX_URL, "test", "Test", "booleanFlag", Boolean.TRUE);
 
-    Object ret = Client.getAttribute(jmxUrl, "test", "Test", "booleanFlag");
+    Object ret = Client.getAttribute(JMX_URL, "test", "Test", "booleanFlag");
     Assert.assertEquals(Boolean.TRUE, ret);
 
     new DynamicMBeanBuilder().withJmxExportObject(new Object() {
@@ -346,31 +346,31 @@ public final class RegistryTest {
       }
     }).extend("test", "Test");
 
-    Object retCustom = Client.getAttribute(jmxUrl, "test", "Test", "customName");
+    Object retCustom = Client.getAttribute(JMX_URL, "test", "Test", "customName");
 
     Assert.assertEquals(Integer.valueOf(13), retCustom);
 
-    Client.setAttribute(jmxUrl, "test", "Test", "stringVal", "bla bla");
+    Client.setAttribute(JMX_URL, "test", "Test", "stringVal", "bla bla");
 
-    Object ret2 = Client.getAttribute(jmxUrl, "test", "Test", "stringVal");
+    Object ret2 = Client.getAttribute(JMX_URL, "test", "Test", "stringVal");
     Assert.assertEquals("bla bla", ret2);
 
     try {
-      Client.setAttribute(jmxUrl, "test", "Test", "doubleVal", 0.0);
+      Client.setAttribute(JMX_URL, "test", "Test", "doubleVal", 0.0);
       Assert.fail();
     } catch (RuntimeMBeanException e) {
       Throwables.writeTo(e, System.err, Throwables.PackageDetail.NONE);
     }
 
     testObj2.setStringVal("cucu");
-    Object ret3 = Client.getAttribute(jmxUrl, "test", "Test", "stringVal2");
+    Object ret3 = Client.getAttribute(JMX_URL, "test", "Test", "stringVal2");
     Assert.assertEquals("cucu", ret3);
 
     JmxTest2.setTestStr("bubu");
-    Object ret4 = Client.getAttribute(jmxUrl, "test", "Test", "testStr");
+    Object ret4 = Client.getAttribute(JMX_URL, "test", "Test", "testStr");
     Assert.assertEquals("bubu", ret4);
 
-    Object ret5 = Client.callOperation(jmxUrl, "test", "Test", "doStuff", "a", "b");
+    Object ret5 = Client.callOperation(JMX_URL, "test", "Test", "doStuff", "a", "b");
     Assert.assertEquals("Doing a b", ret5);
 
   }
@@ -379,7 +379,7 @@ public final class RegistryTest {
   public void testClassLocator() throws IOException, InstanceNotFoundException, MBeanException, ReflectionException {
     Registry.export(Jmx.class);
     CompositeData info = (CompositeData) Client.callOperation(
-            "service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi",
+            JMX_URL,
             Jmx.class.getPackage().getName(),
             Jmx.class.getSimpleName(), "getPackageInfo", Registry.class.getName());
     LOG.debug("Returned {}", info);
