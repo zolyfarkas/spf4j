@@ -47,7 +47,7 @@ public class TimingTest {
 
   @Test
   public void testTiming() {
-    Assume.assumeFalse(TestUtils.isExecutedInTravis());
+    Assume.assumeFalse(TestUtils.isExecutedInCI());
     long nanoTime = TimeSource.nanoTime();
     Instant inst = Instant.now();
     Timing currentTiming = Timing.getCurrentTiming();
