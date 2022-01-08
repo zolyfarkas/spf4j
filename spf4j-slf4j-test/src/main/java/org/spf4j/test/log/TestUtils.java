@@ -31,13 +31,16 @@ public final class TestUtils {
   }
 
   public static boolean isExecutedInCI() {
-    return isExecutedInTravis();
+    return isExecutedInTravis() || isExecutedInGithubAction();
   }
 
   public static boolean isExecutedInTravis() {
-    return Ascii.equalsIgnoreCase("true", "TRAVIS");
+    return Ascii.equalsIgnoreCase("true", Env.getValue("TRAVIS", "true"));
   }
 
+  public static boolean isExecutedInGithubAction() {
+    return Ascii.equalsIgnoreCase("true", Env.getValue("GITHUB_ACTION", "true"));
+  }
 
   public static boolean isExecutedFromNetbeans() {
     String mvnNetbeansCP = System.getProperty("maven.ext.class.path");
