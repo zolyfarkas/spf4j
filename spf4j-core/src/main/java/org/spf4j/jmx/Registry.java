@@ -201,7 +201,7 @@ public final class Registry {
   }
 
   /**
-   * @deprecated use BynamicMBeanBuilder instead.
+   * @deprecated use DynamicMBeanBuilder instead.
    */
   @Deprecated
   public static ExportedValuesMBean export(final String packageName, final String mbeanName,
