@@ -63,10 +63,6 @@ public final class ShutdownThread extends Thread implements ShutdownHooks {
   public static final long WAIT_FOR_SHUTDOWN_NANOS = TimeUnit.MILLISECONDS.toNanos(
           Integer.getInteger("spf4j.waitForShutdownMillis", 30000));
 
-  static {
-    preloadClasses();
-  }
-
   private static final ShutdownHooks SHUTDOWN_THREAD = init();
 
   private static ShutdownHooks init() {
@@ -74,6 +70,7 @@ public final class ShutdownThread extends Thread implements ShutdownHooks {
           Boolean.getBoolean("spf4j.dumpNonDaemonThreadInfoOnShutdown"));
     try {
       java.lang.Runtime.getRuntime().addShutdownHook(st);
+      preloadClasses();
       return st;
     } catch (IllegalStateException ex) {
       return new ShutdownHooks() {
