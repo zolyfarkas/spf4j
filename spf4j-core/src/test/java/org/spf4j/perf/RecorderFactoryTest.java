@@ -43,6 +43,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.avro.AvroCloseableIterable;
+import org.spf4j.perf.impl.ProcessMeasurementStore;
 import org.spf4j.tsdb2.avro.Observation;
 
 /**
@@ -75,7 +76,7 @@ public final class RecorderFactoryTest {
     }
     result.close();
     assertData(forWhat, 124750);
-    MeasurementStore store = RecorderFactory.MEASUREMENT_STORE;
+    MeasurementStore store = ProcessMeasurementStore.getMeasurementStore();
     MeasurementStoreQuery query = store.query();
     Collection<Schema> measurements = query.getMeasurements((x) -> forWhat.equals(x));
     Schema m = measurements.iterator().next();
@@ -154,7 +155,7 @@ public final class RecorderFactoryTest {
 
   @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
   public static void assertData(final String forWhat, final long expectedValue) throws IOException {
-    MeasurementStore store = RecorderFactory.MEASUREMENT_STORE;
+    MeasurementStore store = ProcessMeasurementStore.getMeasurementStore();
     store.flush();
     MeasurementStoreQuery query = store.query();
     Collection<Schema> schemas = query.getMeasurements((x) -> forWhat.equals(x));
