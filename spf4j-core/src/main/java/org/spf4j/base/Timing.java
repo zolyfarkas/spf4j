@@ -59,14 +59,12 @@ public final class Timing {
   private static final ScheduledFuture UPDATER =  startScheduledUpdater();
 
   public static ScheduledFuture startScheduledUpdater() {
-    ScheduledFuture sf = null;
     final ScheduledFuture fut = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
-    sf = fut;
     if (!ShutdownThread.get().queueHookAtBeginning(() -> fut.cancel(true))) {
       fut.cancel(true);
     }
-    return sf;
+    return fut;
   }
 
   private final long nanoTimeRef;
