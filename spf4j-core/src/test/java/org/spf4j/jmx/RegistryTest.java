@@ -72,7 +72,7 @@ public final class RegistryTest {
 
   private static final int JMX_PORT = Integer.getInteger("com.sun.management.jmxremote.port", 9999);
 
-  private static final String JMX_URL = "service:jmx:rmi:///jndi/rmi://:" + JMX_PORT + "/jmxrmi";
+  private static final String JMX_URL = "service:jmx:rmi:///jndi/rmi://127.0.0.1:" + JMX_PORT + "/jmxrmi";
 
   public static final class JmxTest extends PropertySource {
 
