@@ -52,8 +52,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import org.spf4j.base.avro.ApplicationInfo;
@@ -314,17 +312,11 @@ public final class Runtime {
   @SuppressFBWarnings("MDM_RUNTIME_EXIT_OR_HALT")
   public static void goDownWithError(@Nullable final Throwable t, final int exitCode) {
     try {
+      // we cannot rely on the logging system to emit logs before a halt. (due to async backends)
       if (t != null) {
-        Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE); //High probability attempt to log first
         ErrLog.error("Error, going down with exit code " + exitCode, t);
-        //Now we are pushing it...
-        Logger logger = Logger.getLogger(Runtime.class.getName());
-        logger.log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
-        logger.log(Level.SEVERE, "Exception detail", t);
       } else {
         ErrLog.error("Error, going down with exit code " + exitCode);
-        Logger.getLogger(Runtime.class.getName())
-                .log(Level.SEVERE, "Error, going down with exit code {0}", exitCode);
       }
     } finally {
       JAVA_RUNTIME.halt(exitCode);
@@ -632,20 +624,6 @@ public final class Runtime {
     OperatingSystem.forkExecLog(command, timeoutMillis);
   }
 
-  /**
-   * get the main Thread.
-   * @return null if there is no main thread (can happen when calling this is a shutdown hook)
-   */
-  @Nullable
-  public static Thread getMainThread() {
-    Thread[] threads = Threads.getThreads();
-    for (Thread t : threads) {
-      if (t.getId() == 1L) {
-        return t;
-      }
-    }
-    return null;
-  }
 
   /**
    * Method will figure out the main class and cache the result for successive invocations.
@@ -663,7 +641,7 @@ public final class Runtime {
 
     @Nullable
     private static Class<?> getMainClass() {
-      Thread mainThread = getMainThread();
+      Thread mainThread = Threads.getMainThread();
       if (mainThread == null) {
         return null;
       }

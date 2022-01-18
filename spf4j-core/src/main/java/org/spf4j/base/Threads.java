@@ -188,6 +188,21 @@ public final class Threads {
     return null;
   }
 
+  /**
+   * get the main Thread.
+   * @return null if there is no main thread (can happen when calling this is a shutdown hook)
+   */
+  @Nullable
+  public static Thread getMainThread() {
+    Thread[] threads = Threads.getThreads();
+    for (Thread t : threads) {
+      if (t.getId() == 1L) {
+        return t;
+      }
+    }
+    return null;
+  }
+
   public static StackTraceElement[][] getStackTraces(final Thread... threads) {
     return TI_SUPP.getStackTraces(threads);
   }

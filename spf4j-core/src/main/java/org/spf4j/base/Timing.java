@@ -59,7 +59,7 @@ public final class Timing {
   private static final ScheduledFuture UPDATER =  startScheduledUpdater();
 
   public static ScheduledFuture startScheduledUpdater() {
-    final ScheduledFuture fut = DefaultScheduler.INSTANCE.scheduleWithFixedDelay(Timing::updateTiming,
+    final ScheduledFuture fut = DefaultScheduler.get().scheduleWithFixedDelay(Timing::updateTiming,
             TIMING_UPDATE_INTERVAL_MINUTES, TIMING_UPDATE_INTERVAL_MINUTES, TimeUnit.MINUTES);
     if (!ShutdownThread.get().queueHookAtBeginning(() -> fut.cancel(true))) {
       fut.cancel(true);
@@ -67,13 +67,14 @@ public final class Timing {
     return fut;
   }
 
-  private final long nanoTimeRef;
-  private final long currentTimeMillisRef;
-
   @JmxExport
   public static void updateTiming() {
     latestTiming = new Timing();
   }
+
+
+  private final long nanoTimeRef;
+  private final long currentTimeMillisRef;
 
   private Timing() {
     nanoTimeRef = TimeSource.nanoTime();
@@ -105,6 +106,9 @@ public final class Timing {
   @JmxExport
   public static void stopUpdate() {
     if (UPDATER != null) {
+      if (UPDATER.isCancelled() || UPDATER.isDone()) {
+        return;
+      }
       UPDATER.cancel(false);
     }
   }

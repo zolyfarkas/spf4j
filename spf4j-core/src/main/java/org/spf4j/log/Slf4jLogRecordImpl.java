@@ -155,7 +155,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
           StringBuilder sb = new StringBuilder(messageFormat.length() + arguments.length * 8);
           try {
             this.startExtra = Slf4jMessageFormatter.format(0, sb, messageFormat,
-                    ObjectAppenderSupplier.TO_STRINGER, arguments);
+                    ObjectAppenderSupplier.getDefaultToStringAppenderSupplier(), arguments);
           } catch (IOException ex) {
             throw new UncheckedIOException(ex);
           }

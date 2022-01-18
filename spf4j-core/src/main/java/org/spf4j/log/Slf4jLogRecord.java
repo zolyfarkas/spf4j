@@ -200,7 +200,7 @@ public interface Slf4jLogRecord {
           if (arg == null) {
             ma[i] = "null";
           } else {
-            ma[i] = ObjectAppenderSupplier.TO_STRINGER.get(arg.getClass()).toString(arg);
+            ma[i] = ObjectAppenderSupplier.getDefaultToStringAppenderSupplier().get(arg.getClass()).toString(arg);
           }
         }
         messageArgs = Arrays.asList(ma);

@@ -117,7 +117,7 @@ public final class FastStackCollector implements ISampler {
       result = result.or((t) -> t == th);
     }
     if (!collectForMain) {
-      Thread mainThread = org.spf4j.base.Runtime.getMainThread();
+      Thread mainThread = Threads.getMainThread();
       result = result.or((t) -> t == mainThread);
     }
     return result;

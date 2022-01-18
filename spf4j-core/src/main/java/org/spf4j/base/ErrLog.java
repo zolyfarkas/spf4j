@@ -31,6 +31,8 @@
  */
 package org.spf4j.base;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 /**
  * Logging utilities for situations where a logging framework is inapropriate.
  * Use cases:
@@ -46,18 +48,42 @@ public final class ErrLog {
   @SuppressWarnings("checkstyle:regexp")
   public static void error(final String message) {
     System.err.println(message);
+    System.err.flush();
   }
 
   @SuppressWarnings("checkstyle:regexp")
   public static void error(final String message, final Throwable t) {
     System.err.println(message);
     Throwables.writeTo(t, System.err, Throwables.PackageDetail.SHORT);
+    System.err.flush();
   }
 
   @SuppressWarnings("checkstyle:regexp")
   public static void errorNoPackageDetail(final String message, final Throwable t) {
     System.err.println(message);
     Throwables.writeTo(t, System.err, Throwables.PackageDetail.NONE);
+    System.err.flush();
+  }
+
+  @SuppressWarnings("checkstyle:regexp")
+  public static void error(final String message, final Object... msgParameters) {
+    StringBuilder msgBuf = new StringBuilder(message.length() + 20 * msgParameters.length);
+    int to;
+    try {
+      to = Slf4jMessageFormatter.format(msgBuf, message, msgParameters);
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
+    System.err.println(msgBuf.toString());
+    for (int i = to; i < msgParameters.length; i++) {
+      Object param = msgParameters[i];
+      if (param instanceof Throwable) {
+        Throwables.writeTo((Throwable) param, System.err, Throwables.PackageDetail.NONE);
+      } else {
+        System.err.println(param);
+      }
+    }
+    System.err.flush();
   }
 
 }

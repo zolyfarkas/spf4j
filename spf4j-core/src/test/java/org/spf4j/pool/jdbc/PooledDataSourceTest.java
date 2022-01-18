@@ -59,7 +59,7 @@ public class PooledDataSourceTest {
         Assert.assertTrue(conn.isValid(10));
       }
     } finally {
-      server.stop();
+      server.shutdown();
     }
   }
 

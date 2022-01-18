@@ -56,6 +56,12 @@ public interface ObjectAppenderSupplier extends
       return get(CoreTextMediaType.TEXT_PLAIN, type);
     }
 
-    ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
+    static ObjectAppenderSupplier getDefaultToStringAppenderSupplier() {
+      return Lazy.TO_STRINGER;
+    }
+
+    interface Lazy {
+      ConfigurableAppenderSupplier TO_STRINGER = new ConfigurableAppenderSupplier();
+    }
 
 }

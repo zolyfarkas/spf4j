@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.sql.DataSource;
 import org.junit.Assert;
@@ -67,6 +68,8 @@ import org.spf4j.stackmonitor.Sampler;
 public class JdbcSemaphoreTest {
 
   private static final Logger LOG = LoggerFactory.getLogger(JdbcSemaphoreTest.class);
+
+  private static final AtomicInteger PORT = new AtomicInteger(9123);
 
   private static String hbddl;
   private static String semddl;
@@ -237,10 +240,11 @@ public class JdbcSemaphoreTest {
   @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public void testMultiProcess()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
+    int port = PORT.getAndIncrement();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", Integer.toString(port), "-ifNotExists"}).start();
     try {
       File tempDB = File.createTempFile("test", "h2db");
-      String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+      String connStr = "jdbc:h2:tcp://localhost:" + port + "/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
       try {
         JdbcDataSource ds = new JdbcDataSource();
         ds.setURL(connStr);
@@ -261,7 +265,7 @@ public class JdbcSemaphoreTest {
       }
     } finally {
       JdbcHeartBeat.stopHeartBeats();
-      server.stop();
+      server.shutdown();
     }
   }
 
@@ -269,11 +273,12 @@ public class JdbcSemaphoreTest {
 
   public void testMultiProcess2()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
+    int port = PORT.getAndIncrement();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", Integer.toString(port), "-ifNotExists"}).start();
     try {
       File tempDB = File.createTempFile("test", "h2db");
       tempDB.deleteOnExit();
-      String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+      String connStr = "jdbc:h2:tcp://localhost:" + port + "/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
       JdbcDataSource ds = new JdbcDataSource();
       ds.setURL(connStr);
       ds.setUser("sa");
@@ -295,7 +300,7 @@ public class JdbcSemaphoreTest {
       Assert.assertEquals(totatl, numbers.size());
     } finally {
       JdbcHeartBeat.stopHeartBeats();
-      server.stop();
+      server.shutdown();
     }
   }
 
@@ -303,11 +308,12 @@ public class JdbcSemaphoreTest {
   @Ignore
   public void testPerformance()
           throws SQLException, IOException, InterruptedException, ExecutionException, TimeoutException {
-    Server server = Server.createTcpServer(new String[]{"-tcpPort", "9123", "-ifNotExists"}).start();
+    int port = PORT.getAndIncrement();
+    Server server = Server.createTcpServer(new String[]{"-tcpPort", Integer.toString(port), "-ifNotExists"}).start();
     try {
       File tempDB = File.createTempFile("test", "h2db");
       tempDB.deleteOnExit();
-      String connStr = "jdbc:h2:tcp://localhost:9123/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
+      String connStr = "jdbc:h2:tcp://localhost:" + port + "/nio:" + tempDB.getAbsolutePath() + ";AUTO_SERVER=TRUE";
       JdbcDataSource ds = new JdbcDataSource();
       ds.setURL(connStr);
       ds.setUser("sa");
@@ -328,7 +334,7 @@ public class JdbcSemaphoreTest {
       LOG.debug("dumped samples to {}", s.dumpToFile());
       } finally {
         JdbcHeartBeat.stopHeartBeats();
-        server.stop();
+        server.shutdown();
       }
   }
 

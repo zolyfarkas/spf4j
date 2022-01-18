@@ -24,6 +24,7 @@ import org.slf4j.event.SubstituteLoggingEvent;
 import org.slf4j.helpers.SubstituteLogger;
 import org.slf4j.helpers.SubstituteLoggerFactory;
 import org.slf4j.spi.LoggerFactoryBinder;
+import org.spf4j.base.ErrLog;
 
 /**
  * @author Zoltan Farkas
@@ -59,71 +60,99 @@ public final class StaticLoggerBinder implements LoggerFactoryBinder {
       ClassLoader contextClassLoader = currentThread.getContextClassLoader();
       currentThread.setContextClassLoader(ClassLoader.getSystemClassLoader());
       try {
-        TestLoggers newLoggers = TestLoggers.sys();
+        TestLoggers newLoggers;
+        try {
+          newLoggers = TestLoggers.sys();
+        } catch (RuntimeException | Error e) {
+          drainMessagesFromSubstitute();
+          ErrLog.error("Failed to initialize test logger", e);
+          throw e;
+        }
         this.loggerFactory = newLoggers;
         // init complete, now delegate to test loggers.
         for (SubstituteLogger logger : SUBSTITUTE.getLoggers()) {
           logger.setDelegate(newLoggers.getLogger(logger.getName()));
         }
-        LinkedBlockingQueue<SubstituteLoggingEvent> eventQueue = SUBSTITUTE.getEventQueue();
-        // drain the collected log events.
-        for (SubstituteLoggingEvent event: eventQueue) {
-          Throwable t = event.getThrowable();
-          Level level = event.getLevel();
-          switch (level) {
-            case TRACE:
-              if (t == null) {
-                newLoggers.getLogger(event.getLoggerName()).trace(event.getMarker(), event.getMessage(),
-                      event.getArgumentArray());
-              } else {
-                newLoggers.getLogger(event.getLoggerName()).trace(event.getMarker(), event.getMessage(),
-                      org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
-              }
-              break;
-            case DEBUG:
-              if (t == null) {
-                newLoggers.getLogger(event.getLoggerName()).debug(event.getMarker(), event.getMessage(),
-                      event.getArgumentArray());
-              } else {
-                newLoggers.getLogger(event.getLoggerName()).debug(event.getMarker(), event.getMessage(),
-                      org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
-              }
-              break;
-            case INFO:
-              if (t == null) {
-                newLoggers.getLogger(event.getLoggerName()).info(event.getMarker(), event.getMessage(),
-                      event.getArgumentArray());
-              } else {
-                newLoggers.getLogger(event.getLoggerName()).info(event.getMarker(), event.getMessage(),
-                      org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
-              }
-              break;
-            case WARN:
-              if (t == null) {
-                newLoggers.getLogger(event.getLoggerName()).warn(event.getMarker(), event.getMessage(),
-                      event.getArgumentArray());
-              } else {
-                newLoggers.getLogger(event.getLoggerName()).warn(event.getMarker(), event.getMessage(),
-                      org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
-              }
-              break;
-            case ERROR:
-              if (t == null) {
-                newLoggers.getLogger(event.getLoggerName()).error(event.getMarker(), event.getMessage(),
-                      event.getArgumentArray());
-              } else {
-                newLoggers.getLogger(event.getLoggerName()).error(event.getMarker(), event.getMessage(),
-                      org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
-              }
-              break;
-            default:
-              throw new UnsupportedOperationException("Unsupported log level " + level);
-          }
-        }
-        eventQueue.clear();
+        drainMessagesFromSubstitute(newLoggers);
       } finally {
          currentThread.setContextClassLoader(contextClassLoader);
       }
+    }
+
+  @SuppressFBWarnings("CE_CLASS_ENVY")
+  private static void drainMessagesFromSubstitute(final TestLoggers newLoggers)  {
+    LinkedBlockingQueue<SubstituteLoggingEvent> eventQueue = SUBSTITUTE.getEventQueue();
+    // drain the collected log events.
+    for (SubstituteLoggingEvent event: eventQueue) {
+      Throwable t = event.getThrowable();
+      Level level = event.getLevel();
+      switch (level) {
+        case TRACE:
+          if (t == null) {
+            newLoggers.getLogger(event.getLoggerName()).trace(event.getMarker(), event.getMessage(),
+                    event.getArgumentArray());
+          } else {
+            newLoggers.getLogger(event.getLoggerName()).trace(event.getMarker(), event.getMessage(),
+                    org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
+          }
+          break;
+        case DEBUG:
+          if (t == null) {
+            newLoggers.getLogger(event.getLoggerName()).debug(event.getMarker(), event.getMessage(),
+                    event.getArgumentArray());
+          } else {
+            newLoggers.getLogger(event.getLoggerName()).debug(event.getMarker(), event.getMessage(),
+                    org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
+          }
+          break;
+        case INFO:
+          if (t == null) {
+            newLoggers.getLogger(event.getLoggerName()).info(event.getMarker(), event.getMessage(),
+                    event.getArgumentArray());
+          } else {
+            newLoggers.getLogger(event.getLoggerName()).info(event.getMarker(), event.getMessage(),
+                    org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
+          }
+          break;
+        case WARN:
+          if (t == null) {
+            newLoggers.getLogger(event.getLoggerName()).warn(event.getMarker(), event.getMessage(),
+                    event.getArgumentArray());
+          } else {
+            newLoggers.getLogger(event.getLoggerName()).warn(event.getMarker(), event.getMessage(),
+                    org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
+          }
+          break;
+        case ERROR:
+          if (t == null) {
+            newLoggers.getLogger(event.getLoggerName()).error(event.getMarker(), event.getMessage(),
+                    event.getArgumentArray());
+          } else {
+            newLoggers.getLogger(event.getLoggerName()).error(event.getMarker(), event.getMessage(),
+                    org.spf4j.base.Arrays.append(event.getArgumentArray(), t));
+          }
+          break;
+        default:
+          throw new UnsupportedOperationException("Unsupported log level " + level);
+      }
+    }
+    eventQueue.clear();
+  }
+
+  private static void drainMessagesFromSubstitute()  {
+      LinkedBlockingQueue<SubstituteLoggingEvent> eventQueue = SUBSTITUTE.getEventQueue();
+      // drain the collected log events.
+      for (SubstituteLoggingEvent event: eventQueue) {
+        Throwable t = event.getThrowable();
+        Level level = event.getLevel();
+        if (t == null) {
+          ErrLog.error(event.getMessage(), event.getArgumentArray(), event.getLoggerName(), level);
+        } else {
+          ErrLog.error(event.getMessage(), event.getArgumentArray(), event.getLoggerName(), level, t);
+        }
+        break;
+      }
+      eventQueue.clear();
     }
 
     /**

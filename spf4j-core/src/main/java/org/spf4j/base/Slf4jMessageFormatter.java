@@ -109,7 +109,7 @@ public final class Slf4jMessageFormatter {
    */
   public static int format(@Nonnull final Appendable to, @Nonnull final String messagePattern,
           final Object... argArray) throws IOException {
-    return format(to, messagePattern, ObjectAppenderSupplier.TO_STRINGER, argArray);
+    return format(to, messagePattern, ObjectAppenderSupplier.getDefaultToStringAppenderSupplier(), argArray);
   }
 
   /**

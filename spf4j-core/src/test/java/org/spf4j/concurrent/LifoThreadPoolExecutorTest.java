@@ -190,7 +190,7 @@ public class LifoThreadPoolExecutorTest {
   public static void assertPoolBehavior(final ExecutorService executor)
           throws InterruptedException, IOException {
     final LongAdder adder = new LongAdder();
-    final int testCount = 10000000;
+    final int testCount = 1000000;
     long rejected = 0;
     final Runnable runnable = new Runnable() {
       @Override

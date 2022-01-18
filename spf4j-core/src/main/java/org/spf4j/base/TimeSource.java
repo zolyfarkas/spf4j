@@ -37,6 +37,8 @@ public final class TimeSource {
       // JMH benchmarks:
       // TimingBenchmark.getCurrentTimeMillis         thrpt   10  108291306.615 ± 3493136.191  ops/s
       // TimingBenchmark.getNanoTime                  thrpt   10  31056232.360 ± 1804247.295  ops/s
+      // Also in most cloud environments System.currentTimeMillis is monotonic due
+      // to leap second smearing implementations.
       TIMESUPP = new SystemTimeProvider();
     } else {
       try {
@@ -93,15 +95,10 @@ public final class TimeSource {
   }
 
   private static final class SystemTimeProvider implements LongSupplier {
-
-    private static final long LOCAL_EPOCH = System.currentTimeMillis();
-
     @Override
     public long getAsLong() {
-      return TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis() - LOCAL_EPOCH);
+      return TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis());
     }
-
   }
-
 
 }

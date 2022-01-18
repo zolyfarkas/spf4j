@@ -73,7 +73,7 @@ public final class DefaultScheduler {
         ses.awaitTermination(ShutdownThread.WAIT_FOR_SHUTDOWN_NANOS, TimeUnit.NANOSECONDS);
         List<Runnable> remaining = ses.shutdownNow();
         if (remaining.size() > 0) {
-          ErrLog.error("Remaining tasks: " + remaining);
+          ErrLog.error("Remaining tasks: {}", remaining);
         }
       }
     };
