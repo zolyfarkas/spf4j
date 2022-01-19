@@ -84,6 +84,7 @@ abstract class StackPanelBase<T> extends JPanel
 
   public static final Color LINK_COLOR = new Color(128, 128, 128, 128);
 
+  @SuppressFBWarnings("MC_OVERRIDABLE_METHOD_CALL_IN_CONSTRUCTOR")
   StackPanelBase(final Method method,
           final SampleNode samples, final LinkedList<Pair<Method, SampleNode>> history) {
     this.samples = samples;

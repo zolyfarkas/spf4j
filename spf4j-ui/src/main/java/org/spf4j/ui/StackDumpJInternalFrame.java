@@ -118,6 +118,11 @@ class StackDumpJInternalFrame extends javax.swing.JInternalFrame {
     pack();
   }
 
+  @Override
+  public final void pack() {
+    super.pack();
+  }
+
 
   private static void sync(final Collection<String> newValues, final JComboBox<String> combo) {
     Set<String> newvals = new HashSet<>(newValues);
