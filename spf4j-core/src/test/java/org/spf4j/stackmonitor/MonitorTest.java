@@ -34,8 +34,6 @@ package org.spf4j.stackmonitor;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
@@ -67,24 +65,21 @@ public final class MonitorTest {
   @Before
   public void init() {
     original = System.getSecurityManager();
+    LOG.debug("Overwrite securityu manager");
     System.setSecurityManager(new NoExitSecurityManager());
-    Thread.setDefaultUncaughtExceptionHandler((final Thread t, final Throwable e) -> {
-      StringWriter strw = new StringWriter();
-      e.printStackTrace(new PrintWriter(strw));
-      Assert.fail("Got Exception: " + strw);
-    });
   }
 
   @After
   public void cleanup() {
+    LOG.debug("Reset security manager");
     System.setSecurityManager(original);
   }
 
   @Test(expected = ExitException.class)
   public void testError() throws ClassNotFoundException, NoSuchMethodException,
           IllegalAccessException, InvocationTargetException, IOException {
+    LOG.debug("running testError");
     String report = File.createTempFile("stackSample", ".html").getPath();
-    System.setSecurityManager(new NoExitSecurityManager());
     Monitor.main(new String[]{"-ASDF", "-f", report, "-ss", "-si", "10", "-w", "600", "-main",
       MonitorTest.class.getName()});
   }
@@ -92,16 +87,20 @@ public final class MonitorTest {
   @Test
   public void testJmx() throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException,
           InvocationTargetException {
+    LOG.debug("running testJmx");
     try {
       Monitor.main(new String[]{"-ss", "-si", "10", "-main",
         MonitorTest.class.getName()});
+      Assert.fail("Not expected to get here");
     } catch (ExitException ex) {
       Assert.assertEquals(0, ex.getExitCode());
     }
+    LOG.debug("finished testJmx");
   }
 
   @SuppressFBWarnings("MDM_THREAD_YIELD")
   public static void main(final String[] args) throws InterruptedException {
+    LOG.debug("running test main");
     stopped = false;
     try (ExecutionContext ctx = ExecutionContexts.start("main", 10, TimeUnit.MINUTES)) {
       List<Thread> threads = new ArrayList<Thread>(20);
@@ -166,6 +165,7 @@ public final class MonitorTest {
         t.join(3000);
       }
     }
+    LOG.debug("finished test main");
 
   }
 }

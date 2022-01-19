@@ -107,22 +107,27 @@ public final class Monitor {
         final Sampler sampler = new Sampler(options.sampleInterval, options.dumpInterval,
                 (t) -> new FastStackCollector(false, true, new Thread[]{t}),
                 options.dumpFolder, options.dumpFilePrefix);
-        Runtime.getRuntime().addShutdownHook(new Thread(new AbstractRunnable() {
+        AbstractRunnable shutdownRunnable = new AbstractRunnable() {
 
-            @Override
-            public void doRun() throws InterruptedException, IOException {
-                sampler.stop();
-                sampler.dumpToFile();
-                sampler.dispose();
-            }
+          @Override
+          public void doRun() throws InterruptedException, IOException {
+            sampler.stop();
+            sampler.dumpToFile();
+            sampler.dispose();
+          }
 
-        }, "Sampling report"));
+        };
+        Thread shutdownThread = new Thread(shutdownRunnable, "Sampling report");
+        Runtime runtime = Runtime.getRuntime();
+        runtime.addShutdownHook(shutdownThread);
         sampler.registerJmx();
 
         if (options.startSampler) {
             sampler.start();
         }
         Class.forName(options.mainClass).getMethod("main", String[].class).invoke(null, (Object) newArgs);
+        runtime.removeShutdownHook(shutdownThread);
+        shutdownRunnable.run();
         System.exit(SysExits.OK.exitCode());
     }
 

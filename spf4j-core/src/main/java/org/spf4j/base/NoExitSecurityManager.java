@@ -50,7 +50,6 @@ public final class NoExitSecurityManager extends SecurityManager {
 
   @Override
   public void checkExit(final int status) {
-    super.checkExit(status);
     throw new ExitException(status);
   }
 
