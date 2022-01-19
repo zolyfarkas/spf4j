@@ -81,12 +81,17 @@ public final class GenericRecordBuilder implements Closeable {
   }
 
   public GenericRecordBuilder(final GenericData.StringType stringType, final Schema... schemas) {
-    tmpDir = com.google.common.io.Files.createTempDir();
+    try {
+      tmpDir = Files.createTempDirectory("avro-dynamic").toFile();
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
+    }
     this.stringType = stringType;
     generateClasses(stringType, schemas);
     try {
-      AbstractJavaSourceClassLoader src = CompilerFactoryFactory.getDefaultCompilerFactory()
-              .newJavaSourceClassLoader(Thread.currentThread().getContextClassLoader());
+      ClassLoader cl = Thread.currentThread().getContextClassLoader();
+      AbstractJavaSourceClassLoader src =
+              CompilerFactoryFactory.getDefaultCompilerFactory(cl).newJavaSourceClassLoader(cl);
       src.setSourcePath(new File[]{tmpDir});
       this.source = src;
     } catch (Exception ex) {
@@ -113,6 +118,7 @@ public final class GenericRecordBuilder implements Closeable {
     sc.setStringType(st);
     // use a custom template that does not contain the builder (janino can't compile builder).
     sc.setTemplateDir("org/spf4j/avro/");
+    sc.setFieldVisibility(SpecificCompiler.FieldVisibility.PRIVATE);
     try {
       sc.compileToDestination(null, tmpDir);
     } catch (IOException ex) {
