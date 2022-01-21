@@ -71,6 +71,8 @@ public class JdbcSemaphoreTest {
 
   private static final AtomicInteger PORT = new AtomicInteger(9123);
 
+  private static final AtomicInteger MEM_IDX = new AtomicInteger(0);
+
   private static String hbddl;
   private static String semddl;
 
@@ -92,6 +94,7 @@ public class JdbcSemaphoreTest {
       try (Statement stmt = conn.createStatement()) {
         stmt.execute(semddl);
       }
+      conn.commit();
     }
   }
 
@@ -125,44 +128,48 @@ public class JdbcSemaphoreTest {
   }
 
   @Test
+  @SuppressFBWarnings("AFBR_ABNORMAL_FINALLY_BLOCK_RETURN")
   public void testSingleProcess() throws SQLException, IOException, InterruptedException, TimeoutException,
           ObjectCreationException, ObjectDisposeException {
 
     JdbcDataSource hds = new JdbcDataSource();
-    hds.setURL("jdbc:h2:mem:test");
+    hds.setURL("jdbc:h2:mem:test" + MEM_IDX.getAndIncrement() + ";DB_CLOSE_DELAY=-1");
     hds.setUser("sa");
     hds.setPassword("sa");
     PooledDataSource ds = createPooledDS(hds);
+    createSchemaObjects(ds);
     try (Connection conn = ds.getConnection()) { // only to keep the schema arround in thsi section
-      createSchemaObjects(ds);
-
       JdbcHeartBeat heartbeat = JdbcHeartBeat.getHeartBeatAndSubscribe(ds,
               HeartBeatTableDesc.DEFAULT, (JdbcHeartBeat.LifecycleHook) null);
-      long lb = heartbeat.getLastRunDB();
-      LOG.debug("last TS = {}", Instant.ofEpochMilli(lb));
-      heartbeat.beat();
+      try {
+        long lb = heartbeat.getLastRunDB();
+        LOG.debug("last TS = {}", Instant.ofEpochMilli(lb));
+        heartbeat.beat();
 
-      testReleaseAck(ds, "testSem", 2);
-      testReleaseAck(ds, "testSem2", 2);
-      heartbeat.close();
+        testReleaseAck(ds, "testSem", 2);
+        testReleaseAck(ds, "testSem2", 2);
+      } finally {
+        heartbeat.close();
+      }
+    } finally {
+      ds.close();
     }
-    ds.close();
-
   }
 
   @Test
   public void testSingleProcessLock() throws SQLException, IOException, InterruptedException, TimeoutException {
-
     JdbcDataSource ds = new JdbcDataSource();
-    ds.setURL("jdbc:h2:mem:test");
+    ds.setURL("jdbc:h2:mem:test" + MEM_IDX.getAndIncrement() + ";DB_CLOSE_DELAY=-1");
     ds.setUser("sa");
     ds.setPassword("sa");
+    createSchemaObjects(ds);
     try (Connection conn = ds.getConnection()) { // only to keep the schema arround in thsi section
-      createSchemaObjects(ds);
       JdbcLock lock = new JdbcLock(ds, SemaphoreTablesDesc.DEFAULT, "testLock", 10);
       lock.lock();
       Assert.assertFalse(lock.tryLock());
       lock.unlock();
+    } finally {
+      JdbcHeartBeat.stopHeartBeats();
     }
 
   }
@@ -171,7 +178,7 @@ public class JdbcSemaphoreTest {
   public void testSingleMultipleInstance() throws SQLException, IOException, InterruptedException, TimeoutException {
 
     JdbcDataSource ds = new JdbcDataSource();
-    ds.setURL("jdbc:h2:mem:test");
+    ds.setURL("jdbc:h2:mem:test" + MEM_IDX.getAndIncrement() + ";DB_CLOSE_DELAY=-1");
     ds.setUser("sa");
     ds.setPassword("sa");
     try (Connection conn = ds.getConnection()) { // only to keep the schema arround in this section
@@ -183,6 +190,8 @@ public class JdbcSemaphoreTest {
       lock.unlock();
       lock2.lock();
       lock.unlock();
+    } finally {
+      JdbcHeartBeat.stopHeartBeats();
     }
 
   }

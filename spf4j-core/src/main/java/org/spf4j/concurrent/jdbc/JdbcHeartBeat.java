@@ -59,7 +59,10 @@ import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.base.AbstractRunnable;
+import org.spf4j.base.ErrLog;
 import org.spf4j.base.Iterables;
+import org.spf4j.base.ShutdownHooks;
+import org.spf4j.base.ShutdownThread;
 import org.spf4j.base.TimeSource;
 import org.spf4j.base.Timing;
 import org.spf4j.concurrent.DefaultExecutor;
@@ -439,7 +442,7 @@ public final class JdbcHeartBeat implements AutoCloseable {
           final int heartBeatIntevalMillis, final int jdbcTimeoutSeconds)
           throws InterruptedException, SQLException {
     return getHeartBeatAndSubscribe(dataSource, hbTableDesc, hook, heartBeatIntevalMillis,
-            jdbcTimeoutSeconds, DefaultScheduler.listenableInstance());
+            jdbcTimeoutSeconds, DefaultScheduler.getListenable());
   }
 
   public static JdbcHeartBeat getHeartBeatAndSubscribe(final DataSource dataSource,
@@ -471,7 +474,8 @@ public final class JdbcHeartBeat implements AutoCloseable {
           }
         });
         final JdbcHeartBeat fbeat = beat;
-        org.spf4j.base.Runtime.queueHookAtBeginning(new Runnable() {
+        if (!ShutdownThread.get().queueHook(ShutdownHooks.ShutdownPhase.NETWORK_SERVICES,
+         new Runnable() {
           @Override
           public void run() {
             synchronized (HEARTBEATS) {
@@ -481,11 +485,14 @@ public final class JdbcHeartBeat implements AutoCloseable {
               fbeat.close();
             } catch (SQLException | HeartBeatError ex) {
               // logging in shutdownhooks is not reliable.
-              org.spf4j.base.Runtime.error("WARN: Could not clean heartbeat record,"
+              ErrLog.error("WARN: Could not clean heartbeat record,"
                       + " this error can be ignored since it is a best effort attempt, detail:", ex);
             }
           }
-        });
+        })) {
+          throw new IllegalStateException("Process is Shutting down, initiating a heartbeat to "
+                  + dataSource + " is not supported");
+        }
         HEARTBEATS.put(dataSource, beat);
       }
     }
