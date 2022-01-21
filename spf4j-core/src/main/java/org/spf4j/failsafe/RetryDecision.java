@@ -31,7 +31,7 @@ public interface RetryDecision<T, C extends Callable<? extends T>> {
 
   AbortRetryDecision ABORT = new AbortRetryDecision();
 
-  class AbortRetryDecision<T, C extends Callable<? extends T>> implements RetryDecision {
+  final class AbortRetryDecision<T, C extends Callable<? extends T>> implements RetryDecision {
 
     private final Either<Throwable, T> result;
 

@@ -49,12 +49,12 @@ public final class Powerof2ThreadLocalRecyclingSupplier<T> implements SizedRecyc
 
     private final ReferenceType refType;
 
-    private final ThreadLocal<Deque<Reference<T>> []> localObjects;
+    private final ThreadLocal<Deque<Reference<T>>[]> localObjects;
 
     public Powerof2ThreadLocalRecyclingSupplier(final Factory<T> factory, final ReferenceType refType) {
         this.factory = factory;
         this.refType = refType;
-        localObjects = new ThreadLocal<Deque<Reference<T>> []>() {
+        localObjects = new ThreadLocal<Deque<Reference<T>>[]>() {
 
             @Override
             protected  Deque<Reference<T>>[] initialValue() {
