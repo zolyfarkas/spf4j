@@ -121,5 +121,24 @@ public enum Level {
     return charRepresentation;
   }
 
+  public static Level valueOf(final char c) {
+    switch (c) {
+      case 'E':
+        return Level.ERROR;
+      case 'W':
+        return Level.WARN;
+      case 'I':
+        return Level.INFO;
+      case 'D':
+        return Level.DEBUG;
+      case 'T':
+        return Level.TRACE;
+      case 'O':
+        return Level.OFF;
+      default:
+        throw new IllegalArgumentException("Unsupported Log Level Character: " + c);
+    }
+  }
+
 }
 
