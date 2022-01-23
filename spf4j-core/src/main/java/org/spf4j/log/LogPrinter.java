@@ -317,8 +317,7 @@ public final class LogPrinter {
     wr.append(annotate);
     fmt.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);
     wr.append(' ');
-    String level = record.getLevel().toString();
-    wr.append(level);
+    wr.append(record.getLevel().toCharRepresentation());
     wr.append(' ');
     Marker marker = record.getMarker();
     if (marker != null) {

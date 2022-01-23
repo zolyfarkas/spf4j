@@ -41,12 +41,12 @@ import org.spf4j.base.avro.LogLevel;
  * @author Zoltan Farkas
  */
 public enum Level {
-  TRACE(java.util.logging.Level.FINEST),
-  DEBUG(java.util.logging.Level.FINE),
-  INFO(java.util.logging.Level.INFO),
-  WARN(java.util.logging.Level.WARNING),
-  ERROR(java.util.logging.Level.SEVERE),
-  OFF(java.util.logging.Level.OFF);
+  TRACE(java.util.logging.Level.FINEST, 'T'),
+  DEBUG(java.util.logging.Level.FINE, 'D'),
+  INFO(java.util.logging.Level.INFO, 'I'),
+  WARN(java.util.logging.Level.WARNING, 'W'),
+  ERROR(java.util.logging.Level.SEVERE, 'E'),
+  OFF(java.util.logging.Level.OFF, 'O');
 
 
   static final class Lazy {
@@ -63,8 +63,11 @@ public enum Level {
 
   private final java.util.logging.Level julLevel;
 
-  Level(final java.util.logging.Level julLevel) {
+  private final char charRepresentation;
+
+  Level(final java.util.logging.Level julLevel, final char charRepresentation) {
     this.julLevel = julLevel;
+    this.charRepresentation = charRepresentation;
   }
 
   public int getIntValue() {
@@ -112,6 +115,10 @@ public enum Level {
     } else {
       return OFF;
     }
+  }
+
+  public char toCharRepresentation() {
+    return charRepresentation;
   }
 
 }
