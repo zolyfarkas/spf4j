@@ -41,6 +41,7 @@ import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Slf4jMessageFormatter;
 import org.spf4j.base.Throwables;
 import org.spf4j.base.avro.AThrowables;
+import org.spf4j.base.avro.LogLevel;
 import org.spf4j.base.avro.LogRecord;
 import org.spf4j.io.ByteArrayBuilder;
 import org.spf4j.io.ConfigurableAppenderSupplier;
@@ -375,8 +376,7 @@ public final class LogPrinter {
     wr.append("\" ");
     fmt.formatTo(record.getTs(), wr);
     wr.append(' ');
-    String level = record.getLevel().toString();
-    wr.append(level);
+    wr.append(Level.fromAvroLevel(record.getLevel()).toCharRepresentation());
     wr.append(' ');
     wr.append(record.getLogger());
     wr.append(" \"");
