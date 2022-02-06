@@ -251,6 +251,67 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     }
   }
 
+  public int getChildSampleCount() {
+    int childSum = 0;
+    for (SampleNode cNode : this.values()) {
+      childSum += cNode.sampleCount;
+    }
+    return childSum;
+  }
+
+  public int getSelfSampleCount() {
+    return this.sampleCount - getChildSampleCount();
+  }
+
+  /**
+   * Similar to set difference.
+   * if "node2" has more samples all matching samples in node1 will be removed, no negative samples will be recorded.
+   * This method is useful in comparing profile data. Like comparing profile data of a app after a code change.
+   * To do that one qould do both:
+   * A-B to have everything in A not in B
+   * B-A to have Everything in B not in A
+   * A intersect B
+   * @param other
+   */
+  public static SampleNode diff(final SampleNode node1, final SampleNode node2) {
+     SampleNode result = clone(node1);
+     result.diff(node2);
+     return result;
+  }
+
+  /**
+   * Similar as set difference.
+   * will remove everything from this that matches other.
+   * if "other" has more samples all matching samples in this will be removed, no negative samples will be recorded.
+   * @param other
+   */
+  public void diff(final SampleNode other) {
+    int thisSelfSampleCount = getSelfSampleCount();
+    int otherSelfSampleCount = other.getSelfSampleCount();
+    int selfDiff = thisSelfSampleCount - otherSelfSampleCount;
+    if (selfDiff > 0) {
+      this.sampleCount -= otherSelfSampleCount;
+    } else {
+      this.sampleCount -= thisSelfSampleCount;
+    }
+    Iterator<Map.Entry<Method, SampleNode>> it = this.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry<Method, SampleNode> entry = it.next();
+      Method m = entry.getKey();
+      SampleNode csn = entry.getValue();
+      SampleNode osn = other.get(m);
+      if (osn != null) {
+        int oSamples = csn.sampleCount;
+        csn.diff(osn);
+        int nSamples = csn.sampleCount;
+        this.sampleCount -= oSamples - nSamples;
+        if (nSamples <= 0) {
+          it.remove();
+        }
+      }
+    }
+  }
+
 
   /**
    * add other samples to this one.
@@ -366,6 +427,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     writeTo(Methods.ROOT, appendable);
   }
 
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
   public void writeTo(final Method m, final Appendable appendable) throws IOException {
     Deque<Object> dq = new ArrayDeque<>();
     dq.add(Pair.of(m, this));
@@ -413,6 +475,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
    * @param appendable
    * @throws IOException
    */
+  @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
   public void writeD3JsonFormatTo(final Method m, final Appendable appendable) throws IOException {
     Deque<Object> dq = new ArrayDeque<>();
     dq.add(Pair.of(m, this));

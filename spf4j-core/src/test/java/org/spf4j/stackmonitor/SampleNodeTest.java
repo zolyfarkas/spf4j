@@ -161,4 +161,40 @@ public final class SampleNodeTest {
   }
 
 
+@Test
+  public void testDiff() {
+    StackTraceElement[] st1 = newSt1();
+    SampleNode node1 = SampleNode.createSampleNode(st1);
+    StackTraceElement[] st2 = newSt2();
+    SampleNode.addToSampleNode(node1, st2);
+    Assert.assertEquals(5, node1.getNrNodes());
+    StackTraceElement[] st3 = newSt3();
+    SampleNode.addToSampleNode(node1, st3);
+    StackTraceElement[] st4 = newSt4();
+    SampleNode.addToSampleNode(node1, st4);
+    SampleNode.addToSampleNode(node1, st1);
+    SampleNode result = SampleNode.diff(node1, node1);
+    Assert.assertEquals(0, result.getSampleCount());
+    Assert.assertEquals(0, result.size());
+  }
+
+@Test
+  public void testDiff2() {
+    StackTraceElement[] st1 = newSt1();
+    SampleNode node1 = SampleNode.createSampleNode(st1);
+    SampleNode sn1 = SampleNode.clone(node1);
+    StackTraceElement[] st2 = newSt2();
+    SampleNode.addToSampleNode(node1, st2);
+    Assert.assertEquals(5, node1.getNrNodes());
+    StackTraceElement[] st3 = newSt3();
+    SampleNode.addToSampleNode(node1, st3);
+    StackTraceElement[] st4 = newSt4();
+    SampleNode.addToSampleNode(node1, st4);
+    SampleNode.addToSampleNode(node1, st1);
+    SampleNode node2 = SampleNode.clone(node1);
+    SampleNode.addToSampleNode(node1, st1);
+    SampleNode result = SampleNode.diff(node1, node2);
+    Assert.assertEquals(sn1, result);
+  }
+
 }
