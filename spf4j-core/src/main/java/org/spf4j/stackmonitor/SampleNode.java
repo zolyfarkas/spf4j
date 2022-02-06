@@ -373,7 +373,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
       Object obj = dq.removeLast();
       if (obj instanceof CharSequence) {
         appendable.append((CharSequence) obj);
-      } else {
+      } else if (obj instanceof Map.Entry) {
         Map.Entry<Method, SampleNode> s = (Map.Entry<Method, SampleNode>) obj;
         appendable.append("{\"");
         Methods.writeTo(s.getKey(), appendable);
@@ -392,6 +392,8 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
           } else {
             appendable.append('}');
           }
+      } else {
+        throw new IllegalStateException("Invalid objct: " + obj);
       }
     }
   }
@@ -418,7 +420,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
       Object obj = dq.removeLast();
       if (obj instanceof CharSequence) {
         appendable.append((CharSequence) obj);
-      } else {
+      } else if (obj instanceof Map.Entry) {
         Map.Entry<Method, SampleNode> s = (Map.Entry<Method, SampleNode>) obj;
         appendable.append("{\"name\":\"");
         Methods.writeTo(s.getKey(), appendable);
@@ -437,6 +439,8 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
           } else {
             appendable.append('}');
           }
+      } else {
+        throw new IllegalStateException("Invalid objct: " + obj);
       }
     }
   }
@@ -643,21 +647,18 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
   }
 
   public void writeExternal(final ObjectOutput out) throws IOException {
-        // NOTE: Super was not written in version 0
-        super.writeExternal(out);
+    // NOTE: Super was not written in version 0
+    super.writeExternal(out);
+    // NUMBER OF SAMPLES
+    out.writeInt(this.sampleCount);
+  }
 
-        // NUMBER OF SAMPLES
-        out.writeInt(this.sampleCount);
-    }
-
-    public void readExternal(final ObjectInput in)
+  public void readExternal(final ObjectInput in)
             throws IOException, ClassNotFoundException {
-
-        super.readExternal(in);
-
-        // NUMBER OF SAMPLES
-        this.sampleCount = in.readInt();
-    }
+    super.readExternal(in);
+    // NUMBER OF SAMPLES
+    this.sampleCount = in.readInt();
+  }
 
 
 }
