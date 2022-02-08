@@ -195,6 +195,7 @@ public final class SampleNodeTest {
     SampleNode.addToSampleNode(node1, st1);
     SampleNode result = SampleNode.diff(node1, node2);
     Assert.assertEquals(sn1, result);
+    Assert.assertEquals(node2, SampleNode.intersect(node1, node2));
   }
 
 }

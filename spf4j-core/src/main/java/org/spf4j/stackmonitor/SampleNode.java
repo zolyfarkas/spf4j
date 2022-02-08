@@ -267,7 +267,7 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
    * Similar to set difference.
    * if "node2" has more samples all matching samples in node1 will be removed, no negative samples will be recorded.
    * This method is useful in comparing profile data. Like comparing profile data of a app after a code change.
-   * To do that one qould do both:
+   * To do that one would do:
    * A-B to have everything in A not in B
    * B-A to have Everything in B not in A
    * A intersect B
@@ -307,6 +307,49 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
         this.sampleCount -= oSamples - nSamples;
         if (nSamples <= 0) {
           it.remove();
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Similar to set intersect.
+   * Only common samples from node1 and node2 will be returned.
+   * This method is useful in comparing profile data. Like comparing profile data of a app after a code change.
+   * To do that one would do:
+   * A-B to have everything in A not in B
+   * B-A to have Everything in B not in A
+   * A intersect B
+   * @param other
+   */
+  public static SampleNode intersect(final SampleNode node1, final SampleNode node2) {
+     SampleNode result = clone(node1);
+     result.intersect(node2);
+     return result;
+  }
+
+  /**
+   * Intersect this sample with other.
+   * The sample will be mutated to contain the intersection of this and other.
+   * @param other
+   */
+  public void intersect(final SampleNode other) {
+    int thisSelfSampleCount = getSelfSampleCount();
+    int otherSelfSampleCount = other.getSelfSampleCount();
+    this.sampleCount = Math.min(thisSelfSampleCount, otherSelfSampleCount);
+    Iterator<Map.Entry<Method, SampleNode>> it = this.entrySet().iterator();
+    while (it.hasNext()) {
+      Map.Entry<Method, SampleNode> entry = it.next();
+      Method m = entry.getKey();
+      SampleNode csn = entry.getValue();
+      SampleNode osn = other.get(m);
+      if (osn != null) {
+        csn.intersect(osn);
+        if (csn.sampleCount <= 0) {
+          it.remove();
+        } else {
+          this.sampleCount += csn.sampleCount;
         }
       }
     }
