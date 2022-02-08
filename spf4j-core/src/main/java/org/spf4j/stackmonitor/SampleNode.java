@@ -45,8 +45,11 @@ import java.io.ObjectOutput;
 import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -355,6 +358,26 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     }
   }
 
+  public static SampleNode diff_annotate(final Method m, final SampleNode nodeA, final SampleNode nodeB) {
+    SampleNode amb = diff(nodeA, nodeB);
+    SampleNode bma = diff(nodeA, nodeB);
+    SampleNode aib = intersect(nodeA, nodeB);
+    SampleNode result = new SampleNode();
+    if (amb.sampleCount > 0) {
+      result.sampleCount += amb.sampleCount;
+      result.put(Methods.annotate(m, "A"), amb);
+    }
+    if (bma.sampleCount > 0) {
+      result.sampleCount += bma.sampleCount;
+      result.put(Methods.annotate(m, "B"), bma);
+    }
+    if (aib.sampleCount > 0) {
+      result.sampleCount += aib.sampleCount;
+      result.put(m, aib);
+    }
+    return result;
+  }
+
 
   /**
    * add other samples to this one.
@@ -440,20 +463,20 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
   public SampleNode filteredBy(final Predicate<Method> predicate) {
     int newCount = this.sampleCount;
     SampleNode result = new SampleNode(0);
-      for (Map.Entry<Method, SampleNode> entry : this.entrySet()) {
-        Method method = entry.getKey();
-        SampleNode sn = entry.getValue();
-        if (predicate.test(method)) {
+    for (Map.Entry<Method, SampleNode> entry : this.entrySet()) {
+      Method method = entry.getKey();
+      SampleNode sn = entry.getValue();
+      if (predicate.test(method)) {
+        newCount -= sn.getSampleCount();
+      } else {
+        SampleNode sn2 = sn.filteredBy(predicate);
+        if (sn2 == null) {
           newCount -= sn.getSampleCount();
         } else {
-          SampleNode sn2 = sn.filteredBy(predicate);
-          if (sn2 == null) {
-            newCount -= sn.getSampleCount();
-          } else {
-            newCount -= sn.getSampleCount() - sn2.getSampleCount();
-            result.put(method, sn2);
-          }
+          newCount -= sn.getSampleCount() - sn2.getSampleCount();
+          result.put(method, sn2);
         }
+      }
     }
     if (newCount == 0) {
       return null;

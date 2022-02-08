@@ -90,6 +90,10 @@ public final class Methods  {
     return result;
   }
 
+  public static Method annotate(final Method m, String annotationPrefix) {
+    return new Method(annotationPrefix + ':' + m.getDeclaringClass(), m.getName());
+  }
+
   public static void writeTo(final Method m, final Appendable w) throws IOException {
     w.append(m.getName()).append('@').append(m.getDeclaringClass());
   }
