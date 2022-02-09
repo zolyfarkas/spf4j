@@ -90,7 +90,7 @@ public final class Methods  {
     return result;
   }
 
-  public static Method annotate(final Method m, String annotationPrefix) {
+  public static Method annotate(final Method m, final String annotationPrefix) {
     return new Method(annotationPrefix + ':' + m.getDeclaringClass(), m.getName());
   }
 

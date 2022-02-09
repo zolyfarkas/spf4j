@@ -196,7 +196,7 @@ public final class SampleNodeTest {
     SampleNode result = SampleNode.diff(node1, node2);
     Assert.assertEquals(sn1, result);
     Assert.assertEquals(node2, SampleNode.intersect(node1, node2));
-    LOG.info("Annotated diff {}", SampleNode.diff_annotate(Methods.ROOT, node1, node2));
+    LOG.info("Annotated diff {}", SampleNode.diffAnnotate(Methods.ROOT, node1, node2));
   }
 
 }

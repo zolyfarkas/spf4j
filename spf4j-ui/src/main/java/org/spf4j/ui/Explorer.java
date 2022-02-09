@@ -89,6 +89,7 @@ public class Explorer extends javax.swing.JFrame {
     fileMenu = new javax.swing.JMenu();
     openMenuItem = new javax.swing.JMenuItem();
     fromTextMenuItem = new javax.swing.JMenuItem();
+    compareMenuItem = new javax.swing.JMenuItem();
     exitMenuItem = new javax.swing.JMenuItem();
     editMenu = new javax.swing.JMenu();
     cutMenuItem = new javax.swing.JMenuItem();
@@ -107,7 +108,6 @@ public class Explorer extends javax.swing.JFrame {
     desktopPane.setAutoscrolls(true);
     desktopPane.setDoubleBuffered(true);
     desktopPane.setPreferredSize(new java.awt.Dimension(800, 600));
-    desktopPane.setLayout(null);
 
     fileMenu.setMnemonic('f');
     fileMenu.setText("File");
@@ -129,6 +129,14 @@ public class Explorer extends javax.swing.JFrame {
       }
     });
     fileMenu.add(fromTextMenuItem);
+
+    compareMenuItem.setText("Compare");
+    compareMenuItem.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        compareMenuItemActionPerformed(evt);
+      }
+    });
+    fileMenu.add(compareMenuItem);
 
     exitMenuItem.setMnemonic('x');
     exitMenuItem.setText("Exit");
@@ -350,6 +358,78 @@ public class Explorer extends javax.swing.JFrame {
     }
   }//GEN-LAST:event_jMenuItem2ActionPerformed
 
+  @SuppressFBWarnings("CLI_CONSTANT_LIST_INDEX")
+  private void compareMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_compareMenuItemActionPerformed
+    JFileChooser chooser = new JFileChooser();
+    chooser.setName("compareFilesDialog");
+    chooser.setMultiSelectionEnabled(true);
+    chooser.setDialogType(JFileChooser.OPEN_DIALOG);
+    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.D3_JSON);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.SPF4J_JSON);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP2_GZ);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.SSDUMP3_GZ);
+    chooser.addChoosableFileFilter(Spf4jFileFilter.PROFILE_AVRO);
+    if (folder != null) {
+      chooser.setCurrentDirectory(folder);
+    }
+
+    int returnVal = chooser.showOpenDialog(this);
+
+    if (returnVal == JFileChooser.APPROVE_OPTION) {
+      File[] files = chooser.getSelectedFiles();
+      if (files.length != 2) {
+         JOptionPane.showMessageDialog(this, "please select 2 files to compare");
+         return;
+      }
+      JInternalFrame frame;
+      try {
+        frame = new ComparisonStackDumpJInternalFrame(toSupplier(files[0]), toSupplier(files[1]),
+                "A: " + files[0] + ", B: " + files[1], true);
+      } catch (IOException ex) {
+        throw new UncheckedIOException(ex);
+      }
+      frame.setVisible(true);
+      desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
+    }
+  }//GEN-LAST:event_compareMenuItemActionPerformed
+
+  private StackSampleSupplier toSupplier(final File file) throws IOException {
+    if (Spf4jFileFilter.SSDUMP.accept(file)) {
+      SampleNode samples = loadLegacyFormat(file);
+      Instant now = Instant.now();
+      return new OneStackSampleSupplier(now, now, samples);
+    } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
+      SampleNode samples = org.spf4j.ssdump2.Converter.load(file);
+      Instant now = Instant.now();
+      return new OneStackSampleSupplier(now, now, samples);
+    } else if (Spf4jFileFilter.SSDUMP3.accept(file) || Spf4jFileFilter.SSDUMP3_GZ.accept(file)) {
+      Map<String, SampleNode> loadLabeledDumps = org.spf4j.ssdump2.Converter.loadLabeledDumps(file);
+      Instant now = Instant.now();
+      return new MultiStackSampleSupplier(now, now, loadLabeledDumps);
+    } else if (Spf4jFileFilter.D3_JSON.accept(file)) {
+      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+        Pair<Method, SampleNode> parse = SampleNode.parseD3Json(br);
+        Instant now = Instant.now();
+        return new OneStackSampleSupplier(now, now, parse.getSecond());
+      }
+    } else if (Spf4jFileFilter.SPF4J_JSON.accept(file)) {
+      try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+        Pair<Method, SampleNode> parse = SampleNode.parse(br);
+        Instant now = Instant.now();
+        return new OneStackSampleSupplier(now, now, parse.getSecond());
+      }
+    } else if (Spf4jFileFilter.PROFILE_AVRO.accept(file)) {
+      return new AvroStackSampleSupplier(file.toPath());
+    } else {
+      throw new IOException("Unsupported file format " + file);
+    }
+  }
+
+
   private void openFile(final File file) throws IOException {
     String fileName = file.getName();
     JInternalFrame frame;
@@ -390,6 +470,8 @@ public class Explorer extends javax.swing.JFrame {
       throw new IOException("Unsupported file format " + fileName);
     }
   }
+
+
 
   private static SampleNode loadLegacyFormat(final File file) throws IOException {
     InputStream fis = Files.newInputStream(file.toPath());
@@ -467,6 +549,7 @@ public class Explorer extends javax.swing.JFrame {
   }
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JMenuItem aboutMenuItem;
+  private javax.swing.JMenuItem compareMenuItem;
   private javax.swing.JMenuItem contentMenuItem;
   private javax.swing.JMenuItem copyMenuItem;
   private javax.swing.JMenuItem cutMenuItem;

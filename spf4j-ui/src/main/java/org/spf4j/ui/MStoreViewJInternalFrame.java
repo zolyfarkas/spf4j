@@ -98,7 +98,7 @@ public class MStoreViewJInternalFrame extends javax.swing.JInternalFrame {
     if (fileName.endsWith(".tabledef.avro")) {
       reader = new AvroMeasurementStoreReader(tsDb.toPath());
     } else {
-      throw new IllegalArgumentException("Not a tabledef.avrro file " + tsDb);
+      throw new IllegalArgumentException("Not a tabledef.avro file " + tsDb);
     }
     Collection<Schema> measurements = reader.getMeasurements((x) -> true);
     long startDateMillis = System.currentTimeMillis();
