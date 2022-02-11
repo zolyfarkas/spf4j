@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.core.Settings;
 import org.assertj.swing.edt.FailOnThreadViolationRepaintManager;
@@ -34,14 +35,12 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spf4j.test.log.ObservationAssert;
 import org.spf4j.test.log.TestLoggers;
-import org.spf4j.test.log.TestUtils;
 import org.spf4j.test.log.UncaughtExceptionDetail;
 
 /**
@@ -54,9 +53,16 @@ public class ExplorerTest {
   private static NoExitSecurityManagerInstaller installNoExitSecurityManager;
 
   @BeforeClass
-  public static void setUpOnce() {
+  public static void setUpOnce() throws ClassNotFoundException,
+          InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
      FailOnThreadViolationRepaintManager.install();
     installNoExitSecurityManager = NoExitSecurityManagerInstaller.installNoExitSecurityManager();
+    for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+      if ("Nimbus".equals(info.getName())) {
+        javax.swing.UIManager.setLookAndFeel(info.getClassName());
+        break;
+      }
+    }
   }
 
   @AfterClass
@@ -67,7 +73,6 @@ public class ExplorerTest {
   @Test
   @SuppressFBWarnings("MDM_THREAD_YIELD") // need to since assertj does not seem to apply things otherwise...
   public void testExplorer() throws InterruptedException {
-    Assume.assumeTrue(TestUtils.isExecutedInCI());
     ObservationAssert expectation = TestLoggers.sys().expectUncaughtException(2, TimeUnit.SECONDS,
             UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
     JFrame tFrame = GuiActionRunner.execute(() -> new Explorer());
@@ -87,7 +92,6 @@ public class ExplorerTest {
       }
     });
     openFileMenuItem.click();
-    Thread.sleep(100); // without this somehow things are not found.
     JFileChooserFixture fileChooser = window.fileChooser("openFileDialog");
     fileChooser.setCurrentDirectory(new File("src/test/resources"));
     fileChooser.selectFile(new File(
@@ -98,10 +102,8 @@ public class ExplorerTest {
             "com.google.common.io.AppendableWriterBenchmark.spf4jAppendable-Throughput.ssdump2"));
 
     openFileMenuItem.click();
-    Thread.sleep(100);
     fileChooser = window.fileChooser("openFileDialog");
     fileChooser.setCurrentDirectory(new File("src/test/resources"));
-    Thread.sleep(100);
     fileChooser.selectFile(new File("src/test/resources/"
                     + "19156@ZMacBookPro.local.tsdb").getAbsoluteFile());
     fileChooser.approve();
@@ -109,10 +111,8 @@ public class ExplorerTest {
             "19156@ZMacBookPro.local.tsdb"));
 
     openFileMenuItem.click();
-    Thread.sleep(100);
     fileChooser = window.fileChooser("openFileDialog");
     fileChooser.setCurrentDirectory(new File("src/test/resources"));
-    Thread.sleep(100);
     fileChooser.selectFile(new File("src/test/resources/"
                     + "test8381720042200787335.tsdb2").getAbsoluteFile());
     fileChooser.approve();
@@ -125,7 +125,6 @@ public class ExplorerTest {
       }
     });
     openJsonText.click();
-    Thread.sleep(100);
     DialogFixture dialog = window.dialog("fromTextDialog");
     dialog.textBox("textBox").setText("{\"ROOT@49924@ZMacBookPro-2.local\":10,"
             + "\"c\":[{\"m3@C2\":2,\"c\":[{\"m2@C2\":2,\"c\":[{\"m1@C2\":2}]}]},{\"m1@C1\":2},"
@@ -133,6 +132,40 @@ public class ExplorerTest {
             + "{\"m4@C1\":2,\"c\":[{\"m2@C1\":2,\"c\":[{\"m1@C1\":2}]}]}]}");
     dialog.button("display").click();
     Assert.assertNotNull(window.internalFrame("SampleNode Tree"));
+    window.close();
+    window.cleanUp();
+    expectation.assertObservation();
+  }
+
+
+  @Test
+  @SuppressFBWarnings("MDM_THREAD_YIELD") // need to since assertj does not seem to apply things otherwise...
+  public void testExplorerCompare() throws InterruptedException {
+    ObservationAssert expectation = TestLoggers.sys().expectUncaughtException(2, TimeUnit.SECONDS,
+            UncaughtExceptionDetail.hasThrowable((Matcher) Matchers.any(ExitException.class)));
+    JFrame tFrame = GuiActionRunner.execute(() ->  new Explorer());
+    FrameFixture window = new FrameFixture(tFrame);
+    LOG.debug("Show window");
+    window.show(); // shows the frame to test
+    LOG.debug("Window is up");
+    Assert.assertTrue(window.isEnabled());
+
+    JMenuItemFixture compareMenuItem = window.menuItem(new GenericTypeMatcher<JMenuItem>(JMenuItem.class) {
+      @Override
+      protected boolean isMatching(final JMenuItem component) {
+        return "Compare".equals(component.getText());
+      }
+    });
+    compareMenuItem.click();
+    JFileChooserFixture fileCompareChooser = window.fileChooser("compareFilesDialog");
+    File resourcesFolder = new File("src/test/resources");
+    fileCompareChooser.setCurrentDirectory(resourcesFolder);
+    String file1 = "testProfile.ssp.avro";
+    String file2 = "jaxrs-spf4j-demo-54557c8c9d-5ndf9_20211030T141848576Z_20211030T151933489Z.ssdump3.gz";
+    fileCompareChooser.selectFiles(new File(resourcesFolder, file1).getAbsoluteFile(),
+            new File(resourcesFolder, file2).getAbsoluteFile());
+    fileCompareChooser.approve();
+    Assert.assertNotNull(window.internalFrame("A: " + file2 + ", B: " + file1));
     window.close();
     window.cleanUp();
     expectation.assertObservation();

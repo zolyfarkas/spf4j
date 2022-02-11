@@ -388,7 +388,7 @@ public class Explorer extends javax.swing.JFrame {
       JInternalFrame frame;
       try {
         frame = new ComparisonStackDumpJInternalFrame(toSupplier(files[0]), toSupplier(files[1]),
-                "A: " + files[0] + ", B: " + files[1], true);
+                "A: " + files[0].getName() + ", B: " + files[1].getName(), true);
       } catch (IOException ex) {
         throw new UncheckedIOException(ex);
       }
