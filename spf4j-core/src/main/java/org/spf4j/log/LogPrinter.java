@@ -315,9 +315,9 @@ public final class LogPrinter {
     Appendable wr = app.getAppendable();
     Appendable wrapper = app.getJsonStringEscapingAppendable();
     wr.append(annotate);
-    fmt.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);
-    wr.append(' ');
     wr.append(record.getLevel().toCharRepresentation());
+    wr.append(' ');
+    fmt.formatTo(Instant.ofEpochMilli(record.getTimeStamp()), wr);
     wr.append(' ');
     Marker marker = record.getMarker();
     if (marker != null) {
@@ -370,12 +370,12 @@ public final class LogPrinter {
     Appendable wr = ba.getAppendable();
     Appendable wrapper = ba.getJsonStringEscapingAppendable();
     wr.append(annotate);
+    wr.append(Level.fromAvroLevel(record.getLevel()).toCharRepresentation());
+    wr.append(' ');
     wr.append('"');
     wrapper.append(record.getOrigin());
     wr.append("\" ");
     fmt.formatTo(record.getTs(), wr);
-    wr.append(' ');
-    wr.append(Level.fromAvroLevel(record.getLevel()).toCharRepresentation());
     wr.append(' ');
     wr.append(record.getLogger());
     wr.append(" \"");
