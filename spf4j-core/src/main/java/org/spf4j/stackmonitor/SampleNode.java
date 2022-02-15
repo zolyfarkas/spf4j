@@ -395,6 +395,12 @@ public final class SampleNode extends MethodMap<SampleNode> implements Serializa
     }
   }
 
+  public void multiply(final int times) {
+    this.sampleCount *= times;
+    for (SampleNode node : this.values()) {
+      node.multiply(times);
+    }
+  }
 
   /**
    * add other samples to this one.
