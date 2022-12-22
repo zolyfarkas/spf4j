@@ -33,15 +33,11 @@ package org.spf4j.ui;
 //CHECKSTYLE:OFF
 import org.spf4j.stackmonitor.AvroStackSampleSupplier;
 import org.spf4j.stackmonitor.StackSampleSupplier;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.CodedInputStream;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.event.KeyEvent;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -60,8 +56,6 @@ import org.spf4j.base.Pair;
 import org.spf4j.base.avro.Method;
 import org.spf4j.stackmonitor.SampleNode;
 import org.spf4j.stackmonitor.Sampler;
-import org.spf4j.stackmonitor.proto.Converter;
-import org.spf4j.stackmonitor.proto.gen.ProtoSampleNodes;
 
 /**
  * @author zoly
@@ -398,11 +392,7 @@ public class Explorer extends javax.swing.JFrame {
   }//GEN-LAST:event_compareMenuItemActionPerformed
 
   private StackSampleSupplier toSupplier(final File file) throws IOException {
-    if (Spf4jFileFilter.SSDUMP.accept(file)) {
-      SampleNode samples = loadLegacyFormat(file);
-      Instant now = Instant.now();
-      return new OneStackSampleSupplier(now, now, samples);
-    } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
+    if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
       SampleNode samples = org.spf4j.ssdump2.Converter.load(file);
       Instant now = Instant.now();
       return new OneStackSampleSupplier(now, now, samples);
@@ -445,9 +435,6 @@ public class Explorer extends javax.swing.JFrame {
       frame = new MStoreViewJInternalFrame(file);
       frame.setVisible(true);
       desktopPane.add(frame, javax.swing.JLayeredPane.DEFAULT_LAYER);
-    } else if (Spf4jFileFilter.SSDUMP.accept(file)) {
-      SampleNode samples = loadLegacyFormat(file);
-      setFrames(samples, fileName);
     } else if (Spf4jFileFilter.SSDUMP2.accept(file) || Spf4jFileFilter.SSDUMP2_GZ.accept(file)) {
       SampleNode samples = org.spf4j.ssdump2.Converter.load(file);
       setFrames(samples, fileName);
@@ -471,21 +458,6 @@ public class Explorer extends javax.swing.JFrame {
     }
   }
 
-
-
-  private static SampleNode loadLegacyFormat(final File file) throws IOException {
-    InputStream fis = Files.newInputStream(file.toPath());
-    return loadLegacyFormat(fis);
-  }
-
-  @VisibleForTesting
-  static SampleNode loadLegacyFormat(InputStream fis) throws IOException {
-    try (BufferedInputStream bis = new BufferedInputStream(fis)) {
-      final CodedInputStream is = CodedInputStream.newInstance(bis);
-      is.setRecursionLimit(Short.MAX_VALUE);
-      return Converter.fromProtoToSampleNode(ProtoSampleNodes.SampleNode.parseFrom(is));
-    }
-  }
 
   private void setFrames(StackSampleSupplier samples , String fileName) throws IOException {
     JInternalFrame frame = new StackDumpJInternalFrame(samples, fileName, false);

@@ -50,21 +50,10 @@ public class FlameStackPanelTest {
   private static final SampleNode NODES
           = loadSsdump2("com.google.common.io.AppendableWriterBenchmark.spf4jAppendable-Throughput.ssdump2");
 
-  private static final SampleNode NODES2
-          = loadSsdump("61160@ZMacBookPro.local_20130826T204120-0400_20130826T204128-0400.ssdump");
-
   @Nullable
   public static SampleNode loadSsdump2(final String resourceName) {
     try (InputStream is = Resources.getResource(resourceName).openStream()) {
       return Converter.load(is);
-    } catch (IOException ex) {
-      throw new ExceptionInInitializerError(ex);
-    }
-  }
-
-  public static SampleNode loadSsdump(final String resourceName) {
-    try (InputStream is = Resources.getResource(resourceName).openStream()) {
-      return Explorer.loadLegacyFormat(is);
     } catch (IOException ex) {
       throw new ExceptionInInitializerError(ex);
     }
@@ -79,8 +68,8 @@ public class FlameStackPanelTest {
 
   @Test
   public void testSampleGraph() throws IOException, InterruptedException {
-    LOG.debug("Graph = {}", NODES2);
-    SampleGraph sg = new SampleGraph(Methods.ROOT, NODES2);
+    LOG.debug("Graph = {}", NODES);
+    SampleGraph sg = new SampleGraph(Methods.ROOT, NODES);
     SampleGraph.AggSample aggRootVertex = sg.getAggRootVertex();
     SampleGraph.AggSample child = sg.getChildren(aggRootVertex).iterator().next();
     Assert.assertTrue(sg.isParentDescendant(aggRootVertex, child));
@@ -89,8 +78,8 @@ public class FlameStackPanelTest {
 
   @Test
   public void testLoadingHotStackPanel2() throws IOException, InterruptedException {
-    LOG.debug("Graph = {}", NODES2);
-    HotFlameStackPanel panel = new HotFlameStackPanel(Methods.ROOT, NODES2, new LinkedList<>());
+    LOG.debug("Graph = {}", NODES);
+    HotFlameStackPanel panel = new HotFlameStackPanel(Methods.ROOT, NODES, new LinkedList<>());
     testPanel(panel);
   }
 
