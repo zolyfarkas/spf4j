@@ -167,6 +167,10 @@ public final class Sampler {
   }
 
 
+  public ProfilePersister getPersister() {
+    return this.persister;
+  }
+
   public static synchronized Sampler getSampler(final int sampleTimeMillis,
           final int dumpTimeMillis,
           final File dumpFolder, final String dumpFilePrefix) throws InterruptedException, IOException {
