@@ -39,6 +39,7 @@ import java.time.Instant;
 import java.util.Map;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import org.spf4j.base.StackSamples;
 
 /**
  * Abstraction for Persisting profile data produced by the sampling profiler.
@@ -54,7 +55,7 @@ public interface ProfilePersister extends Closeable, Flushable {
   ProfilePersister witCompression(boolean compress) throws IOException;
 
   @Nullable
-  Path persist(Map<String, SampleNode> profile,
+  Path persist(Map<String, ? extends StackSamples> profile,
           @Nullable String tag, Instant profileFrom, Instant profileTo) throws IOException;
 
   Path getTargetPath();

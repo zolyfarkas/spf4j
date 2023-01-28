@@ -42,6 +42,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import org.spf4j.base.CharSequences;
 import org.spf4j.base.DateTimeFormats;
+import org.spf4j.base.StackSamples;
 import org.spf4j.ssdump2.Converter;
 
 /**
@@ -84,7 +85,7 @@ public final class LegacyProfilePersister implements ProfilePersister {
 
 
   @Override
-  public Path persist(final Map<String, SampleNode> profile,
+  public Path persist(final Map<String, ? extends StackSamples> profile,
           @Nullable final String tag,
           final Instant profileFrom, final Instant profileTo) throws IOException {
     if (this.explicitFileName) {
@@ -160,7 +161,7 @@ public final class LegacyProfilePersister implements ProfilePersister {
   }
 
   @Nullable
-  private Path save(final Map<String, SampleNode> profile, final String fileName) throws IOException {
+  private Path save(final Map<String, ? extends StackSamples> profile, final String fileName) throws IOException {
     int size = profile.size();
     if (size < 1) {
       return null;
@@ -187,7 +188,7 @@ public final class LegacyProfilePersister implements ProfilePersister {
   }
 
   @SuppressFBWarnings("UAC_UNNECESSARY_API_CONVERSION_FILE_TO_PATH")
-  private Path save(final String fileName, final ProfileFileFormat pFormat, final Map<String, SampleNode> profile)
+  private Path save(final String fileName, final ProfileFileFormat pFormat, final Map<String, ? extends StackSamples> profile)
           throws IOException {
     File file = new File(targetFolder, fileName);
     switch (pFormat) {

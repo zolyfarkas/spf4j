@@ -43,6 +43,7 @@ import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.spf4j.base.DateTimeFormats;
+import org.spf4j.base.StackSamples;
 import org.spf4j.base.avro.ApplicationStackSamples;
 import org.spf4j.base.avro.Converters;
 
@@ -112,14 +113,14 @@ public final class AvroProfilePersister implements ProfilePersister {
   }
 
   @Override
-  public Path persist(final Map<String, SampleNode> profile, @Nullable final String tag,
+  public Path persist(final Map<String, ? extends StackSamples> profile, @Nullable final String tag,
           final Instant profileFrom, final Instant profileTo)
           throws IOException {
     if (profile.isEmpty()) {
       return this.targetFile;
     }
-    for (Map.Entry<String, SampleNode> entry : profile.entrySet()) {
-      SampleNode sampleNode = entry.getValue();
+    for (Map.Entry<String, ? extends StackSamples> entry : profile.entrySet()) {
+      StackSamples sampleNode = entry.getValue();
       if (sampleNode != null) {
         this.writer.append(new ApplicationStackSamples(profileFrom, profileTo,
               tag == null ? "" : tag,

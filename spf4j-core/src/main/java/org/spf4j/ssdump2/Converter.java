@@ -66,6 +66,7 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
 import org.spf4j.base.Methods;
+import org.spf4j.base.StackSamples;
 import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.Method;
 import org.spf4j.base.avro.StackSampleElement;
@@ -126,7 +127,7 @@ public final class Converter {
     return index.get(0);
   }
 
-  public static void save(final File file, final SampleNode collected) throws IOException {
+  public static void save(final File file, final StackSamples collected) throws IOException {
     try (OutputStream bos = newOutputStream(file)) {
       final SpecificDatumWriter<StackSampleElement> writer
               = new SpecificDatumWriter<>(StackSampleElement.getClassSchema());
@@ -192,17 +193,17 @@ public final class Converter {
     }
   }
 
-  public static void saveLabeledDumps(final File file, final Map<String, SampleNode> pcollected) throws IOException {
+  public static void saveLabeledDumps(final File file, final Map<String, ? extends StackSamples> pcollected) throws IOException {
     try (OutputStream bos = newOutputStream(file)) {
       final SpecificDatumWriter<StackSampleElement> writer = new SpecificDatumWriter<>(StackSampleElement.SCHEMA$);
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);
 
       encoder.writeMapStart();
-      final Map<String, SampleNode> collected = pcollected.entrySet().stream()
+      final Map<String, StackSamples> collected = pcollected.entrySet().stream()
               .filter((e) -> e.getValue() != null)
               .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue()));
       encoder.setItemCount(collected.size());
-      for (Map.Entry<String, SampleNode> entry : collected.entrySet()) {
+      for (Map.Entry<String, StackSamples> entry : collected.entrySet()) {
         encoder.startItem();
         encoder.writeString(entry.getKey());
         encoder.writeArrayStart();
