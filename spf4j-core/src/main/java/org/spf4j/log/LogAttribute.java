@@ -47,7 +47,6 @@ import org.spf4j.base.CharSequences;
 import org.spf4j.base.Json;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Pair;
-import org.spf4j.base.StackSamples;
 import org.spf4j.io.AppendableWriter;
 
 /**
@@ -60,8 +59,6 @@ public final class LogAttribute<T> extends Pair<String, T>
   private static final long serialVersionUID = 1L;
 
   public static final String ID_ATTR_NAME = "trId";
-
-  public static final String PROFILE_SAMPLES_ATTR_NAME = "prSamples";
 
   public LogAttribute(final String first, final T second) {
     super(first, second);
@@ -77,10 +74,6 @@ public final class LogAttribute<T> extends Pair<String, T>
 
   public static LogAttribute<CharSequence> traceId(final CharSequence id) {
     return new LogAttribute(ID_ATTR_NAME, id);
-  }
-
-  public static LogAttribute<StackSamples> profileSamples(final StackSamples ss) {
-    return new LogAttribute(PROFILE_SAMPLES_ATTR_NAME, ss);
   }
 
   public static LogAttribute<Level> origLevel(final Level level) {

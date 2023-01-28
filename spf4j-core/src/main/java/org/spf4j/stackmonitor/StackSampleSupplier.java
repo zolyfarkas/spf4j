@@ -20,7 +20,7 @@ import java.time.Instant;
 import javax.annotation.Nullable;
 
 /**
- *
+ * A basic abstraction for a stack sample source.
  * @author Zoltan Farkas
  */
 public interface StackSampleSupplier {
@@ -31,6 +31,7 @@ public interface StackSampleSupplier {
 
   ProfileMetaData getMetaData(Instant from, Instant to) throws IOException;
 
+  @Nullable
   SampleNode getSamples(@Nullable String context, @Nullable String tag,
           Instant from, Instant to) throws IOException;
 

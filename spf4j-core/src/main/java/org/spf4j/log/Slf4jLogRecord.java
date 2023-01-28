@@ -43,11 +43,8 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
-import org.spf4j.base.StackSamples;
-import org.spf4j.base.avro.Converters;
 import static org.spf4j.base.avro.Converters.convert;
 import org.spf4j.base.avro.LogRecord;
-import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.io.ObjectAppenderSupplier;
 
 /**
@@ -137,7 +134,6 @@ public interface Slf4jLogRecord {
     Map<String, Object> attribs = null;
     List<Object> xArgs;
     String traceId = ptraceId;
-    List<StackSampleElement> profiles = Collections.EMPTY_LIST;
     if (extraArguments.length == 0) {
       xArgs = Collections.emptyList();
     } else {
@@ -149,9 +145,6 @@ public interface Slf4jLogRecord {
           switch (name) {
             case LogAttribute.ID_ATTR_NAME:
               traceId = la.getValue().toString();
-              break;
-            case LogAttribute.PROFILE_SAMPLES_ATTR_NAME:
-              profiles = Converters.convert((StackSamples) la.getValue());
               break;
             default:
               // nothiing to do.
@@ -174,7 +167,6 @@ public interface Slf4jLogRecord {
             String aName = la.getName();
             switch (aName) {
               case LogAttribute.ID_ATTR_NAME:
-              case LogAttribute.PROFILE_SAMPLES_ATTR_NAME:
                 break;
               default:
                 attribs.put(aName, la.getValue());
@@ -210,7 +202,7 @@ public interface Slf4jLogRecord {
             this.getLoggerName(), this.getThreadName(), this.getMessageFormat(),
             messageArgs, xArgs,
             attribs == null ? Collections.emptyMap() : attribs,
-            extraThrowable == null ? null : convert(extraThrowable), profiles);
+            extraThrowable == null ? null : convert(extraThrowable));
   }
 
 }
