@@ -193,7 +193,8 @@ public final class Converter {
     }
   }
 
-  public static void saveLabeledDumps(final File file, final Map<String, ? extends StackSamples> pcollected) throws IOException {
+  public static void saveLabeledDumps(final File file,
+          final Map<String, ? extends StackSamples> pcollected) throws IOException {
     try (OutputStream bos = newOutputStream(file)) {
       final SpecificDatumWriter<StackSampleElement> writer = new SpecificDatumWriter<>(StackSampleElement.SCHEMA$);
       final BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder(bos, null);

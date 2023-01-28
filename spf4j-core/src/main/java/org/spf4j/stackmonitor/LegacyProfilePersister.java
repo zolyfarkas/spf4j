@@ -188,7 +188,8 @@ public final class LegacyProfilePersister implements ProfilePersister {
   }
 
   @SuppressFBWarnings("UAC_UNNECESSARY_API_CONVERSION_FILE_TO_PATH")
-  private Path save(final String fileName, final ProfileFileFormat pFormat, final Map<String, ? extends StackSamples> profile)
+  private Path save(final String fileName, final ProfileFileFormat pFormat,
+          final Map<String, ? extends StackSamples> profile)
           throws IOException {
     File file = new File(targetFolder, fileName);
     switch (pFormat) {
