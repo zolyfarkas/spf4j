@@ -20,13 +20,10 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -44,7 +41,6 @@ import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.specific.SpecificDatumReader;
-import org.spf4j.base.avro.LogRecord;
 import org.spf4j.base.avro.StackSampleElement;
 import org.spf4j.ssdump2.Converter;
 import org.spf4j.stackmonitor.SampleNode;
@@ -134,27 +130,7 @@ public class TextEntryPanel extends javax.swing.JPanel {
   private void displayActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_displayActionPerformed
     try {
       String text = jTextPane1.getText().trim();
-      if (text.startsWith("http")) {
-        URL url = new URL(text);
-        URLConnection conn = url.openConnection();
-        conn.setRequestProperty("Accept", "application/avro");
-        conn.connect();
-        String contentType = conn.getContentType();
-        if (!"application/avro".equals(contentType)) {
-          throw new IOException("Unsupported content type " + contentType);
-        }
-        try (InputStream is = new BufferedInputStream(conn.getInputStream())) {
-          List<LogRecord> recs =
-                  (List<LogRecord>) readAvroBin(is, Schema.createArray(LogRecord.SCHEMA$));
-          for (LogRecord rec : recs) {
-            List<StackSampleElement> stackSamples = rec.getStackSamples();
-            if (!stackSamples.isEmpty()) {
-              nodeConsumer.accept(rec.getMsg() + "; with trId=" + rec.getTrId(),
-                      Converter.convert(stackSamples.iterator()));
-            }
-          }
-        }
-      } else if (text.startsWith("[")) {
+      if (text.startsWith("[")) {
         Schema schema = Schema.createArray(StackSampleElement.getClassSchema());
         DatumReader reader = new SpecificDatumReader(schema);
         List<StackSampleElement> samples;
