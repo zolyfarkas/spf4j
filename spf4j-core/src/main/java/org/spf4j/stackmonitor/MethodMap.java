@@ -34,7 +34,7 @@ package org.spf4j.stackmonitor;
 import org.spf4j.base.avro.Method;
 
 /**
- * A custom hashcode and eequals map implementation
+ * A custom hashcode and equals map implementation
  * @author Zoltan Farkas
  */
 public class MethodMap<T> extends THashMap<Method, T> {
