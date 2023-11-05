@@ -58,8 +58,8 @@ public class NumberJsonAppender implements ObjectAppender<Number> {
 
 
   @Override
-  public final void append(final Number object, final Appendable appendTo) {
-    throw new UnsupportedOperationException();
+  public final void append(final Number object, final Appendable appendTo) throws IOException {
+    appendTo.append(object.toString());
   }
 
 }
