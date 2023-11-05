@@ -48,9 +48,8 @@ public class MutableHolder<T> implements Supplier<T> {
   public MutableHolder(final T value) {
     this.value = value;
   }
-
   /**
-   * @deprecated use MutableHolder.of
+   * @deprecated use MutableHolder.empty
    */
   @Deprecated
   public MutableHolder() {
@@ -59,6 +58,10 @@ public class MutableHolder<T> implements Supplier<T> {
 
   public static <T> MutableHolder<T> of(final T value) {
     return (MutableHolder<T>) new MutableHolder<>(value);
+  }
+
+  public static <T> MutableHolder<T> empty() {
+    return (MutableHolder<T>) new MutableHolder<>();
   }
 
   public static <T extends Comparable> ComparableHolder<T> of(final T value) {
