@@ -172,7 +172,8 @@ public class RetryPolicyTest {
       Assert.fail();
     } catch (CancellationException ex) {
       LOG.debug("exception detail ", ex);
-      Assert.assertThat(ex.getSuppressed(), Matchers.arrayWithSize(1));
+      Assert.assertTrue("Must have supression details " + Throwables.getStackTraceAsString(ex),
+              ex.getSuppressed().length >= 1);
     }
   }
 

@@ -36,6 +36,7 @@ import gnu.trove.set.hash.THashSet;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.sql.SQLRecoverableException;
 import java.sql.SQLTransientException;
 import java.util.ArrayDeque;
@@ -376,18 +377,17 @@ public final class Throwables {
       to.append("[^]");
       return;
     }
-    org.spf4j.base.avro.PackageInfo pInfo = PackageInfo.getPackageInfo(currClassName);
+    PackageInfo pInfo = PackageInfo.getPackageInfo(currClassName);
     if (abbreviatedTraceElement && prevClassName != null && pInfo.equals(PackageInfo.getPackageInfo(prevClassName))) {
       to.append("[^]");
       return;
     }
-    if (!pInfo.getUrl().isEmpty() || !pInfo.getVersion().isEmpty()) {
-      String jarSourceUrl = pInfo.getUrl();
-      String version = pInfo.getVersion();
+    URL pInfoUrl = pInfo.getUrl();
+    if (pInfoUrl != null || pInfo.hasVersion()) {
       to.append('[');
-      if (!jarSourceUrl.isEmpty()) {
+      if (pInfoUrl != null) {
         if (detail == PackageDetail.SHORT) {
-          String url = jarSourceUrl;
+          String url = pInfoUrl.toString();
           int lastIndexOf = url.lastIndexOf('/');
           if (lastIndexOf >= 0) {
             int lpos = url.length() - 1;
@@ -405,14 +405,14 @@ public final class Throwables {
             to.append(url);
           }
         } else {
-          to.append(jarSourceUrl);
+          to.append(pInfoUrl.toString());
         }
       } else {
         to.append("na");
       }
-      if (!version.isEmpty()) {
+      if (pInfo.hasVersion()) {
         to.append(':');
-        to.append(version);
+        to.append(pInfo.getVersion());
       }
       to.append(']');
     }

@@ -37,12 +37,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
+import org.slf4j.event.KeyValuePair;
 import static org.spf4j.base.avro.Converters.convert;
 import org.spf4j.base.avro.LogRecord;
 import org.spf4j.io.ObjectAppenderSupplier;
@@ -82,8 +84,22 @@ public interface Slf4jLogRecord {
 
   String getLoggerName();
 
+  /** for back ward compatibility only, use getMarkers instead */
   @Nullable
-  Marker getMarker();
+  @Deprecated
+  default Marker getMarker() {
+    List<Marker> markers = this.getMarkers();
+    Iterator<Marker> iterator = markers.iterator();
+    if (iterator.hasNext()) {
+      return iterator.next();
+    } else {
+      return null;
+    }
+  }
+  
+  List<Marker> getMarkers();
+  
+  List<KeyValuePair> getKVPayload();
 
   @Nonnull
   String getMessage();

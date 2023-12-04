@@ -36,6 +36,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Marker;
+import org.slf4j.event.KeyValuePair;
 import org.spf4j.base.CoreTextMediaType;
 import org.spf4j.base.EscapeJsonStringAppendableWrapper;
 import org.spf4j.base.Slf4jMessageFormatter;
@@ -357,6 +358,24 @@ public final class LogPrinter {
         wr.append(']');
       }
     }
+    List<KeyValuePair> kvs = record.getKVPayload();
+    Iterator<KeyValuePair> iterator = kvs.iterator();
+    if (iterator.hasNext()) {
+      wr.append(" {");
+      KeyValuePair next = iterator.next();
+      printJsonObject(next.key, app);
+      wr.append(':');
+      printJsonObject(next.value, app);
+      while (iterator.hasNext()) {
+        next = iterator.next();
+        wr.append(',');
+        printJsonObject(next.key, app);
+        wr.append(':');
+        printJsonObject(next.value, app);
+      }
+      wr.append('}');
+    }
+    
     if (t != null) {
       wr.append('\n');
       Throwables.writeTo(t, wr, Throwables.PackageDetail.SHORT);

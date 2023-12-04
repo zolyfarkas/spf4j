@@ -33,10 +33,14 @@ package org.spf4j.log;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import org.slf4j.Marker;
+import org.slf4j.event.KeyValuePair;
 import org.spf4j.base.avro.Converters;
 import org.spf4j.base.avro.LogRecord;
 
@@ -159,6 +163,24 @@ public final class AvroLogRecordImpl implements Slf4jLogRecord {
   @Override
   public String toString() {
     return "AvroLogRecordImpl{" + "record=" + record + ", isLogged=" + isLogged + '}';
+  }
+
+  @Override
+  public List<Marker> getMarkers() {
+    return Collections.EMPTY_LIST;
+  }
+
+  @Override
+  public List<KeyValuePair> getKVPayload() {
+    Map<String, Object> attrs = this.record.getAttrs();
+    if (attrs.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<KeyValuePair> result = new ArrayList<>(attrs.size());
+    for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+      result.add(new KeyValuePair(entry.getKey(), entry.getValue()));
+    }
+    return result;
   }
 
 }

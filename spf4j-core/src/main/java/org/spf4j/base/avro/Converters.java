@@ -61,7 +61,7 @@ public final class Converters {
     String fileName = stackTrace.getFileName();
     return new StackTraceElement(new Method(className, stackTrace.getMethodName()),
             fileName == null ? null :  new FileLocation(fileName, stackTrace.getLineNumber(), -1),
-            org.spf4j.base.PackageInfo.getPackageInfo(className));
+            org.spf4j.base.PackageInfo.getPackageInfo(className).toAvro());
   }
 
   public static List<StackTraceElement> convert(final java.lang.StackTraceElement[] stackTraces) {

@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Marker;
+import org.slf4j.event.KeyValuePair;
 import org.spf4j.log.Level;
 import org.spf4j.log.Slf4jLogRecordImpl;
 
@@ -43,6 +44,11 @@ public final class TestLogRecordImpl extends Slf4jLogRecordImpl implements TestL
     super(loggerName, level, marker, format, arguments);
   }
 
+  public TestLogRecordImpl(final String loggerName, final Level level,
+          final List<Marker> markers, final List<KeyValuePair> kvs, final long currentTime,
+          final String format, final Object... arguments) {
+    super(false, loggerName, level, markers, kvs, currentTime, format, arguments);
+  }
 
   @Nonnull
   @Override

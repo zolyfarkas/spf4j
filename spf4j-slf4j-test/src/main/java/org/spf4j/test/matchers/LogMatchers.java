@@ -24,6 +24,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.slf4j.Marker;
+import org.slf4j.event.KeyValuePair;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.TestLogRecord;
 
@@ -48,23 +49,54 @@ public final class LogMatchers {
   }
 
   public static Matcher<TestLogRecord> hasMatchingMarker(final Matcher<Marker> tMatcher) {
-    return Matchers.hasProperty("marker", tMatcher);
+    return PredicateMatcher.matchesPredicate((TestLogRecord l) -> {
+      for (Marker m : l.getMarkers()) {
+        if (tMatcher.matches(m)) {
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   public static Matcher<TestLogRecord> hasMarker(final Marker marker) {
-    return Matchers.hasProperty("marker", Matchers.equalTo(marker));
+    return PredicateMatcher.matchesPredicate((TestLogRecord l) -> {
+      for (Marker m : l.getMarkers()) {
+        if (m.equals(marker)) {
+          return true;
+        }
+      }
+      return false;
+    });
+  }
+
+  public static Matcher<TestLogRecord> hasKV(final String key, final Object value) {
+    return PredicateMatcher.matchesPredicate((TestLogRecord l) -> {
+      for (KeyValuePair kv : l.getKVPayload()) {
+        if (kv.key.equals(key) && Objects.equals(kv.value, value)) {
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   public static Matcher<TestLogRecord> hasMatchingMessage(final Matcher<String> tMatcher) {
-    return Matchers.hasProperty("message", tMatcher);
+    return PredicateMatcher.matchesPredicate((TestLogRecord l) -> {
+      return tMatcher.matches(l.getMessage());
+    });
   }
 
   public static Matcher<TestLogRecord> hasMessage(final String message) {
-    return Matchers.hasProperty("message", Matchers.equalTo(message));
+    return PredicateMatcher.matchesPredicate((TestLogRecord l) -> {
+      return l.getMessage().equals(message);
+    });
   }
 
   public static Matcher<TestLogRecord> hasMessageWithPattern(final String messagePattern) {
-    return Matchers.hasProperty("message", PatternMatcher.matchesPattern(messagePattern));
+    return PredicateMatcher.matchesPredicate((TestLogRecord l) -> {
+      return PatternMatcher.matchesPattern(messagePattern).matches(l.getMessage());
+    });
   }
 
   public static Matcher<TestLogRecord> hasLevel(final Level level) {

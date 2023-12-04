@@ -35,7 +35,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
-import org.spf4j.base.Arrays;
+import org.slf4j.spi.LoggingEventBuilder;
 
 /**
  *
@@ -45,78 +45,65 @@ public final class LogUtils {
 
   private LogUtils() {
   }
+  
+  @Nullable
+  public static org.slf4j.event.Level getLowestEnabledLevel(final Logger log, @Nullable final Marker marker) {
+    if (marker == null) {
+      if (log.isTraceEnabled()) {
+        return org.slf4j.event.Level.TRACE;
+      }
+      if (log.isDebugEnabled()) {
+        return org.slf4j.event.Level.DEBUG;
+      }
+      if (log.isInfoEnabled()) {
+        return org.slf4j.event.Level.INFO;
+      }
+      if (log.isWarnEnabled()) {
+        return org.slf4j.event.Level.WARN;
+      }
+      if (log.isErrorEnabled()) {
+        return org.slf4j.event.Level.ERROR;
+      }
+    } else {
+      if (log.isTraceEnabled(marker)) {
+        return org.slf4j.event.Level.TRACE;
+      }
+      if (log.isDebugEnabled(marker)) {
+        return org.slf4j.event.Level.DEBUG;
+      }
+      if (log.isInfoEnabled(marker)) {
+        return org.slf4j.event.Level.INFO;
+      }
+      if (log.isWarnEnabled(marker)) {
+        return org.slf4j.event.Level.WARN;
+      }
+      if (log.isErrorEnabled(marker)) {
+        return org.slf4j.event.Level.ERROR;
+      }
+    }
+    return null;
+  }
 
   @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})
   public static void logUpgrade(final Logger log, @Nullable final Marker marker, final Level level,
           final String format, final Object... pargs) {
-    Object[] args = pargs;
-    switch (level) {
-      case TRACE:
-        if (log.isTraceEnabled()) {
-          if (marker == null) {
-            log.trace(format, args);
-          } else {
-            log.trace(marker, format, args);
-          }
-          break;
-        } else {
-          if (args == pargs) {
-            args = Arrays.append(args, LogAttribute.origLevel(level));
-          }
-        }
-      case DEBUG:
-        if (log.isDebugEnabled()) {
-          if (marker == null) {
-            log.debug(format, args);
-          } else {
-            log.debug(marker, format, args);
-          }
-          break;
-        } else {
-          if (args == pargs) {
-            args = Arrays.append(args, LogAttribute.origLevel(level));
-          }
-        }
-      case INFO:
-        if (log.isInfoEnabled()) {
-          if (marker == null) {
-            log.info(format, args);
-          } else {
-            log.info(marker, format, args);
-          }
-          break;
-        } else {
-          if (args == pargs) {
-            args = Arrays.append(args, LogAttribute.origLevel(level));
-          }
-        }
-      case WARN:
-        if (log.isWarnEnabled()) {
-          if (marker == null) {
-            log.warn(format, args);
-          } else {
-            log.warn(marker, format, args);
-          }
-          break;
-        } else {
-          if (args == pargs) {
-            args = Arrays.append(args, LogAttribute.origLevel(level));
-          }
-        }
-      case ERROR:
-        if (log.isErrorEnabled()) {
-          if (marker == null) {
-            log.error(format, args);
-          } else {
-            log.error(marker, format, args);
-          }
-          break;
-        } else {
-          throw new IllegalStateException("Error not enabled for  " + log.getName());
-        }
-      default:
-        throw new IllegalStateException("Invalid level " + level);
+    org.slf4j.event.Level slf4jLevel = level.getSlf4jLevel();
+    if (slf4jLevel == null) {
+      return;
     }
+    org.slf4j.event.Level lowestEnabledLevel = getLowestEnabledLevel(log, marker);
+    if (lowestEnabledLevel == null) {
+      return;
+    }
+    org.slf4j.event.Level logAt =  lowestEnabledLevel.toInt() > slf4jLevel.toInt() ? lowestEnabledLevel : slf4jLevel;
+    LoggingEventBuilder builder = log.atLevel(logAt);
+    if (marker != null) {
+      builder = builder.addMarker(marker);
+    }
+    if (logAt != slf4jLevel) {
+      builder = builder.addKeyValue("origLevel", slf4jLevel);
+    }
+    builder.log(format, pargs);
   }
 
   @SuppressFBWarnings({"SA_LOCAL_SELF_COMPARISON", "SF_SWITCH_FALLTHROUGH"})

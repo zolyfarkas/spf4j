@@ -48,9 +48,6 @@ import org.spf4j.base.ExecutionContexts;
 import org.spf4j.base.XCollectors;
 import org.spf4j.log.Level;
 import org.spf4j.test.log.junit4.Spf4jTestLogRunListenerSingleton;
-//CHECKSTYLE:OFF
-import sun.misc.Contended;
-//CHECKSTYLE:ON
 
 /**
  * @author Zoltan Farkas
@@ -75,7 +72,6 @@ public final class TestLoggers implements ILoggerFactory {
   }
 
   @GuardedBy("sync")
-  @Contended
   private volatile LogConfig config;
 
   public static TestLoggers sys() {

@@ -24,12 +24,14 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Marker;
+import org.slf4j.event.KeyValuePair;
 import org.spf4j.base.Arrays;
 import org.spf4j.base.JsonWriteable;
 import org.spf4j.base.Slf4jMessageFormatter;
@@ -40,7 +42,6 @@ import org.spf4j.io.ObjectAppenderSupplier;
 /**
  * @author Zoltan Farkas
  */
-
 @SuppressFBWarnings("LO_SUSPECT_LOG_PARAMETER")
 @ParametersAreNonnullByDefault
 @ThreadSafe
@@ -50,15 +51,15 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   private final String loggerName;
   private final Level level;
   private final long timeStamp;
-  private final Marker marker;
+  private final List<Marker> markers;
   private final String messageFormat;
   private final Object[] arguments;
+  private final List<KeyValuePair> keyValues;
   private volatile int startExtra;
   @Nullable
   private volatile String message;
   private volatile boolean isLogged;
   private Set<Object> attachments;
-
 
   public Slf4jLogRecordImpl(final String logger, final Level level,
           final String format, final Object... arguments) {
@@ -67,24 +68,36 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   public Slf4jLogRecordImpl(final String logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
-   this(false, logger, level, marker, System.currentTimeMillis(), format, arguments);
+    this(false, logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
-  public Slf4jLogRecordImpl(final boolean  isLogged, final String logger, final Level level,
+  public Slf4jLogRecordImpl(final boolean isLogged, final String logger, final Level level,
           @Nullable final Marker marker, final String format, final Object... arguments) {
-   this(isLogged, logger, level, marker, System.currentTimeMillis(), format, arguments);
+    this(isLogged, logger, level, marker, System.currentTimeMillis(), format, arguments);
   }
 
   @SuppressFBWarnings("EI_EXPOSE_REP2")
   public Slf4jLogRecordImpl(final boolean isLogged, final String logger, final Level level,
-          @Nullable final Marker marker,  final long timestampMillis,
+          @Nullable final Marker marker, final long timestampMillis,
+          final String format, final Object... arguments) {
+    this(isLogged, logger, level,
+            marker == null ? Collections.emptyList() : Collections.singletonList(marker),
+            Collections.emptyList(),
+            timestampMillis,
+            format, arguments);
+  }
+
+  @SuppressFBWarnings("EI_EXPOSE_REP2")
+  public Slf4jLogRecordImpl(final boolean isLogged, final String logger, final Level level,
+          final List<Marker> markers, final List<KeyValuePair> keyValues, final long timestampMillis,
           final String format, final Object... arguments) {
     this.loggerName = logger;
     this.level = level;
     this.timeStamp = timestampMillis;
-    this.marker = marker;
+    this.markers = markers != null ? markers : Collections.emptyList();
     this.messageFormat = format;
     this.arguments = arguments;
+    this.keyValues = keyValues;
     this.threadName = Thread.currentThread().getName();
     this.startExtra = -1;
     this.message = null;
@@ -107,11 +120,9 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     return timeStamp;
   }
 
-  @Nullable
-  @Override
   @SuppressFBWarnings("EI_EXPOSE_REP")
-  public final Marker getMarker() {
-    return marker;
+  public final List<Marker> getMarkers() {
+    return markers;
   }
 
   @Override
@@ -130,7 +141,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   public final int getNrMessageArguments() {
     int sx = this.startExtra;
     if (sx < 0) {
-        sx = Slf4jMessageFormatter.getFormatParameterNumber(messageFormat);
+      sx = Slf4jMessageFormatter.getFormatParameterNumber(messageFormat);
       this.startExtra = sx;
     }
     return sx;
@@ -170,7 +181,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
   public final Object[] getExtraArgumentsRaw() {
     int sx = getNrMessageArguments();
     if (sx < arguments.length) {
-        return java.util.Arrays.copyOfRange(arguments, sx, arguments.length);
+      return java.util.Arrays.copyOfRange(arguments, sx, arguments.length);
     } else {
       return Arrays.EMPTY_OBJ_ARRAY;
     }
@@ -190,7 +201,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
         for (int j = sx; j < arguments.length; j++) {
           Object argument = arguments[j];
           if (!(argument instanceof Throwable)) {
-            result[i++]  =  argument;
+            result[i++] = argument;
           }
         }
         return result;
@@ -200,7 +211,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     }
   }
 
-  private  int getNrExtraThrowables() {
+  private int getNrExtraThrowables() {
     int sx = getNrMessageArguments();
     int count = 0;
     for (int i = sx; i < arguments.length; i++) {
@@ -232,6 +243,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   /**
    * can be sub-classed to change the string representation.
+   *
    * @return
    */
   @Override
@@ -243,6 +255,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   /**
    * can be sub-classed to change the json representation.
+   *
    * @return
    */
   @Override
@@ -262,7 +275,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     if (extraArguments.length > 0) {
       gen.writeFieldName("xObj");
       gen.writeStartArray();
-      for (Object  obj : extraArguments) {
+      for (Object obj : extraArguments) {
         gen.writeObject(obj);
       }
       gen.writeEndArray();
@@ -283,7 +296,7 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
 
   @Override
   public final void setIsLogged() {
-    isLogged =  true;
+    isLogged = true;
   }
 
   @Override
@@ -304,12 +317,17 @@ public class Slf4jLogRecordImpl implements JsonWriteable, Slf4jLogRecord {
     return attachments.isEmpty() ? attachments : Collections.unmodifiableSet(attachments);
   }
 
+  @Override
+  @SuppressFBWarnings("EI_EXPOSE_REP")
+  public final List<KeyValuePair> getKVPayload() {
+    return keyValues;
+  }
+
   private static final class Lazy {
 
     private static final JsonFactory JSON = new JsonFactory();
 
     private static final ObjectMapper MAPPER = new ObjectMapper(JSON);
   }
-
 
 }

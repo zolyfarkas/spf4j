@@ -665,7 +665,7 @@ public final class Runtime {
 
     @JmxExport
     public static org.spf4j.base.avro.PackageInfo getPackageInfo(@JmxExport("className") final String className) {
-      return PackageInfo.getPackageInfo(className);
+      return PackageInfo.getPackageInfo(className).toAvro();
     }
 
     @JmxExport

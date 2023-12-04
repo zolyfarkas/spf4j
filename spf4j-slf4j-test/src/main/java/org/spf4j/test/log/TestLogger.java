@@ -22,16 +22,15 @@ import java.util.function.Supplier;
 import javax.annotation.concurrent.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+import org.slf4j.event.LoggingEvent;
+import org.slf4j.spi.LoggingEventAware;
 import org.spf4j.log.Level;
-//CHECKSTYLE:OFF
-import sun.misc.Contended;
-//CHECKSTYLE:ON
 
 /**
  * @author Zoltan Farkas
  */
 @ThreadSafe
-public final class TestLogger implements Logger {
+public final class TestLogger implements Logger, LoggingEventAware {
 
   private final String name;
 
@@ -60,7 +59,6 @@ public final class TestLogger implements Logger {
 
     private final Level level;
 
-    @Contended
     private volatile LogConfigConsumer cfgConsumer;
 
     ConsumerSupplier(final Level level) {
@@ -110,6 +108,16 @@ public final class TestLogger implements Logger {
     LogConsumer consumer = consumers.get(level).get();
     if (consumer != null) {
       consumer.accept(new TestLogRecordImpl(name, level, marker, msg, args));
+    }
+  }
+  
+  public void log(final LoggingEvent event) {
+    final org.slf4j.event.Level level = event.getLevel();
+    Level spf4jLevel = Level.valueOf(level);
+    LogConsumer consumer = consumers.get(spf4jLevel).get();
+    if (consumer != null) {
+      consumer.accept(new TestLogRecordImpl(name, spf4jLevel, event.getMarkers(),
+              event.getKeyValuePairs(), event.getTimeStamp(), event.getMessage(), event.getArgumentArray()));
     }
   }
 
