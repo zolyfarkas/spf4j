@@ -71,7 +71,7 @@ public final class SntpClientTest {
   }
 
   @Test
-  public void test2() throws IOException {
+  public void test2() throws IOException, InterruptedException, TimeoutException {
     try (Closeable runUdpServer = runUdpServer(false)) {
       Timing timing = SntpClient.requestTime("localhost", 50123, 20);
       long currentTimeMachine = System.currentTimeMillis();
@@ -105,18 +105,19 @@ public final class SntpClientTest {
     Assert.assertTrue(Math.abs(currentTimeMillis - readTimeStamp) < 2);
   }
 
-  public static Closeable runUdpServer(final boolean hickup) {
+  public static Closeable runUdpServer(final boolean hickup) throws InterruptedException,
+          TimeoutException, IOException {
 
     return new Closeable() {
       private volatile boolean terminated = false;
+      private final DatagramSocket socket = RetryPolicy.defaultPolicy().call(
+                  () -> new DatagramSocket(50123), IOException.class, 2, TimeUnit.MINUTES);
       private Future<?> server = org.spf4j.concurrent.DefaultExecutor.INSTANCE.submit(new AbstractRunnable(true) {
 
         @Override
         @SuppressFBWarnings("MDM_THREAD_YIELD") // not ideal
-        public void doRun() throws IOException, InterruptedException, TimeoutException {
+        public void doRun() throws IOException, InterruptedException {
           boolean first = true;
-          try (DatagramSocket socket = RetryPolicy.defaultPolicy().call(
-                  () -> new DatagramSocket(50123), IOException.class, 2, TimeUnit.MINUTES)) {
             socket.setSoTimeout(1000);
             byte[] buffer = new byte[48];
             DatagramPacket request = new DatagramPacket(buffer, buffer.length);
@@ -142,7 +143,6 @@ public final class SntpClientTest {
               socket.send(response);
               LOG.debug("Server reply to {} with {}", request.getPort(), buffer);
             }
-          }
         }
       });
 
@@ -150,6 +150,7 @@ public final class SntpClientTest {
       public void close() {
         terminated = true;
         server.cancel(true);
+        socket.close();
       }
     };
 
