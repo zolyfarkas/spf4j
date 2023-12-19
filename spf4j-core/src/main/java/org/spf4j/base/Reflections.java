@@ -86,7 +86,7 @@ public final class Reflections {
         f = Method.class.getDeclaredField("parameterTypes");
         f.setAccessible(true);
       } catch (NoSuchFieldException | SecurityException ex) {
-        Logger.getLogger(Reflections.class.getName()).log(Level.INFO,
+        Logger.getLogger(Reflections.class.getName()).log(Level.FINE,
                 "Para type stealing from Method not supported", ex);
         f = null;
       }
@@ -98,7 +98,7 @@ public final class Reflections {
         f = Constructor.class.getDeclaredField("parameterTypes");
         f.setAccessible(true);
       } catch (NoSuchFieldException | SecurityException ex) {
-        Logger.getLogger(Reflections.class.getName()).log(Level.INFO,
+        Logger.getLogger(Reflections.class.getName()).log(Level.FINE,
                 "Para type stealing from Constructor not supported", ex);
         f = null;
       }
