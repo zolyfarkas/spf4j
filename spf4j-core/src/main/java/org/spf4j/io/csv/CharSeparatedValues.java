@@ -288,7 +288,7 @@ public final class CharSeparatedValues {
     if (firstChar != UTF_BOM && firstChar >= 0) {
       reader.unread(firstChar);
     }
-    return readerNoBOMILEL(reader);
+    return readerNoBOM(reader);
   }
 
   /**
