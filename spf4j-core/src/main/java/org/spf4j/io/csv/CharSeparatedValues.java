@@ -397,9 +397,6 @@ public final class CharSeparatedValues {
   public int readCsvElement(final Reader reader, final StringBuilder addElemTo, final long lineNr)
           throws IOException, CsvParseException {
     int c = reader.read();
-    if (c < 0) {
-      return c;
-    }
     if (c == '"') {
       c = reader.read();
       while (c >= 0) {
@@ -421,7 +418,7 @@ public final class CharSeparatedValues {
       }
       throw new CsvParseException("Escaped CSV element " + addElemTo + " not terminated correctly at " + lineNr);
     } else {
-      while (c != separator && c != '\n' && c != '\r' && c >= 0) {
+      while (c != separator && c != '\n' && c != '\r' && c != -1) {
         addElemTo.append((char) c);
         c = reader.read();
       }

@@ -84,7 +84,7 @@ public final class Csv {
       try {
         row = readRow(propertyVal);
       } catch (CsvParseException ex) {
-         throw new RuntimeException("Unable to parser property " + propertyName + " = " + propertyVal, ex);
+        throw new RuntimeException("Unable to parser property " + propertyName + " = " + propertyVal, ex);
       }
       return row.toArray(new String[row.size()]);
     }
@@ -171,9 +171,9 @@ public final class Csv {
   }
 
   /**
-   * read a CSV stream, as a Iterable over rows.
-   * the List<String> instance is reused during iteration, you will need to copy content into
-   * own data structure.
+   * read a CSV stream, as a Iterable over rows. the List<String> instance is reused during iteration, you will need to
+   * copy content into own data structure.
+   *
    * @param preader
    * @return
    */
@@ -236,9 +236,6 @@ public final class Csv {
   @CheckReturnValue
   public static int readCsvElement(final Reader reader, final StringBuilder addElemTo) throws IOException {
     int c = reader.read();
-    if (c < 0) {
-      return c;
-    }
     if (c == '"') {
       c = reader.read();
       while (c >= 0) {
@@ -259,9 +256,17 @@ public final class Csv {
         c = reader.read();
       }
     } else {
-      while (c != ',' && c != '\n' && c != '\r' && c >= 0) {
-        addElemTo.append((char) c);
-        c = reader.read();
+      while (true) {
+        switch (c) {
+          case ',':
+          case '\n':
+          case '\r':
+          case -1:
+            return c;
+          default:
+            addElemTo.append((char) c);
+            c = reader.read();
+        }
       }
     }
     return c;
