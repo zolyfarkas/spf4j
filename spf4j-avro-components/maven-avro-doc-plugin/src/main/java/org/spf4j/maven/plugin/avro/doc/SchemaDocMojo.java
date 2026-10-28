@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -47,8 +48,6 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 @Mojo(name = "avro-doc", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, requiresProject = true)
 public final class SchemaDocMojo extends AbstractMojo {
-
-  private static final Object PARSE_LOCK = new Object();
 
   /**
    * The directory containing the avro schema files (*.avsc) to document.
@@ -111,26 +110,19 @@ public final class SchemaDocMojo extends AbstractMojo {
   /**
    * Parse a schema file, tolerating undefined (custom) logical types: they are frequent in spf4j
    * schemas (for example the "any" logical type), and a documentation tool should render them,
-   * not fail on them. The avro parser honors the allowUndefinedLogicalTypes system property,
-   * which is set (and restored) around the parse. The property is JVM global, so the
-   * set/parse/restore sequence is serialized: parallel module builds (mvn -T) must not
-   * restore the property while another module is parsing.
+   * not fail on them. The parser tolerance is switched on through the thread local override
+   * (the same mechanism org.apache.avro.ExtendedParser uses): no JVM global state is touched,
+   * so parallel module builds (mvn -T) cannot interfere with each other.
    */
   @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP") // a fresh parser per file is required,
   // schema files redefine the same named types
   static Schema parseSchema(final File avsc) throws IOException {
-    synchronized (PARSE_LOCK) {
-      String previous = System.getProperty("allowUndefinedLogicalTypes");
-      System.setProperty("allowUndefinedLogicalTypes", "true");
-      try {
-        return new Schema.Parser().parse(avsc);
-      } finally {
-        if (previous == null) {
-          System.clearProperty("allowUndefinedLogicalTypes");
-        } else {
-          System.setProperty("allowUndefinedLogicalTypes", previous);
-        }
-      }
+    Boolean previous = LogicalTypes.getAllowUndefinedLogicalTypesThreadLocal();
+    LogicalTypes.setAllowUndefinedLogicalTypesThreadLocal(Boolean.TRUE);
+    try {
+      return new Schema.Parser().parse(avsc);
+    } finally {
+      LogicalTypes.setAllowUndefinedLogicalTypesThreadLocal(previous);
     }
   }
 

@@ -43,7 +43,6 @@ import org.apache.avro.Schema;
  *
  * @author Zoltan Farkas
  */
-@SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this class; all values are escaped
 final class AvroDocRenderer {
 
   private static final String CSS = loadResource("avrodoc.css");
@@ -129,6 +128,7 @@ final class AvroDocRenderer {
    * @param title the page title.
    * @param types the named types to document, keyed by full name.
    */
+  @SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this method; values are escaped
   static void render(final Appendable out, final String title, final Map<String, Schema> types) throws IOException {
     List<Schema> sorted = new ArrayList<>(types.values());
     Collections.sort(sorted, Comparator.comparing(Schema::getFullName));
@@ -168,6 +168,7 @@ final class AvroDocRenderer {
     out.append("</body></html>\n");
   }
 
+  @SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this method; values are escaped
   private static void renderType(final Appendable html, final Schema schema,
           final Map<String, Schema> types) throws IOException {
     Schema.Type type = schema.getType();
@@ -208,6 +209,7 @@ final class AvroDocRenderer {
     html.append("</section>\n");
   }
 
+  @SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this method; values are escaped
   private static void renderRecord(final Appendable html, final Schema schema,
           final Map<String, Schema> types) throws IOException {
     List<Schema.Field> fields = schema.getFields();
@@ -225,6 +227,7 @@ final class AvroDocRenderer {
     html.append("</table>\n");
   }
 
+  @SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this method; values are escaped
   private static void renderEnum(final Appendable html, final Schema schema) throws IOException {
     String enumDefault = schema.getEnumDefault();
     if (enumDefault != null) {
@@ -237,6 +240,7 @@ final class AvroDocRenderer {
     html.append("</p>\n");
   }
 
+  @SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this method; values are escaped
   static String typeHtml(final Schema schema, final Map<String, Schema> types) {
     switch (schema.getType()) {
       case RECORD:
@@ -314,15 +318,35 @@ final class AvroDocRenderer {
     return inline(doc.replace('\n', ' '));
   }
 
+  @SuppressFBWarnings("PRMC_POSSIBLY_REDUNDANT_METHOD_CALLS") // the indexOf calls scan different offsets
   private static String inline(final String text) {
-    return esc(text)
-            .replaceAll("`([^`]+)`", "<code>$1</code>")
+    // Code spans are literal: no link/bold markup is applied inside backticks.
+    // An unmatched backtick is treated as plain text.
+    StringBuilder result = new StringBuilder(text.length());
+    int pos = 0;
+    while (pos < text.length()) {
+      int open = text.indexOf('`', pos);
+      int close = open < 0 ? -1 : text.indexOf('`', open + 1);
+      if (close < 0) {
+        result.append(markup(esc(text.substring(pos))));
+        break;
+      }
+      result.append(markup(esc(text.substring(pos, open))));
+      result.append("<code>").append(esc(text.substring(open + 1, close))).append("</code>");
+      pos = close + 1;
+    }
+    return result.toString();
+  }
+
+  private static String markup(final String escapedText) {
+    return escapedText
             .replaceAll("\\[([^\\]]+)\\]\\((https?://[^)\\s]+)\\)", "<a href=\"$2\">$1</a>")
             .replaceAll("\\*\\*([^*]+)\\*\\*", "<strong>$1</strong>");
   }
 
   static String esc(final String text) {
-    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace("\"", "&quot;").replace("'", "&#39;");
   }
 
 }
