@@ -66,7 +66,23 @@ public class AvroDocRendererTest {
 
   @Test
   public void testEscaping() {
-    Assert.assertEquals("a&lt;b&gt;&amp;&quot;c&quot;", AvroDocRenderer.esc("a<b>&\"c\""));
+    Assert.assertEquals("a&lt;b&gt;&amp;&quot;c&#39;d&quot;", AvroDocRenderer.esc("a<b>&\"c'd\""));
+  }
+
+  @Test
+  public void testCodeSpanIsLiteral() {
+    String html = AvroDocRenderer.docHtml("Use `**not bold** [x](https://example.com)` literally,"
+            + " but **this** is bold and [this](https://example.com) is a link.");
+    Assert.assertTrue(html.contains("<code>**not bold** [x](https://example.com)</code>"));
+    Assert.assertTrue(html.contains("<strong>this</strong>"));
+    Assert.assertTrue(html.contains("<a href=\"https://example.com\">this</a>"));
+  }
+
+  @Test
+  public void testUnmatchedBacktickIsPlainText() {
+    String html = AvroDocRenderer.docHtml("a `b c");
+    Assert.assertFalse(html.contains("<code>"));
+    Assert.assertTrue(html.contains("a `b c"));
   }
 
   @Test
