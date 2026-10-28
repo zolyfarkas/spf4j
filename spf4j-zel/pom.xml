@@ -172,39 +172,20 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
       </plugin>
-      <!-- install avrodoc -->
+      <!-- Generate avrodoc (pure java, no node.js) -->
       <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.0</version>
-        <!-- executions go here -->
+        <groupId>org.spf4j</groupId>
+        <artifactId>maven-avro-doc-plugin</artifactId>
+        <version>${project.version}</version>
         <executions>
           <execution>
-            <id>install node and npm</id>
-            <phase>generate-resources</phase>
+            <id>generate avrodoc for all schemas</id>
+            <phase>prepare-package</phase>
             <goals>
-              <goal>install-node-and-npm</goal>
+              <goal>avro-doc</goal>
             </goals>
-            <configuration>
-              <nodeVersion>v4.4.4</nodeVersion>
-              <npmVersion>2.15.1</npmVersion>
-            </configuration>
-          </execution>
-          <execution>
-            <id>install AVRODOC</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>install avrodoc -g</arguments>
-            </configuration>
           </execution>
         </executions>
-        <configuration>
-          <skip>${skip.avrodoc}</skip>
-          <installDirectory>${project.basedir}/target</installDirectory>
-        </configuration>
       </plugin>
 
 
@@ -264,29 +245,6 @@
             </configuration>
           </execution>
 
-          <execution>
-            <id>generate avrodoc for all schemas</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <skip>${skip.avrodoc}</skip>
-              <target>
-                <fileset id="fileset" dir="${project.basedir}/target/generated-sources/avsc">
-                  <include name="**/*.avsc" />
-                </fileset>
-                <pathconvert refid="fileset" property="converted" pathsep=" ">
-                  <globmapper from="${project.basedir}/target/generated-sources/avsc/*" to="*" />
-                </pathconvert>
-                <exec executable="${project.basedir}/target/node/node" dir="${project.basedir}/target/generated-sources/avsc">
-                  <arg value="${project.basedir}/target/lib/node_modules/avrodoc/bin/avrodoc" />
-                  <arg line="${converted}" />
-                  <arg value="-o${project.basedir}/target/avrodoc.html" />
-                </exec>
-              </target>
-            </configuration>
-          </execution>
           <execution>
             <phase>site</phase>
             <goals>
