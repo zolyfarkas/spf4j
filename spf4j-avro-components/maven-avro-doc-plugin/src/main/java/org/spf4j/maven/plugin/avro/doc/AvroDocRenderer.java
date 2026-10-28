@@ -17,6 +17,10 @@ package org.spf4j.maven.plugin.avro.doc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.apache.avro.JsonProperties;
 import org.apache.avro.LogicalType;
 import org.apache.avro.Schema;
 
@@ -33,61 +38,36 @@ import org.apache.avro.Schema;
  * a filterable type index grouped by namespace, one section per named type
  * (record, enum or fixed) with doc strings, field tables, defaults and the raw JSON schema.
  * Pure java replacement for the unmaintained node.js based avrodoc tool (https://github.com/ept/avrodoc).
+ * The page style (avrodoc.css) and filter script (avrodoc.js) are resources of this plugin,
+ * inlined into the generated page.
  *
  * @author Zoltan Farkas
  */
 @SuppressFBWarnings("CBX_CUSTOM_BUILT_XML") // building HTML is the purpose of this class; all values are escaped
 final class AvroDocRenderer {
 
-  private static final String CSS = "body{margin:0;font-family:-apple-system,\"Segoe UI\",Roboto,"
-          + "\"Helvetica Neue\",Arial,sans-serif;color:#1f2933;background:#f5f7fa}"
-          + "header.top{background:#102a43;color:#fff;padding:1.2em 2em}"
-          + "header.top h1{margin:0;font-size:1.5em}"
-          + "header.top p{margin:.3em 0 0;color:#bcccdc}"
-          + ".layout{display:flex;align-items:flex-start}"
-          + "nav.toc{position:sticky;top:0;width:300px;min-width:300px;height:100vh;overflow:auto;"
-          + "background:#fff;border-right:1px solid #d9e2ec;padding:1em}"
-          + "nav.toc input{width:100%;padding:.45em .6em;border:1px solid #d9e2ec;border-radius:4px;"
-          + "margin-bottom:.8em}"
-          + "nav.toc .ns{font-weight:600;color:#627d98;margin:.8em 0 .3em;font-size:.85em;"
-          + "text-transform:uppercase;letter-spacing:.04em}"
-          + "nav.toc a{display:block;padding:.18em .4em;color:#0b5cad;text-decoration:none;border-radius:3px;"
-          + "font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em}"
-          + "nav.toc a:hover{background:#f5f7fa}"
-          + "main{flex:1;padding:1.5em 2em;max-width:1100px}"
-          + "section.type{background:#fff;border:1px solid #d9e2ec;border-radius:6px;margin-bottom:1.5em;"
-          + "padding:1em 1.2em}"
-          + "section.type h2{margin:.1em 0 .4em;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.15em}"
-          + ".badge{display:inline-block;vertical-align:middle;font-size:.65em;font-weight:700;"
-          + "letter-spacing:.05em;padding:.15em .5em;border-radius:3px;color:#fff;margin-left:.5em}"
-          + ".badge.record{background:#0b5cad}.badge.enum{background:#7c3aed}.badge.fixed{background:#627d98}"
-          + ".aliases{color:#627d98;font-size:.9em}"
-          + "table.fields{border-collapse:collapse;width:100%;margin-top:.6em}"
-          + "table.fields th,table.fields td{border-top:1px solid #d9e2ec;padding:.45em .6em;text-align:left;"
-          + "vertical-align:top}"
-          + "table.fields th{color:#627d98;font-size:.8em;text-transform:uppercase;letter-spacing:.04em}"
-          + "code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#f0f4f8;padding:.05em .3em;"
-          + "border-radius:3px}"
-          + "td.default code{background:none;color:#627d98}"
-          + ".sym{display:inline-block;background:#f3e8ff;border:1px solid #e9d5ff;color:#5b21b6;"
-          + "border-radius:3px;padding:.1em .5em;margin:.15em .2em .15em 0;"
-          + "font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em}"
-          + "details.json{margin-top:.8em}details.json summary{cursor:pointer;color:#0b5cad;font-size:.9em}"
-          + "details.json pre{background:#102a43;color:#d9e2ec;padding:1em;border-radius:6px;overflow:auto;"
-          + "font-size:.8em}"
-          + "a{color:#0b5cad}.logical{color:#627d98;font-size:.85em}.doc p{margin:.4em 0}"
-          + "footer{color:#627d98;padding:0 2em 2em;font-size:.85em}"
-          + "@media(max-width:800px){.layout{flex-direction:column}nav.toc{position:static;width:100%;"
-          + "min-width:0;height:auto}}";
+  private static final String CSS = loadResource("avrodoc.css");
 
-  private static final String JS = "document.getElementById('filter').addEventListener('input',function(e){"
-          + "var q=e.target.value.toLowerCase();"
-          + "document.querySelectorAll('section.type').forEach(function(s){"
-          + "s.style.display=s.id.toLowerCase().indexOf(q)>=0?'':'none';});"
-          + "document.querySelectorAll('nav.toc a').forEach(function(a){"
-          + "a.style.display=a.textContent.toLowerCase().indexOf(q)>=0?'':'none';});});";
+  private static final String JS = loadResource("avrodoc.js");
 
   private AvroDocRenderer() {
+  }
+
+  private static String loadResource(final String name) {
+    try (InputStream in = AvroDocRenderer.class.getResourceAsStream(name)) {
+      if (in == null) {
+        throw new IllegalStateException("Missing resource " + name);
+      }
+      ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+      byte[] chunk = new byte[4096];
+      int read;
+      while ((read = in.read(chunk)) != -1) {
+        buffer.write(chunk, 0, read);
+      }
+      return new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+    } catch (IOException ex) {
+      throw new IllegalStateException("Cannot load resource " + name, ex);
+    }
   }
 
   /**
@@ -141,7 +121,15 @@ final class AvroDocRenderer {
     return count;
   }
 
-  static String render(final String title, final Map<String, Schema> types) {
+  /**
+   * Write the documentation page for the given types to the appendable (a file writer, a string
+   * builder, ...), so large schema sets never have to be materialized as one string.
+   *
+   * @param out the destination.
+   * @param title the page title.
+   * @param types the named types to document, keyed by full name.
+   */
+  static void render(final Appendable out, final String title, final Map<String, Schema> types) throws IOException {
     List<Schema> sorted = new ArrayList<>(types.values());
     Collections.sort(sorted, Comparator.comparing(Schema::getFullName));
     Map<String, List<Schema>> byNamespace = new TreeMap<>();
@@ -150,43 +138,38 @@ final class AvroDocRenderer {
       if (namespace == null) {
         namespace = "";
       }
-      List<Schema> group = byNamespace.get(namespace);
-      if (group == null) {
-        group = new ArrayList<>();
-        byNamespace.put(namespace, group);
-      }
-      group.add(schema);
+      byNamespace.computeIfAbsent(namespace, (k) -> new ArrayList<>()).add(schema);
     }
-    StringBuilder html = new StringBuilder(65536);
-    html.append("<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\">");
-    html.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-    html.append("<title>").append(esc(title)).append(" - avro schema documentation</title>");
-    html.append("<style>").append(CSS).append("</style></head><body>\n");
-    html.append("<header class=\"top\"><h1>").append(esc(title)).append("</h1>");
-    html.append("<p>").append(sorted.size()).append(" types, ").append(countFields(types))
-            .append(" fields, ").append(byNamespace.size()).append(" namespaces</p></header>\n");
-    html.append("<div class=\"layout\"><nav class=\"toc\">");
-    html.append("<input id=\"filter\" type=\"search\" placeholder=\"Filter types...\" aria-label=\"Filter types\">");
+    out.append("<!DOCTYPE html>\n<html><head><meta charset=\"utf-8\">");
+    out.append("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+    out.append("<title>").append(esc(title)).append(" - avro schema documentation</title>");
+    out.append("<style>").append(CSS).append("</style></head><body>\n");
+    out.append("<header class=\"top\"><h1>").append(esc(title)).append("</h1>");
+    out.append("<p>").append(String.valueOf(sorted.size())).append(" types, ")
+            .append(String.valueOf(countFields(types)))
+            .append(" fields, ").append(String.valueOf(byNamespace.size())).append(" namespaces</p></header>\n");
+    out.append("<div class=\"layout\"><nav class=\"toc\">");
+    out.append("<input id=\"filter\" type=\"search\" placeholder=\"Filter types...\" aria-label=\"Filter types\">");
     for (Map.Entry<String, List<Schema>> entry : byNamespace.entrySet()) {
-      html.append("<div class=\"ns\">").append(entry.getKey().isEmpty() ? "(no namespace)" : esc(entry.getKey()))
+      out.append("<div class=\"ns\">").append(entry.getKey().isEmpty() ? "(no namespace)" : esc(entry.getKey()))
               .append("</div>");
       for (Schema schema : entry.getValue()) {
-        html.append("<a href=\"#").append(schema.getFullName()).append("\">")
+        out.append("<a href=\"#").append(schema.getFullName()).append("\">")
                 .append(esc(schema.getName())).append("</a>");
       }
     }
-    html.append("</nav><main>\n");
+    out.append("</nav><main>\n");
     for (Schema schema : sorted) {
-      renderType(html, schema, types);
+      renderType(out, schema, types);
     }
-    html.append("</main></div>\n");
-    html.append("<footer>Generated by the avro-doc goal of the maven-avro-schema-plugin.</footer>\n");
-    html.append("<script>").append(JS).append("</script>");
-    html.append("</body></html>\n");
-    return html.toString();
+    out.append("</main></div>\n");
+    out.append("<footer>Generated by the avro-doc goal of the maven-avro-doc-plugin.</footer>\n");
+    out.append("<script>").append(JS).append("</script>");
+    out.append("</body></html>\n");
   }
 
-  private static void renderType(final StringBuilder html, final Schema schema, final Map<String, Schema> types) {
+  private static void renderType(final Appendable html, final Schema schema,
+          final Map<String, Schema> types) throws IOException {
     Schema.Type type = schema.getType();
     String typeName = type.getName();
     html.append("<section class=\"type\" id=\"").append(schema.getFullName()).append("\">");
@@ -215,7 +198,7 @@ final class AvroDocRenderer {
         renderEnum(html, schema);
         break;
       case FIXED:
-        html.append("<p>Size: <code>").append(schema.getFixedSize()).append("</code> bytes</p>\n");
+        html.append("<p>Size: <code>").append(String.valueOf(schema.getFixedSize())).append("</code> bytes</p>\n");
         break;
       default:
         break;
@@ -225,7 +208,8 @@ final class AvroDocRenderer {
     html.append("</section>\n");
   }
 
-  private static void renderRecord(final StringBuilder html, final Schema schema, final Map<String, Schema> types) {
+  private static void renderRecord(final Appendable html, final Schema schema,
+          final Map<String, Schema> types) throws IOException {
     List<Schema.Field> fields = schema.getFields();
     if (fields.isEmpty()) {
       html.append("<p>No fields.</p>\n");
@@ -241,7 +225,7 @@ final class AvroDocRenderer {
     html.append("</table>\n");
   }
 
-  private static void renderEnum(final StringBuilder html, final Schema schema) {
+  private static void renderEnum(final Appendable html, final Schema schema) throws IOException {
     String enumDefault = schema.getEnumDefault();
     if (enumDefault != null) {
       html.append("<p>Default: <code>").append(esc(enumDefault)).append("</code></p>\n");
@@ -295,9 +279,8 @@ final class AvroDocRenderer {
     if (dflt == null) {
       return "";
     }
-    // Avro represents an explicit JSON null default with a JsonProperties$Null instance,
-    // whose toString is a useless class@hash; render it as null.
-    if (dflt.getClass().getName().endsWith("$Null")) {
+    // Avro represents an explicit JSON null default with the JsonProperties.NULL_VALUE sentinel.
+    if (dflt == JsonProperties.NULL_VALUE) {
       return "null";
     }
     if (dflt instanceof JsonNode) {
