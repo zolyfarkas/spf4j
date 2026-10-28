@@ -15,6 +15,9 @@
  */
 package org.spf4j.maven.plugin.avro.doc;
 
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.avro.Schema;
@@ -39,7 +42,7 @@ public class AvroDocRendererTest {
           + "]}";
 
   @Test
-  public void testCollectAndRender() {
+  public void testCollectAndRender() throws Exception {
     Schema schema = new Schema.Parser().parse(SCHEMA);
     Map<String, Schema> types = new LinkedHashMap<>();
     AvroDocRenderer.collect(schema, types);
@@ -48,7 +51,9 @@ public class AvroDocRendererTest {
     Assert.assertTrue(types.containsKey("org.example.Status"));
     Assert.assertTrue(types.containsKey("org.example.Hash"));
     Assert.assertEquals(4, AvroDocRenderer.countFields(types));
-    String html = AvroDocRenderer.render("test title", types);
+    StringBuilder out = new StringBuilder();
+    AvroDocRenderer.render(out, "test title", types);
+    String html = out.toString();
     Assert.assertTrue(html.contains("id=\"org.example.TestRecord\""));
     Assert.assertTrue(html.contains("href=\"#org.example.Status\""));
     Assert.assertTrue(html.contains("<span class=\"sym\">DONE</span>"));
@@ -69,14 +74,16 @@ public class AvroDocRendererTest {
     String json = "{\"type\":\"record\",\"name\":\"Any\",\"namespace\":\"org.example\","
             + "\"logicalType\":\"any\",\"doc\":\"Any type\","
             + "\"fields\":[{\"name\":\"content\",\"type\":\"bytes\"}]}";
-    java.io.File file = java.io.File.createTempFile("any", ".avsc");
-    java.nio.file.Files.write(file.toPath(), json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    File file = File.createTempFile("any", ".avsc");
+    Files.write(file.toPath(), json.getBytes(StandardCharsets.UTF_8));
     Schema schema = SchemaDocMojo.parseSchema(file);
     Map<String, Schema> types = new LinkedHashMap<>();
     AvroDocRenderer.collect(schema, types);
     Assert.assertTrue(types.containsKey("org.example.Any"));
-    Assert.assertTrue(AvroDocRenderer.render("t", types).contains("org.example.Any"));
-    java.nio.file.Files.delete(file.toPath());
+    StringBuilder out = new StringBuilder();
+    AvroDocRenderer.render(out, "t", types);
+    Assert.assertTrue(out.toString().contains("org.example.Any"));
+    Files.delete(file.toPath());
   }
 
 }

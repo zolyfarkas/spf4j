@@ -16,6 +16,7 @@
 package org.spf4j.maven.plugin.avro.doc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -46,6 +47,8 @@ import org.apache.maven.plugins.annotations.Parameter;
  */
 @Mojo(name = "avro-doc", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, requiresProject = true)
 public final class SchemaDocMojo extends AbstractMojo {
+
+  private static final Object PARSE_LOCK = new Object();
 
   /**
    * The directory containing the avro schema files (*.avsc) to document.
@@ -89,14 +92,15 @@ public final class SchemaDocMojo extends AbstractMojo {
         throw new MojoExecutionException("Cannot parse schema " + avsc, ex);
       }
     }
-    String html = AvroDocRenderer.render(docTitle, types);
     Path out = docOutputFile.toPath();
     try {
       Path parent = out.getParent();
       if (parent != null) {
         Files.createDirectories(parent);
       }
-      Files.write(out, html.getBytes(StandardCharsets.UTF_8));
+      try (BufferedWriter writer = Files.newBufferedWriter(out, StandardCharsets.UTF_8)) {
+        AvroDocRenderer.render(writer, docTitle, types);
+      }
     } catch (IOException ex) {
       throw new MojoExecutionException("Cannot write documentation to " + out, ex);
     }
@@ -108,20 +112,24 @@ public final class SchemaDocMojo extends AbstractMojo {
    * Parse a schema file, tolerating undefined (custom) logical types: they are frequent in spf4j
    * schemas (for example the "any" logical type), and a documentation tool should render them,
    * not fail on them. The avro parser honors the allowUndefinedLogicalTypes system property,
-   * which is set (and restored) around the parse.
+   * which is set (and restored) around the parse. The property is JVM global, so the
+   * set/parse/restore sequence is serialized: parallel module builds (mvn -T) must not
+   * restore the property while another module is parsing.
    */
   @SuppressFBWarnings("PCAIL_POSSIBLE_CONSTANT_ALLOCATION_IN_LOOP") // a fresh parser per file is required,
   // schema files redefine the same named types
   static Schema parseSchema(final File avsc) throws IOException {
-    String previous = System.getProperty("allowUndefinedLogicalTypes");
-    System.setProperty("allowUndefinedLogicalTypes", "true");
-    try {
-      return new Schema.Parser().parse(avsc);
-    } finally {
-      if (previous == null) {
-        System.clearProperty("allowUndefinedLogicalTypes");
-      } else {
-        System.setProperty("allowUndefinedLogicalTypes", previous);
+    synchronized (PARSE_LOCK) {
+      String previous = System.getProperty("allowUndefinedLogicalTypes");
+      System.setProperty("allowUndefinedLogicalTypes", "true");
+      try {
+        return new Schema.Parser().parse(avsc);
+      } finally {
+        if (previous == null) {
+          System.clearProperty("allowUndefinedLogicalTypes");
+        } else {
+          System.setProperty("allowUndefinedLogicalTypes", previous);
+        }
       }
     }
   }
