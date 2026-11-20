@@ -97,6 +97,7 @@ public final class ApiChangesMojo
    * @param aLocale
    * @throws MavenReportException
    */
+  @Override
   public void generate(final Sink aSink, final SinkFactory aSinkFactory, final Locale aLocale)
           throws MavenReportException {
     if (!canGenerateReport()) {
@@ -130,15 +131,6 @@ public final class ApiChangesMojo
 
   }
 
-
-  @Override
-  public void generate(final org.codehaus.doxia.sink.Sink sink, final Locale locale) throws MavenReportException {
-    try {
-      execute();
-    } catch (MojoExecutionException ex) {
-      throw new MavenReportException("Failed to exec report: " + this, ex);
-    }
-  }
 
   @Override
   public String getDescription(final Locale locale) {
