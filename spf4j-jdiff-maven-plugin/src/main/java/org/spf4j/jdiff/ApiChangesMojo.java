@@ -31,6 +31,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.reporting.MavenMultiPageReport;
 import org.apache.maven.reporting.MavenReport;
 import org.apache.maven.reporting.MavenReportException;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -44,7 +45,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 @Execute(phase = LifecyclePhase.VERIFY)
 public final class ApiChangesMojo
         extends BaseJDiffMojo
-        implements MavenReport {
+        implements MavenMultiPageReport {
 
   /**
    * The version range to compute diff for.
@@ -87,6 +88,19 @@ public final class ApiChangesMojo
 
   public String getName(final Locale locale) {
     return "JDiff Reports";
+  }
+
+  /**
+   * This method is called when the report generation is invoked by the maven-reporting API with a single sink.
+   *
+   * @param aSink
+   * @param aLocale
+   * @throws MavenReportException
+   */
+  @Override
+  public void generate(final Sink aSink, final Locale aLocale)
+          throws MavenReportException {
+    generate(aSink, null, aLocale);
   }
 
   /**
