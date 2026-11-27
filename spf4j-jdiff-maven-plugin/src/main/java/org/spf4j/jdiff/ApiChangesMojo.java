@@ -31,6 +31,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.reporting.MavenMultiPageReport;
 import org.apache.maven.reporting.MavenReport;
 import org.apache.maven.reporting.MavenReportException;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
@@ -44,7 +45,7 @@ import org.eclipse.aether.resolution.VersionRangeResolutionException;
 @Execute(phase = LifecyclePhase.VERIFY)
 public final class ApiChangesMojo
         extends BaseJDiffMojo
-        implements MavenReport {
+        implements MavenMultiPageReport {
 
   /**
    * The version range to compute diff for.
@@ -90,12 +91,25 @@ public final class ApiChangesMojo
   }
 
   /**
-   * This method is called when the report generation is invoked by maven-site-plugin.
+   * Generates the report into a single sink, delegating to the multi-page variant without a sink factory.
    *
-   * @param aSink
-   * @param aSinkFactory
-   * @param aLocale
-   * @throws MavenReportException
+   * @param aSink the sink to write to.
+   * @param aLocale the report locale.
+   * @throws MavenReportException if the report generation fails.
+   */
+  @Override
+  public void generate(final Sink aSink, final Locale aLocale)
+          throws MavenReportException {
+    generate(aSink, null, aLocale);
+  }
+
+  /**
+   * Generates the report. The sink and sink factory are not used, the report is written by {@link #execute()}.
+   *
+   * @param aSink the sink to write to, unused.
+   * @param aSinkFactory the factory for additional sinks, unused, can be null.
+   * @param aLocale the report locale.
+   * @throws MavenReportException if the report generation fails.
    */
   @Override
   public void generate(final Sink aSink, final SinkFactory aSinkFactory, final Locale aLocale)
