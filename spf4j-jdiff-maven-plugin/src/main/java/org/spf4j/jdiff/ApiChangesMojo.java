@@ -91,11 +91,11 @@ public final class ApiChangesMojo
   }
 
   /**
-   * This method is called when the report generation is invoked by the maven-reporting API with a single sink.
+   * Generates the report into a single sink, delegating to the multi-page variant without a sink factory.
    *
-   * @param aSink
-   * @param aLocale
-   * @throws MavenReportException
+   * @param aSink the sink to write to.
+   * @param aLocale the report locale.
+   * @throws MavenReportException if the report generation fails.
    */
   @Override
   public void generate(final Sink aSink, final Locale aLocale)
@@ -104,12 +104,12 @@ public final class ApiChangesMojo
   }
 
   /**
-   * This method is called when the report generation is invoked by maven-site-plugin.
+   * Generates the report. The sink and sink factory are not used, the report is written by {@link #execute()}.
    *
-   * @param aSink
-   * @param aSinkFactory
-   * @param aLocale
-   * @throws MavenReportException
+   * @param aSink the sink to write to, unused.
+   * @param aSinkFactory the factory for additional sinks, unused, can be null.
+   * @param aLocale the report locale.
+   * @throws MavenReportException if the report generation fails.
    */
   @Override
   public void generate(final Sink aSink, final SinkFactory aSinkFactory, final Locale aLocale)
